@@ -14,6 +14,8 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-05-20
+
 ## [0.1.0] — 2026-05-20
 
 ### Added
@@ -26,5 +28,6 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 - Status-line hook (`hooks/skills-update-banner.js`) for ambient version notification
 - `skills.json` machine-readable manifest
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v0.2.0...HEAD
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
+[0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
