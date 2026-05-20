@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Mikefluff/skills/main/docs/skills.schema.json",
   "collection": "Mikefluff/skills",
-  "version": "0.4.1",
+  "version": "1.0.0",
   "repo": "https://github.com/Mikefluff/skills",
   "license": "MIT",
   "skills": [

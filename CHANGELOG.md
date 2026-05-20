@@ -14,6 +14,8 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-05-20
+
 ### Changed — decoupled from author's specific LaTeX book project
 
 The collection no longer assumes any specific book repository, LaTeX build, or character canon. Skills now work on any text file (`.md` / `.tex` / `.txt` / etc.) and any prose project — the editorial rules, voice principles, regex catalogues, and structural patterns stay intact; only the bindings to one author's particular setup are gone.
@@ -104,9 +106,10 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v1.0.0...HEAD
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0
 [0.4.0]: https://github.com/Mikefluff/skills/releases/tag/v0.4.0
 [0.4.1]: https://github.com/Mikefluff/skills/releases/tag/v0.4.1
+[1.0.0]: https://github.com/Mikefluff/skills/releases/tag/v1.0.0
