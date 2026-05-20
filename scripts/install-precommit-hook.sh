@@ -43,7 +43,12 @@ if [ -n "$staged_md" ]; then
   while IFS= read -r f; do
     [ -f "$ROOT/$f" ] || continue
     case "$f" in
+      # Calibration fixtures intentionally contain neuroslop
       */examples/before-after.md|tests/fixtures/*) continue ;;
+      # Anti-pattern catalogues quote the patterns they document
+      */references/banned-patterns*.md|common/references/banned-patterns*.md) continue ;;
+      # CHANGELOG quotes new linter categories when shipping them
+      CHANGELOG.md) continue ;;
     esac
     code=0
     python3 "$ROOT/writer/scripts/lint.py" "$ROOT/$f" --quiet || code=$?

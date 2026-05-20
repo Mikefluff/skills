@@ -10,16 +10,24 @@ you feel about telling them.
 
 ## EN — banned openers
 
+**Excitement preambles** (release notes / landing / outreach):
+
 - "We're excited to announce …"
 - "We're thrilled to share …"
 - "We're proud to introduce …"
 - "We're delighted to present …"
 - "We're pleased to inform you that …"
 - "We're happy to let you know …"
-- "I hope this email finds you well, …"
+
+**Email-greeting preambles** (cold email):
+
+- "I hope this email finds you well."
+- "I hope you're doing great."
+- "Trust this email finds you in good spirits."
+- "Hope all is well."
+- "Hope you're doing well!"
 - "I just wanted to reach out about …"
 - "I'm reaching out because …"
-- "Hope you're doing well!"
 
 **Rule:** start with the change, the value, or the question. The reader will
 infer your excitement from the substance.

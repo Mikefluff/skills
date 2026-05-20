@@ -10,16 +10,18 @@ Every pattern here is an automatic strip. Do not soften them — remove or rewri
 
 ## Ceremony openers (strip on sight)
 
-- "I hope this email finds you well."
-- "I hope you're doing great."
-- "Trust this email finds you in good spirits."
-- "Hope all is well."
+Greeting preambles ("I hope this email finds you well", "Hope all is well", etc.) live in
+[`common/references/banned-patterns-preambles.md`](../../common/references/banned-patterns-preambles.md).
+The base linter catches them under `WEAK_OPENER`.
+
+Outreach-specific ceremony — strip these too:
+
 - "I'll keep this brief."
 - "I know you're busy, so I'll get right to the point."
 - "Sorry for the cold email."
 - "Apologies for reaching out unsolicited."
 
-Why banned: they cost ~15 words before saying anything. If you respect the recipient's time, prove it by getting to the point — don't announce it.
+Why banned: they announce a behavior instead of demonstrating it. If you respect the recipient's time, prove it by getting to the point — don't promise it.
 
 ---
 
