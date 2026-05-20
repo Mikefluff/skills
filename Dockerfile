@@ -64,6 +64,13 @@ COPY pelevin-digression/ /skills/pelevin-digression/
 COPY skills-update/     /skills/skills-update/
 COPY tone-shifter/      /skills/tone-shifter/
 COPY cold-email/        /skills/cold-email/
+COPY image-prompt/      /skills/image-prompt/
+COPY video-prompt/      /skills/video-prompt/
+COPY microcopy/         /skills/microcopy/
+COPY release-notes/     /skills/release-notes/
+COPY rfc-writer/        /skills/rfc-writer/
+COPY landing-copy/      /skills/landing-copy/
+COPY common/            /skills/common/
 
 # Helper scripts the entrypoint dispatches to
 COPY scripts/coverage.py /skills/scripts/coverage.py

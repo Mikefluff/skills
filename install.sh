@@ -360,6 +360,7 @@ cmd_uninstall() {
   for s in $installed; do
     log "  • $s"
   done
+  [ -d "$PREFIX/common" ] && log "  • common/ (shared references)"
   log "  • .skills-collection.json (marker)"
   log ""
 
@@ -377,6 +378,10 @@ cmd_uninstall() {
       note "$s already absent"
     fi
   done
+  if [ -d "$PREFIX/common" ]; then
+    run rm -rf "$PREFIX/common"
+    ok "removed common/ (shared references)"
+  fi
   run rm -f "$PREFIX/.skills-collection.json"
   ok "uninstalled"
   log ""

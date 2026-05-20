@@ -2,10 +2,11 @@
 """
 writer-lint — offline regex linter for the writer skill.
 
-Catches a high-recall subset of the 23 neuroslop categories defined in
-writer/SKILL.md. Does NOT replace the full 4-layer cleaning pass — it is meant
-as a fast pre-check ("does this draft already look like LLM output?") before
-asking Claude to apply writer in clean/apply mode.
+Catches a high-recall subset of the 28 neuroslop categories defined in
+writer/SKILL.md (23 original + 5 marketing/product categories added in v1.8).
+Does NOT replace the full 4-layer cleaning pass — it is meant as a fast
+pre-check ("does this draft already look like LLM output?") before asking
+Claude to apply writer in clean/apply mode.
 
 Usage:
     python3 lint.py path/to/text.md

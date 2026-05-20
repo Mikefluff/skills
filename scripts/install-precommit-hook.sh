@@ -49,6 +49,8 @@ if [ -n "$staged_md" ]; then
       */references/banned-patterns*.md|common/references/banned-patterns*.md) continue ;;
       # CHANGELOG quotes new linter categories when shipping them
       CHANGELOG.md) continue ;;
+      # User guide and launch drafts cite banned patterns as examples
+      docs/USER-GUIDE.md|docs/LAUNCH-POST.md|docs/launch-posts/*) continue ;;
     esac
     code=0
     python3 "$ROOT/writer/scripts/lint.py" "$ROOT/$f" --quiet || code=$?

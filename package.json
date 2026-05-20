@@ -1,6 +1,6 @@
 {
   "name": "@mikefluff/skills",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "description": "17 Claude Code skills for editing prose, marketing copy, release notes, RFCs, cold outreach, and AI image/video prompts. Offline regex linter (28 categories) catches LLM-prose tells in EN + RU.",
   "keywords": [
     "claude",

@@ -40,7 +40,7 @@ Then open Claude Code — skills are auto-discovered by name. No `~/.claude/sett
 
 Seventeen skills layered on top of one base linter (`writer`):
 
-- **Base**: `writer` strips 23 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill in the collection.
+- **Base**: `writer` strips 28 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill in the collection.
 - **Wrappers** (call `writer` automatically): `viral-text` for social posts, `prose-edit` for fiction, `essay-write` for non-fiction longreads, `pelevin-digression` for opt-in voice inserts, `tone-shifter` for register changes, `cold-email` for outreach.
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint, `translation-sync` for multilingual parity, `canon-check` for story-bible consistency.
 - **Meta**: `skills-update` checks for new releases of this collection and applies them on confirmation.
