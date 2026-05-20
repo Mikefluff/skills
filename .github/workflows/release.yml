@@ -22,6 +22,7 @@ on:
 
 permissions:
   contents: write
+  actions: write  # needed to trigger docker.yml on tag publication
 
 jobs:
   release:
@@ -103,3 +104,12 @@ jobs:
           body_path: /tmp/release-notes.md
           generate_release_notes: false
           make_latest: 'true'
+
+      - name: trigger docker workflow for the new tag
+        if: steps.bump.outputs.level != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # GITHUB_TOKEN's tag-push does not auto-trigger docker.yml.
+          # Explicitly dispatch it so the new v<X.Y.Z> image gets built.
+          gh workflow run docker.yml --ref "${{ steps.bumped.outputs.tag }}"
