@@ -14,6 +14,8 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+## [1.9.0] — 2026-05-20
+
 ### Added — sprint v1.9 distribution + visibility
 
 - **Refreshed launch-post drafts** — `docs/LAUNCH-POST.md` rewritten as an
@@ -522,7 +524,7 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v1.8.1...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v1.9.0...HEAD
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0
@@ -540,3 +542,4 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 [1.7.0]: https://github.com/Mikefluff/skills/releases/tag/v1.7.0
 [1.8.0]: https://github.com/Mikefluff/skills/releases/tag/v1.8.0
 [1.8.1]: https://github.com/Mikefluff/skills/releases/tag/v1.8.1
+[1.9.0]: https://github.com/Mikefluff/skills/releases/tag/v1.9.0
