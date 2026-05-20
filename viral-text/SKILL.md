@@ -1,6 +1,6 @@
 ---
 name: viral-text
-description: "Write viral social media content using the project's proven methodology — hooks, numbered points, NLP questions, CTA. Built on top of the writer skill (clean-prose engine)."
+description: "Write viral social media content using the project's proven methodology — hooks, numbered points, NLP questions, CTA. Wraps `writer` (clean-prose engine)."
 license: MIT
 allowed-tools:
   - Read
