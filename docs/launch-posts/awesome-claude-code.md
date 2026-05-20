@@ -1,39 +1,62 @@
-# awesome-claude-code PR
+# awesome-claude-code submission
 
-Target list: <https://github.com/hesreallyhim/awesome-claude-code> (or the active awesome-claude-code fork at the time of submission).
+Target: <https://github.com/hesreallyhim/awesome-claude-code>
 
-Likely section: "Skills" or "Prose / Writing" — check the active README first.
+> [!IMPORTANT]
+> **Submissions go through the issue form, not a PR.** The repo's CONTRIBUTING.md
+> says: "Do not open a PR. Just fill out the form." Submitting via PR — or via
+> `gh` CLI — risks a temporary or permanent ban. Recommendations must be created
+> by a human via the web UI.
 
-## Short entry (one-line)
+## How to submit
 
-```markdown
-- [Mikefluff/skills](https://github.com/Mikefluff/skills) — 17 prose / marketing / tech-docs / outreach / visual-prompt skills layered on a Python regex linter that catches 28 categories of LLM-prose tells (EN + RU). MIT.
+1. Open the issue form: <https://github.com/hesreallyhim/awesome-claude-code/issues/new?template=recommend-resource.yml>
+2. Fill in the fields below.
+3. Submit. A bot will validate the entry; if anything needs adjustment, follow the bot's comments.
+4. After maintainer review, the bot opens a PR automatically and merges it.
+
+## Form fields
+
+| Field | Value |
+| --- | --- |
+| Display Name | `Mikefluff/skills` |
+| Primary Link | `https://github.com/Mikefluff/skills` |
+| Secondary Link (optional) | `https://github.com/Mikefluff/skills/blob/main/docs/USER-GUIDE.md` |
+| Category | `Agent Skills` |
+| Sub-Category | `General` |
+| Author Name | `Mikefluff` |
+| Author Link | `https://github.com/Mikefluff` |
+| License | `MIT` |
+
+## Description (copy-paste)
+
+```
+17 Claude Code skills for editing prose, marketing copy, release notes, RFCs, cold outreach, and AI image/video prompts. Built around an offline Python regex linter that catches 28 categories of LLM-prose tells (EN + RU) with severity tags and code-fence-aware scanning. Wrappers: viral-text, prose-edit, essay-write, tone-shifter, pelevin-digression, cold-email, landing-copy, release-notes, rfc-writer, microcopy, image-prompt, video-prompt. Read-only linters: style-check (pre-commit gate), translation-sync (RU↔EN↔PT-BR parity), canon-check (story-bible consistency for fiction). Install via curl, npm (`@mikefluff/skills`), Homebrew (`mikefluff/tap/skills`), or Docker (`ghcr.io/mikefluff/skills`).
 ```
 
-## Long entry (if format expects a paragraph)
+## What the bot validates
 
-```markdown
-### Mikefluff/skills
+Per the repo's CONTRIBUTING.md, the automation checks:
 
-**[github.com/Mikefluff/skills](https://github.com/Mikefluff/skills)** — 17 Claude Code skills for editing prose, marketing copy, release notes, RFCs, cold outreach, and AI image/video prompts without LLM-tells. Built around an offline Python regex linter that catches 28 categories of AI-prose patterns (EN + RU) with severity tags and code-fence-aware scanning. Wrappers: viral-text, prose-edit, essay-write, tone-shifter, pelevin-digression, cold-email, landing-copy, release-notes, rfc-writer, microcopy, image-prompt, video-prompt. Read-only linters: style-check (pre-commit gate), translation-sync (RU↔EN↔PT-BR parity), canon-check (story-bible consistency). MIT. Install via curl, Docker (`ghcr.io/mikefluff/skills`), npm (`@mikefluff/skills`), or Homebrew (`mikefluff/tap/skills`).
-```
+- All required fields are filled
+- URLs are valid and accessible
+- No duplicate resources exist
+- License information (when available)
+- Description length and quality
 
-## PR opening message
+If something fails, the bot leaves a comment with the fix. Edit your submission and the bot revalidates.
 
-```markdown
-Adds Mikefluff/skills to the [section name] section.
+## After submission
 
-This is a collection of 17 Claude Code skills that I open-sourced after using them for a year of long-form writing + marketing copy. The base is an offline Python regex linter (`writer/scripts/lint.py`) that catches 28 categories of LLM-prose tells in EN + RU. Twelve wrappers compose on top for different domains (fiction, non-fiction, viral social, cold email, landing copy, release notes, RFCs, microcopy, AI image/video prompts). Three read-only linters handle pre-commit gating, multilingual translation parity, and story-bible consistency for fiction.
+Watch the issue for bot feedback. After maintainer approval, the bot creates and merges the PR automatically — you don't need to do anything manual on the PR.
 
-MIT-licensed. Available via curl/Docker/npm/Homebrew. CI/CD with conventional-commits → semver auto-release.
+Once merged, the new entry is live at <https://github.com/hesreallyhim/awesome-claude-code> in the Agent Skills section.
 
-Happy to adjust the entry placement or description if a different section makes more sense.
-```
+## Why this isn't an automated step
 
-## Submission checklist
+Two of the repo's hard rules block automation here:
 
-- [ ] Fork the awesome-claude-code repo
-- [ ] Add the entry in alphabetical order within its section
-- [ ] Verify all links in the entry resolve
-- [ ] Open the PR with the message above
-- [ ] After merge, share the link in [LAUNCH-POST tracking](../LAUNCH-POST.md)
+1. "Resource recommendations must be created by human beings."
+2. "It is not possible to submit a resource recommendation using the `gh` CLI."
+
+Combined with the explicit warning against PR submissions, the path is a manual web-UI issue form. The text above is everything needed — paste-ready.
