@@ -8,11 +8,17 @@ A "skill" here is a self-contained Markdown package that Claude loads on demand:
 
 ## Skills in this repo
 
-| Skill | Purpose |
-|---|---|
-| [`writer`](writer/) | Базовый редактор-стилист чистой прозы. Антинейрослоп (23 категории), типографика, структурная синтетика (стаккато / двойные отрицания / обрубки / инверсии / повторы), RU-калек словарь. Подключается из любого текстового скилла (`viral-text`, `prose-edit`, `essay-write`) как обязательный финальный шаг pipeline. |
+Скиллы организованы по слоям: один базовый редактор (`writer`) + четыре обёртки/линтера поверх него.
 
-Будущие скиллы добавляются как отдельные подпапки рядом с `writer/`.
+| Skill | Layer | Purpose |
+|---|---|---|
+| [`writer`](writer/) | base | Базовый редактор-стилист чистой прозы. Антинейрослоп (23 категории), типографика, структурная синтетика (стаккато / двойные отрицания / обрубки / инверсии / повторы), RU-калек словарь. Подключается из любого текстового скилла как обязательный финальный шаг pipeline. Может вызываться напрямую (`clean` / `lint` / `apply`). |
+| [`viral-text`](viral-text/) | wrapper | Write viral social media content (RU/EN) — hooks, 5 numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules, hook criteria, research via WebSearch, platform adaptation (Telegram/Threads/Instagram/Twitter/LinkedIn/Facebook), Layer A+B validation. Built on top of `writer`. |
+| [`prose-edit`](prose-edit/) | wrapper | Художественный рерайт для книг автора. Голос (Пелевин/Мэнсон), 10-item style drift checklist, canon-check, NO meta-refs / NO anglicisms in narrator voice, длинный артистический рерайт вместо сокращения, AB ToV pattern, 5-trigger structural synthesis detector, anti-tautology checklist. |
+| [`essay-write`](essay-write/) | wrapper | Нон-фикшн (главы НК, лонгриды, эссе). Длинные сложноподчинённые (Мэнсон-стиль), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content, anti-academic-pathos bans, sparing-with-metaphors. |
+| [`style-check`](style-check/) | linter | Read-only pre-commit lint поверх writer/prose-edit/essay-write. Auto-routes по пути файла (`books/god-academy/` → художка; `books/heavenly-code/` → нон-фикшн), severity levels (BLOCKING/WARNING/INFO), exit-code semantics для git hook. |
+
+Будущие скиллы добавляются как отдельные подпапки рядом с существующими.
 
 ---
 
@@ -46,7 +52,9 @@ A "skill" here is a self-contained Markdown package that Claude loads on demand:
 ln -s "$(pwd)/writer" ~/.claude/skills/writer
 ```
 
-После этого Claude Code увидит скилл в списке доступных. Триггер: `/writer` (если поддерживается user-invocable) или автоматически по описанию из frontmatter.
+После этого Claude Code увидит скилл в списке доступных. Триггер: `/writer` (если поддерживается user-invocable) или автоматически по описанию из frontmatter. Аналогично для остальных (`viral-text`, `prose-edit`, `essay-write`, `style-check`).
+
+Если ставишь набор целиком — обязательно линковать `writer` первым, поскольку остальные на него ссылаются.
 
 ### Вариант 2 — клонировать репо и подложить весь набор
 
