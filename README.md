@@ -7,7 +7,7 @@
 
 A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills for editing prose without producing text that reads like LLM output. Russian-first, English-capable.
 
-**Fourteen skills**, one base linter + nine wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
+**Seventeen skills**, one base linter + twelve wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
 
 ---
 
@@ -50,6 +50,9 @@ Quick scenario picker:
 | Generate an AI image prompt (Midjourney/DALL-E/Flux) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-image-prompt) |
 | Generate an AI video prompt (Kling/Veo/Sora/Runway) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-video-prompt) |
 | Write UX microcopy (errors, empty states, tooltips, buttons) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-ux-microcopy) |
+| Write release notes / changelogs | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-release-notes) |
+| Write an RFC / ADR / design doc | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-rfc--design-doc) |
+| Write marketing copy (landing / SEO / ads) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-marketing-copy) |
 
 If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESHOOTING.md).
 
@@ -75,6 +78,9 @@ If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESH
 | [`image-prompt`](image-prompt/) | wrapper | en | Write prompts for AI image generators (Midjourney, DALL-E, Flux, Nano Banana, Stable Diffusion). 6-part formula (subject + setting + style + lighting + camera + texture), per-model deltas, negative prompts. |
 | [`video-prompt`](video-prompt/) | wrapper | en | Write prompts for AI video generators (Kling, Veo, Sora, Runway, Pika, Hailuo, Luma). CHARACTER FIRST law, beat structure (Beat 1/2/3), exact camera vocabulary, pacing modes (narrative/action/comedy/documentary/timelapse). |
 | [`microcopy`](microcopy/) | wrapper | en | Write UX microcopy — error messages, empty states, tooltips, button labels, helper text, modals, 404/500 pages, onboarding. Plain language, action-oriented, never blame user, length budgets per element type. Wraps writer for final cleanup. |
+| [`release-notes`](release-notes/) | wrapper | en | Write user-facing release notes + changelogs. Keep-a-Changelog format, sections Added/Changed/Fixed/Deprecated/Removed/Security. Per-audience tone (user/dev/ops). Anti-marketing-fluff bans. Wraps writer. |
+| [`rfc-writer`](rfc-writer/) | wrapper | en | Write engineer-facing design docs — RFCs, ADRs, Tech Specs, Design Docs. Structure: context/problem/proposal/alternatives/consequences/decision. RFC 2119 (MUST/SHOULD/MAY). Review checklist for spotting weak alternatives sections. |
+| [`landing-copy`](landing-copy/) | wrapper | en | Write marketing copy — landing page sections (hero/features/pricing/FAQ), SEO meta (title+description+OG+Twitter), ad copy (Google/Facebook/LinkedIn/X). Julian Shapiro hero formula, char limits per platform. Wraps writer. |
 
 <!-- END skills-table -->
 
@@ -154,7 +160,7 @@ skills/
 │   └── skills-update-banner.js
 ├── tests/                   # fixture snapshots for writer/scripts/lint.py
 ├── .github/                 # workflows + issue/PR templates + SECURITY.md
-└── <skill-name>/            # the 14 skills, one folder each
+└── <skill-name>/            # the 17 skills, one folder each
 ```
 
 ---

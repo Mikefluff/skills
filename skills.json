@@ -172,6 +172,42 @@
       "deps": [
         "writer"
       ]
+    },
+    {
+      "name": "release-notes",
+      "dir": "release-notes",
+      "layer": "wrapper",
+      "description": "Write user-facing release notes + changelogs. Keep-a-Changelog format, sections Added/Changed/Fixed/Deprecated/Removed/Security. Per-audience tone (user/dev/ops). Anti-marketing-fluff bans. Wraps writer.",
+      "languages": [
+        "en"
+      ],
+      "deps": [
+        "writer"
+      ]
+    },
+    {
+      "name": "rfc-writer",
+      "dir": "rfc-writer",
+      "layer": "wrapper",
+      "description": "Write engineer-facing design docs — RFCs, ADRs, Tech Specs, Design Docs. Structure: context/problem/proposal/alternatives/consequences/decision. RFC 2119 (MUST/SHOULD/MAY). Review checklist for spotting weak alternatives sections.",
+      "languages": [
+        "en"
+      ],
+      "deps": [
+        "writer"
+      ]
+    },
+    {
+      "name": "landing-copy",
+      "dir": "landing-copy",
+      "layer": "wrapper",
+      "description": "Write marketing copy — landing page sections (hero/features/pricing/FAQ), SEO meta (title+description+OG+Twitter), ad copy (Google/Facebook/LinkedIn/X). Julian Shapiro hero formula, char limits per platform. Wraps writer.",
+      "languages": [
+        "en"
+      ],
+      "deps": [
+        "writer"
+      ]
     }
   ]
 }

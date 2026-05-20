@@ -29,13 +29,16 @@ Then open Claude Code — skills are auto-discovered by name. No `~/.claude/sett
 | Generate prompts for AI image models (Midjourney / DALL-E / Flux) | [Image-prompt](#i-want-to-write-an-ai-image-prompt) |
 | Generate prompts for AI video models (Kling / Veo / Sora / Runway) | [Video-prompt](#i-want-to-write-an-ai-video-prompt) |
 | Write UX microcopy (errors, empty states, tooltips, buttons) | [Microcopy](#i-want-to-write-ux-microcopy) |
+| Write release notes / changelogs / product update | [Release-notes](#i-want-to-write-release-notes) |
+| Write an RFC / ADR / design doc / tech spec | [RFC-writer](#i-want-to-write-an-rfc--design-doc) |
+| Write landing page / SEO meta / paid ad copy | [Landing-copy](#i-want-to-write-marketing-copy) |
 | Stuck or confused | [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md) |
 
 ---
 
 ## The collection in one paragraph
 
-Fourteen skills layered on top of one base linter (`writer`):
+Seventeen skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 23 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill in the collection.
 - **Wrappers** (call `writer` automatically): `viral-text` for social posts, `prose-edit` for fiction, `essay-write` for non-fiction longreads, `pelevin-digression` for opt-in voice inserts, `tone-shifter` for register changes, `cold-email` for outreach.
@@ -175,6 +178,54 @@ Targets: `kling`, `veo`, `sora`, `runway`, `pika`, `hailuo`, `luma`. Each parses
 ```
 
 Element types: button / error / empty-state / tooltip / helper-text / modal / 404 / 500 / offline / toast / inline-alert / onboarding-card. Length budgets enforced per type (button ≤ 8 words, modal title ≤ 8 words, etc.). Voice defaults to SaaS friendly-professional; override via product-type or brand-voice profile from `tone-shifter`.
+
+---
+
+### "I want to write release notes" {#i-want-to-write-release-notes}
+
+`/release-notes <version> <changes-list>` writes user-facing release notes / changelogs in Keep-a-Changelog format. Sections: Added / Changed / Fixed / Deprecated / Removed / Security. Per-audience tone (end-user / developer / ops).
+
+```
+/release-notes v3.4.0 --from-git v3.3.0..HEAD
+/release-notes v2.5 --audience dev --format github-release
+/release-notes --recap quarterly Q2-2026
+```
+
+Strips marketing fluff ("revolutionary", "we're thrilled to announce"). Past tense for shipped work, ISO dates, specific numbers. For internal design docs → `rfc-writer`. For marketing landing announcements → `landing-copy`.
+
+---
+
+### "I want to write an RFC / design doc" {#i-want-to-write-an-rfc--design-doc}
+
+`/rfc-writer <type> <topic>` writes engineer-facing design documents. Types: `rfc` (proposal under discussion) / `adr` (decision-after-the-fact) / `tech-spec` (HOW to build something decided) / `design-doc` (broad problem-space exploration).
+
+```
+/rfc-writer rfc "Migrate from REST to GraphQL"
+/rfc-writer adr "Use PostgreSQL 16 for Payments service"
+/rfc-writer tech-spec "Payments API v3"
+/rfc-writer --review existing-rfc.md
+```
+
+Structure: context / problem / proposal / alternatives / consequences / decision / open questions. RFC 2119 keywords (MUST / SHOULD / MAY) for normative statements. Forces at-least-2-alternatives + "do nothing" baseline.
+
+---
+
+### "I want to write marketing copy" {#i-want-to-write-marketing-copy}
+
+`/landing-copy <surface> <product-brief>` writes landing page sections, SEO meta tags, and paid ads. Surfaces:
+
+```
+/landing-copy hero "AI code review tool, B2B SaaS, targets eng managers"
+/landing-copy features --count 6
+/landing-copy seo-meta --page homepage
+/landing-copy og-card --page pricing
+/landing-copy google-ad <product> --variants 5
+/landing-copy facebook-ad <product> --variants 3
+/landing-copy linkedin-ad <product>
+/landing-copy twitter-ad <product> --variants 3
+```
+
+Julian Shapiro hero formula, char limits per platform, i18n expansion factor, banned-pattern strip (no "revolutionary" / "world-class" / "Click here"). For viral organic posts → `viral-text`. For product UI strings → `microcopy`.
 
 ---
 

@@ -14,6 +14,63 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — 3 new skills (tech docs + marketing)
+
+Collection now has **17 skills** (was 14). Closes the remaining direction from the
+earlier roadmap: release-notes / RFC writing / marketing copy.
+
+- **`release-notes`** (wrapper, EN). User-facing release notes + changelogs.
+  Keep-a-Changelog format (Security / Breaking / Added / Changed / Deprecated /
+  Removed / Fixed). Per-audience tone (end-user / developer / ops). Per-channel
+  templates (changelog page / GitHub release / email / in-app modal / push /
+  quarterly recap). Anti-marketing-fluff bans ("revolutionary", "we're thrilled
+  to announce", etc.). References:
+  - `sections.md` — Keep-a-Changelog 6 sections + decision rules
+  - `audience-tone.md` — user / dev / ops voice differences + mixed-audience patterns
+  - `structure.md` — version headers, length budgets per output format
+  - `banned-patterns.md` — strip list (marketing hype, vague improvements,
+    feelings preambles, future-tense for shipped work)
+  - 5 calibration before/after pairs (SaaS / API / mobile / major release / recap)
+
+- **`rfc-writer`** (wrapper, EN). Engineer-facing design documents — RFCs, ADRs,
+  Tech Specs, Design Docs. Per-type structure (context / problem / proposal /
+  alternatives / consequences / decision / open questions). RFC 2119 keywords
+  (MUST / SHOULD / MAY) with capitalization rules. Forces at-least-2-alternatives
+  + "do nothing" baseline. References:
+  - `document-types.md` — when to use RFC vs ADR vs Tech Spec vs Design doc
+  - `templates.md` — full section templates per type
+  - `rfc-2119.md` — keyword semantics + usage patterns
+  - `alternatives.md` — how to list fairly, "Why not X?" pattern, comparison tables
+  - `review-checklist.md` — common gaps and weak signals to flag
+  - 4 calibration before/after pairs (ADR / RFC / Tech Spec / Design doc)
+
+- **`landing-copy`** (wrapper, EN). Marketing copy — landing page sections (hero
+  / features / pricing / FAQ / footer), SEO meta (title + description + Open
+  Graph + Twitter cards), paid ad copy (Google Ads RSA / Facebook / LinkedIn /
+  X / Reddit / TikTok). Julian Shapiro 5-step hero formula + 5 alternatives
+  (outcome-led / old-vs-new / quantified / category+qualifier / direct-address
+  / negation-led). Strict char limits per platform with i18n expansion factors.
+  References:
+  - `surfaces.md` — full taxonomy of marketing-copy surfaces + audience-tone mapping
+  - `hero-formula.md` — Julian Shapiro 5-step + 6 alternative formulas + headline/
+    subheadline/CTA rules
+  - `feature-blocks.md` — 3-block / 6-block / detailed-feature patterns + how-it-works
+  - `seo-meta.md` — title + description + OG + Twitter + per-page-type templates
+  - `ad-copy.md` — per-platform templates (Google RSA / FB / LinkedIn / X / Reddit /
+    TikTok) with variant strategy
+  - `char-limits.md` — quick-reference table for every surface
+  - `banned-patterns.md` — marketing hype, vague claims, generic CTAs, fake urgency
+  - 8 calibration before/after pairs (hero / feature / SEO / Google Ad / FB / LinkedIn
+    / Twitter / FAQ)
+
+### Changed
+
+- `skills.json` — +3 new entries (release-notes, rfc-writer, landing-copy)
+- `README.md` — "Seventeen skills, one base linter + twelve wrappers + three
+  linters + one meta-skill"
+- `docs/USER-GUIDE.md` — added 3 use-case sections + scenario picker entries
+- Repo layout in README updated to "17 skills, one folder each"
+
 ## [1.5.0] — 2026-05-20
 
 ### Added — 3 new skills (visual + UX)
