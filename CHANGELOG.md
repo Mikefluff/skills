@@ -14,6 +14,8 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-05-20
+
 ### Added — installer
 - **`install.sh --list`** — print available skills + descriptions and exit.
 - **`install.sh --check`** — compare local install marker to latest release, report status.
@@ -82,7 +84,8 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v0.4.0...HEAD
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0
+[0.4.0]: https://github.com/Mikefluff/skills/releases/tag/v0.4.0
