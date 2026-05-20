@@ -224,3 +224,54 @@ For any video prompt, before submitting, verify:
 - [ ] One camera direction at the end
 - [ ] Lighting source named
 - [ ] Forbidden phrases stripped
+
+---
+
+## Example 6 (RU brief) — Утренний кадр, оживить still для Reels
+
+### Контекст
+
+Пользователь даёт ТЗ на русском: «оживи фотку, где девушка стоит у окна с чашкой кофе утром, нужен мягкий кадр на 5 секунд для Reels, наезд камеры и пар от кофе». Модель — Kling 3.0. Still: фронтальное фото, утренний свет от окна, девушка ~25 лет, держит белую кружку обеими руками, смотрит в окно.
+
+### До (weak — то, как пользователь сразу отдаёт)
+
+```
+Девушка стоит у окна с кофе утром, наезд камеры, пар от кофе, мягкий кадр
+```
+
+What's wrong:
+- RU всё письмо — Kling 3.0 парсит хуже EN
+- «Стоит» — single-pose verb, гарантированный freeze
+- «Наезд камеры» — camera-first нарушает CHARACTER FIRST
+- Нет beat-structure
+- «Пар от кофе» — без timing и continuity Kling нарисует один статичный wisp
+- Нет environment-motion (шторы, свет, дыхание)
+- Нет temporal-flow для Kling (нет «First [0-Xs]: ...»)
+
+### После (Kling 3.0)
+
+```
+First [0-1.5s]: She wraps both hands around the white ceramic mug, slowly lifts it about 5 cm closer to her face, lips parting slightly as warm air from the coffee reaches her skin; her shoulders settle as she exhales once, breath visibly mingling with the rising coffee steam in the cold morning air near the window.
+
+Then [1.5-3.5s]: She tilts the mug to take a small sip — chin dipping, eyelids briefly lowering, throat working in one swallow; the coffee steam continues to rise in a continuous twisting column, individual wisps catching backlight from the window; a single strand of hair falls forward across her cheek and she does not move to fix it.
+
+Finally [3.5-5s]: She lowers the mug back to chest height, both hands still wrapped around it, gaze drifting from the window slightly toward the camera but not fully meeting it; steam continues; her chest rises and falls once more in a slow breath.
+
+Lighting: soft golden hour backlight from the window casting warm rim on her hair and shoulders, gentle cool fill from the room interior, individual dust motes visible in the window beam.
+
+Texture: white ceramic mug with subtle imperfections, coffee surface gently rippling from her breath, knit sweater with visible loops, soft skin texture with natural pores.
+
+Camera: slow dolly push-in across the 5 seconds, ending tight on her face and mug; subtle handheld vibration throughout; rack focus from the steam wisps to her eyes at the midpoint.
+```
+
+### Применённые дельты
+
+- RU «оживи фотку, наезд камеры» → EN cinematic-vocabulary («slow dolly push-in»), камера в самой последней секции (CHARACTER FIRST)
+- «Стоит у окна» → 3-beat действие: подносит, делает глоток, опускает; каждый beat с body-detail
+- «Пар от кофе» → continuous twisting column, individual wisps, catching backlight — конкретная физика, не один кадр
+- Добавлены micro-actions (волос упал, не поправляет; вдох/выдох; глаза не смотрят прямо в камеру) — против frozen-pose
+- Kling temporal-format `First [0-1.5s]... Then [1.5-3.5s]... Finally [3.5-5s]` — обязателен для Kling 3.0
+- Lighting: «утренний мягкий» → golden hour backlight + warm rim + cool fill + dust motes (по таблице из `camera-vocabulary.md` § RU термины → EN)
+- Texture: ceramic imperfections, coffee ripple, sweater loops — даёт модели зацепки для шевеления, не статики
+- Rack focus в середине — мотивирован beat-structure, не «выглядит круто»
+- Промпт собран на EN; RU-объяснение этого выбора живёт только в нашем диалоге с пользователем

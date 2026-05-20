@@ -86,4 +86,14 @@ When the user says any of:
 - "intro me to X via Y"
 - "warm intro template"
 
+RU triggers (use the skill when the user writes any of):
+- "холодное письмо / холодный аутрич / письмо инвестору / письмо рекрутёру"
+- "напиши outreach / напиши письмо ..."
+- "фоллоу-ап / фолоуап / follow-up к ..."
+- "интро через X к Y / попроси Y представить меня"
+- "переоткрыть переписку / re-engage"
+- "перепиши это письмо короче и без воды"
+
 Use this skill. If the message is internal (manager, team, peer who already knows you), use `tone-shifter` with target `friendly-professional` instead.
+
+For RU outreach (formal register, отчества, обращение «вы»), see [`references/structure-ru.md`](references/structure-ru.md) — it overrides a few defaults from `structure.md` (greeting, sign-off, ceremony bans).

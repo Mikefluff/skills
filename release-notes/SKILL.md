@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: "Write user-facing release notes + changelogs. Keep-a-Changelog format, sections Added/Changed/Fixed/Deprecated/Removed/Security. Per-audience tone (user/dev/ops). Anti-marketing-fluff bans. Use when the user says 'release notes for vX.Y.Z', 'changelog entry', 'what's new', 'product update'."
+description: "Write user-facing release notes + changelogs. Keep-a-Changelog format, sections Added/Changed/Fixed/Deprecated/Removed/Security. Per-audience tone (user/dev/ops). Anti-marketing-fluff bans. Wraps `writer`. Use when the user says 'release notes for vX.Y.Z', 'changelog entry', 'what's new', 'product update'."
 license: MIT
 allowed-tools:
   - Read
@@ -105,5 +105,16 @@ When the user says any of:
 - "GitHub release notes"
 - "in-app announcement for the latest version"
 - "draft a release note about ..."
+
+RU triggers (use the skill when the user writes any of):
+- «релизные заметки / релиз-ноуты»
+- «changelog для v3.4 / журнал изменений»
+- «что нового в версии ...»
+- «обнови changelog»
+- «опиши релиз / напиши анонс релиза»
+- «месячная / квартальная сводка по релизам»
+- «текст для in-app анонса нового релиза»
+
+For RU tone (formal B2B, less emoji, числа в RU-формате), see [`references/audience-tone.md`](references/audience-tone.md) section `RU tone notes`.
 
 Use this skill. For internal design docs / RFCs → `rfc-writer`. For marketing landing announcements → `landing-copy`. For viral social posts about the release → `viral-text`.

@@ -1,170 +1,174 @@
-# Composing skills
+# Composing skills — workflow recipes
 
-The 9 skills aren't independent — they're stacked. `writer` is the foundation; everything else either wraps it, lints what it produces, or operates on the collection itself. Knowing which to invoke (and which leaves the others alone) saves a lot of churn.
+The 17 skills aren't independent — they stack. `writer` is the foundation; wrappers extend it; linters audit without mutating; meta-skills manage the collection itself.
 
-## Dependency graph
-
-```
-                                   ┌──────────────┐
-                                   │    writer    │  base (clean prose engine)
-                                   └──────┬───────┘
-              ┌──────────────────────────┼──────────────────────────┐
-              │                          │                          │
-       ┌──────▼──────┐            ┌──────▼──────┐            ┌──────▼──────┐
-       │  viral-text │            │ prose-edit  │            │ essay-write │   wrappers
-       │  (RU / EN)  │            │  (fiction)  │            │ (non-fic)   │
-       └──────┬──────┘            └──────┬──────┘            └──────┬──────┘
-              │                          │                          │
-              │                          └──────────┬───────────────┘
-              │                                     │
-              │                          ┌──────────▼──────────┐
-              │                          │ pelevin-digression  │   optional voice layer
-              │                          │  (one passage at    │   composes with prose-edit
-              │                          │   a time, by ask)   │   or essay-write
-              │                          └─────────────────────┘
-              │
-              │      ┌──────────────────────────────────────────────────┐
-              │      │                                                  │
-       ┌──────▼──────▼──────┐    ┌─────────────────────┐    ┌──────────▼──────────┐
-       │    style-check     │    │   translation-sync  │    │     canon-check     │   linters
-       │  (any text file)   │    │   (RU↔EN↔PT-BR)    │    │  (story-bible audit)│   (read-only)
-       └────────────────────┘    └─────────────────────┘    └─────────────────────┘
-
-                                    ┌─────────────────┐
-                                    │  skills-update  │   meta — manages the collection itself
-                                    └─────────────────┘
-```
-
-**Dependencies declared in `skills.json`:**
-
-| Skill | Depends on |
-|---|---|
-| `writer` | — |
-| `viral-text` | `writer` |
-| `prose-edit` | `writer` |
-| `essay-write` | `writer` |
-| `style-check` | `writer`, `prose-edit`, `essay-write` |
-| `translation-sync` | — |
-| `canon-check` | — |
-| `pelevin-digression` | `writer`, `prose-edit`, `essay-write` |
-| `skills-update` | — |
-
-`viral-text`, `prose-edit`, `essay-write`, and `pelevin-digression` always end their pipeline with a `writer` pass — that's a hard rule, not a suggestion. The linters (`style-check`, `translation-sync`, `canon-check`) don't *invoke* their dependencies — they reference the same rule files for routing.
+This file is the **recipe book**: named workflows showing concrete skill chains for typical jobs.
 
 ---
 
-## When to invoke which
+## Core composition rules
 
-### "I want to write a viral Telegram post"
-→ `/viral-text` directly. It handles hook → 5 points → micro-conclusion → CTA, then runs `writer` cleanup internally.
-
-### "I'm rewriting a fiction chapter"
-→ `/prose-edit` on the file or fragment. It applies fiction voice rules then runs `writer` cleanup. If you have a story bible — chain `/canon-check` separately.
-
-### "I'm drafting a non-fiction chapter / longread"
-→ `/essay-write`. It enforces long subordinate sentences, source-backed claims, V/H/P hypothesis markers, then runs `writer` cleanup.
-
-### "I want a Pelevin-style digression in the middle of a scene"
-→ `/pelevin-digression at <file:line>`. It writes the digression in voice, then chains to `prose-edit` (if you're in a fiction passage) or `essay-write` (non-fic), which themselves chain to `writer`.
-
-**Don't invoke `pelevin-digression` for a whole chapter.** Voice fatigue kills the effect. It's a single-passage tool by design.
-
-### "I want to lint my draft before I commit"
-→ `/style-check staged` (or `/style-check file <path>`). It routes by configurable path patterns — defaults are illustrative (fiction folder → fiction lint, essays folder → non-fic lint), point them at your own paths.
-
-### "I'm about to commit a translated chapter"
-→ `/translation-sync chapter <book> <chN>`. Read-only — produces a parity report across RU / EN / PT-BR versions. Fix what BLOCKING says before committing.
-
-### "I'm worried I broke canon"
-→ `/canon-check chapter <book> <chN>` before editing. Or `/canon-check entity <book> <name>` to see every appearance of a specific character / artifact / location in the corpus.
-
-### "I want a clean editor pass on a draft without all the wrappers"
-→ `/writer clean` directly with the text. Bypasses voice-specific rules — useful for non-book prose (chat messages, emails, README files).
-
-### "I want to know if there's a new version"
-→ `/skills-update`. Or rely on the status-line banner if you've installed the hook (`bash scripts/install-hook.sh`).
+1. **`writer` is the base** — 12 of 17 skills run `writer` as their final cleanup pass. You rarely call `writer` directly except for raw clean-up.
+2. **Linters are read-only** — `style-check`, `translation-sync`, `canon-check` produce reports, never mutate text. Use as quality gates.
+3. **One wrapper per pass** — don't try to chain `prose-edit` + `essay-write` on the same text in one go. Pick the right one for the genre.
+4. **Linters AFTER wrappers** — apply rewrites first, then lint. The opposite order tells you what you already know.
+5. **Meta-skills are operational** — `skills-update` doesn't edit text; it manages the collection.
 
 ---
 
-## Common composition patterns
-
-### Pattern: draft → wrapper → lint → commit
+## Layered architecture
 
 ```
-draft.md → /prose-edit rewrite draft.md → /style-check file draft.md → git commit
-```
+┌─────────────── meta ───────────────┐
+│  skills-update                     │
+└────────────────────────────────────┘
 
-The wrapper does the voice work. `style-check` is a safety net before committing — read-only, doesn't undo what the wrapper did.
+┌─────────────── linters (read-only) ─┐
+│  style-check                        │
+│  translation-sync                   │
+│  canon-check                        │
+└─────────────────────────────────────┘
 
-### Pattern: scene + digression
+┌─────────────── wrappers ────────────┐
+│  Prose:   viral-text, prose-edit,   │
+│           essay-write,              │
+│           pelevin-digression,       │
+│           tone-shifter, cold-email  │
+│  Visual:  image-prompt, video-prompt│
+│  Product: microcopy, release-notes, │
+│           rfc-writer, landing-copy  │
+└─────────────────────────────────────┘
 
-```
-chapter has a flat exposition paragraph at line 142
-  → /pelevin-digression at fiction/ch05.md:142 "брендовая социология двухтысячных"
-    → produces voice-shaped passage
-    → chains to /prose-edit (fiction voice + writer cleanup)
-  → diff shown to author
-  → author commits
-```
-
-### Pattern: parallel translations
-
-```
-finish RU chapter
-  → /translation-sync chapter <your-book> ch07 (parity report)
-  → fix terminology drift in en/ch07.md per report
-  → /style-check file en/ch07.md
-  → commit all 3 files together
-```
-
-### Pattern: introducing a new entity
-
-```
-about to add a new character to ch08 of your series
-  → /canon-check entity <your-book> "<new-name>"  (probably reports "no bible entry")
-  → write the chapter
-  → /canon-check chapter <your-book> ch08  (now flags WARNING: new entity)
-  → manually add bible entry per the WARNING
-  → re-run /canon-check (now INFO: confirmed)
-  → commit
+┌─────────────── base ────────────────┐
+│  writer                             │
+└─────────────────────────────────────┘
 ```
 
 ---
 
-## Anti-patterns (don't do this)
+## Recipe library
 
-### Skipping writer
+### "Ship a SaaS product launch"
+```
+landing-copy → microcopy → release-notes → viral-text (RU) + viral-text (EN)
+```
+landing-copy writes hero + features + pricing; microcopy fills UI strings + 404; release-notes documents what shipped; viral-text generates social announcements per locale.
 
-You CAN'T invoke `viral-text` / `prose-edit` / `essay-write` and tell them "skip the writer pass". The 4-layer cleaning pass is the contract — output is supposed to be ready-to-ship. If you find yourself wanting to skip it, you probably want `writer clean` instead.
+### "Write a fiction chapter, commit-ready"
+```
+prose-edit → pelevin-digression (optional) → canon-check → style-check
+```
+prose-edit rewrites; pelevin-digression inserts voice digressions; canon-check validates against story bible; style-check is the final read-only gate.
 
-### Chaining linters
+### "Verify a multilingual book translation"
+```
+translation-sync (audit) → prose-edit (RU) → tone-shifter (EN) → translation-sync (verify)
+```
+Initial parity audit; polish RU; ensure EN matches register; final parity confirm.
 
-`style-check` already incorporates writer / prose-edit / essay-write *rules*. Don't chain `prose-edit lint` and `style-check` and `writer lint` separately — that's just the same work three times. Use `style-check` alone.
+### "Pitch a startup to investors"
+```
+cold-email (first-touch) → cold-email (follow-up) → landing-copy (hero) → rfc-writer (tech spec for due diligence)
+```
+First-touch; anchored follow-up; landing for the deck; tech spec for engineering audience.
 
-### Applying pelevin-digression to a whole chapter
+### "Generate visual content for a post"
+```
+image-prompt (cover) → video-prompt (Reel) → viral-text (caption)
+```
+Cover image; animate still into reel; caption with hook + CTA.
 
-The voice is designed for 1-3 paragraph inserts. Apply chapter-wide and you get a parody of Pelevin. If you want full-chapter Pelevin voice, that's a `prose-edit` job with a voice flag — not currently supported. File an issue if you need it.
+### "Write a non-fiction longread with sources"
+```
+essay-write → pelevin-digression (optional) → style-check
+```
+Drafts the longread (Manson coda, V/H/P markers); inserts voice flair; gate.
 
-### Editing the story-bible from a chapter PR
+### "Document an architecture decision"
+```
+rfc-writer (RFC) → rfc-writer (ADR after) → release-notes (announce to users)
+```
+RFC opens discussion; ADR captures the decision; release-notes informs users when it ships.
 
-`canon-check` flags drift; the author decides what's canonical. Don't edit your story-bible document and a chapter in the same commit — the bible should change deliberately, with its own commit, after the chapter is settled.
+### "Shift register of existing content"
+```
+tone-shifter (casual → business-formal) → writer (final cleanup)
+```
+Single-pass register shift + writer cleans typography and residue.
 
-### Running translation-sync before all three languages exist
+### "Build out a marketing site"
+```
+landing-copy (hero + features + pricing) → microcopy (UI + 404) → release-notes (changelog page) → SEO meta (in landing-copy)
+```
 
-It assumes parity. Use it when you've just touched all three. For "I'm only editing RU right now", just use `style-check`.
+### "Read-only quality gate (no edits)"
+```
+style-check
+```
+Standalone audit. Returns severity-tagged report; no mutations.
+
+### "Insert a Pelevin-vector digression"
+```
+pelevin-digression → essay-write (non-fic) | prose-edit (fiction)
+```
+Digression as a patch; wrapped by the appropriate parent skill.
+
+### "Story-bible audit"
+```
+canon-check
+```
+Read-only. Returns drift report.
+
+### "Cover the entire content stack for a campaign"
+```
+landing-copy + image-prompt + video-prompt + viral-text + cold-email
+```
+Landing + visuals + organic + outbound. Each independent; cross-links live in your campaign brief.
+
+### "Update the skills collection itself"
+```
+skills-update
+```
+Meta. Checks for newer release, shows CHANGELOG diff, runs install.sh --update.
 
 ---
 
-## Quick reference
+## Skill-to-skill data flow
 
-| You want to … | Invoke | Hard-deps |
-|---|---|---|
-| Write a viral RU/EN post | `/viral-text` | writer |
-| Edit a fiction chapter | `/prose-edit` | writer |
-| Write / edit a non-fiction chapter | `/essay-write` | writer |
-| Insert a Pelevin-voice digression | `/pelevin-digression at <file:line>` | writer + prose-edit OR essay-write |
-| Lint a draft pre-commit | `/style-check` | (reads writer + prose-edit + essay-write rules) |
-| Check translation parity | `/translation-sync` | — |
-| Verify story-bible consistency | `/canon-check` | — |
-| Clean any prose without voice rules | `/writer clean` | — |
-| Check for collection updates | `/skills-update` | — |
+| From | Output | Into | Notes |
+|---|---|---|---|
+| `writer` | cleaned prose | any wrapper | wrapper's final pass |
+| `viral-text` | full post | `style-check` | optional pre-publish gate |
+| `prose-edit` | rewritten chapter | `canon-check` + `style-check` | both gates often run |
+| `essay-write` | drafted essay | `pelevin-digression` → `style-check` | pelevin inserts then gate |
+| `translation-sync` | parity report | (no skill) | author applies fixes |
+| `tone-shifter` | re-voiced passage | `writer` | always |
+| `cold-email` | email body | `writer` | always |
+| `image-prompt` | MJ/DALL-E prompt | (external model) | paste-ready |
+| `video-prompt` | motion prompt | (external model) | paste-ready |
+| `microcopy` | UI strings | `writer` | optional cleanup |
+| `release-notes` | changelog md | `writer` | optional cleanup |
+| `rfc-writer` | RFC/ADR md | `writer` | optional cleanup |
+| `landing-copy` | landing sections | `microcopy` + `writer` | UI strings + cleanup |
+
+---
+
+## Common anti-patterns
+
+❌ **Linting before rewriting** — style-check on a raw draft tells you what the wrapper already knows. Use linters as final gates.
+
+❌ **Stacking two wrappers on the same text** — `prose-edit` + `essay-write` on the same passage = competing rule sets. Pick one for the genre.
+
+❌ **Translating with `tone-shifter`** — tone-shifter shifts register WITHIN a language. For RU↔EN, use `translation-sync` for verification + a wrapper in the target language.
+
+❌ **Marketing copy via `essay-write`** — essay-write is for longread non-fiction; landing copy needs `landing-copy` (different rules, shorter forms).
+
+❌ **`writer` for register shift** — writer cleans LLM-prose tells, doesn't change register. Use `tone-shifter`.
+
+---
+
+## Cross-references
+
+- All 17 skills (auto-generated): [`../README.md#whats-in-the-box`](../README.md#whats-in-the-box)
+- Scenario-based picker: [`USER-GUIDE.md`](USER-GUIDE.md)
+- Walkthroughs (end-to-end flows): [`walkthroughs/`](walkthroughs/)

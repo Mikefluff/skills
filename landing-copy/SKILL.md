@@ -107,4 +107,18 @@ When the user says any of:
 - "Google Ad / Facebook Ad / LinkedIn Ad / Twitter Ad copy"
 - "improve this landing-page copy"
 
+RU triggers (use the skill when the user writes any of):
+- «текст для лендинга / лендинг на русском / копирайт для лендинга»
+- «hero-секция / первый экран / заголовок и подзаголовок»
+- «feature-блоки / описание фич»
+- «текст страницы тарифов / pricing-страницы»
+- «FAQ для лендинга»
+- «SEO meta на русском / тайтл и дескрипшн»
+- «Open Graph для статьи / OG-карточка»
+- «Google Ads на русском / Яндекс.Директ»
+- «реклама ВКонтакте / Telegram Ads / Facebook Ads на русском»
+- «перепиши текст лендинга»
+
+For RU hero patterns (тонкая контроверсия, обращение «вы», числа в RU-формате), see [`references/hero-formula.md`](references/hero-formula.md) section `RU hero patterns`.
+
 Use this skill. For viral organic social posts → `viral-text`. For product-UI strings → `microcopy`. For release announcements → `release-notes`.

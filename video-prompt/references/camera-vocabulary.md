@@ -187,3 +187,72 @@ If you need three things to happen, split into two shots.
 
 ✅ The right form:
 > "Beat 1 (0-2s): {character action}. Beat 2 (2-5s): {escalation}. Beat 3 (5-8s): {resolution}. Camera: slow dolly push-in throughout, locked focus on subject's eyes."
+
+---
+
+## RU термины
+
+Промпт пишется на EN — модели парсят EN-cinematic-vocabulary точно, RU-описания получают через машинный пересказ и теряют термины. Эта секция нужна для двух кейсов: (1) пользователь даёт ТЗ на русском — нужен маппинг в EN-команды; (2) пользователь явно просит RU-промпт (редко — мы согласно правилу выше всё равно собираем EN-промпт и в комментарии даём краткий RU-перевод).
+
+### Cinematic verbs — RU → EN
+
+| RU термин | EN exact term | Когда применять |
+|---|---|---|
+| Наезд (камеры) / приближение | `slow dolly push-in` | Сближение, нарастание интима/тревоги |
+| Быстрый наезд | `fast dolly in` / `crash zoom` | Hook, удар, шок |
+| Отъезд / удаление | `slow dolly pull-back` | Развязка, «отпустить», reveal-через-отъезд |
+| Вертиго / эффект Хичкока | `vertigo effect` (dolly zoom) | Шок, диссоциация, awe |
+| Панорама / поворот вправо | `slow pan right` | Следование за движением, reveal |
+| Панорама / поворот влево | `slow pan left` | То же, в другую сторону |
+| Тилт вверх | `tilt up` | Awe, наклон головы к небу, reveal-высоты |
+| Тилт вниз | `tilt down` | Резиньяция, стыд, посмотреть вниз |
+| Хлёсткая панорама / whip | `whip pan` | Резкий переход энергии внутри одного кадра |
+| Проводка (за объектом) | `following shot` | Преследование, прогулка камера-сзади |
+| Проводка (перед объектом) | `leading shot` | Субъект «надвигается», retreating camera |
+| Параллельная проводка / трекинг сбоку | `lateral tracking shot`, `side tracking alongside subject` | Разговор на ходу, action |
+| Орбит / облёт | `orbit 180`, `fast 360 orbit` | Дамал, climax, реакция, peak energy |
+| Кран / подъём | `crane up` | Эпический финал, reveal масштаба |
+| Кран / спуск | `crane down` | Прибытие, установление сцены |
+| Дрон / облёт сверху | `drone fly-over`, `large-scale drone orbit` | Establishing wide, путешествия |
+| Дрон / пикирование | `FPV drone dive` | Action peak, адреналин |
+| Дрон / вид-сверху-вниз | `top-down god's-eye` | Геометрия, fate-beats |
+| Через окно / проходка камеры | `camera flies through window`, `fly-through gap` | Пространственный переход |
+| Шейкер / тряска плеча | `handheld shoulder-cam drift`, `documentary shaky motion` | Документалистика, intimacy, urgency |
+| Лёгкая вибрация (статика+живость) | `subtle handheld vibration` | Statичный кадр, который не должен быть мёртвым |
+| Голландский угол / завал | `Dutch angle roll` | Тревога, dissonance |
+| Червячий ракурс / снизу-вверх | `worm's-eye tracking` | Сделать объект гигантским |
+| Bullet time | `bullet time` | Iconic peak moment |
+| Гиперлапс | `hyperlapse` | Время + движение |
+| POV / от первого лица | `POV walk`, `first-person view` | Immersion, sport, exploration |
+| Спид-рэмп (замедление/ускорение) | `speed ramp` | Drama-акцент, action-accent |
+| Stopped-frame / стоп-кадр | `freeze frame` | Финальный beat |
+| Резкий зум на лицо | `snap zoom`, `crash zoom` | Hook, reveal, реакция |
+
+### Pacing / emotional-beat — RU → EN
+
+| RU | EN beat |
+|---|---|
+| Хук / зацепка / первый кадр | `hook` |
+| Напряжение | `tension` |
+| Кульминация / пик | `climax` |
+| Передышка / выдох | `breathing` |
+| Развязка | `resolution` |
+| Завязка / установление | `setup` |
+
+### Pacing-режимы
+
+| RU | EN pacing-mode (см. `pacing-modes.md`) |
+|---|---|
+| Нарратив / повествование | `narrative` |
+| Экшен | `action` |
+| Комедия | `comedy` |
+| Документалка | `documentary` |
+| Таймлапс | `timelapse` |
+
+### Когда оставлять RU в промпте
+
+Только если:
+- сцена культурно-специфична (русская баня, советская кухня, провинциальный двор), и модель Sora / Kling 3.0 даёт лучший cultural-context-recall по RU-словам, чем по EN-переводу;
+- пользователь явно просит RU-промпт «для эксперимента» — тогда промпт RU, но cinematic verbs всё равно вставляются EN-словами (`POV walk`, `slow dolly push-in`) внутри RU-описания, потому что модели на эти термины обучены.
+
+Во всех остальных случаях — переводим в EN по таблицам выше, RU остаётся только в нашем диалоге с пользователем.

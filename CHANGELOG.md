@@ -14,6 +14,40 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — sprint v1.7 polish + RU паритет
+
+Coverage parity across all 17 skills + RU support for 7 previously EN-only skills.
+
+- **9 new per-skill snapshot fixtures** for skills lacking baseline tests:
+  `skills-update`, `tone-shifter`, `cold-email`, `image-prompt`, `video-prompt`,
+  `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`. Total fixtures: 23.
+
+- **8 new dedicated walkthroughs** in `docs/walkthroughs/`:
+  `tone-shift.md`, `cold-email-pitch.md`, `image-prompt-cover.md`,
+  `video-prompt-reel.md`, `microcopy-error-states.md`, `release-notes-saas.md`,
+  `rfc-architecture.md`, `landing-launch.md`. Walkthrough count: 17.
+
+- **RU паритет for 7 EN-only skills** (`cold-email`, `image-prompt`,
+  `video-prompt`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`):
+  `languages: ["en", "ru"]` in `skills.json`; RU invocation hints in each
+  `SKILL.md`; RU sections appended to references (RU→EN vocabulary tables,
+  RU-specific tone notes, RU template variants); RU calibration pairs added to
+  `examples/before-after.md`. EN+RU support: 14/17 skills (was 7/17).
+
+- **`skills-update/examples/manifest-example.md`** — local marker JSON example,
+  update flow walkthrough, failure modes table, cache behavior notes.
+
+### Changed
+
+- **`docs/COMPOSING.md`** — full rewrite as 14 named workflow recipes
+  ("Ship a SaaS product launch", "Write a fiction chapter", "Pitch a startup",
+  "Document an architecture decision", etc.). Layered architecture diagram
+  (meta / linters / wrappers / base), skill-to-skill data flow table,
+  anti-patterns section.
+
+- **`cold-email`** — added missing `deps: ["writer"]` in skills.json
+  (description always said "Wraps writer", but the deps array was empty).
+
 ## [1.6.0] — 2026-05-20
 
 ### Added — 3 new skills (tech docs + marketing)
@@ -38,7 +72,7 @@ earlier roadmap: release-notes / RFC writing / marketing copy.
   Tech Specs, Design Docs. Per-type structure (context / problem / proposal /
   alternatives / consequences / decision / open questions). RFC 2119 keywords
   (MUST / SHOULD / MAY) with capitalization rules. Forces at-least-2-alternatives
-  + "do nothing" baseline. References:
+  plus "do nothing" baseline. References:
   - `document-types.md` — when to use RFC vs ADR vs Tech Spec vs Design doc
   - `templates.md` — full section templates per type
   - `rfc-2119.md` — keyword semantics + usage patterns

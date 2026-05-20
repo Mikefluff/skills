@@ -1,0 +1,15 @@
+{
+  "verdict": "clean",
+  "total": 1,
+  "by_category": {
+    "TYPOGRAPHY": 1
+  },
+  "hits": [
+    {
+      "line": 13,
+      "col": 16,
+      "category": "TYPOGRAPHY",
+      "match": "\"Save draft\""
+    }
+  ]
+}

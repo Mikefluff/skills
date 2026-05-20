@@ -149,3 +149,45 @@ The strong-prompt formula reliably wins:
 8. **Negative prompt** addressing the specific image's failure modes
 
 Average word count of the weak prompts above: 4-6 words. Of the strong prompts: 40-80 words. The model needs the specificity to commit; vague input produces vague output.
+
+---
+
+## Example 6 (RU) — Обложка для статьи в RU-блоге
+
+### Контекст
+
+Пользователь пишет статью на русском про выгорание у разработчиков и просит обложку. Целевая площадка — RU-блог / Telegra.ph, формат 16:9. ТЗ от автора на русском: «обложка для лонгрида про выгорание программиста, что-то атмосферное, не баянное, не клавиатура с черепом, не human-with-laptop-stock».
+
+### До (weak — то, как пользователь обычно сразу отдаёт модели)
+
+```
+Обложка для статьи про выгорание программиста, атмосферно
+```
+
+What's wrong:
+- Жанр на RU, остальная модель ждёт EN-tags
+- «Атмосферно» — пустое слово, как "good vibes"
+- Нет subject, setting, lighting, camera, texture
+- Нет negative — почти гарантированно вылезет «human + laptop» стоковый кадр
+
+### После (Midjourney v6)
+
+```
+A solitary man in his thirties sitting on the edge of his unmade bed at 4 AM, monitor in the background still glowing with unfinished code, head bowed, hands resting limp on his knees, editorial documentary photo, low-key lighting — only the cold blue monitor glow from camera-right and a faint warm streetlamp through a half-curtained window from camera-left, 35mm lens f/1.8, full-frame mirrorless, shallow depth of field with sharp focus on his hands, natural skin texture with visible stubble and tired under-eye shadows, crumpled sheets in foreground, scattered coffee cup on the floor, muted desaturated color palette with teal-and-blue cast, cinematic color grading --ar 16:9 --s 250 --style raw --no laptop with skull, generic office, plastic skin, stock photo aesthetic, hopeful expression, sunshine
+```
+
+Negative (если модель поддерживает отдельным полем — Flux / SDXL):
+```
+laptop, keyboard, skull, generic office, stock photo, smiling face, business suit, daylight, sunshine, hopeful, multiple people, text, watermark
+```
+
+### Применённые дельты
+
+- «Программист» → «солитарный мужчина 30+ на краю незастеленной постели в 4 утра» (specific scene вместо абстракции)
+- «Атмосферно» → конкретный low-key + два названных источника света (cold monitor glow + faint streetlamp through curtain) + направление каждого
+- Добавлены EN-теги по таблице из `lighting-vocabulary.md` § RU терминология: «холодный люминесцентный» → cold blue monitor glow; «тёплый ламповый» → warm streetlamp; «низкий ключ» → low-key
+- Добавлены camera-теги (35mm f/1.8, full-frame mirrorless) — обложка должна выглядеть как editorial photo, не cartoon
+- Texture: stubble, tired under-eye, crumpled sheets — добавляет «выгорание» через тело, не через метафору с черепом
+- Negative addresses конкретный риск: «not laptop with skull, not generic office, not hopeful» — три самых частых fallback'а модели для тэга «burnout»
+- MJ params: `--ar 16:9` для обложки лонгрида, `--style raw` чтобы убрать MJ-перестилизацию
+- Промпт остался на EN — модель парсит точнее; RU был только в ТЗ от автора
