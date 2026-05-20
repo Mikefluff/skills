@@ -1,0 +1,69 @@
+{
+  "verdict": "neuroslop suspected",
+  "total": 10,
+  "by_category": {
+    "TYPOGRAPHY": 10
+  },
+  "hits": [
+    {
+      "line": 9,
+      "col": 3,
+      "category": "TYPOGRAPHY",
+      "match": "\"collection\""
+    },
+    {
+      "line": 9,
+      "col": 17,
+      "category": "TYPOGRAPHY",
+      "match": "\"Mikefluff/skills\""
+    },
+    {
+      "line": 10,
+      "col": 3,
+      "category": "TYPOGRAPHY",
+      "match": "\"version\""
+    },
+    {
+      "line": 10,
+      "col": 14,
+      "category": "TYPOGRAPHY",
+      "match": "\"1.5.0\""
+    },
+    {
+      "line": 11,
+      "col": 3,
+      "category": "TYPOGRAPHY",
+      "match": "\"installed_at\""
+    },
+    {
+      "line": 11,
+      "col": 19,
+      "category": "TYPOGRAPHY",
+      "match": "\"2026-05-01T10:00:00Z\""
+    },
+    {
+      "line": 12,
+      "col": 3,
+      "category": "TYPOGRAPHY",
+      "match": "\"skills\""
+    },
+    {
+      "line": 12,
+      "col": 14,
+      "category": "TYPOGRAPHY",
+      "match": "\"writer\""
+    },
+    {
+      "line": 12,
+      "col": 24,
+      "category": "TYPOGRAPHY",
+      "match": "\"viral-text\""
+    },
+    {
+      "line": 12,
+      "col": 38,
+      "category": "TYPOGRAPHY",
+      "match": "\"prose-edit\""
+    }
+  ]
+}

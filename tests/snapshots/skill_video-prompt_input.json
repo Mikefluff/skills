@@ -1,0 +1,21 @@
+{
+  "verdict": "borderline",
+  "total": 2,
+  "by_category": {
+    "TYPOGRAPHY": 2
+  },
+  "hits": [
+    {
+      "line": 22,
+      "col": 14,
+      "category": "TYPOGRAPHY",
+      "match": "\"she smiles\""
+    },
+    {
+      "line": 22,
+      "col": 54,
+      "category": "TYPOGRAPHY",
+      "match": "\"subtle movement\""
+    }
+  ]
+}
