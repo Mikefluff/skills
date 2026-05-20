@@ -22,8 +22,9 @@
 # Tags
 # ----
 #   :latest     — main branch (always rebuilds)
-#   :vX.Y.Z     — pinned to a specific release
+#   :X.Y.Z      — pinned to a specific release (Docker convention: no `v` prefix)
 #   :X.Y        — minor-stream alias
+#   :X          — major-stream alias
 #
 # Build locally
 # -------------

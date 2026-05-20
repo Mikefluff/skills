@@ -175,10 +175,10 @@ docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills lint-all /work
 docker run --rm ghcr.io/mikefluff/skills list
 
 # Pin a specific version
-docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills:1.2.0 lint /work/draft.md
+docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills:1.3.1 lint /work/draft.md
 ```
 
-Image tags: `latest` (main branch), `vX.Y.Z` (pinned), `X.Y` (minor stream), `X` (major stream). Multi-arch (linux/amd64 + linux/arm64). Built from the same source as the curl-pipe installer.
+Image tags: `latest` (main branch), `X.Y.Z` (pinned, no `v` prefix — Docker convention), `X.Y` (minor stream), `X` (major stream). Multi-arch (linux/amd64 + linux/arm64). Built from the same source as the curl-pipe installer.
 
 ---
 
