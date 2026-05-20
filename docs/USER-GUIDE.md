@@ -160,6 +160,28 @@ Read the template comments before committing. The workflow runs in 30-60 seconds
 
 ---
 
+## Use the Docker image
+
+For users who prefer containers — or who run their own CI / pre-commit pipelines that can't `curl | bash`:
+
+```bash
+# Lint a single file
+docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills lint /work/draft.md
+
+# Lint every *.md in cwd
+docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills lint-all /work
+
+# List installed skills
+docker run --rm ghcr.io/mikefluff/skills list
+
+# Pin a specific version
+docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills:1.2.0 lint /work/draft.md
+```
+
+Image tags: `latest` (main branch), `vX.Y.Z` (pinned), `X.Y` (minor stream), `X` (major stream). Multi-arch (linux/amd64 + linux/arm64). Built from the same source as the curl-pipe installer.
+
+---
+
 ## Configuration
 
 Each skill respects what's in its own `references/` directory — you can tune behaviour without forking by overriding routing patterns, terminology canons, banned-construction lists, and so on. See the relevant skill's `references/` files for what's configurable:

@@ -1,12 +1,23 @@
 {
   "verdict": "neuroslop suspected",
-  "total": 23,
+  "total": 54,
   "by_category": {
     "FILLER_INTRO": 1,
     "GPT_FILLER": 4,
-    "STOCK_METAPHOR": 7,
+    "STOCK_METAPHOR": 6,
     "AI_INTENSIFIER": 5,
+    "PSEUDO_SMART": 4,
+    "AI_QA": 5,
+    "NE_X_A_Y": 2,
+    "BUREAU_INV": 5,
+    "CORPORATE": 4,
+    "PSEUDO_SCI": 2,
+    "VAGUE_PERSON": 3,
+    "TYPOGRAPHY": 2,
+    "NOMINALIZATION": 1,
     "AI_HEDGE": 3,
+    "SELF_REF": 2,
+    "SUPERLATIVE_OVERLOAD": 2,
     "AI_BRIDGE": 1,
     "AI_TRIPLETS": 2
   },
@@ -40,6 +51,24 @@
       "col": 195,
       "category": "AI_INTENSIFIER",
       "match": "far-reaching"
+    },
+    {
+      "line": 3,
+      "col": 52,
+      "category": "PSEUDO_SMART",
+      "match": "fundamentally "
+    },
+    {
+      "line": 5,
+      "col": 267,
+      "category": "AI_QA",
+      "match": "Sounds familiar?"
+    },
+    {
+      "line": 5,
+      "col": 284,
+      "category": "AI_QA",
+      "match": "Let's be honest"
     },
     {
       "line": 5,
@@ -78,76 +107,244 @@
       "match": "cannot be overstated"
     },
     {
+      "line": 5,
+      "col": 267,
+      "category": "AI_QA",
+      "match": "Sounds familiar?"
+    },
+    {
+      "line": 5,
+      "col": 284,
+      "category": "AI_QA",
+      "match": "Let's be honest"
+    },
+    {
       "line": 7,
+      "col": 1,
+      "category": "NE_X_A_Y",
+      "match": "This isn't just automation. It's a"
+    },
+    {
+      "line": 7,
+      "col": 68,
+      "category": "NE_X_A_Y",
+      "match": "You're not optimizing a workflow. You're rebuilding"
+    },
+    {
+      "line": 9,
       "col": 67,
       "category": "STOCK_METAPHOR",
       "match": "navigating the complexities"
     },
     {
       "line": 9,
+      "col": 328,
+      "category": "BUREAU_INV",
+      "match": "In terms of"
+    },
+    {
+      "line": 9,
+      "col": 362,
+      "category": "CORPORATE",
+      "match": "value proposition"
+    },
+    {
+      "line": 9,
+      "col": 384,
+      "category": "CORPORATE",
+      "match": "growth drivers"
+    },
+    {
+      "line": 9,
+      "col": 439,
+      "category": "CORPORATE",
+      "match": "key metric"
+    },
+    {
+      "line": 9,
+      "col": 340,
+      "category": "CORPORATE",
+      "match": "strategic priorities"
+    },
+    {
+      "line": 11,
+      "col": 1,
+      "category": "PSEUDO_SCI",
+      "match": "Research shows that"
+    },
+    {
+      "line": 11,
+      "col": 55,
+      "category": "PSEUDO_SCI",
+      "match": "Studies suggest that"
+    },
+    {
+      "line": 11,
+      "col": 123,
+      "category": "VAGUE_PERSON",
+      "match": "Some experts say"
+    },
+    {
+      "line": 11,
+      "col": 199,
+      "category": "VAGUE_PERSON",
+      "match": "Many claim"
+    },
+    {
+      "line": 11,
+      "col": 245,
+      "category": "VAGUE_PERSON",
+      "match": "People often say"
+    },
+    {
+      "line": 13,
+      "col": 323,
+      "category": "TYPOGRAPHY",
+      "match": "\"if\""
+    },
+    {
+      "line": 13,
+      "col": 332,
+      "category": "TYPOGRAPHY",
+      "match": "\"when\""
+    },
+    {
+      "line": 13,
+      "col": 1,
+      "category": "PSEUDO_SMART",
+      "match": "Essentially"
+    },
+    {
+      "line": 13,
+      "col": 288,
+      "category": "PSEUDO_SMART",
+      "match": "fundamentally, "
+    },
+    {
+      "line": 13,
+      "col": 265,
+      "category": "PSEUDO_SMART",
+      "match": "At the end of the day"
+    },
+    {
+      "line": 13,
+      "col": 17,
+      "category": "BUREAU_INV",
+      "match": "plays the role of"
+    },
+    {
+      "line": 13,
+      "col": 53,
+      "category": "BUREAU_INV",
+      "match": "serves as a"
+    },
+    {
+      "line": 13,
+      "col": 142,
+      "category": "BUREAU_INV",
+      "match": "represents a form of"
+    },
+    {
+      "line": 13,
+      "col": 186,
+      "category": "BUREAU_INV",
+      "match": "In the framework of"
+    },
+    {
+      "line": 13,
+      "col": 102,
+      "category": "NOMINALIZATION",
+      "match": "The implementation of"
+    },
+    {
+      "line": 15,
       "col": 111,
       "category": "AI_HEDGE",
       "match": "On one hand, automation may eliminate certain roles; on the other hand"
     },
     {
-      "line": 9,
+      "line": 15,
       "col": 1,
       "category": "AI_HEDGE",
       "match": "While there are valid"
     },
     {
-      "line": 9,
+      "line": 15,
       "col": 225,
       "category": "AI_HEDGE",
       "match": "Both perspectives have merit"
     },
     {
-      "line": 11,
+      "line": 17,
       "col": 1,
       "category": "GPT_FILLER",
       "match": "Bear in mind"
     },
     {
-      "line": 11,
+      "line": 17,
       "col": 79,
       "category": "STOCK_METAPHOR",
       "match": "embark on a journey"
     },
     {
-      "line": 11,
+      "line": 17,
       "col": 204,
-      "category": "STOCK_METAPHOR",
-      "match": "Plays a pivotal role"
+      "category": "SELF_REF",
+      "match": "As we'll see later"
     },
     {
-      "line": 13,
+      "line": 19,
+      "col": 1,
+      "category": "SELF_REF",
+      "match": "Dear reader"
+    },
+    {
+      "line": 19,
+      "col": 14,
+      "category": "SUPERLATIVE_OVERLOAD",
+      "match": "the most important moment"
+    },
+    {
+      "line": 19,
+      "col": 119,
+      "category": "SUPERLATIVE_OVERLOAD",
+      "match": "One of the biggest transformations of our era"
+    },
+    {
+      "line": 21,
       "col": 1,
       "category": "AI_BRIDGE",
       "match": "In conclusion"
     },
     {
-      "line": 13,
+      "line": 21,
       "col": 32,
       "category": "STOCK_METAPHOR",
       "match": "cornerstone of"
     },
     {
-      "line": 13,
+      "line": 21,
       "col": 117,
       "category": "AI_INTENSIFIER",
       "match": "underscores the importance"
     },
     {
-      "line": 13,
+      "line": 21,
       "col": 69,
       "category": "AI_TRIPLETS",
       "match": "smart, capable, and intelligent technology"
     },
     {
-      "line": 13,
+      "line": 21,
       "col": 69,
       "category": "AI_TRIPLETS",
       "match": "smart, capable, and intelligent"
+    },
+    {
+      "line": 21,
+      "col": 294,
+      "category": "AI_QA",
+      "match": "Here's the thing"
     }
   ]
 }

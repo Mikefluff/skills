@@ -1,0 +1,12 @@
+# What NOT to send to the Docker daemon
+.git/
+.github/
+node_modules/
+tests/
+docs/walkthroughs/
+*.log
+.DS_Store
+.markdownlint.json
+Makefile
+install.sh
+hooks/

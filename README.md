@@ -19,6 +19,14 @@ curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | 
 
 Opens up after Claude Code session restart. Skills are auto-discovered by `name:` and `description:` in their frontmatter — no `~/.claude/settings.json` edits required.
 
+Prefer Docker?
+
+```bash
+docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills lint /work/draft.md
+```
+
+See [Docker usage](docs/USER-GUIDE.md#use-the-docker-image).
+
 ---
 
 ## First time? Start here

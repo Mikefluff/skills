@@ -14,6 +14,24 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — Docker image
+
+- **`Dockerfile`** + **`.github/workflows/docker.yml`** — multi-arch (linux/amd64 + linux/arm64) Docker image published to `ghcr.io/mikefluff/skills` on push to main and on tag. Image ships `writer/scripts/lint.py` + all 11 skills' markdown. Entrypoint commands: `lint FILE`, `lint-all DIR`, `coverage`, `validate`, `list`, `version`, `help`.
+- Use cases: CI integration without `curl | bash`, containerized pre-commit, isolated lint in untrusted environments.
+- README quick-link added; docs/USER-GUIDE.md "Use the Docker image" section.
+
+### Added — Launch material
+
+- **`docs/LAUNCH-POST.md`** — copy-pasteable drafts for X (single tweet + 7-tweet thread), LinkedIn, Substack longform, Hacker News, Reddit, awesome-claude-code PR. Plus anticipated FAQ. All drafts intentionally cite AI-slop phrases (so the linter trips on them — expected meta-evidence).
+
+### Added — Architecture audit
+
+- **`docs/audits/references-duplicates.md`** — documented finding that no `core/` shared-base refactor is needed. Filename-clashes (two `banned-constructions.md`) cover disjoint scopes; structural concepts (staccato, double-neg) defined once in `writer/references/`, cross-linked from wrappers.
+
+### Changed — EN linter coverage
+
+- **`writer/scripts/lint.py`** — 9 additional EN regex category sets added: PSEUDO_SMART, BUREAU_INV, CORPORATE, NE_X_A_Y, SELF_REF, PSEUDO_SCI, VAGUE_PERSON, NOMINALIZATION, SUPERLATIVE_OVERLOAD, plus expanded AI_QA. Synthetic EN-neuroslop fixture now triggers **18 categories / 54 hits** (was 7 / 23). EN clean-prose fixture stays clean (0 hits). All RU fixtures unaffected (new patterns are EN-only by structure).
+
 ## [1.2.0] — 2026-05-20
 
 ### Added — new skills

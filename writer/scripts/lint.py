@@ -267,6 +267,65 @@ PATTERNS: list[tuple[str, str]] = [
     # AI_TRIPLETS — three synonyms (smart, capable, and intelligent)
     ("AI_TRIPLETS", r"\b\w+,\s+\w+,\s+and\s+\w+\s+technology\b"),
     ("AI_TRIPLETS", r"\bsmart,?\s+capable,?\s+and\s+intelligent\b"),
+    # PSEUDO_SMART (EN)
+    ("PSEUDO_SMART", r"\bessentially\b"),
+    ("PSEUDO_SMART", r"\bfundamentally,?\s"),
+    ("PSEUDO_SMART", r"\bat\s+the\s+end\s+of\s+the\s+day\b"),
+    ("PSEUDO_SMART", r"\bin\s+essence\b"),
+    ("PSEUDO_SMART", r"\bin\s+reality\b"),
+    # BUREAU_INV (EN)
+    ("BUREAU_INV", r"\bplays?\s+the\s+role\s+of\b"),
+    ("BUREAU_INV", r"\bserves?\s+as\s+a\b"),
+    ("BUREAU_INV", r"\brepresents?\s+a\s+(form|kind|type)\s+of\b"),
+    ("BUREAU_INV", r"\bin\s+the\s+(framework|context)\s+of\b"),
+    ("BUREAU_INV", r"\bin\s+terms\s+of\b"),
+    ("BUREAU_INV", r"\bwith\s+respect\s+to\b"),
+    ("BUREAU_INV", r"\bvia\s+the\s+(implementation|application|introduction|use)\s+of\b"),
+    # CORPORATE (EN)
+    ("CORPORATE", r"\bvalue\s+proposition\b"),
+    ("CORPORATE", r"\bgrowth\s+drivers?\b"),
+    ("CORPORATE", r"\bgo-?to-?market\b"),
+    ("CORPORATE", r"\bkey\s+(metrics?|takeaways?|learnings?|insights?)\b"),
+    ("CORPORATE", r"\bpain\s+points?\b"),
+    ("CORPORATE", r"\btarget\s+audience\b"),
+    ("CORPORATE", r"\bsynerg(y|ies|istic)\b"),
+    ("CORPORATE", r"\bstrategic\s+(initiative|vision|priorities|roadmap)s?\b"),
+    ("CORPORATE", r"\boperational\s+efficienc(y|ies)\b"),
+    ("CORPORATE", r"\bleverag(e|ing|ed)\s+\w+"),
+    # NE_X_A_Y (EN — "this isn't X. It's Y." / "you're not X. You're Y." structures)
+    ("NE_X_A_Y", r"(?i)this\s+is(n'?t|\s+not)\s+(just\s+)?[\w\s]{1,40}[.;]\s+It'?s\s+\w+"),
+    ("NE_X_A_Y", r"(?i)you'?re\s+not\s+[\w\s]{1,40}[.;]\s+You'?re\s+\w+"),
+    ("NE_X_A_Y", r"(?i)it'?s\s+not\s+about\s+[\w\s]{1,40}[.;]\s+It'?s\s+about\s+\w+"),
+    # SELF_REF (EN)
+    ("SELF_REF", r"\bdear\s+reader\b"),
+    ("SELF_REF", r"\bas\s+we'?ll\s+see\s+(later|below|further\s+on)\b"),
+    ("SELF_REF", r"\bas\s+I\s+(mentioned|noted|wrote)\s+(earlier|above)\b"),
+    ("SELF_REF", r"\blet'?s\s+return\s+to\s+our\b"),
+    # PSEUDO_SCI (EN)
+    ("PSEUDO_SCI", r"\bresearch\s+shows\s+that\b"),
+    ("PSEUDO_SCI", r"\bstudies\s+(show|suggest|indicate)\s+that\b"),
+    ("PSEUDO_SCI", r"\bscientists?\s+(have\s+)?(found|established|discovered)\s+that\b"),
+    ("PSEUDO_SCI", r"\b(neurologically|neuroscientifically)\b"),
+    ("PSEUDO_SCI", r"\bevolutionarily\s+(programmed|wired)\b"),
+    ("PSEUDO_SCI", r"\bscientifically\s+proven\b"),
+    # VAGUE_PERSON (EN)
+    ("VAGUE_PERSON", r"\bsome\s+(experts?|researchers?|scholars?|people)\s+(say|believe|claim|argue|suggest)\b"),
+    ("VAGUE_PERSON", r"\bmany\s+(claim|believe|argue|assert)\b"),
+    ("VAGUE_PERSON", r"\b(people|folks)\s+(often|usually|sometimes)\s+(say|think|believe)\b"),
+    ("VAGUE_PERSON", r"\bone\s+(expert|study|researcher)\s+(said|noted|wrote|argued)\b"),
+    # NOMINALIZATION (EN)
+    ("NOMINALIZATION", r"\bthe\s+(implementation|consideration|application|exploration|investigation|examination|optimization|enhancement)\s+of\b"),
+    ("NOMINALIZATION", r"\bin\s+the\s+process\s+of\s+(implementing|considering|exploring|investigating|examining|optimizing|enhancing|understanding|learning|transforming)\b"),
+    # SUPERLATIVE_OVERLOAD (EN)
+    ("SUPERLATIVE_OVERLOAD", r"\bthe\s+(most|single\s+most)\s+(important|critical|significant|essential|fundamental)\s+(thing|point|moment|aspect|factor)\b"),
+    ("SUPERLATIVE_OVERLOAD", r"\bone\s+of\s+the\s+(most|biggest|greatest)\s+\w+\s+(of|in)\s+our\s+(time|era|generation)\b"),
+    ("SUPERLATIVE_OVERLOAD", r"\bnever\s+before\s+(has|have)\s+\w+\s+been\s+\w+\b"),
+    # AI_QA (EN — already has some; add more)
+    ("AI_QA", r"\bsounds?\s+familiar\?"),
+    ("AI_QA", r"\bnow\s+imagine\b"),
+    ("AI_QA", r"\blet'?s\s+be\s+honest\b"),
+    ("AI_QA", r"\bhere'?s\s+the\s+thing\b"),
+    ("AI_QA", r"\bsounds?\s+counter[-\s]?intuitive\?"),
 ]
 
 COMPILED = [(cat, re.compile(p, re.IGNORECASE)) for cat, p in PATTERNS]
