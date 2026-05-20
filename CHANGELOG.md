@@ -14,6 +14,11 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-05-20
+
+### Changed
+- (no notable changes captured in Unreleased — see commit log for v1.0.1)
+
 ## [1.0.0] — 2026-05-20
 
 ### Changed — decoupled from author's specific LaTeX book project
@@ -106,10 +111,11 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v1.0.1...HEAD
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0
 [0.4.0]: https://github.com/Mikefluff/skills/releases/tag/v0.4.0
 [0.4.1]: https://github.com/Mikefluff/skills/releases/tag/v0.4.1
 [1.0.0]: https://github.com/Mikefluff/skills/releases/tag/v1.0.0
+[1.0.1]: https://github.com/Mikefluff/skills/releases/tag/v1.0.1
