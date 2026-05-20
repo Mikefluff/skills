@@ -140,6 +140,38 @@
       "deps": [
         "writer"
       ]
+    },
+    {
+      "name": "image-prompt",
+      "dir": "image-prompt",
+      "layer": "wrapper",
+      "description": "Write prompts for AI image generators (Midjourney, DALL-E, Flux, Nano Banana, Stable Diffusion). 6-part formula (subject + setting + style + lighting + camera + texture), per-model deltas, negative prompts.",
+      "languages": [
+        "en"
+      ],
+      "deps": []
+    },
+    {
+      "name": "video-prompt",
+      "dir": "video-prompt",
+      "layer": "wrapper",
+      "description": "Write prompts for AI video generators (Kling, Veo, Sora, Runway, Pika, Hailuo, Luma). CHARACTER FIRST law, beat structure (Beat 1/2/3), exact camera vocabulary, pacing modes (narrative/action/comedy/documentary/timelapse).",
+      "languages": [
+        "en"
+      ],
+      "deps": []
+    },
+    {
+      "name": "microcopy",
+      "dir": "microcopy",
+      "layer": "wrapper",
+      "description": "Write UX microcopy — error messages, empty states, tooltips, button labels, helper text, modals, 404/500 pages, onboarding. Plain language, action-oriented, never blame user, length budgets per element type. Wraps writer for final cleanup.",
+      "languages": [
+        "en"
+      ],
+      "deps": [
+        "writer"
+      ]
     }
   ]
 }

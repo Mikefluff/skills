@@ -26,13 +26,16 @@ Then open Claude Code — skills are auto-discovered by name. No `~/.claude/sett
 | Get a read-only quality verdict without auto-edits | [Style-check gate](walkthroughs/style-check-gate.md) |
 | Rewrite text in a different register (casual ↔ business ↔ academic ↔ plain) | [Tone-shifter](#tone-shifter--register-rewrites) |
 | Draft a cold-outreach email (founder / recruiter / journalist / VC) | [Cold-email](#cold-email--outreach-drafting) |
+| Generate prompts for AI image models (Midjourney / DALL-E / Flux) | [Image-prompt](#i-want-to-write-an-ai-image-prompt) |
+| Generate prompts for AI video models (Kling / Veo / Sora / Runway) | [Video-prompt](#i-want-to-write-an-ai-video-prompt) |
+| Write UX microcopy (errors, empty states, tooltips, buttons) | [Microcopy](#i-want-to-write-ux-microcopy) |
 | Stuck or confused | [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md) |
 
 ---
 
 ## The collection in one paragraph
 
-Eleven prose-editing skills layered on top of one base linter (`writer`):
+Fourteen skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 23 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill in the collection.
 - **Wrappers** (call `writer` automatically): `viral-text` for social posts, `prose-edit` for fiction, `essay-write` for non-fiction longreads, `pelevin-digression` for opt-in voice inserts, `tone-shifter` for register changes, `cold-email` for outreach.
@@ -128,6 +131,50 @@ Use cases: turning a casual brain-dump into an exec memo, rewriting an academic 
 ```
 
 Modes: `first-touch`, `follow-up`, `intro-request` (produces both the email to the intro-giver and the forwardable block), `re-engage`, `forwardable`. See `cold-email/references/structure.md` for the per-variant template.
+
+---
+
+### "I want to write an AI image prompt" {#i-want-to-write-an-ai-image-prompt}
+
+`/image-prompt <topic-or-scene>` generates a prompt for Midjourney, DALL-E, Flux, Nano Banana, or Stable Diffusion. The skill follows a 6-part formula (subject + setting + style + lighting + camera + texture) with model-specific deltas.
+
+```
+/image-prompt cover image for the cold-email walkthrough
+/image-prompt a confident founder leaning on marble countertop --model midjourney-v6
+/image-prompt minimalist product shot of wireless earbuds --model flux-pro --variants 3
+```
+
+Targets supported: `midjourney-v6`, `dalle-3`, `flux-pro`, `nano-banana`, `sdxl`. Default style is photorealistic; `--style illustration` / `editorial` / `cinematic` overrides. Lighting and camera vocabulary live in `image-prompt/references/`.
+
+---
+
+### "I want to write an AI video prompt" {#i-want-to-write-an-ai-video-prompt}
+
+`/video-prompt <action-description>` generates a motion prompt for Kling, Veo, Sora, Runway, Pika, Hailuo, or Luma. The skill enforces the **CHARACTER FIRST, CAMERA SECOND** law and beat-structures the motion (Beat 1 / Beat 2 / Beat 3) to prevent the "frozen pose" failure mode.
+
+```
+/video-prompt animate this image: woman shouting at man across dinner table --model kling
+/video-prompt POV first-person kiteboarder cutting across water --pacing action
+/video-prompt slow build of tension between two characters --beat tension --model veo
+```
+
+Targets: `kling`, `veo`, `sora`, `runway`, `pika`, `hailuo`, `luma`. Each parses prompts differently — Kling needs explicit temporal markers `First [0-2s]: ... Then [2-5s]: ...`; Sora handles narrative prose; Runway prefers shorter prompts. Pacing modes (`narrative`, `action`, `comedy`, `documentary`, `timelapse`) adjust camera energy rules.
+
+---
+
+### "I want to write UX microcopy" {#i-want-to-write-ux-microcopy}
+
+`/microcopy <element-type> for <context>` writes plain-language, action-oriented UI strings — error messages, empty states, tooltips, button labels, modal copy, 404/500 pages, onboarding cards.
+
+```
+/microcopy error message for payment declined
+/microcopy empty state for first-time projects view
+/microcopy 404 page for our SaaS app
+/microcopy button label for canceling a subscription
+/microcopy --improve "Click here to download your report"
+```
+
+Element types: button / error / empty-state / tooltip / helper-text / modal / 404 / 500 / offline / toast / inline-alert / onboarding-card. Length budgets enforced per type (button ≤ 8 words, modal title ≤ 8 words, etc.). Voice defaults to SaaS friendly-professional; override via product-type or brand-voice profile from `tone-shifter`.
 
 ---
 

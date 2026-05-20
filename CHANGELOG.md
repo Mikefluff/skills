@@ -14,6 +14,49 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — 3 new skills (visual + UX)
+
+Imported high-value content from `/Users/mikefluff/Documents/figma/` deep-scan + added microcopy from best-practices. Collection now has **14 skills** (was 11).
+
+- **`image-prompt`** (wrapper, EN). Write prompts for AI image generators (Midjourney v6, DALL-E 3, Flux Pro, Nano Banana, SDXL). 6-part formula: `{subject} + {setting} + {style} + {lighting} + {camera} + {texture}`. References:
+  - `prompt-formula.md` — 6-part structure + templates (portrait / product / scene / abstract / illustration)
+  - `lighting-vocabulary.md` — portrait / scene / quality-of-light dictionaries (figma-derived)
+  - `camera-vocabulary.md` — lens / aperture / format / quality-tag cheatsheet
+  - `model-specifics.md` — per-model deltas (MJ params, DALL-E natural language, Flux negatives, SD weights)
+  - `examples/before-after.md` — 5 calibration pairs (4-6 weak words → 40-80 strong)
+
+- **`video-prompt`** (wrapper, EN). Write prompts for AI video generators (Kling 3.0, Veo 3, Sora, Runway Gen-3, Pika, Hailuo, Luma). CHARACTER FIRST law, Beat 1/2/3 structure, exact camera vocabulary. References (figma-derived from cinematographer/narrative.js):
+  - `camera-vocabulary.md` — full DOLLY / PAN / TRACKING / CRANE / ORBIT / AERIAL / SPECIALTY dictionary with translation table
+  - `beat-structure.md` — CHARACTER FIRST law, repeated-action patterns, body-detail layers, forbidden phrases that cause frozen-pose output
+  - `model-specifics.md` — Kling temporal markers required, Sora narrative paragraph, Runway short prompts, Pika minimal, Luma atmospheric
+  - `pacing-modes.md` — narrative / action / comedy / documentary / timelapse rules
+  - `examples/before-after.md` — 5 pairs (hook / tension / breathing / POV / timelapse)
+
+- **`microcopy`** (wrapper, EN). Write UX strings — error messages, empty states, tooltips, button labels, helper text, modals, 404/500/offline pages, onboarding cards, toasts, inline alerts. Plain language, action-oriented, never blame user. References:
+  - `element-types.md` — full taxonomy with length budgets and templates per UI element
+  - `length-budgets.md` — exact word/char limits, i18n expansion factors
+  - `rules.md` — 10 universal rules (plain language, action verbs, no blame, no jargon, etc.) + 3 cardinal sins
+  - `voice-by-product-type.md` — adjustments for SaaS / dev tool / fintech / e-commerce / consumer / B2B
+  - `banned-words.md` — strip list (jargon, hedge words, robot-speak)
+  - `examples/before-after.md` — 10 calibration pairs
+
+### Added — bonus from figma deep-scan
+
+- **`prose-edit/references/patch-refining.md`** — surgical search/replace patch strategy (from figma PatchRefinerAgent.js). Alternative to full rewrite when 90%+ of original should survive. Programmatic apply; signals fallback if patches fail >50%.
+- **`style-check/references/validation-taxonomy.md`** — structured JSON output schema for machine-readable validation. Includes:
+  - `scoreReasons` closed-enum (length / lack_of_specificity / promise_without_fact / generic_fear / clickbait_no_payoff / filler_banality / synthetic_template / grammar_agreement)
+  - `hookAnalysis` (27 hook criteria) + `contentAnalysis` (issues by severity)
+  - `metrics` per-dimension (cta / grammar / length / style)
+  - `formattingRecommended` signal for downstream tooling
+  - Cross-link to patch-refining as consumer
+
+### Changed
+
+- `skills.json` — +3 new entries (image-prompt, video-prompt, microcopy)
+- `README.md` — "Fourteen skills, one base linter + nine wrappers + three linters + one meta-skill"
+- `docs/USER-GUIDE.md` — added 3 use-case sections + scenario picker entries
+- Repo layout in README updated to "14 skills, one folder each"
+
 ## [1.4.0] — 2026-05-20
 
 ### Added — from godacademy/figma archive mining

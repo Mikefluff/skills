@@ -112,4 +112,5 @@ The skill does not install the hook itself. If the user asks — emit installati
 | [references/severity.md](references/severity.md) | Need to classify a violation as BLOCKING / WARNING / INFO or want the full category list. |
 | [references/output-format.md](references/output-format.md) | Producing the final report — need the full template with the SUMMARY block. |
 | [references/pre-commit-hook.md](references/pre-commit-hook.md) | The user asks to install style-check as a git pre-commit hook — need the bash snippet and steps. |
+| [references/validation-taxonomy.md](references/validation-taxonomy.md) | Producing structured JSON validation output for CI/CD or tooling — hookAnalysis, contentAnalysis, scoreReasons enum, metrics, formattingRecommended. |
 | [examples/sample-report.md](examples/sample-report.md) | Need tone/detail calibration — reference sample. |

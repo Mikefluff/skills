@@ -146,4 +146,5 @@ ch07.md:312 — ANGLICISM в авторском голосе («post-door»)
 | [references/pitfalls.md](references/pitfalls.md) | После рерайта — проверить, не свалился ли результат в типовую ловушку. |
 | [references/synthetic-ai-words.md](references/synthetic-ai-words.md) | При встрече «рамка / нарратив / дискурс / парадигма / концепт / оптика» — карта замен. |
 | [references/depth-pass.md](references/depth-pass.md) | 10-пунктный Postirony depth-pass checklist + IT-blog test для отличия художки от статьи. |
+| [references/patch-refining.md](references/patch-refining.md) | Когда нужны минимальные хирургические правки (search/replace патчи, программное применение) вместо полного рерайта пассажа. |
 | [examples/before-after.md](examples/before-after.md) | Калибровка: образцы БЫЛО/НАДО для staccato, double negation, длинного рерайта, ToV pattern, тавтологии, comparison overload. |

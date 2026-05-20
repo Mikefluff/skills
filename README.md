@@ -7,7 +7,7 @@
 
 A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills for editing prose without producing text that reads like LLM output. Russian-first, English-capable.
 
-**Eleven skills**, one base linter + six wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
+**Fourteen skills**, one base linter + nine wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
 
 ---
 
@@ -47,6 +47,9 @@ Quick scenario picker:
 | Run a read-only quality gate | [style-check-gate](docs/walkthroughs/style-check-gate.md) |
 | Rewrite text in a different register | [USER-GUIDE](docs/USER-GUIDE.md#tone-shifter--register-rewrites) |
 | Draft a cold outreach email | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-a-cold-email) |
+| Generate an AI image prompt (Midjourney/DALL-E/Flux) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-image-prompt) |
+| Generate an AI video prompt (Kling/Veo/Sora/Runway) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-video-prompt) |
+| Write UX microcopy (errors, empty states, tooltips, buttons) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-ux-microcopy) |
 
 If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESHOOTING.md).
 
@@ -69,6 +72,9 @@ If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESH
 | [`skills-update`](skills-update/) | meta | en/ru | User-invocable update check + apply for this collection. Compares local install marker with latest GitHub release, shows CHANGELOG diff, asks for confirmation, runs install.sh --update. |
 | [`tone-shifter`](tone-shifter/) | wrapper | en/ru | Rewrite a passage in a different register (formal↔casual, business↔academic, technical↔friendly, plain-explainer) without changing meaning. 6 registers + named transformation deltas. Wraps writer as final cleanup. |
 | [`cold-email`](cold-email/) | wrapper | en | Write or rewrite cold outreach emails (first-touch, follow-up, intro request, re-engage). 5-block structure, ≤120-word budget, banned ceremony patterns, anti-template subject lines. Wraps writer as final cleanup. |
+| [`image-prompt`](image-prompt/) | wrapper | en | Write prompts for AI image generators (Midjourney, DALL-E, Flux, Nano Banana, Stable Diffusion). 6-part formula (subject + setting + style + lighting + camera + texture), per-model deltas, negative prompts. |
+| [`video-prompt`](video-prompt/) | wrapper | en | Write prompts for AI video generators (Kling, Veo, Sora, Runway, Pika, Hailuo, Luma). CHARACTER FIRST law, beat structure (Beat 1/2/3), exact camera vocabulary, pacing modes (narrative/action/comedy/documentary/timelapse). |
+| [`microcopy`](microcopy/) | wrapper | en | Write UX microcopy — error messages, empty states, tooltips, button labels, helper text, modals, 404/500 pages, onboarding. Plain language, action-oriented, never blame user, length budgets per element type. Wraps writer for final cleanup. |
 
 <!-- END skills-table -->
 
@@ -148,7 +154,7 @@ skills/
 │   └── skills-update-banner.js
 ├── tests/                   # fixture snapshots for writer/scripts/lint.py
 ├── .github/                 # workflows + issue/PR templates + SECURITY.md
-└── <skill-name>/            # the 11 skills, one folder each
+└── <skill-name>/            # the 14 skills, one folder each
 ```
 
 ---
