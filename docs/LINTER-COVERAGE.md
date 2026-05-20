@@ -50,4 +50,3 @@
 - `covered` = the offline `lint.py` reliably catches this category.
 - `partial` = some pattern coverage, but expect to miss variants — LLM cleaning pass is the safety net.
 - `missing` = either intentionally LLM-only (see notes above), or a real gap to fix in `lint.py`.
-

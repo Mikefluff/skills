@@ -102,7 +102,8 @@ def render_markdown(report: dict) -> str:
     lines.append("- `partial` = some pattern coverage, but expect to miss variants — LLM cleaning pass is the safety net.")
     lines.append("- `missing` = either intentionally LLM-only (see notes above), or a real gap to fix in `lint.py`.")
     lines.append("")
-    return "\n".join(lines) + "\n"
+    # Single trailing newline (markdownlint MD012 catches multiple)
+    return "\n".join(lines).rstrip("\n") + "\n"
 
 
 def main(argv: list[str] | None = None) -> int:
