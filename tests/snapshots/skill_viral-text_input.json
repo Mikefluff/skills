@@ -1,0 +1,15 @@
+{
+  "verdict": "clean",
+  "total": 1,
+  "by_category": {
+    "FILLER_INTRO": 1
+  },
+  "hits": [
+    {
+      "line": 5,
+      "col": 1,
+      "category": "FILLER_INTRO",
+      "match": "В современном мире"
+    }
+  ]
+}

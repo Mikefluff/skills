@@ -207,6 +207,66 @@ PATTERNS: list[tuple[str, str]] = [
     # --- 23. TYPOGRAPHY ---
     ("TYPOGRAPHY", r'"[^"\n]{1,80}"'),  # straight quotes (rough — flags any "X")
     ("TYPOGRAPHY", r"“[^”\n]{1,80}”"),  # curly "X"
+    # ─── EN AI-style signatures (mirrors writer/references/neuroslop-categories.md) ───
+    # FILLER_INTRO (EN)
+    ("FILLER_INTRO", r"(?m)^(\s|[\"'])*in\s+today'?s\s+(\w+(-\w+)?,?\s+){1,5}world\b"),
+    ("FILLER_INTRO", r"(?m)^(\s|[\"'])*in\s+a\s+world\s+where"),
+    ("FILLER_INTRO", r"(?m)^(\s|[\"'])*as\s+(we\s+all\s+know|everyone\s+knows)"),
+    ("FILLER_INTRO", r"(?m)^(\s|[\"'])*in\s+(this|today'?s)\s+ever[- ]?(changing|evolving)\s+landscape"),
+    # GPT_FILLER (EN)
+    ("GPT_FILLER", r"\bit'?s\s+(important|worth|crucial)\s+to\s+(note|mention|remember)\b"),
+    ("GPT_FILLER", r"\blet'?s\s+(delve|dive)\s+(in|into)\b"),
+    ("GPT_FILLER", r"\bdelv(e|ing)\s+(deeper|into)\b"),
+    ("GPT_FILLER", r"\bin\s+this\s+context\b"),
+    ("GPT_FILLER", r"\bin\s+light\s+of\s+(this|the\s+above)\b"),
+    ("GPT_FILLER", r"\bas\s+(we\s+can\s+see|previously\s+mentioned|stated\s+earlier)\b"),
+    ("GPT_FILLER", r"\bbear\s+in\s+mind\b"),
+    # AI_BRIDGE (EN — sentence-initial)
+    ("AI_BRIDGE", r"(?m)^(\s|[\"'])*furthermore\b"),
+    ("AI_BRIDGE", r"(?m)^(\s|[\"'])*moreover\b"),
+    ("AI_BRIDGE", r"(?m)^(\s|[\"'])*additionally\b"),
+    ("AI_BRIDGE", r"(?m)^(\s|[\"'])*in\s+conclusion\b"),
+    ("AI_BRIDGE", r"(?m)^(\s|[\"'])*ultimately,?\s+"),
+    ("AI_BRIDGE", r"(?m)^(\s|[\"'])*to\s+sum\s+up\b"),
+    # STOCK_METAPHOR (EN)
+    ("STOCK_METAPHOR", r"\b(rich\s+)?tapestry\s+of\b"),
+    ("STOCK_METAPHOR", r"\bnavigat(e|ing)\s+the\s+complexities\b"),
+    ("STOCK_METAPHOR", r"\bembark\s+on\s+a\s+journey\b"),
+    ("STOCK_METAPHOR", r"\b(a\s+)?journey\s+of\s+(continuous|self-?)\w+"),
+    ("STOCK_METAPHOR", r"\bcornerstone\s+of\b"),
+    ("STOCK_METAPHOR", r"\bplay(s|ing|ed)?\s+a\s+(pivotal|crucial|key)\s+role\b"),
+    ("STOCK_METAPHOR", r"\b(very\s+)?fabric\s+of\b"),
+    ("STOCK_METAPHOR", r"\bshap(e|ing|es)\s+the\s+future\b"),
+    # AI_INTENSIFIER (EN)
+    ("AI_INTENSIFIER", r"\btruly\s+(remarkable|amazing|inspiring|unique)\b"),
+    ("AI_INTENSIFIER", r"\babsolutely\s+(critical|essential|fundamental)\b"),
+    ("AI_INTENSIFIER", r"\bdeeply\s+(important|meaningful|profound)\b"),
+    ("AI_INTENSIFIER", r"\bincredibly\s+(important|powerful|valuable)\b"),
+    ("AI_INTENSIFIER", r"\bunderscor(es|ing|ed)\s+the\s+importance\b"),
+    ("AI_INTENSIFIER", r"\bmulti[- ]?faceted\b"),
+    ("AI_INTENSIFIER", r"\bintricate\b"),
+    ("AI_INTENSIFIER", r"\bfar[- ]?reaching\b"),
+    ("AI_INTENSIFIER", r"\bcannot\s+be\s+overstated\b"),
+    # AI_HEDGE (EN)
+    ("AI_HEDGE", r"\bit\s+(could|can)\s+be\s+argued\s+that\b"),
+    ("AI_HEDGE", r"\bsome\s+would\s+say\b"),
+    ("AI_HEDGE", r"\bone\s+might\s+argue\b"),
+    ("AI_HEDGE", r"\bon\s+one\s+hand\b.*\bon\s+the\s+other\s+hand\b"),
+    ("AI_HEDGE", r"\bwhile\s+there\s+are\s+valid\b"),
+    ("AI_HEDGE", r"\bboth\s+perspectives?\s+have\s+merit\b"),
+    # SELFHELP (EN)
+    ("SELFHELP", r"\bwhether\s+you'?re\s+\w+\s+or\s+\w+,"),
+    ("SELFHELP", r"\bunleash\s+(your|the)\s+(potential|power)\b"),
+    ("SELFHELP", r"\bunlock\s+(your|the)\s+(potential|true)\b"),
+    ("SELFHELP", r"\bsecret\s+sauce\b"),
+    ("SELFHELP", r"\bgold\s+standard\b"),
+    # PSEUDO_CAUSAL (EN)
+    ("PSEUDO_CAUSAL", r"\bthe\s+thing\s+is,?\b"),
+    ("PSEUDO_CAUSAL", r"\bwhat\s+this\s+means\s+is\b"),
+    ("PSEUDO_CAUSAL", r"\byou\s+see,?\b"),
+    # AI_TRIPLETS — three synonyms (smart, capable, and intelligent)
+    ("AI_TRIPLETS", r"\b\w+,\s+\w+,\s+and\s+\w+\s+technology\b"),
+    ("AI_TRIPLETS", r"\bsmart,?\s+capable,?\s+and\s+intelligent\b"),
 ]
 
 COMPILED = [(cat, re.compile(p, re.IGNORECASE)) for cat, p in PATTERNS]

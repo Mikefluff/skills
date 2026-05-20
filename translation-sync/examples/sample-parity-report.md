@@ -17,7 +17,7 @@ Routing: typography (per-lang) + terminology + anchor-quotes + names/realia + no
   L88 — em-dash without spaces: word---word
         → house rule: em-dash with spaces ( --- )
         (typography.md §Dashes)
-  L142 — three literal dots "..." 
+  L142 — three literal dots "..."
         → should be `…` or `\dots`
         (typography.md §Ellipsis)
 

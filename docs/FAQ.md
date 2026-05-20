@@ -77,7 +77,7 @@ Two reasons.
 
 **Composition.** Different tasks need different rule layers. Viral posts need hooks + 41 viral rules; fiction needs voice rules + canon check; non-fiction needs sources + V/H/P markers. Stacking them as wrappers around a shared base (`writer`) keeps each one focused while sharing the heavy regex / typography pass.
 
-If you have a use case that none of the 9 fits, the right answer is usually a new skill, not bloating an existing one. See [CONTRIBUTING.md](CONTRIBUTING.md).
+If you have a use case that none of the 11 fits, the right answer is usually a new skill, not bloating an existing one. See [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ---
 
@@ -105,7 +105,7 @@ Two paths:
 
 **A. Local override.** Edit the relevant file in `~/.claude/skills/<skill>/references/` after install. Your changes survive until the next `--update`, which overwrites them. Not durable.
 
-**B. Upstream contribution.** Fork the repo, add your rules to the right `references/*.md` file, open a PR. See [CONTRIBUTING.md](CONTRIBUTING.md). This is the right answer if your rule benefits other users.
+**B. Upstream contribution.** Fork the repo, add your rules to the right `references/*.md` file, open a PR. See [CONTRIBUTING.md](../CONTRIBUTING.md). This is the right answer if your rule benefits other users.
 
 Local-only project rules (e.g. project-specific terminology canon for `translation-sync`) usually go in option A — they're yours alone.
 

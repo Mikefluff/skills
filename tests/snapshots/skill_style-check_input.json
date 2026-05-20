@@ -1,0 +1,29 @@
+{
+  "verdict": "borderline",
+  "total": 3,
+  "by_category": {
+    "AI_HEDGE": 1,
+    "FILLER_INTRO": 1,
+    "PSEUDO_SMART": 1
+  },
+  "hits": [
+    {
+      "line": 11,
+      "col": 53,
+      "category": "AI_HEDGE",
+      "match": "можно сказать"
+    },
+    {
+      "line": 15,
+      "col": 1,
+      "category": "FILLER_INTRO",
+      "match": "В современном мире"
+    },
+    {
+      "line": 21,
+      "col": 1,
+      "category": "PSEUDO_SMART",
+      "match": "В конечном счёте"
+    }
+  ]
+}

@@ -115,6 +115,31 @@
         "ru"
       ],
       "deps": []
+    },
+    {
+      "name": "tone-shifter",
+      "dir": "tone-shifter",
+      "layer": "wrapper",
+      "description": "Rewrite a passage in a different register (formal↔casual, business↔academic, technical↔friendly, plain-explainer) without changing meaning. 6 registers + named transformation deltas. Wraps writer as final cleanup.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "deps": [
+        "writer"
+      ]
+    },
+    {
+      "name": "cold-email",
+      "dir": "cold-email",
+      "layer": "wrapper",
+      "description": "Write or rewrite cold outreach emails (first-touch, follow-up, intro request, re-engage). 5-block structure, ≤120-word budget, banned ceremony patterns, anti-template subject lines. Wraps writer as final cleanup.",
+      "languages": [
+        "en"
+      ],
+      "deps": [
+        "writer"
+      ]
     }
   ]
 }

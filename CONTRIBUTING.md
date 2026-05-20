@@ -1,0 +1,291 @@
+# Contributing to Mikefluff/skills
+
+Thanks for considering a contribution. This repo is a collection of editing-prose skills for Claude Code, with sharp boundaries and strong CI gates. The friction is intentional — it keeps the collection coherent rather than letting drift accumulate.
+
+If you've already decided what to contribute, jump to the relevant section. Otherwise read top-to-bottom.
+
+---
+
+## Quick links
+
+- [How the repo is structured](#how-the-repo-is-structured)
+- [Adding a new skill](#adding-a-new-skill)
+- [Editing an existing skill](#editing-an-existing-skill)
+- [Reporting a bug or false-positive](#reporting-a-bug-or-false-positive)
+- [Local development workflow](#local-development-workflow)
+- [CI gates explained](#ci-gates-explained)
+- [Commit message convention](#commit-message-convention)
+- [PR checklist](#pr-checklist)
+
+---
+
+## How the repo is structured
+
+```
+skills/
+  <skill-name>/              ← one skill per directory
+    SKILL.md                 ← required: frontmatter + objective + pipeline
+    references/              ← optional: heavy rule tables, checklists
+      *.md
+    examples/                ← optional: BEFORE/AFTER calibration pairs
+    scripts/                 ← optional: skill-specific tooling (e.g. writer/scripts/lint.py)
+  docs/
+    USER-GUIDE.md            ← scenario-based landing
+    FAQ.md
+    TROUBLESHOOTING.md
+    walkthroughs/            ← step-by-step user flows
+  scripts/                   ← repo-level tooling (validate, bump, gen-readme, etc.)
+  tests/
+    fixtures/                ← input markdown files
+    snapshots/               ← expected linter JSON outputs
+    run.sh                   ← test runner
+  install.sh                 ← user-facing installer
+  skills.json                ← machine-readable skill manifest
+  CHANGELOG.md
+  README.md
+  Makefile
+```
+
+Each skill must have `SKILL.md` with valid frontmatter (`name`, `description`, `license`, `allowed-tools`). The `description:` field is what Claude Code matches user requests against — keep it specific and ≤350 characters.
+
+---
+
+## Adding a new skill
+
+### Before you scaffold
+
+1. **Confirm it doesn't overlap an existing skill.** Read `docs/USER-GUIDE.md` and the SKILL.md of each existing skill. If your idea is "write better X" and `writer`/`prose-edit`/`essay-write` could do it, extend one of them instead of adding a new skill.
+
+2. **Verify the discriminator.** Can a user clearly decide *when to use yours vs the alternative*? If not, the skill won't get matched — Claude Code uses the `description:` field for fuzzy matching, and overlapping descriptions hurt discovery.
+
+3. **Decide the layer:** `base` (rules used by other skills), `wrapper` (calls a base skill as final cleanup), or `linter` (read-only, produces reports).
+
+### Scaffold
+
+```bash
+make new-skill name=your-skill
+# or
+bash scripts/new-skill.sh your-skill --description "..." --layer wrapper --deps writer
+```
+
+This creates:
+
+```
+your-skill/
+  SKILL.md           ← TODO placeholders
+  references/
+  examples/
+```
+
+### Fill in
+
+1. **Frontmatter.** Update `SKILL.md` frontmatter:
+   - `name:` — kebab-case, matches the directory name
+   - `description:` — ≤350 chars (CI WARNs >350). Include task + invocation hint + discriminator vs other skills.
+   - `allowed-tools:` — minimal set (Read, Bash, Grep, Glob for read-only; add Write/Edit only if mutating).
+
+2. **`<objective>`** — what this skill is for, when to invoke, what the output contract is.
+
+3. **`## PIPELINE`** — the deterministic steps the skill follows. Wrappers must specify "Final step: apply `writer`/SKILL.md cleanup pass."
+
+4. **`## REFERENCES`** — table of `references/*.md` files with "When to load" column.
+
+5. **`references/*.md`** — heavy content the skill needs but shouldn't bloat SKILL.md. Each reference file is loaded on demand. Aim for SKILL.md ≤250 lines; spillover goes here.
+
+6. **`examples/*.md`** — at least one calibration pair (input + expected output / patterns).
+
+### Register
+
+7. **Add to `skills.json`** — see the existing entries. Required fields: `name`, `dir`, `layer`, `description`, `languages`, `deps`.
+
+8. **Regenerate README table:** `make gen-readme` (auto-updates `<!-- BEGIN skills-table -->`).
+
+9. **Add to `docs/USER-GUIDE.md`** — at minimum, a row in the "Pick your starting point" table and a short use-case section. CI fails if a registered skill isn't mentioned anywhere in USER-GUIDE.md.
+
+10. **Add a walkthrough** (optional but encouraged) — `docs/walkthroughs/your-skill.md` with frontmatter:
+    ```yaml
+    ---
+    title: "..."
+    persona: "..."
+    time: "..."
+    skills:
+      - your-skill
+    ---
+    ```
+    CI parses the `skills:` list and fails if any referenced skill is unknown.
+
+11. **Add at least one fixture** — `tests/fixtures/skill_your-skill_input.md` + run `bash tests/run.sh --update` to seed the snapshot.
+
+12. **Add to `CHANGELOG.md` `[Unreleased]`** — under `### Added — new skills`, one bullet:
+    ```markdown
+    - **`your-skill`** (wrapper). One-line description. Composes with X / Y.
+    ```
+    CI fails if a new skill folder is detected without a CHANGELOG entry.
+
+### Verify locally
+
+```bash
+make validate         # frontmatter + cross-link + description-length checks
+make smoke            # full smoke: validate + lint snapshot + fixtures
+make check-docs       # README/USER-GUIDE/walkthroughs/CHANGELOG consistency
+shellcheck install.sh scripts/*.sh
+```
+
+All four must be green before opening a PR.
+
+---
+
+## Editing an existing skill
+
+The bar is lower than adding a new skill but the gates are the same.
+
+1. Make your edit.
+2. Run the verification block above.
+3. If you changed the `description:` field, make sure it's still ≤350 chars.
+4. If you added or removed a reference file, make sure all SKILL.md cross-links still resolve (`validate.sh` checks this).
+5. If you changed regex patterns in `writer/scripts/lint.py`, snapshots will drift — re-run `bash tests/run.sh --update` and commit the new snapshots **along with the explanation** of why the linter changed in the PR description.
+
+---
+
+## Reporting a bug or false-positive
+
+Use the issue templates at `.github/ISSUE_TEMPLATE/`:
+
+- **bug-report** — installer broken, skill misbehaves, banner doesn't fire
+- **false-positive** — the linter or a wrapper flagged something legitimate
+- **new-skill-proposal** — propose a new skill before scaffolding it
+
+Include:
+
+- Output of `bash install.sh --check`
+- Output of `bash scripts/validate.sh`
+- The exact prompt + the unexpected output
+- Your OS + Claude Code version
+
+---
+
+## Local development workflow
+
+```bash
+# clone
+git clone https://github.com/Mikefluff/skills
+cd skills
+
+# install locally (uses ./ as source, not the upstream tarball)
+bash install.sh --copy-from . --update
+
+# edit a skill, then re-install
+bash install.sh --copy-from . --update
+
+# run all local CI gates
+make validate
+make smoke
+make check-docs
+shellcheck install.sh scripts/*.sh
+npx -y markdownlint-cli2@0.13.0 "**/*.md" "#node_modules/**" "#.git/**"
+
+# regen README skills table
+make gen-readme
+
+# add a new fixture + snapshot
+echo "..." > tests/fixtures/new_fixture.md
+bash tests/run.sh --update
+
+# bump version + write release notes
+make bump-minor   # or bump-patch / bump-major
+git commit -am "chore: bump to vX.Y.Z"
+```
+
+---
+
+## CI gates explained
+
+The GitHub Actions pipeline runs four gates on every push:
+
+### 1. `validate` (`bash scripts/validate.sh`)
+
+For each skill:
+- Frontmatter present and well-formed (`name`, `description`, `license`, `allowed-tools`)
+- All `references/<file>` links in SKILL.md actually resolve to existing files
+- `description:` is 120-350 chars (WARN >350; this WARN now fails the build at our policy)
+- At least one example or reference file exists
+
+### 2. `smoke` (`bash scripts/smoke.sh`)
+
+- All `validate.sh` checks
+- `writer/scripts/lint.py` runs on every `tests/fixtures/*.md`
+- Output is byte-equal to the corresponding `tests/snapshots/*.json`
+- If snapshots drifted, the test fails with a diff — fix the linter or accept the drift via `bash tests/run.sh --update`
+
+### 3. `check-docs-consistency` (`bash scripts/check-docs-consistency.sh`)
+
+Five sub-checks, all must pass:
+
+1. README table ↔ `skills.json` (auto-generated; if drift, run `make gen-readme`)
+2. Skill folders on disk ↔ `skills.json` (new folder without manifest entry → fail)
+3. Walkthrough `skills:` frontmatter list ↔ `skills.json` (unknown skill referenced → fail)
+4. Every skill in `skills.json` is mentioned somewhere in `docs/USER-GUIDE.md`
+5. New skill folders since last `v*` tag ↔ `CHANGELOG.md [Unreleased]`
+
+### 4. Shellcheck + Markdownlint
+
+- `shellcheck install.sh scripts/*.sh` — 0 warnings
+- `markdownlint-cli2` on `**/*.md` — the repo disables ~14 cosmetic rules in `.markdownlint.json`; what's left must pass
+
+---
+
+## Commit message convention
+
+Conventional Commits with semantic-versioning interpretation (parsed by `scripts/decide-bump.sh`):
+
+| Prefix | Triggers | Notes |
+|---|---|---|
+| `feat:` | minor bump | new feature, new skill, new walkthrough |
+| `fix:` | patch bump | bug fix |
+| `perf:` | patch bump | performance fix |
+| `refactor:` | patch bump | non-behavioural refactor |
+| `feat!:` or any `!:` | major bump | breaking change |
+| `BREAKING CHANGE:` in body | major bump | breaking change |
+| `docs:` | no release | documentation-only |
+| `chore:` | no release | tooling, CI, scaffolding |
+| `style:` | no release | formatting only |
+| `test:` | no release | test-only |
+| `ci:` | no release | CI config only |
+
+Every push to `main` triggers `.github/workflows/release.yml`, which:
+
+1. Parses commits since the last `v*` tag
+2. Decides the bump (or "no release")
+3. Runs `make bump-{patch,minor,major}` which promotes `[Unreleased]` in CHANGELOG to a versioned section
+4. Tags `vX.Y.Z`, pushes the tag, creates a GitHub Release with the CHANGELOG section as the body
+
+So: **do not manually tag releases**. The pipeline does it.
+
+---
+
+## PR checklist
+
+When opening a PR, confirm:
+
+- [ ] `make validate` passes (no WARN)
+- [ ] `make smoke` passes (all fixtures match snapshots)
+- [ ] `make check-docs` passes (5/5 sub-checks)
+- [ ] `shellcheck install.sh scripts/*.sh` exits 0
+- [ ] `markdownlint-cli2` reports no errors
+- [ ] If you added a skill: `skills.json` updated, README table regenerated, USER-GUIDE mentions it, CHANGELOG `[Unreleased]` has an entry, ≥1 fixture exists
+- [ ] If you changed `writer/scripts/lint.py`: regenerated all snapshots and explained the change in the PR description
+- [ ] Commit messages follow Conventional Commits
+
+The CI will run the same gates. If anything fails, the PR cannot merge.
+
+---
+
+## Code of conduct
+
+Be specific. Be direct. No flame. If you disagree with a maintainer decision, open a Discussions thread with a concrete alternative and a reason — not a complaint.
+
+---
+
+## Questions
+
+Open a [Discussions](https://github.com/Mikefluff/skills/discussions) thread for design questions or anything that isn't a bug / new-skill proposal.

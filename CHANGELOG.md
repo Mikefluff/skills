@@ -14,6 +14,56 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — new skills
+
+- **`tone-shifter`** (wrapper, RU+EN). Rewrite text in a different register without changing meaning. 6 named registers — `casual`, `friendly-professional`, `business-formal`, `academic`, `technical`, `plain-explainer` — plus a transformation-deltas matrix for each source→target pair. Wraps `writer` as final cleanup.
+- **`cold-email`** (wrapper, EN). Write or rewrite cold outreach (first-touch, follow-up, intro request, re-engage, forwardable). 5-block structure, ≤120-word budget, banned ceremony patterns, anti-template subject lines. Wraps `writer` as final cleanup.
+
+### Added — EN paritет
+
+- **`writer/scripts/lint.py` — EN regex patterns.** Added EN coverage to FILLER_INTRO, GPT_FILLER, AI_BRIDGE, STOCK_METAPHOR, AI_INTENSIFIER, AI_HEDGE, SELFHELP, PSEUDO_CAUSAL, plus new AI_TRIPLETS category. Synthetic EN-neuroslop fixture now triggers 7 categories / 23 hits → verdict "neuroslop suspected".
+- **EN sections in 5 reference files** (mirror RU rules):
+  - `writer/references/structural-prose.md` — `## EN structural patterns` (staccato, em-dash abuse, comma-splice, double-negation, intensifier ladder, balance hedges, pseudo-causal bridges, nominalization, sentence-opener monotony)
+  - `writer/references/neuroslop-categories.md` — `## EN AI-style signatures` (18 EN buckets EN-1..EN-18)
+  - `viral-text/references/viral-rules.md` — `## EN viral hook patterns`
+  - `essay-write/references/banned-constructions.md` — `## EN banned constructions for non-fiction`
+  - `prose-edit/references/voice.md` — `## EN voice patterns`
+- **EN test fixtures** — `tests/fixtures/en_neuroslop_full_pass.md` + `tests/fixtures/en_clean_prose.md` with snapshots.
+- **EN walkthrough** — `docs/walkthroughs/en-viral-post.md` (EN content marketer persona for LinkedIn / X).
+
+### Added — per-skill test coverage
+
+- **8 per-skill input fixtures** in `tests/fixtures/skill_*_input.md`. Each fixture is a representative input for that skill (viral-text, prose-edit, essay-write, style-check, translation-sync, canon-check, pelevin-digression) so any future linter regression on real-world skill inputs is caught. Combined fixture count: 14 (up from 5).
+
+### Added — dedicated walkthroughs
+
+- **`docs/walkthroughs/canon-check-audit.md`** — story-bible audit for a fresh chapter, standalone.
+- **`docs/walkthroughs/digression-insertion.md`** — Pelevin-vector digression in non-fiction essay, standalone.
+- **`docs/walkthroughs/style-check-gate.md`** — manual quality gate without auto-edits, standalone.
+
+### Added — contributor infrastructure
+
+- **`CONTRIBUTING.md`** (root) — comprehensive contributor guide. Project structure, how-to-add-a-skill checklist, editing existing skills, bug reporting, local dev workflow, CI gate explanations, conventional-commits reference, PR checklist. Fixes broken FAQ links.
+- **`.github/ISSUE_TEMPLATE/false_positive.yml`** — new template for linter / wrapper false-positive reports.
+- **`bug_report.yml` + `new_skill_proposal.yml`** updated to include `tone-shifter` and `cold-email` in dropdowns.
+- **`.github/workflows-template/skills-lint.yml.template`** — copy-pasteable GitHub Action that pins to a specific `Mikefluff/skills` release and runs `writer/scripts/lint.py` on the user's prose files in CI. Configurable `LINT_PATHS` and `FAIL_THRESHOLD`. Documented in USER-GUIDE under new "Use in your CI" section.
+
+### Changed — descriptions tightened
+
+- 6 SKILL.md descriptions shortened to ≤350 chars (canon-check 493→334, pelevin-digression 457→315, translation-sync 451→325, essay-write 443→345, prose-edit 419→312, skills-update 369→295). Improves Claude Code skill-matching discrimination.
+
+### Fixed — shellcheck warnings
+
+- **`install.sh:90`** — replaced `eval "$@"` (SC2294) with safe `"$@"` direct expansion. All `run` callers refactored to plain-arg style (no string-quoted shell expressions). Removes potential security risk.
+- **`install.sh:254-274`** — removed unused `a1/a2/a3/b1/b2/b3` vars (SC2034); refactored `semver_cmp` to use `cut -d. -f<i>` directly.
+- **`install.sh:431`** — added missing `"$INSTALL_SKILLS"` quoting (SC2086).
+- **`scripts/validate.sh:61`** + **`scripts/check-docs-consistency.sh:109`** — missing quotes fixed.
+- **`scripts/check-docs-consistency.sh`** — removed unused `yellow()` helper (SC2329).
+
+### Removed
+
+- **`docs/CONTRIBUTING.md`** — consolidated into root `CONTRIBUTING.md` (GitHub standard location). All references updated.
+
 ## [1.1.0] — 2026-05-20
 
 ### Added — user-facing documentation

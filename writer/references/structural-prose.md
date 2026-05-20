@@ -151,3 +151,93 @@
 - «цикл размыкается, программа выходит из бесконечного цикла» → «цикл размыкается, программа выходит из бесконечного повтора»
 - «положил на музыку и попросил начитать поверх этой музыки» → «положил на музыку и попросил начитать поверх дорожки»
 - «Содержание разговора она помнила... во время самого разговора» → «Содержание разговора она помнила фрагментами и без того веса, с которым это произносилось вслух»
+
+---
+
+## EN structural patterns
+
+The English layer parallels the RU patterns above. Same logic: form and rhythm betray machine prose more than vocabulary. Apply only to EN-language source; do not mix with the RU sections.
+
+Trigger threshold mirrors the RU rule — any single pattern below fires → rewrite, not patch.
+
+### EN staccato — 3+ short clipped sentences in a row
+
+Chains of 3-5 word sentences where natural prose would vary length. Same fix philosophy as RU: do NOT just swap full stops for commas; bring in a subordinating conjunction (`because / so that / which / when / though / while / since`) or a participial phrase.
+
+- BEFORE: "He walked. He stopped. He turned. The road was empty. The wind was cold."
+- HALF-FIX (still synthetic): "He walked, stopped, turned. The road was empty, the wind cold."
+- AFTER: "He stopped on the empty road, the wind cold against his face, and turned back the way he came."
+
+Hint regex: 3+ consecutive sentences each ≤6 words inside a single paragraph.
+
+### EN em-dash abuse — 3+ em-dashes used as comma-replacements
+
+The single most recognizable Claude tell in English. Em-dash is a real punctuation mark, but 3+ in one paragraph (especially as comma substitutes) reads as machine.
+
+- BEFORE: "The result — which nobody expected — landed in March — right as the team was rotating leads — and broke the release."
+- AFTER: "The result, which nobody expected, landed in March, right as the team was rotating leads, and broke the release."
+
+Hint regex: `(—.*){3,}` within one paragraph → flag.
+
+### EN comma-splice — two independent clauses joined by a bare comma
+
+Independent clauses joined by a comma without a coordinating conjunction. Sometimes intentional (Cormac McCarthy), almost always slop in business or essay prose.
+
+- BEFORE: "I went to the store, I bought milk."
+- AFTER: "I went to the store and bought milk." or "I went to the store; I bought milk."
+
+Hint regex: `[a-z], [A-Z][a-z]+ [a-z]+` where both halves parse as full clauses → candidate splice.
+
+### EN double-negation — "not unhappy", "not without merit", "not unimportant"
+
+Occasionally an intentional litotes (Orwell-flag: "if it is not actively bad..."). Far more often a hedge tell: the model dodges commitment by negating its own claim. Default: rewrite as direct assertion; keep only if litotes is clearly the rhetorical move.
+
+- BEFORE: "The result was not unimpressive."
+- AFTER: "The result was impressive." (or, if hedging is genuinely intended: "The result held up.")
+
+Hint regex: `\bnot un[a-z]+\b`, `\bnot without\b`.
+
+### EN intensifier ladder — stacked adverbs of degree
+
+`very / really / extremely / incredibly / truly / deeply / absolutely / completely / utterly` piling onto otherwise neutral adjectives. The AI signature: "absolutely critical", "truly remarkable", "deeply important", "incredibly powerful". Cut the intensifier or replace the adjective with a stronger noun/verb.
+
+- BEFORE: "This is an absolutely critical, truly remarkable shift."
+- AFTER: "This shift breaks the previous baseline." (concrete claim replaces the intensifier wall)
+
+Hint regex: `\b(very|really|extremely|incredibly|truly|deeply|absolutely|completely|utterly) [a-z]+(ly)?\b` → flag if 2+ within one paragraph.
+
+### EN balance hedges — "while X, Y is also true"
+
+The AI-fingerprint balance paragraph (RU category 21 — BALANCE_HEDGE — has its EN twin). Same logic: any time the model wants to avoid committing, it produces a two-sided shrug.
+
+- BEFORE: "While there are strong arguments for remote work, it's also important to consider the value of in-person collaboration."
+- AFTER: "Remote work wins on focus time and loses on bandwidth-heavy decisions; pick per task, not per company."
+
+Patterns to flag: `^While ` opener of a paragraph, `on one hand .* on the other hand`, `it's both .* and `, `there are valid points on both sides`.
+
+### EN pseudo-causal bridges — "this means that", "as a result", "consequently"
+
+Used when no actual causal relation exists, just rhetorical glue. Same as RU PSEUDO_CAUSAL (category 12). If the sentence that follows doesn't actually follow from what precedes, the bridge is fake — cut it, restructure.
+
+- BEFORE: "The team shipped on time. This means that quality was prioritized."
+- AFTER: "The team shipped on time, which only happens when they say no to scope creep."
+
+Patterns to flag at sentence start: `This means that`, `As a result,`, `Consequently,`, `Therefore,`, `Hence,`, `Thus,` — when no logical entailment is actually present.
+
+### EN nominalization — "the implementation of X" instead of "implementing X"
+
+Same disease as RU category 17. The verb gets buried inside an abstract noun, the sentence loses agency, the prose smells of compliance documents.
+
+- BEFORE: "The implementation of the new policy required the consideration of multiple stakeholders."
+- AFTER: "Implementing the new policy meant talking to every team it touched."
+
+Patterns to flag: `the (implementation|consideration|utilization|optimization|exploration|examination|evaluation|integration) of `, `the X of Y` where X is a `-tion / -sion / -ment / -ance / -ence` noun derived from a perfectly usable verb.
+
+### EN sentence-opener monotony — "Furthermore / Moreover / Additionally"
+
+If more than ~30% of paragraphs open with `Furthermore,` / `Moreover,` / `Additionally,` / `In addition,` / `Of course,` / `Indeed,` — that is the model's discourse-marker tic. Cut all but one per piece; let logic carry instead.
+
+- BEFORE: "Furthermore, the team reduced costs. Moreover, they improved velocity. Additionally, morale rose."
+- AFTER: "The team reduced costs, velocity went up, and morale followed."
+
+Hint regex: count of `^(Furthermore|Moreover|Additionally|In addition|Of course|Indeed),` openers across paragraphs ÷ total paragraphs ≥ 0.3 → flag.

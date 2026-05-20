@@ -1,0 +1,153 @@
+{
+  "verdict": "neuroslop suspected",
+  "total": 23,
+  "by_category": {
+    "FILLER_INTRO": 1,
+    "GPT_FILLER": 4,
+    "STOCK_METAPHOR": 7,
+    "AI_INTENSIFIER": 5,
+    "AI_HEDGE": 3,
+    "AI_BRIDGE": 1,
+    "AI_TRIPLETS": 2
+  },
+  "hits": [
+    {
+      "line": 3,
+      "col": 1,
+      "category": "FILLER_INTRO",
+      "match": "In today's fast-paced, interconnected world"
+    },
+    {
+      "line": 3,
+      "col": 127,
+      "category": "GPT_FILLER",
+      "match": "It's important to note"
+    },
+    {
+      "line": 3,
+      "col": 80,
+      "category": "STOCK_METAPHOR",
+      "match": "very fabric of"
+    },
+    {
+      "line": 3,
+      "col": 178,
+      "category": "AI_INTENSIFIER",
+      "match": "multifaceted"
+    },
+    {
+      "line": 3,
+      "col": 195,
+      "category": "AI_INTENSIFIER",
+      "match": "far-reaching"
+    },
+    {
+      "line": 5,
+      "col": 1,
+      "category": "GPT_FILLER",
+      "match": "Let's delve into"
+    },
+    {
+      "line": 5,
+      "col": 7,
+      "category": "GPT_FILLER",
+      "match": "delve into"
+    },
+    {
+      "line": 5,
+      "col": 22,
+      "category": "STOCK_METAPHOR",
+      "match": "rich tapestry of"
+    },
+    {
+      "line": 5,
+      "col": 165,
+      "category": "STOCK_METAPHOR",
+      "match": "shaping the future"
+    },
+    {
+      "line": 5,
+      "col": 211,
+      "category": "AI_INTENSIFIER",
+      "match": "truly remarkable"
+    },
+    {
+      "line": 5,
+      "col": 184,
+      "category": "AI_INTENSIFIER",
+      "match": "cannot be overstated"
+    },
+    {
+      "line": 7,
+      "col": 67,
+      "category": "STOCK_METAPHOR",
+      "match": "navigating the complexities"
+    },
+    {
+      "line": 9,
+      "col": 111,
+      "category": "AI_HEDGE",
+      "match": "On one hand, automation may eliminate certain roles; on the other hand"
+    },
+    {
+      "line": 9,
+      "col": 1,
+      "category": "AI_HEDGE",
+      "match": "While there are valid"
+    },
+    {
+      "line": 9,
+      "col": 225,
+      "category": "AI_HEDGE",
+      "match": "Both perspectives have merit"
+    },
+    {
+      "line": 11,
+      "col": 1,
+      "category": "GPT_FILLER",
+      "match": "Bear in mind"
+    },
+    {
+      "line": 11,
+      "col": 79,
+      "category": "STOCK_METAPHOR",
+      "match": "embark on a journey"
+    },
+    {
+      "line": 11,
+      "col": 204,
+      "category": "STOCK_METAPHOR",
+      "match": "Plays a pivotal role"
+    },
+    {
+      "line": 13,
+      "col": 1,
+      "category": "AI_BRIDGE",
+      "match": "In conclusion"
+    },
+    {
+      "line": 13,
+      "col": 32,
+      "category": "STOCK_METAPHOR",
+      "match": "cornerstone of"
+    },
+    {
+      "line": 13,
+      "col": 117,
+      "category": "AI_INTENSIFIER",
+      "match": "underscores the importance"
+    },
+    {
+      "line": 13,
+      "col": 69,
+      "category": "AI_TRIPLETS",
+      "match": "smart, capable, and intelligent technology"
+    },
+    {
+      "line": 13,
+      "col": 69,
+      "category": "AI_TRIPLETS",
+      "match": "smart, capable, and intelligent"
+    }
+  ]
+}

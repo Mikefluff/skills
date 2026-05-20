@@ -1,6 +1,6 @@
 ---
 name: pelevin-digression
-description: "Write or rewrite a passage as a Pelevin-voice-vector digression — concrete sociology via brand-name, bracket-essay, forward-link, anti-gradation list. 12 structural techniques + 5 banned constructions. Use when you want a 1-3-paragraph digression in this specific voice inside a fiction chapter or non-fiction essay. Wraps `prose-edit` (fiction) or `essay-write` (non-fic) as the final cleanup pass — does not bypass them. Pelevin-VECTOR, not impersonation."
+description: "Write or rewrite a 1-3-paragraph digression in Pelevin-voice-vector — concrete sociology via brand-name, bracket-essay, forward-link, anti-gradation list. Wraps `prose-edit` (fiction) or `essay-write` (non-fic) as final cleanup. Use when the user asks for a digression in this specific voice. Vector, not impersonation."
 license: MIT
 allowed-tools:
   - Read

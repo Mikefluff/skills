@@ -7,7 +7,7 @@
 
 A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills for editing prose without producing text that reads like LLM output. Russian-first, English-capable.
 
-**Nine skills**, one base linter + four wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
+**Eleven skills**, one base linter + six wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
 
 ---
 
@@ -29,11 +29,16 @@ Quick scenario picker:
 
 | You want to … | Walkthrough |
 |---|---|
-| Write a viral social-media post | [viral-post](docs/walkthroughs/viral-post.md) |
+| Write a viral social-media post | [RU](docs/walkthroughs/viral-post.md) · [EN](docs/walkthroughs/en-viral-post.md) |
 | Edit a fiction chapter | [fiction-chapter](docs/walkthroughs/fiction-chapter.md) |
 | Draft a long-form essay | [non-fiction](docs/walkthroughs/non-fiction.md) |
 | Verify a multilingual translation | [translation-parity](docs/walkthroughs/translation-parity.md) |
 | Auto-lint every commit | [pre-commit-hook](docs/walkthroughs/pre-commit-hook.md) |
+| Audit a chapter against your story bible | [canon-check-audit](docs/walkthroughs/canon-check-audit.md) |
+| Insert a Pelevin-vector digression | [digression-insertion](docs/walkthroughs/digression-insertion.md) |
+| Run a read-only quality gate | [style-check-gate](docs/walkthroughs/style-check-gate.md) |
+| Rewrite text in a different register | [USER-GUIDE](docs/USER-GUIDE.md#tone-shifter--register-rewrites) |
+| Draft a cold outreach email | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-a-cold-email) |
 
 If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESHOOTING.md).
 
@@ -54,6 +59,8 @@ If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESH
 | [`canon-check`](canon-check/) | linter | ru/en | Story-bible consistency auditor for any book series. Greps entities (characters / artifacts / locations) in changed chapters, cross-references the project's story-bible document, flags BLOCKING contradictions / WARNING gaps / INFO new details. Read-only — trust the text, not memory. |
 | [`pelevin-digression`](pelevin-digression/) | wrapper | ru | Write a Pelevin-style digression for a fiction or non-fiction passage — 12 structural techniques + 5 banned constructions. Wraps prose-edit (fiction) or essay-write (non-fic). Invoked by request, not auto-applied. |
 | [`skills-update`](skills-update/) | meta | en/ru | User-invocable update check + apply for this collection. Compares local install marker with latest GitHub release, shows CHANGELOG diff, asks for confirmation, runs install.sh --update. |
+| [`tone-shifter`](tone-shifter/) | wrapper | en/ru | Rewrite a passage in a different register (formal↔casual, business↔academic, technical↔friendly, plain-explainer) without changing meaning. 6 registers + named transformation deltas. Wraps writer as final cleanup. |
+| [`cold-email`](cold-email/) | wrapper | en | Write or rewrite cold outreach emails (first-touch, follow-up, intro request, re-engage). 5-block structure, ≤120-word budget, banned ceremony patterns, anti-template subject lines. Wraps writer as final cleanup. |
 
 <!-- END skills-table -->
 
@@ -109,13 +116,13 @@ skills/
 ├── skills.json              # machine-readable manifest used by installer
 ├── install.sh               # pure-bash installer, curl-pipeable
 ├── Makefile                 # local dev convenience
+├── CONTRIBUTING.md          # how to add a skill / report a bug / propose new one
 ├── docs/
 │   ├── USER-GUIDE.md        # ← start here as a user
 │   ├── walkthroughs/        # detailed per-scenario flows
 │   ├── FAQ.md
 │   ├── TROUBLESHOOTING.md
 │   ├── COMPOSING.md         # dependency graph + composition patterns
-│   ├── CONTRIBUTING.md      # how to add a skill
 │   ├── VERSIONING.md        # semver policy + release flow
 │   └── LINTER-COVERAGE.md   # auto-generated regex coverage
 ├── scripts/
@@ -133,7 +140,7 @@ skills/
 │   └── skills-update-banner.js
 ├── tests/                   # fixture snapshots for writer/scripts/lint.py
 ├── .github/                 # workflows + issue/PR templates + SECURITY.md
-└── <skill-name>/            # the 9 skills, one folder each
+└── <skill-name>/            # the 11 skills, one folder each
 ```
 
 ---
@@ -151,7 +158,7 @@ make new-skill NAME=foo-bar DESC="..."
 
 Releases are automatic — push a conventional-commit message (`feat:`, `fix:`, `feat!:`, etc.) and `.github/workflows/release.yml` bumps + tags + publishes. See [docs/VERSIONING.md](docs/VERSIONING.md).
 
-Want to contribute? Read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md). PRs welcome.
+Want to contribute? Read [CONTRIBUTING.md](CONTRIBUTING.md). PRs welcome.
 
 ---
 

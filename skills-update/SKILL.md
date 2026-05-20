@@ -1,6 +1,6 @@
 ---
 name: skills-update
-description: "Check if a newer version of the Mikefluff/skills collection is available; show the CHANGELOG diff; on user confirmation, run install.sh --update to refresh installed skills. Idempotent and read-only until the user explicitly approves the update. Use when the user says 'check for skill updates', 'update skills', '/skills-update', or sees the status-line update banner."
+description: "Check if a newer Mikefluff/skills release exists; show CHANGELOG diff; on user confirmation, run install.sh --update. Idempotent and read-only until user approves. Use when the user says 'check for skill updates', 'update skills', '/skills-update', or sees the status-line update banner."
 license: MIT
 allowed-tools:
   - Read

@@ -1,0 +1,15 @@
+{
+  "verdict": "clean",
+  "total": 1,
+  "by_category": {
+    "DOUBLE_NEG_REGEX": 1
+  },
+  "hits": [
+    {
+      "line": 5,
+      "col": 97,
+      "category": "DOUBLE_NEG_REGEX",
+      "match": "Не радость, не печаль"
+    }
+  ]
+}

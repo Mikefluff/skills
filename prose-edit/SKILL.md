@@ -1,6 +1,6 @@
 ---
 name: prose-edit
-description: "Fiction-prose rewrite and style pass. Wraps `writer` and adds a fiction layer: voice vector (Pelevin/Manson — not impersonation), no-business-editing rules, long artistic rewrite over compression, ToV patterns, 5-trigger structural-synthesis detector, depth-pass checklist. Use when rewriting a fiction chapter / scene / passage in any text format (md / tex / txt). Pairs with `canon-check` for story-bible consistency."
+description: "Fiction-prose rewrite + style pass. Wraps `writer`; adds voice vector (Pelevin/Manson — not impersonation), no-business-editing rules, artistic rewrite over compression, 5-trigger structural-synthesis detector, depth-pass checklist. Use when rewriting a fiction chapter / scene / passage. Pairs with `canon-check`."
 license: MIT
 allowed-tools:
   - Read

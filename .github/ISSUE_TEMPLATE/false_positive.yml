@@ -1,0 +1,81 @@
+name: False positive
+description: The linter or a wrapper flagged something that's legitimate prose
+title: "false-positive: "
+labels: ["false-positive"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The linter is intentionally high-recall — some false positives are accepted as the cost. But genuinely misfired rules should be tightened. Please give us the exact fragment so we can decide.
+
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Which skill / linter fired?
+      options:
+        - writer (writer/scripts/lint.py)
+        - viral-text
+        - prose-edit
+        - essay-write
+        - style-check
+        - translation-sync
+        - canon-check
+        - pelevin-digression
+        - tone-shifter
+        - cold-email
+        - other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: category
+    attributes:
+      label: Category / rule name that fired
+      description: "Example: DOUBLE_NEG_REGEX, AI_INTENSIFIER, AI_BRIDGE, NEURAL_METAPHOR. Look at the lint output."
+      placeholder: "AI_INTENSIFIER"
+    validations:
+      required: true
+
+  - type: textarea
+    id: fragment
+    attributes:
+      label: The flagged fragment
+      description: |
+        The exact match the linter complained about. Paste verbatim, do not paraphrase.
+        Include 1-2 sentences of surrounding context if it matters.
+      placeholder: |
+        > "...he held the truly remarkable old camera his grandfather had..."
+
+        The linter fired AI_INTENSIFIER on "truly remarkable" but the context is descriptive, not AI-style.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why_legitimate
+    attributes:
+      label: Why this is legitimate prose
+      description: |
+        Why is the regex wrong here? Is it: an idiom, a domain term, a quoted speech, an intentional stylistic device?
+        Reference `writer/references/structural-prose.md` or `writer/references/neuroslop-categories.md` if the rule has documented exceptions.
+      placeholder: |
+        "Truly remarkable" used here as a descriptive adjective for an antique camera in dialogue —
+        not as the AI intensifier pattern (where it's a hollow modifier on an abstract noun).
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_fix
+    attributes:
+      label: Proposed fix (optional)
+      description: |
+        If you have an idea — narrow the regex, add an exception, change category severity, etc.
+        Otherwise leave blank; the maintainers will judge.
+
+  - type: input
+    id: version
+    attributes:
+      label: Collection version
+      description: "From `cat ~/.claude/skills/.skills-collection.json | grep version` — or the tag/SHA you have."
+      placeholder: "v1.1.0"
+    validations:
+      required: true

@@ -1,0 +1,123 @@
+# Mikefluff/skills — CI lint template
+#
+# Copy this file into YOUR repo at `.github/workflows/skills-lint.yml`
+# (rename — drop the `.template` suffix).
+#
+# What it does
+# ------------
+# On every push and pull request, this workflow:
+#   1. Checks out your repo
+#   2. Clones the latest release of Mikefluff/skills
+#   3. Runs writer/scripts/lint.py on the prose files you care about
+#   4. Fails the build if any file's verdict is "neuroslop suspected" (exit 2)
+#
+# Files linted: by default, all *.md outside of node_modules / vendor / .git.
+# Override via the `paths:` input below.
+#
+# Pinning
+# -------
+# This template uses `--version <tag>` to pin the skills-collection version
+# to a tested release. Bump SKILLS_VERSION here when you want to upgrade.
+
+name: skills-lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  # Pin to a specific Mikefluff/skills release for reproducible CI.
+  # Update this when you've tested a newer version locally.
+  SKILLS_VERSION: "1.2.0"
+
+  # Glob patterns to lint. Override per your repo layout.
+  # Examples:
+  #   "docs/**/*.md"          — only docs
+  #   "content/**/*.md"       — only content directory
+  #   "**/*.md"               — everything (excludes added below)
+  LINT_PATHS: "**/*.md"
+
+  # Verdict threshold for failing the build:
+  #   0 = clean only          — strictest; even borderline fails
+  #   1 = borderline or worse — moderately strict
+  #   2 = neuroslop only      — most lenient; only the worst fails
+  FAIL_THRESHOLD: "2"
+
+jobs:
+  lint:
+    name: Lint prose against writer rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Mikefluff/skills
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh \
+            | bash -s -- \
+                --version "${{ env.SKILLS_VERSION }}" \
+                --prefix "$PWD/.skills-cache" \
+                --skills writer \
+                --yes
+          echo "SKILLS_DIR=$PWD/.skills-cache" >> "$GITHUB_ENV"
+
+      - name: Run linter on prose files
+        id: lint
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          # Collect target files
+          mapfile -t files < <(
+            find . -type f -name "*.md" \
+              -not -path "./node_modules/*" \
+              -not -path "./vendor/*" \
+              -not -path "./.git/*" \
+              -not -path "./.skills-cache/*" \
+              | sort
+          )
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No markdown files to lint."
+            exit 0
+          fi
+
+          fail=0
+          for f in "${files[@]}"; do
+            out="$(python3 "$SKILLS_DIR/writer/scripts/lint.py" "$f" 2>&1)"
+            code=$?
+            verdict="$(echo "$out" | head -1)"
+            if [ "$code" -ge "${{ env.FAIL_THRESHOLD }}" ]; then
+              echo "::error file=$f::$verdict"
+              echo "$out" | head -30
+              echo
+              fail=1
+            else
+              echo "✓ $f — $verdict"
+            fi
+          done
+          exit "$fail"
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.lint.outcome }}" = "success" ]; then
+            echo "## ✓ Prose lint passed" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## ✗ Prose lint failed" >> "$GITHUB_STEP_SUMMARY"
+            echo >> "$GITHUB_STEP_SUMMARY"
+            echo "Files above failed the writer linter at verdict ≥ ${{ env.FAIL_THRESHOLD }}." >> "$GITHUB_STEP_SUMMARY"
+            echo >> "$GITHUB_STEP_SUMMARY"
+            echo "Run locally to debug:" >> "$GITHUB_STEP_SUMMARY"
+            echo '```bash' >> "$GITHUB_STEP_SUMMARY"
+            echo "curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | bash" >> "$GITHUB_STEP_SUMMARY"
+            echo "python3 ~/.claude/skills/writer/scripts/lint.py path/to/file.md" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -1,0 +1,43 @@
+{
+  "verdict": "neuroslop suspected",
+  "total": 5,
+  "by_category": {
+    "FILLER_INTRO": 1,
+    "PSEUDO_SMART": 1,
+    "GPT_FILLER": 1,
+    "AI_HEDGE": 1,
+    "AI_BRIDGE": 1
+  },
+  "hits": [
+    {
+      "line": 3,
+      "col": 1,
+      "category": "FILLER_INTRO",
+      "match": "В современном мире"
+    },
+    {
+      "line": 5,
+      "col": 78,
+      "category": "PSEUDO_SMART",
+      "match": "в конечном итоге"
+    },
+    {
+      "line": 7,
+      "col": 1,
+      "category": "GPT_FILLER",
+      "match": "Важно отметить"
+    },
+    {
+      "line": 7,
+      "col": 192,
+      "category": "AI_HEDGE",
+      "match": "Можно утверждать"
+    },
+    {
+      "line": 9,
+      "col": 1,
+      "category": "AI_BRIDGE",
+      "match": "В заключение"
+    }
+  ]
+}

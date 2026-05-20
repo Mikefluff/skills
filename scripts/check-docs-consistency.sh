@@ -24,7 +24,6 @@ err=0
 
 red()    { printf '\033[31m%s\033[0m\n' "$*"; }
 green()  { printf '\033[32m%s\033[0m\n' "$*"; }
-yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
 dim()    { printf '\033[2m%s\033[0m\n' "$*"; }
 
 fail() { red "  ✗ $*"; err=1; }
@@ -106,7 +105,7 @@ if [ -d docs/walkthroughs ]; then
         fail "$w references unknown skill: $s"
       done
     else
-      pass "$w → covers: $(printf '%s ' $refs)"
+      pass "$w → covers: $(printf '%s ' "$refs")"
     fi
   done
   if [ "$walked" = "0" ]; then
