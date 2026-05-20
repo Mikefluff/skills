@@ -14,6 +14,36 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — user-facing documentation
+
+- **`docs/USER-GUIDE.md`** — landing page for users. Scenario-based navigation, two-minute orientation per use case, configuration pointers, update flow summary, link to FAQ / TROUBLESHOOTING.
+- **`docs/walkthroughs/`** — 5 detailed step-by-step flows, one per persona:
+  - `viral-post.md` (viral-text, writer) — content marketer / SMM
+  - `fiction-chapter.md` (prose-edit, writer, canon-check, pelevin-digression) — novelist
+  - `non-fiction.md` (essay-write, writer, pelevin-digression) — essayist / popular-science writer
+  - `translation-parity.md` (translation-sync) — translator / localization editor
+  - `pre-commit-hook.md` (style-check, writer) — author who wants automatic linting
+  - Each walkthrough has `title:` / `persona:` / `time:` / `skills:` frontmatter; the `skills:` list is verified against `skills.json` by CI.
+- **`docs/FAQ.md`** — the questions that get asked first. Covers: which skills are required, RU vs EN coverage, data flow / privacy, uninstall, why-so-many-skills, false-positive policy, custom rules, network-failure fallback, curl-pipe safety, etc.
+- **`docs/TROUBLESHOOTING.md`** — symptom → diagnosis → fix for: install/update, status-line banner, `skills-update`, linter false-positives, CI failures in forks, pre-commit hook gotchas, cross-skill issues.
+
+### Added — CI gates for doc consistency
+
+- **`scripts/gen-skills-table.py`** — generates the "What's in the box" markdown table from `skills.json`. Supports `--write` (update README in place) and `--check` (CI gate: fail if README out of date).
+- **`scripts/check-docs-consistency.sh`** — five-step gate:
+  1. README skills table matches `skills.json` (delegates to gen-skills-table.py --check)
+  2. Every skill folder on disk is in `skills.json`
+  3. Every walkthrough's `skills:` frontmatter list references only real skills
+  4. Every skill is mentioned somewhere in `docs/USER-GUIDE.md`
+  5. New skill folders since the last `v*` tag must be mentioned in `CHANGELOG.md [Unreleased]`
+- **`.github/workflows/ci.yml`** — runs `check-docs-consistency.sh` on every PR/push.
+- **`Makefile`** — new targets: `check-docs`, `gen-readme`.
+- **`.markdownlint.json`** — disabled MD025 (single-h1) since walkthroughs have both frontmatter `title:` and an h1 by design.
+
+### Changed — README rewritten as a slim landing
+
+Replaced the long technical README with a 1-page landing that points users into `docs/USER-GUIDE.md` for the deep dive. The "What's in the box" table is now auto-generated from `skills.json` between `<!-- BEGIN skills-table -->` / `<!-- END skills-table -->` markers. Repo-internal sections (full project layout, Makefile targets, release flow) moved to a "Local development" section at the bottom of README + linked deep-dive docs.
+
 ## [1.0.1] — 2026-05-20
 
 ### Changed

@@ -30,6 +30,9 @@ jobs:
       - name: writer linter regression + fixture snapshots
         run: bash scripts/smoke.sh
 
+      - name: docs consistency (skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs)
+        run: bash scripts/check-docs-consistency.sh
+
       - name: install.sh dry-run (local copy mode)
         run: bash install.sh --copy-from . --prefix /tmp/skills-ci --dry-run
 

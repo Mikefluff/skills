@@ -5,7 +5,9 @@
 [![version](https://img.shields.io/github/v/release/Mikefluff/skills?label=version)](https://github.com/Mikefluff/skills/releases/latest)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills focused on prose editing in Russian and English: an antinyeyroslop base editor (`writer`) plus four layered wrappers/linters on top of it.
+A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills for editing prose without producing text that reads like LLM output. Russian-first, English-capable.
+
+**Nine skills**, one base linter + four wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
 
 ---
 
@@ -15,175 +17,141 @@ Collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) 
 curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | bash
 ```
 
-This pulls the latest GitHub release tarball, copies each skill into `~/.claude/skills/`, and writes a marker so the auto-update flow knows what's there.
+Opens up after Claude Code session restart. Skills are auto-discovered by `name:` and `description:` in their frontmatter — no `~/.claude/settings.json` edits required.
 
-Useful flags:
+---
+
+## First time? Start here
+
+**→ [User Guide](docs/USER-GUIDE.md)** — pick your scenario, walk through it end-to-end.
+
+Quick scenario picker:
+
+| You want to … | Walkthrough |
+|---|---|
+| Write a viral social-media post | [viral-post](docs/walkthroughs/viral-post.md) |
+| Edit a fiction chapter | [fiction-chapter](docs/walkthroughs/fiction-chapter.md) |
+| Draft a long-form essay | [non-fiction](docs/walkthroughs/non-fiction.md) |
+| Verify a multilingual translation | [translation-parity](docs/walkthroughs/translation-parity.md) |
+| Auto-lint every commit | [pre-commit-hook](docs/walkthroughs/pre-commit-hook.md) |
+
+If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESHOOTING.md).
+
+---
+
+## What's in the box
+
+<!-- BEGIN skills-table (auto-generated; run `make gen-readme`) -->
+
+| Skill | Layer | Languages | Purpose |
+| --- | --- | --- | --- |
+| [`writer`](writer/) | base | ru/en | Base clean-prose editor — antinyeyroslop (23 categories), typography, structural synthetics, RU calques. Invoked by all other prose skills. |
+| [`viral-text`](viral-text/) | wrapper | ru/en | Write viral social media content — hooks, numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules + platform adaptation. |
+| [`prose-edit`](prose-edit/) | wrapper | ru | Fiction rewrite layer — Pelevin/Manson voice vector, 10-item style drift checklist, no meta-refs / anglicisms in narrator voice, long artistic rewrite (no comma-stitching), ToV pattern, 5-trigger structural-synthesis detector, Postirony depth-pass. |
+| [`essay-write`](essay-write/) | wrapper | ru | Non-fiction layer — long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content. |
+| [`style-check`](style-check/) | linter | ru/en | Read-only pre-commit lint that stacks writer + prose-edit + essay-write rules. Routes by configurable path patterns (fiction vs non-fic), BLOCKING/WARNING/INFO severity, exit-code semantics for git hook. |
+| [`translation-sync`](translation-sync/) | linter | ru/en/pt-br | Read-only pre-commit parity checker for trilingual book translations (RU↔EN↔PT-BR) — typography per language, terminology canon, anchor-quote drift, names/patronymics/diminutives, cultural realia footnotes, no-smoothing of numbers/brands/dates. BLOCKING/WARNING/INFO severity with exit-code semantics for git hook. |
+| [`canon-check`](canon-check/) | linter | ru/en | Story-bible consistency auditor for any book series. Greps entities (characters / artifacts / locations) in changed chapters, cross-references the project's story-bible document, flags BLOCKING contradictions / WARNING gaps / INFO new details. Read-only — trust the text, not memory. |
+| [`pelevin-digression`](pelevin-digression/) | wrapper | ru | Write a Pelevin-style digression for a fiction or non-fiction passage — 12 structural techniques + 5 banned constructions. Wraps prose-edit (fiction) or essay-write (non-fic). Invoked by request, not auto-applied. |
+| [`skills-update`](skills-update/) | meta | en/ru | User-invocable update check + apply for this collection. Compares local install marker with latest GitHub release, shows CHANGELOG diff, asks for confirmation, runs install.sh --update. |
+
+<!-- END skills-table -->
+
+Skills compose: wrappers call `writer` internally; linters reference the same rule files but don't mutate. See [docs/COMPOSING.md](docs/COMPOSING.md) for the dependency graph.
+
+---
+
+## Updates
+
+Three ways, increasing in eagerness:
+
+1. **On demand:** invoke `/skills-update` inside Claude Code.
+2. **Ambient status-line banner** *(opt-in)*: `bash scripts/install-hook.sh`. Shows ` · skills v1.0.1→1.2.0 +1 skill` when an update exists.
+3. **CLI:** `bash install.sh --check` / `bash install.sh --update [--prune]`.
+
+The banner / `/skills-update` never updates without explicit user confirmation.
+
+---
+
+## Common install flags
 
 ```bash
-# install only specific skills
+# install a subset
 curl -fsSL .../install.sh | bash -s -- --skills writer,viral-text
 
 # install to a custom prefix
 curl -fsSL .../install.sh | bash -s -- --prefix /tmp/skills
 
 # pin a specific version
-curl -fsSL .../install.sh | bash -s -- --version 0.1.0
+curl -fsSL .../install.sh | bash -s -- --version 1.0.1
 
 # re-install (overwrite existing skills)
-curl -fsSL .../install.sh | bash -s -- --update
+bash install.sh --update
+
+# check what's installed vs what's available
+bash install.sh --check
+
+# uninstall everything
+bash install.sh --uninstall
 ```
 
-After install, every skill is auto-discovered by Claude Code via its frontmatter `name:` and `description:`. No `~/.claude/settings.json` edits required.
+Full installer help: `bash install.sh --help`.
 
 ---
 
-## Update
-
-Three ways, increasing in eagerness:
-
-1. **On demand from inside Claude Code.** Invoke `/skills-update` (the `skills-update` skill is shipped as part of this collection). It checks the latest tag, shows the CHANGELOG diff for what you'd be installing, asks for confirmation, then runs `install.sh --update`.
-
-2. **Ambient banner via status-line hook** *(opt-in)*. The repo ships `hooks/skills-update-banner.js` — a Node script that fits into Claude Code's `statusLine` slot and tacks ` · skills v0.3.0→0.4.0 +2 skills (translation-sync description)` onto your status line when an update is available. It caches the remote tag for 24 h and fails silently if the network is down.
-
-   To install:
-   ```bash
-   bash scripts/install-hook.sh
-   # or: make install-hook
-   ```
-
-   The script idempotently merges the `statusLine` block into `~/.claude/settings.json`. If you already have a `statusLine` set to a different command, it asks before overwriting; with `--yes` it defaults to cancel (safer).
-
-   To remove: `bash scripts/install-hook.sh --uninstall`.
-
-3. **From the command line.** Just re-run the install command with `--update`.
-
-The banner never prompts and never installs — it only nudges. The installer never runs without your explicit invocation. The `/skills-update` skill never updates without your explicit `AskUserQuestion` confirmation.
-
----
-
-## Quick start
-
-After install, open Claude Code and try:
-
-| You want to … | Invoke |
-|---|---|
-| Write a viral Telegram post about morning routines | `/viral-text утренние ритуалы` |
-| Clean a draft pasted in chat | `/writer clean` (then paste) |
-| Rewrite a fiction chapter fragment | `/prose-edit rewrite fiction/ch05.md 142:198` |
-| Draft a non-fiction chapter on quantum coherence | `/essay-write chapter` (then describe topic) |
-| Insert a Pelevin-style digression at a specific line | `/pelevin-digression at fiction/ch07.md:201 "брендовая социология"` |
-| Lint staged changes before commit | `/style-check staged` |
-| Verify a translation matches across RU/EN/PT-BR | `/translation-sync chapter your-book ch05` |
-| Check a chapter against your story bible | `/canon-check chapter your-book ch12` |
-| See if there's a new version of the collection | `/skills-update` |
-
-See [docs/COMPOSING.md](docs/COMPOSING.md) for the full dependency graph and "when to invoke which" decision tree.
-
----
-
-## What's in the box
-
-Skills are organized by layer: one base editor + wrappers/linter on top.
-
-| Skill | Layer | Purpose |
-|---|---|---|
-| [`writer`](writer/) | base | Base clean-prose editor. Antinyeyroslop (23 categories), typography, structural synthetics (staccato / double negation / chunks / inversions / repetitions), RU calque dictionary. Invoked by all other prose skills as their final pipeline step. Can also be called directly in `clean` / `lint` / `apply` modes. Ships with an offline regex linter (`writer/scripts/lint.py`). |
-| [`viral-text`](viral-text/) | wrapper | Write viral social media content (RU/EN) — hooks, 5 numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules, hook criteria, research via WebSearch, platform adaptation (Telegram / Threads / Instagram / Twitter / LinkedIn / Facebook), two-stage validation. Built on top of `writer`. |
-| [`prose-edit`](prose-edit/) | wrapper | Fiction-prose rewrite layer. Voice vector (Pelevin/Manson — not impersonation), 10-item style drift checklist, no meta-refs / anglicisms in narrator voice, long artistic rewrite preferred over compression (no comma-stitching), ToV pattern, 5-trigger structural synthesis detector, Postirony depth-pass checklist, AI-aphorism trap. Works on any text format (md/tex/txt). |
-| [`essay-write`](essay-write/) | wrapper | Non-fiction layer (longreads, essays, popular-science chapters). Long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content, sparing with metaphors, 7-case structural synthesis false-positive filter, V/H/P hypothesis markers. |
-| [`style-check`](style-check/) | linter | Read-only pre-commit lint stacked on top of writer / prose-edit / essay-write. Routes by configurable path patterns (fiction vs non-fic — illustrative defaults, configure your own). BLOCKING / WARNING / INFO severity. Exit-code semantics for git hooks. Includes post-rewrite signature catalogue. |
-| [`translation-sync`](translation-sync/) | linter | Pre-commit parity checker for multilingual book translations (RU ↔ EN ↔ PT-BR). Per-language typography, terminology canon, anchor-quote translations, names / patronymics / diminutives, cultural-realia footnote pattern, "do not smooth this number" guard. Read-only. |
-| [`canon-check`](canon-check/) | linter | Story-bible consistency auditor for any book series. Greps entities in changed chapters, cross-references your project's story-bible document, flags BLOCKING contradictions / WARNING gaps / INFO new details. Principle: trust the text, not memory. |
-| [`pelevin-digression`](pelevin-digression/) | wrapper | Write a Pelevin-voice-vector digression for a fiction or non-fiction passage. 12 structural techniques (bracket-essay, brand-name sociology, anti-gradation list, forward-link, …) + 5 banned constructions. Invoked by request, composes with `prose-edit` (fiction) or `essay-write` (non-fic). |
-| [`skills-update`](skills-update/) | meta | User-invocable update check + apply for this collection (see Update section above). |
-
----
-
-## Project layout
+## Repo layout
 
 ```
 skills/
 ├── README.md                # this file
-├── LICENSE                  # MIT
 ├── VERSION                  # semver, single source of truth
 ├── CHANGELOG.md             # Keep-a-Changelog
-├── skills.json              # machine-readable manifest used by install.sh
+├── skills.json              # machine-readable manifest used by installer
 ├── install.sh               # pure-bash installer, curl-pipeable
-├── Makefile                 # local dev convenience: install, validate, smoke, bump, release
-├── .github/workflows/
-│   ├── ci.yml               # validate + smoke on every PR/push
-│   └── release.yml          # conventional-commits-driven auto-release
+├── Makefile                 # local dev convenience
 ├── docs/
+│   ├── USER-GUIDE.md        # ← start here as a user
+│   ├── walkthroughs/        # detailed per-scenario flows
+│   ├── FAQ.md
+│   ├── TROUBLESHOOTING.md
+│   ├── COMPOSING.md         # dependency graph + composition patterns
 │   ├── CONTRIBUTING.md      # how to add a skill
 │   ├── VERSIONING.md        # semver policy + release flow
-│   ├── COMPOSING.md         # which skill to invoke when; dependency graph + scenarios
-│   └── LINTER-COVERAGE.md   # which of the 23 neuroslop categories lint.py detects via regex
+│   └── LINTER-COVERAGE.md   # auto-generated regex coverage
 ├── scripts/
 │   ├── validate.sh          # frontmatter + cross-link + description-quality check
+│   ├── check-docs-consistency.sh  # skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs
+│   ├── gen-skills-table.py  # regenerate the README skills table from skills.json
 │   ├── smoke.sh             # validate + writer linter regression + fixture snapshots
-│   ├── bump.sh              # bump VERSION + promote [Unreleased] section
+│   ├── coverage.py          # regenerate docs/LINTER-COVERAGE.md
+│   ├── bump.sh              # bump VERSION + promote [Unreleased] CHANGELOG section
 │   ├── new-skill.sh         # bootstrap a new skill folder
 │   ├── decide-bump.sh       # parse conventional commits since last tag
 │   ├── lint-description.py  # frontmatter description quality (advisory)
-│   ├── coverage.py          # regenerate docs/LINTER-COVERAGE.md
 │   └── install-hook.sh      # idempotent status-line banner installer
-├── tests/
-│   ├── README.md
-│   ├── fixtures/            # short Russian fragments with known verdicts
-│   ├── snapshots/           # frozen linter outputs per fixture
-│   └── run.sh               # compare linter output to snapshot, fail on drift
 ├── hooks/
-│   └── skills-update-banner.js  # opt-in status-line update banner
-├── writer/                  # the 9 skills
-├── viral-text/
-├── prose-edit/
-├── essay-write/
-├── style-check/
-├── translation-sync/
-├── canon-check/
-├── pelevin-digression/
-└── skills-update/
+│   └── skills-update-banner.js
+├── tests/                   # fixture snapshots for writer/scripts/lint.py
+├── .github/                 # workflows + issue/PR templates + SECURITY.md
+└── <skill-name>/            # the 9 skills, one folder each
 ```
-
-Every skill follows the same SOTA progressive-disclosure layout — compact `SKILL.md` (≤ 250 lines) + heavy rules in `references/` + calibration in `examples/`. See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the contract.
 
 ---
 
 ## Local development
 
 ```bash
-make help                  # list all targets
-
-make install               # install from this checkout into ~/.claude/skills
-make uninstall             # remove all installed skills + marker (interactive)
-make check                 # compare installed version to latest release
-make list                  # list installed skills under PREFIX
-make install-hook          # opt in to the status-line update banner
-make validate              # frontmatter + cross-link + description-quality check
-make smoke                 # validate + writer linter regression + fixture snapshots
-make test                  # snapshot tests only
-make coverage              # regex coverage report (which of 23 categories lint.py detects)
-make lint                  # run writer/scripts/lint.py over every skill's examples/
-make new-skill NAME=foo-bar DESC="..."   # scaffold a new skill
-
-make bump-patch            # 0.1.0 → 0.1.1 (+ promoted CHANGELOG section)
-make bump-minor            # 0.1.0 → 0.2.0
-make bump-major            # 0.1.0 → 1.0.0
-make release               # tag + push current VERSION (CI builds release)
+make help                       # list all targets
+make install                    # install from this checkout to ~/.claude/skills/
+make smoke                      # validate + linter regression + fixture snapshots
+make check-docs                 # docs-consistency gate
+make gen-readme                 # regenerate skills table
+make new-skill NAME=foo-bar DESC="..."
 ```
 
-CI runs `validate` + `smoke` on every push and PR. Releases are automated from `main`: see [docs/VERSIONING.md](docs/VERSIONING.md).
+Releases are automatic — push a conventional-commit message (`feat:`, `fix:`, `feat!:`, etc.) and `.github/workflows/release.yml` bumps + tags + publishes. See [docs/VERSIONING.md](docs/VERSIONING.md).
 
----
-
-## Uninstall
-
-```bash
-rm -rf ~/.claude/skills/{writer,viral-text,prose-edit,essay-write,style-check,translation-sync,canon-check,pelevin-digression,skills-update}
-rm -f  ~/.claude/skills/.skills-collection.json
-```
-
-If you installed the status-line hook, also remove the `statusLine` block from `~/.claude/settings.json`.
+Want to contribute? Read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md). PRs welcome.
 
 ---
 
