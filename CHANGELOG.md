@@ -14,6 +14,20 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Fixed
+
+- **Finish Track E from v1.8** — v1.8.0 created `common/references/` and added
+  cross-link headers to the three skill `banned-patterns.md` files but kept the
+  duplicated content in place. Now actually deduplicated: 26 anti-pattern
+  entries that were listed in 2-3 places live in exactly one place under
+  `common/`. Affected files: `cold-email`, `landing-copy`, `release-notes`
+  `banned-patterns.md`; `common/references/banned-patterns-preambles.md` (added
+  email-greeting variants).
+- **Pre-commit hook skip list** extended to cover anti-pattern catalogues
+  (`*/references/banned-patterns*.md`, `common/references/banned-patterns*.md`)
+  and `CHANGELOG.md` — these files exist specifically to quote the patterns
+  they document, so the linter would always flag them otherwise.
+
 ## [1.8.0] — 2026-05-20
 
 ### Added — sprint v1.8 linter v2 + DRY + DX + index

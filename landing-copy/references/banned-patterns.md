@@ -13,17 +13,17 @@ Strip these from any landing-page / SEO / ad copy. Each marks the text as low-qu
 
 ## 1. Marketing hype adjectives
 
+Pure hype superlatives (`revolutionary`, `game-changing`, `world-class`, `industry-leading`,
+`cutting-edge`, `best-in-class`, `groundbreaking`, `next-generation`, `state-of-the-art`,
+`unparalleled`, `unmatched`, `innovative`) live in
+[`common/references/banned-patterns-hype.md`](../../common/references/banned-patterns-hype.md).
+The base linter catches them under `MARKETING_HYPE`.
+
+Landing-page-specific adjectives — also banned without specifics:
+
 | ❌ Banned | ✅ Replacement |
 |---|---|
-| `Revolutionary` | (delete; describe what makes it different specifically) |
-| `Game-changing` | (delete) |
-| `Groundbreaking` | (delete) |
-| `Next-generation` | (delete) |
-| `Industry-leading` | (delete; if true, prove with a number / award) |
-| `World-class` | (delete) |
-| `Cutting-edge` | (delete) |
 | `Award-winning` (without specific award) | (delete or cite the specific award) |
-| `Best-in-class` | (delete) |
 | `Powerful` | (delete or describe the power specifically) |
 | `Robust` | (delete or describe robustness — "99.95% uptime, no maintenance windows") |
 | `Enterprise-grade` | (delete or describe the enterprise capability — "SOC 2 Type II + audit logs") |
@@ -31,8 +31,6 @@ Strip these from any landing-page / SEO / ad copy. Each marks the text as low-qu
 | `Seamless` | (delete) |
 | `Intuitive` | (delete; if true, show with a screenshot/demo) |
 | `User-friendly` | (delete) |
-| `Innovative` | (delete) |
-| `State-of-the-art` | (delete) |
 
 Rule: any adjective whose sole purpose is to praise without specifics gets deleted.
 
@@ -59,13 +57,15 @@ Rule: claims without a number or specific outcome get rewritten with one.
 
 ## 3. CTAs that don't work
 
+Generic CTAs (`Click here`, `Tap here`, `Learn more`, `Read more`, `Find out more`,
+`Get started` without object, `Submit`) live in
+[`common/references/banned-patterns-empty-cta.md`](../../common/references/banned-patterns-empty-cta.md).
+The base linter catches them under `EMPTY_CTA`.
+
+Landing/ad-specific CTA bans — also strip:
+
 | ❌ Banned CTA | ✅ Replacement |
 |---|---|
-| `Click here` | Use the verb of the destination ("Read the case study") |
-| `Click to learn more` | "See pricing" / "Read the docs" / specific destination verb |
-| `Submit` (alone) | "Send message" / "Sign up" — specify the action |
-| `Get started` (alone) | "Start free trial" / "Sign up — it's free" — specify what starts |
-| `Learn more` (alone) | Specific verb: "See pricing", "Read case study", "Watch demo" |
 | `Sign up today!` | "Sign up" (drop "today!" — adds nothing) |
 | `Try it now` | "Try free" or "Start free trial" — specify the offer |
 | `Contact us` | "Book demo" / "Email sales" — specify the channel |

@@ -12,20 +12,19 @@ Strip these on sight. Each one signals "marketing fluff" or "engineer-talking-to
 
 ## 1. Marketing hype
 
+Pure hype superlatives (`revolutionary`, `game-changing`, `world-class`, `industry-leading`,
+`cutting-edge`, `best-in-class`, `groundbreaking`, `next-generation`) live in
+[`common/references/banned-patterns-hype.md`](../../common/references/banned-patterns-hype.md).
+The base linter catches them under `MARKETING_HYPE`.
+
+Release-notes-specific hype patterns — usually adjective+noun forms:
+
 | ❌ Banned | ✅ Replace with |
 |---|---|
-| `Revolutionary` | (delete; let the feature speak) |
-| `Game-changing` | (delete) |
-| `Groundbreaking` | (delete) |
-| `Next-generation` | (delete) |
-| `Industry-leading` | (delete; if true, prove it with a number) |
-| `World-class` | (delete) |
 | `Award-winning` (without specific award) | (delete) |
-| `Cutting-edge` | (delete) |
 | `Powerful new X` | `New X` |
 | `Robust X` | `X` (or describe what makes it robust) |
 | `Enterprise-grade X` | (delete; or describe the enterprise-specific feature) |
-| `Best-in-class X` | (delete; quote numbers if comparing) |
 | `Lightning-fast X` | `X — N% faster` (with number) |
 | `Seamless X` | `X` (or describe the seamlessness with concrete behavior) |
 
@@ -53,15 +52,18 @@ Rule: "improved X" without a before/after measurement is not a release note — 
 
 The user doesn't care about your feelings. State the work.
 
+Standard "We're excited / thrilled / proud / delighted to announce" preambles live in
+[`common/references/banned-patterns-preambles.md`](../../common/references/banned-patterns-preambles.md).
+The base linter catches them under `WEAK_OPENER`.
+
+Release-notes-specific feeling preambles — strip these too:
+
 | ❌ Banned | ✅ Replace with |
 |---|---|
-| `We're excited to announce X` | `X` (followed by description) |
-| `We're thrilled to share X` | `X` |
-| `We're proud to announce X` | `X` |
 | `We've been working hard on X` | `X` (followed by description) |
 | `After months of development...` | (delete; users don't care) |
-| `We're delighted to introduce X` | `X` |
 | `We can't wait for you to try X` | `X` |
+| `We hope you love X` | `X` |
 
 Rule: any "we feel" preamble is filler. Past tense + the thing.
 
