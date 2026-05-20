@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Mikefluff/skills/main/docs/skills.schema.json",
   "collection": "Mikefluff/skills",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "repo": "https://github.com/Mikefluff/skills",
   "license": "MIT",
   "skills": [
@@ -14,7 +14,9 @@
         "ru",
         "en"
       ],
-      "tags": ["editing"],
+      "tags": [
+        "editing"
+      ],
       "deps": []
     },
     {
@@ -26,7 +28,11 @@
         "ru",
         "en"
       ],
-      "tags": ["marketing", "social", "generation"],
+      "tags": [
+        "marketing",
+        "social",
+        "generation"
+      ],
       "deps": [
         "writer"
       ]
@@ -39,7 +45,10 @@
       "languages": [
         "ru"
       ],
-      "tags": ["fiction", "editing"],
+      "tags": [
+        "fiction",
+        "editing"
+      ],
       "deps": [
         "writer"
       ]
@@ -52,7 +61,10 @@
       "languages": [
         "ru"
       ],
-      "tags": ["non-fiction", "generation"],
+      "tags": [
+        "non-fiction",
+        "generation"
+      ],
       "deps": [
         "writer"
       ]
@@ -66,7 +78,10 @@
         "ru",
         "en"
       ],
-      "tags": ["audit", "editing"],
+      "tags": [
+        "audit",
+        "editing"
+      ],
       "deps": [
         "writer",
         "prose-edit",
@@ -83,7 +98,10 @@
         "en",
         "pt-br"
       ],
-      "tags": ["translation", "audit"],
+      "tags": [
+        "translation",
+        "audit"
+      ],
       "deps": []
     },
     {
@@ -95,7 +113,10 @@
         "ru",
         "en"
       ],
-      "tags": ["fiction", "audit"],
+      "tags": [
+        "fiction",
+        "audit"
+      ],
       "deps": []
     },
     {
@@ -106,7 +127,11 @@
       "languages": [
         "ru"
       ],
-      "tags": ["fiction", "non-fiction", "generation"],
+      "tags": [
+        "fiction",
+        "non-fiction",
+        "generation"
+      ],
       "deps": [
         "writer",
         "prose-edit",
@@ -122,7 +147,9 @@
         "en",
         "ru"
       ],
-      "tags": ["ops"],
+      "tags": [
+        "ops"
+      ],
       "deps": []
     },
     {
@@ -134,7 +161,9 @@
         "en",
         "ru"
       ],
-      "tags": ["editing"],
+      "tags": [
+        "editing"
+      ],
       "deps": [
         "writer"
       ]
@@ -148,7 +177,10 @@
         "en",
         "ru"
       ],
-      "tags": ["outreach", "generation"],
+      "tags": [
+        "outreach",
+        "generation"
+      ],
       "deps": [
         "writer"
       ]
@@ -162,7 +194,10 @@
         "en",
         "ru"
       ],
-      "tags": ["visual", "generation"],
+      "tags": [
+        "visual",
+        "generation"
+      ],
       "deps": []
     },
     {
@@ -174,7 +209,10 @@
         "en",
         "ru"
       ],
-      "tags": ["visual", "generation"],
+      "tags": [
+        "visual",
+        "generation"
+      ],
       "deps": []
     },
     {
@@ -186,7 +224,11 @@
         "en",
         "ru"
       ],
-      "tags": ["ux-copy", "product", "generation"],
+      "tags": [
+        "ux-copy",
+        "product",
+        "generation"
+      ],
       "deps": [
         "writer"
       ]
@@ -200,7 +242,11 @@
         "en",
         "ru"
       ],
-      "tags": ["product", "tech-docs", "generation"],
+      "tags": [
+        "product",
+        "tech-docs",
+        "generation"
+      ],
       "deps": [
         "writer"
       ]
@@ -214,7 +260,10 @@
         "en",
         "ru"
       ],
-      "tags": ["tech-docs", "generation"],
+      "tags": [
+        "tech-docs",
+        "generation"
+      ],
       "deps": [
         "writer"
       ]
@@ -228,7 +277,10 @@
         "en",
         "ru"
       ],
-      "tags": ["marketing", "generation"],
+      "tags": [
+        "marketing",
+        "generation"
+      ],
       "deps": [
         "writer"
       ]
