@@ -2,6 +2,10 @@
 
 Every pattern here is an automatic strip. Do not soften them — remove or rewrite.
 
+> **See also (shared across cold-email / landing-copy / release-notes):**
+> [`common/references/banned-patterns-hype.md`](../../common/references/banned-patterns-hype.md) ·
+> [`common/references/banned-patterns-preambles.md`](../../common/references/banned-patterns-preambles.md)
+
 ---
 
 ## Ceremony openers (strip on sight)

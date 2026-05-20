@@ -198,6 +198,26 @@ install_one() {
   ok "installed $name → $dst"
 }
 
+install_shared_refs() {
+  # Skills cross-link into common/references/ for shared anti-pattern catalogues
+  # (hype words, preambles, empty CTAs). Copy the directory so the relative
+  # links resolve on installed systems.
+  local src="$SRC_DIR/common/references"
+  local dst="$PREFIX/common/references"
+  if [ ! -d "$src" ]; then
+    note "no common/references/ in source — skipping shared-refs install"
+    return
+  fi
+  if [ -d "$dst" ] && [ "$FORCE_UPDATE" != "true" ]; then
+    note "common/references/ already present (use --update to overwrite)"
+    return
+  fi
+  run mkdir -p "$PREFIX/common"
+  [ -d "$dst" ] && run rm -rf "$dst"
+  run cp -R "$src" "$dst"
+  ok "installed shared references → $dst"
+}
+
 write_install_marker() {
   local marker="$PREFIX/.skills-collection.json"
   local payload
@@ -420,6 +440,8 @@ main() {
       for skill in $INSTALL_SKILLS; do
         install_one "$skill"
       done
+
+      install_shared_refs
 
       if [ "$FORCE_UPDATE" = "true" ] && [ "$PRUNE" = "true" ]; then
         prune_removed
