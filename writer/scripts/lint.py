@@ -326,6 +326,44 @@ PATTERNS: list[tuple[str, str]] = [
     ("AI_QA", r"\blet'?s\s+be\s+honest\b"),
     ("AI_QA", r"\bhere'?s\s+the\s+thing\b"),
     ("AI_QA", r"\bsounds?\s+counter[-\s]?intuitive\?"),
+    # ─── SYNTHETIC — fake AI authenticity (see references/synthetic-constructions.md) ───
+    # Name-dropping templates (RU): noun-of-profession + из + city + transfer verb
+    ("SYNTHETIC", r"\b(терапевт|тренер|наставник|психолог|коуч|хирург|предприниматель|инвестор|консультант|эксперт)\s+из\s+[А-ЯЁ]\w+\s+(сказал\w?|рассказал\w?|нарисовал\w?|показал\w?|объяснил\w?|написал\w?)"),
+    ("SYNTHETIC", r"\bнаставник\s+(из|с)\s+\d+\s+(года|лет)\s+стаж\w*"),
+    ("SYNTHETIC", r"\bодин\s+(предприниматель|инвестор|стартапер|основатель)\s+(сказал|садился|пришёл|рассказал)"),
+    ("SYNTHETIC", r"\bна\s+коворкинге\s+в\s+[А-ЯЁ]\w+"),
+    # Name-dropping templates (EN)
+    ("SYNTHETIC", r"\ba\s+(therapist|coach|trainer|surgeon|entrepreneur|investor|consultant|founder)\s+from\s+[A-Z]\w+\s+(told|said|showed|explained)"),
+    ("SYNTHETIC", r"\ba\s+(coach|trainer|expert)\s+with\s+\d+\s+years?\s+(of\s+)?experience\s+(said|told)"),
+    # CTA stamps
+    ("SYNTHETIC", r"\bесли\s+это\s+про\s+(вас|тебя),?\s+пишите\s+(ДА|да)\b"),
+    ("SYNTHETIC", r"\bнапишите\s+в\s+комментах\b"),
+    ("SYNTHETIC", r"\bif\s+this\s+resonates,?\s+(drop|leave)\s+a\s+comment\b"),
+    ("SYNTHETIC", r"\btag\s+someone\s+who\s+needs\s+this\b"),
+    ("SYNTHETIC", r"\bsave\s+this\s+for\s+later\b"),
+    # Formula metaphors
+    ("SYNTHETIC", r"\bработает\s+как\s+радар\b"),
+    ("SYNTHETIC", r"\bкак\s+маяк\s+в\s+тумане\b"),
+    ("SYNTHETIC", r"\bworks\s+like\s+a\s+radar\b"),
+    ("SYNTHETIC", r"\bacts\s+as\s+a\s+compass\b"),
+    ("SYNTHETIC", r"\bserves?\s+as\s+a\s+beacon\b"),
+    # Red flags / Green flags list templates
+    ("SYNTHETIC", r"\b\d+\s+(красн\w+|зелён\w+)\s+флаг\w+"),
+    ("SYNTHETIC", r"\b\d+\s+(red|green)\s+flags?\s+(of|in|to)"),
+    # Coaching jargon
+    ("SYNTHETIC", r"\bосознанн(о|ое|ой|ого|ость)\b"),
+    # Pseudo-vulnerability / faux-confession templates
+    ("SYNTHETIC", r"\bя\s+тоже\s+через\s+это\s+прошёл\b"),
+    ("SYNTHETIC", r"\bи\s+тогда\s+я\s+понял\b"),
+    ("SYNTHETIC", r"\bперелом\s+случился\b"),
+    ("SYNTHETIC", r"\bI\s+made\s+every\s+mistake\s+in\s+the\s+book\b"),
+    ("SYNTHETIC", r"\bI\s+was\s+that\s+person\s+who\b"),
+    ("SYNTHETIC", r"\bit\s+took\s+me\s+\d+\s+years?\s+to\s+(figure|realize|understand)"),
+    # Synthetic constructions (templates that signal AI "depth")
+    ("SYNTHETIC", r"\bза\s+этим\s+стоит\b"),
+    ("SYNTHETIC", r"\bкоторую\s+стоит\s+разобрать\b"),
+    ("SYNTHETIC", r"\bэто\s+не\s+хорошо\s+и\s+не\s+плохо\b"),
+    ("SYNTHETIC", r"\bпросто\s+так\s+работает\b"),
 ]
 
 COMPILED = [(cat, re.compile(p, re.IGNORECASE)) for cat, p in PATTERNS]

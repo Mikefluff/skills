@@ -47,6 +47,9 @@ Read input + target register → output the same content rewritten in the target
 - `tone-shifter <text> --to <register> --from <register>` — explicit source (skips detection)
 - `tone-shifter <text> --to <register> --conservative` — apply only safe deltas (vocab + contractions); skip restructuring
 - `tone-shifter <text> --analyze` — return only the detected source register + suggested targets, do not rewrite
+- `tone-shifter <text> --profile <profile.json>` — apply a custom brand-voice JSON profile (vocabulary, avoidWords, hooks, ctaPhrases) on top of register shift
+- `tone-shifter --infer-profile <samples...>` — read 2-5 sample texts and output a brand-voice JSON profile for review
+- `tone-shifter <text> --verify-profile <profile.json>` — read-only check: does the passage match the profile? Returns structured report.
 
 ## REFERENCES (load on demand)
 
@@ -54,6 +57,7 @@ Read input + target register → output the same content rewritten in the target
 |---|---|
 | [references/registers.md](references/registers.md) | When detecting source or naming target — defines the 6 registers and their detection markers |
 | [references/transformation-rules.md](references/transformation-rules.md) | After source+target known — the specific deltas to apply for each pair |
+| [references/brand-voice-profile.md](references/brand-voice-profile.md) | When user provides a custom brand-voice profile (JSON), or asks for one to be inferred from samples — overlays registers with concrete vocabulary / banned words / hooks / CTAs |
 
 ## EXAMPLES
 

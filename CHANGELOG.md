@@ -14,6 +14,50 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — from godacademy/figma archive mining
+
+Imported high-value content from `/Users/mikefluff/Documents/figma/` (the author's inite.digital project — production-tuned prompts and rules).
+
+- **`writer/references/synthetic-constructions.md`** — fake AI authenticity catalogue (7 sections):
+  - Name-dropping templates (city + profession + transfer verb formulas)
+  - CTA stamps ("пишите ДА", "tag someone who needs this", etc.)
+  - Formula metaphors ("works like a radar")
+  - Red/Green flags list templates
+  - Uniform paragraph rhythm detection (LLM signature)
+  - Synthetic-depth constructions ("за этим стоит", "которую стоит разобрать")
+  - Pseudo-vulnerability / faux-confession patterns
+- **`writer/scripts/lint.py` — new SYNTHETIC category.** 22 regex patterns covering literal phrases for name-drop templates (RU+EN), CTA stamps, formula metaphors, coaching jargon ("осознанное"), faux-confession ("я тоже через это прошёл"). Linter now has 24 categories (was 23).
+- **`writer/references/ru-grammar.md`** — name declension + gender agreement for RU named entities:
+  - Male names ending in -а/-я (Никита, Илья) — decline as feminine paradigm, agree as masculine
+  - Foreign names -о/-е/-и/-у (Пикассо, Феллини, Гюго) — indeclinable
+  - Foreign female names ending in consonant (Элизабет, Маргарет) — indeclinable
+  - Patronymics, diminutives, surname patterns (-ин/-ов/-ев/-ский, -их/-ых)
+  - Quick-reference table; LLM gender-agreement check protocol
+- **`viral-text/references/hook-taxonomy.md`** — controllable hook generation:
+  - Intent axis (5): anger / surprise / ground / give_action / sell_idea
+  - Angle axis (5): numbers / conflict / new_standard / threat_to_professions / instruction_what_to_do
+  - 5 × 5 matrix of 25 viable hook styles
+  - 3 modes: topic-based / text-driven / improve-hook
+  - Generation prompt templates for each mode
+  - Calibration example with 5 hooks across distinct intent + angle pairs
+- **`tone-shifter/references/brand-voice-profile.md`** — custom brand-voice JSON profile:
+  - Schema: name / tone (5 enum) / styles (6 enum, 1-3) / vocabulary / avoidWords / hooks / ctaPhrases / register
+  - 3 modes added to SKILL.md: `--profile`, `--infer-profile`, `--verify-profile`
+  - Discriminator: registers = abstract categorical, brand-voice = concrete custom
+  - Multilingual notes (brand-language fields, English taxonomy labels)
+
+### Changed
+
+- `writer/SKILL.md` REFERENCES table — added synthetic-constructions.md and ru-grammar.md entries.
+- `viral-text/SKILL.md` REFERENCES table — added hook-taxonomy.md entry.
+- `tone-shifter/SKILL.md` MODES — added 3 new modes; REFERENCES — added brand-voice-profile.md.
+
+### Notes
+
+- Existing `viral-text/references/viral-rules.md` and `hook-criteria.md` were already imported from figma in earlier work — no changes needed there.
+- StyleSuggestAgent.js (visual-style-generator) from figma was NOT imported — out of scope (visual style detection, not prose editing).
+- AGENTS.md (n8n) and .cursorrules from figma were NOT imported — non-portable project-specific.
+
 ## [1.3.1] — 2026-05-20
 
 ### Changed

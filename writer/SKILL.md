@@ -167,5 +167,7 @@ Cleaning: Layer 1 — N1 hits (categories: ...). Layer 2 — N2 violations. N hi
 | [references/structural-prose.md](references/structural-prose.md) | Layer 2: стаккато / двойные отрицания / обрубки / инверсии / повторы / огрызки — с шаблонами рерайта |
 | [references/ru-calques.md](references/ru-calques.md) | Layer 3: словарь RU-калек + конструкций (200+ замен) |
 | [references/typography.md](references/typography.md) | Layer 3: типографика RU и EN |
+| [references/synthetic-constructions.md](references/synthetic-constructions.md) | Layer 1+: fake AI authenticity — name-dropping templates, CTA stamps, formula metaphors, faux-confession |
+| [references/ru-grammar.md](references/ru-grammar.md) | RU-only: name declension + gender agreement for named entities |
 | [references/integration.md](references/integration.md) | Как под-скиллы вызывают writer в `apply`-режиме |
 | [examples/before-after.md](examples/before-after.md) | Канонические рерайты (стаккато, отрицания, обрубки) для калибровки |

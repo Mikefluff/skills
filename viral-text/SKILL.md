@@ -145,6 +145,7 @@ Do NOT output JSON. Output human-readable text only.
 |------|--------------|
 | [references/viral-rules.md](references/viral-rules.md) | Before drafting body — the 41 viral content rules (mandatory layer on top of `writer`). |
 | [references/hook-criteria.md](references/hook-criteria.md) | When constructing or validating the hook + viral-specific banned constructions in hooks/CTAs. |
+| [references/hook-taxonomy.md](references/hook-taxonomy.md) | When generating multiple alternative hooks — intent × angle matrix, modes for topic-driven / text-driven / improve-hook generation. |
 | [references/research-workflow.md](references/research-workflow.md) | At Step 0 — research process, 3-bucket organization, quality criteria, failure-mode handling. |
 | [references/platforms.md](references/platforms.md) | When the user specifies a platform other than Telegram, or to confirm length limits and tone. |
 | [references/validation.md](references/validation.md) | At Step 5 — Viral Layer A (hook), Viral Layer B (content + structure), and the "would I repost this?" final pass. |
