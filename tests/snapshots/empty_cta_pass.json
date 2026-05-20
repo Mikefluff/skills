@@ -1,0 +1,77 @@
+{
+  "verdict": "neuroslop suspected",
+  "total": 9,
+  "by_category": {
+    "EMPTY_CTA": 9
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 9,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 5,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Click here"
+    },
+    {
+      "line": 6,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Tap here"
+    },
+    {
+      "line": 7,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Learn more"
+    },
+    {
+      "line": 8,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Read more"
+    },
+    {
+      "line": 9,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Get started"
+    },
+    {
+      "line": 10,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Find out more"
+    },
+    {
+      "line": 14,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Нажмите здесь"
+    },
+    {
+      "line": 15,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Узнайте подробнее"
+    },
+    {
+      "line": 16,
+      "col": 3,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Нажмите сюда"
+    }
+  ]
+}

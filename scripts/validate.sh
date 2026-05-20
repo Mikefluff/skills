@@ -110,6 +110,48 @@ for skill in $SKILLS; do
 done
 
 echo
+# 5) Tag-dictionary validation (against scripts/gen-skill-index.py allowlist)
+if [ -f scripts/gen-skill-index.py ]; then
+  if ! python3 - <<'PY' "$ROOT/skills.json"
+import json, sys, re
+
+path = sys.argv[1]
+# Pull ALLOWED_TAGS from gen-skill-index.py without importing (no PYTHONPATH dance)
+src = open("scripts/gen-skill-index.py", encoding="utf-8").read()
+domain = set(re.findall(r'"([a-z-]+)"', re.search(r'DOMAIN_TAGS = \{([^}]+)\}', src).group(1)))
+func = set(re.findall(r'"([a-z-]+)"', re.search(r'FUNCTION_TAGS = \{([^}]+)\}', src).group(1)))
+allowed = domain | func
+
+manifest = json.load(open(path, encoding="utf-8"))
+errors = []
+missing_tags = []
+for s in manifest["skills"]:
+    name = s["name"]
+    tags = s.get("tags")
+    if tags is None:
+        missing_tags.append(name)
+        continue
+    if not isinstance(tags, list):
+        errors.append(f"{name}: tags must be a list")
+        continue
+    bad = [t for t in tags if t not in allowed]
+    if bad:
+        errors.append(f"{name}: unknown tags {bad}; allowed: {sorted(allowed)}")
+
+if missing_tags:
+    print(f"  · skills without tags: {missing_tags}")
+if errors:
+    for e in errors:
+        print(f"  ✗ tag error: {e}")
+    sys.exit(1)
+print(f"  ✓ tags OK ({len(manifest['skills'])} skills validated against closed dict)")
+PY
+  then
+    err=1
+  fi
+fi
+
+echo
 if [ "$err" = "0" ]; then
   green "validate: OK ($checked skill(s) checked)"
 else

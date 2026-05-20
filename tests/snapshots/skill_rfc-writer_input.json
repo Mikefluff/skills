@@ -2,5 +2,10 @@
   "verdict": "clean",
   "total": 0,
   "by_category": {},
+  "by_severity": {
+    "blocker": 0,
+    "caution": 0,
+    "nit": 0
+  },
   "hits": []
 }

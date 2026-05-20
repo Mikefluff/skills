@@ -21,329 +21,388 @@
     "AI_BRIDGE": 1,
     "AI_TRIPLETS": 2
   },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 52,
+    "nit": 2
+  },
   "hits": [
     {
       "line": 3,
       "col": 1,
       "category": "FILLER_INTRO",
+      "severity": "caution",
       "match": "In today's fast-paced, interconnected world"
     },
     {
       "line": 3,
       "col": 127,
       "category": "GPT_FILLER",
+      "severity": "caution",
       "match": "It's important to note"
     },
     {
       "line": 3,
       "col": 80,
       "category": "STOCK_METAPHOR",
+      "severity": "caution",
       "match": "very fabric of"
     },
     {
       "line": 3,
       "col": 178,
       "category": "AI_INTENSIFIER",
+      "severity": "caution",
       "match": "multifaceted"
     },
     {
       "line": 3,
       "col": 195,
       "category": "AI_INTENSIFIER",
+      "severity": "caution",
       "match": "far-reaching"
     },
     {
       "line": 3,
       "col": 52,
       "category": "PSEUDO_SMART",
+      "severity": "caution",
       "match": "fundamentally "
     },
     {
       "line": 5,
       "col": 267,
       "category": "AI_QA",
+      "severity": "caution",
       "match": "Sounds familiar?"
     },
     {
       "line": 5,
       "col": 284,
       "category": "AI_QA",
+      "severity": "caution",
       "match": "Let's be honest"
     },
     {
       "line": 5,
       "col": 1,
       "category": "GPT_FILLER",
+      "severity": "caution",
       "match": "Let's delve into"
     },
     {
       "line": 5,
       "col": 7,
       "category": "GPT_FILLER",
+      "severity": "caution",
       "match": "delve into"
     },
     {
       "line": 5,
       "col": 22,
       "category": "STOCK_METAPHOR",
+      "severity": "caution",
       "match": "rich tapestry of"
     },
     {
       "line": 5,
       "col": 165,
       "category": "STOCK_METAPHOR",
+      "severity": "caution",
       "match": "shaping the future"
     },
     {
       "line": 5,
       "col": 211,
       "category": "AI_INTENSIFIER",
+      "severity": "caution",
       "match": "truly remarkable"
     },
     {
       "line": 5,
       "col": 184,
       "category": "AI_INTENSIFIER",
+      "severity": "caution",
       "match": "cannot be overstated"
     },
     {
       "line": 5,
       "col": 267,
       "category": "AI_QA",
+      "severity": "caution",
       "match": "Sounds familiar?"
     },
     {
       "line": 5,
       "col": 284,
       "category": "AI_QA",
+      "severity": "caution",
       "match": "Let's be honest"
     },
     {
       "line": 7,
       "col": 1,
       "category": "NE_X_A_Y",
+      "severity": "caution",
       "match": "This isn't just automation. It's a"
     },
     {
       "line": 7,
       "col": 68,
       "category": "NE_X_A_Y",
+      "severity": "caution",
       "match": "You're not optimizing a workflow. You're rebuilding"
     },
     {
       "line": 9,
       "col": 67,
       "category": "STOCK_METAPHOR",
+      "severity": "caution",
       "match": "navigating the complexities"
     },
     {
       "line": 9,
       "col": 328,
       "category": "BUREAU_INV",
+      "severity": "caution",
       "match": "In terms of"
     },
     {
       "line": 9,
       "col": 362,
       "category": "CORPORATE",
+      "severity": "caution",
       "match": "value proposition"
     },
     {
       "line": 9,
       "col": 384,
       "category": "CORPORATE",
+      "severity": "caution",
       "match": "growth drivers"
     },
     {
       "line": 9,
       "col": 439,
       "category": "CORPORATE",
+      "severity": "caution",
       "match": "key metric"
     },
     {
       "line": 9,
       "col": 340,
       "category": "CORPORATE",
+      "severity": "caution",
       "match": "strategic priorities"
     },
     {
       "line": 11,
       "col": 1,
       "category": "PSEUDO_SCI",
+      "severity": "caution",
       "match": "Research shows that"
     },
     {
       "line": 11,
       "col": 55,
       "category": "PSEUDO_SCI",
+      "severity": "caution",
       "match": "Studies suggest that"
     },
     {
       "line": 11,
       "col": 123,
       "category": "VAGUE_PERSON",
+      "severity": "caution",
       "match": "Some experts say"
     },
     {
       "line": 11,
       "col": 199,
       "category": "VAGUE_PERSON",
+      "severity": "caution",
       "match": "Many claim"
     },
     {
       "line": 11,
       "col": 245,
       "category": "VAGUE_PERSON",
+      "severity": "caution",
       "match": "People often say"
     },
     {
       "line": 13,
       "col": 323,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"if\""
     },
     {
       "line": 13,
       "col": 332,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"when\""
     },
     {
       "line": 13,
       "col": 1,
       "category": "PSEUDO_SMART",
+      "severity": "caution",
       "match": "Essentially"
     },
     {
       "line": 13,
       "col": 288,
       "category": "PSEUDO_SMART",
+      "severity": "caution",
       "match": "fundamentally, "
     },
     {
       "line": 13,
       "col": 265,
       "category": "PSEUDO_SMART",
+      "severity": "caution",
       "match": "At the end of the day"
     },
     {
       "line": 13,
       "col": 17,
       "category": "BUREAU_INV",
+      "severity": "caution",
       "match": "plays the role of"
     },
     {
       "line": 13,
       "col": 53,
       "category": "BUREAU_INV",
+      "severity": "caution",
       "match": "serves as a"
     },
     {
       "line": 13,
       "col": 142,
       "category": "BUREAU_INV",
+      "severity": "caution",
       "match": "represents a form of"
     },
     {
       "line": 13,
       "col": 186,
       "category": "BUREAU_INV",
+      "severity": "caution",
       "match": "In the framework of"
     },
     {
       "line": 13,
       "col": 102,
       "category": "NOMINALIZATION",
+      "severity": "caution",
       "match": "The implementation of"
     },
     {
       "line": 15,
       "col": 111,
       "category": "AI_HEDGE",
+      "severity": "caution",
       "match": "On one hand, automation may eliminate certain roles; on the other hand"
     },
     {
       "line": 15,
       "col": 1,
       "category": "AI_HEDGE",
+      "severity": "caution",
       "match": "While there are valid"
     },
     {
       "line": 15,
       "col": 225,
       "category": "AI_HEDGE",
+      "severity": "caution",
       "match": "Both perspectives have merit"
     },
     {
       "line": 17,
       "col": 1,
       "category": "GPT_FILLER",
+      "severity": "caution",
       "match": "Bear in mind"
     },
     {
       "line": 17,
       "col": 79,
       "category": "STOCK_METAPHOR",
+      "severity": "caution",
       "match": "embark on a journey"
     },
     {
       "line": 17,
       "col": 204,
       "category": "SELF_REF",
+      "severity": "caution",
       "match": "As we'll see later"
     },
     {
       "line": 19,
       "col": 1,
       "category": "SELF_REF",
+      "severity": "caution",
       "match": "Dear reader"
     },
     {
       "line": 19,
       "col": 14,
       "category": "SUPERLATIVE_OVERLOAD",
+      "severity": "caution",
       "match": "the most important moment"
     },
     {
       "line": 19,
       "col": 119,
       "category": "SUPERLATIVE_OVERLOAD",
+      "severity": "caution",
       "match": "One of the biggest transformations of our era"
     },
     {
       "line": 21,
       "col": 1,
       "category": "AI_BRIDGE",
+      "severity": "caution",
       "match": "In conclusion"
     },
     {
       "line": 21,
       "col": 32,
       "category": "STOCK_METAPHOR",
+      "severity": "caution",
       "match": "cornerstone of"
     },
     {
       "line": 21,
       "col": 117,
       "category": "AI_INTENSIFIER",
+      "severity": "caution",
       "match": "underscores the importance"
     },
     {
       "line": 21,
       "col": 69,
       "category": "AI_TRIPLETS",
+      "severity": "caution",
       "match": "smart, capable, and intelligent technology"
     },
     {
       "line": 21,
       "col": 69,
       "category": "AI_TRIPLETS",
+      "severity": "caution",
       "match": "smart, capable, and intelligent"
     },
     {
       "line": 21,
       "col": 294,
       "category": "AI_QA",
+      "severity": "caution",
       "match": "Here's the thing"
     }
   ]

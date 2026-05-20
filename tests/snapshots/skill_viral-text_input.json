@@ -4,11 +4,17 @@
   "by_category": {
     "FILLER_INTRO": 1
   },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 1,
+    "nit": 0
+  },
   "hits": [
     {
       "line": 5,
       "col": 1,
       "category": "FILLER_INTRO",
+      "severity": "caution",
       "match": "В современном мире"
     }
   ]

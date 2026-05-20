@@ -129,6 +129,84 @@ Same facts. Three registers. Different impact.
 
 Скилл прогоняет каждый файл через тот же pipeline (classify → diff → apply → writer). На batch-режиме можно поставить `--auto-apply` чтобы пропустить ручное review каждого diff'а — но рекомендуется только если ты уже откалибровал режим на одном файле.
 
+## Scenario 2 — Multi-stage shift (casual → academic → executive-summary)
+
+Иногда нужен не один прыжок, а цепочка. Типичный случай: внутренняя записка написана в casual-стиле, нужна academic-версия для подачи в комитет, и **сразу же** короткий executive-summary для рассылки CEO. Один pass через `--to executive` обычно проваливается — слишком далеко от casual baseline, скилл теряет либо аргументацию, либо специфику.
+
+Правильное решение — двухступенчатый shift:
+
+```
+/tone-shifter --to academic drafts/q3-notes.md          # ступень 1
+/tone-shifter --to business-formal --scope summary --max-words 250 \
+  outputs/q3-notes.academic.md                          # ступень 2
+```
+
+Что происходит:
+
+1. **Ступень 1** (casual → academic). Текст приобретает hedging, vocabulary жёстче, sentence-length вырастает. Аргументация **формализуется**, факты остаются. Это база для дальнейшей работы.
+2. **Ступень 2** (academic → executive). Скилл не пересказывает academic-версию заново — он экстрагирует claim-chain и сжимает до 250 слов. Получается короткий business-formal текст, но с уже отлитой логикой из ступени 1.
+
+Когда какой подход уместен:
+
+- **Один прыжок** работает, если delta-distance ≤ 1 register (`casual → business-casual`, `business-formal → academic`). Скилл уверенно движет по соседним позициям.
+- **Многоступенчатый** нужен, если delta-distance ≥ 2 (`friendly → academic`, `plain-explainer → executive`). Прямой shift даёт «дешёвую формализацию» — лексика поменялась, структура нет.
+- **Никогда** не делай 3+ ступени в один день на одном тексте. После третьего pass'а аргумент теряет связь с исходником, начинаются хуже-чем-AI-парафразы. Если нужно 3 разных регистра — сделай 3 параллельных one-step shift'а от source, не цепочку.
+
+## Step N — Register matrix
+
+Регистры — это не просто «формальнее/неформальнее». Это четыре параметра, которые меняются независимо. Матрица ниже — что двигается per dimension:
+
+| Параметр / Регистр    | casual                          | neutral                            | business                                | academic                                |
+|-----------------------|----------------------------------|------------------------------------|------------------------------------------|------------------------------------------|
+| **Vocabulary**        | get, stuff, kinda, gonna, weird | use, things, somewhat, going to, unusual | utilise, items, considerably, intend to, atypical | employ, elements, substantially, anticipate, anomalous |
+| **Sentence length**   | avg 8-12 слов, fragmenты ок      | avg 14-18 слов, простые сложные   | avg 20-26 слов, multiple subordinate    | avg 28-40 слов, parenthetical chains    |
+| **Voice**             | active 95%, contractions всегда | active 80%, contractions иногда   | mixed 60/40, contractions только в diaologue | passive 50%+, no contractions          |
+| **Cadence**           | stop-and-go, em-dashes, "—"     | прямая последовательность, "."     | semicolons, balanced clauses           | nested clauses, footnoted hedges        |
+
+Скилл двигает все четыре параметра одновременно, не по отдельности. Если ты двинул только vocabulary (например через find/replace) — получится Frankenstein: формальные слова в short stop-and-go ритме. Читатель считает это сразу.
+
+Override per dimension доступен через флаги:
+
+```
+/tone-shifter --to business --keep-cadence drafts/note.md
+```
+
+`--keep-cadence` оставит исходный ритм, поменяет только vocabulary + voice. Полезно когда «звучание» текста — это часть бренда (newsletter от founder'а, например).
+
+## Edge case — Mixed registers в одном документе
+
+Один документ часто требует **разных регистров в разных секциях**. Классический случай — CEO email с техническим аппендиксом: основное письмо в `business-formal`, аппендикс в `technical`. Прогнать один `--to business-formal` на весь файл — это убить технический раздел (превратить специфику в обтекаемость).
+
+Решение — `--scope` маркеры. В исходнике размечаешь зоны:
+
+```
+<!-- tone:business-formal -->
+Dear Board members,
+
+Following our Q3 review, the leadership team has identified three operational
+priorities that require capital reallocation in Q4...
+<!-- /tone -->
+
+<!-- tone:technical -->
+## Appendix A — Database migration plan
+
+We will execute a logical replication cutover from PG14 to PG16 on
+2026-06-15 02:00 UTC. The slot lag SLO during cutover is < 200ms; we
+will use `pg_logical_replication_slot` with `streaming=on` and
+`synchronous_commit=remote_write`.
+<!-- /tone -->
+```
+
+И запускаешь:
+
+```
+/tone-shifter --apply-markers drafts/board-email.md
+```
+
+Скилл движет каждую зону к своему target'у независимо. Это единственный безопасный способ — иначе ты либо потеряешь technical specificity, либо technical-стиль расползётся на CEO-обращение.
+
+Без маркеров скилл считает baseline по first paragraph и применяет один target ко всему — что почти всегда дискредитирует одну из секций.
+
 ## Когда НЕ использовать tone-shifter
 
 - **Просто почистить текст** — `writer clean`. Если регистр уже правильный, tone-shifter добавит лишнюю работу.
@@ -153,6 +231,42 @@ Same facts. Three registers. Different impact.
 ### Diff слишком большой, нечитаем
 
 Запусти `--scope paragraph` — скилл будет показывать diff по абзацам, ты accept'аешь по одному. Медленнее, но контролируемее.
+
+### Shift был слишком агрессивный — потерян авторский голос
+
+Самая болезненная ловушка. Признаки: текст formally correct, но звучит как written by committee. Узнаваемых оборотов автора нет, метафоры срезаны, ритм сглажен.
+
+Причина: скилл по дефолту двигает все четыре параметра матрицы (vocabulary / sentence-length / voice / cadence). Если голос автора держится на cadence (пелевинские короткие фрагменты, мэнсоновские длинные сложноподчинённые), формальный shift его убьёт.
+
+Лечение:
+
+- Запусти ещё раз с `--keep-cadence` (сохраняет ритм исходника)
+- Или `--keep-signature-phrases` (скилл идентифицирует 5-10 повторяющихся оборотов автора и оставляет их нетронутыми)
+- Или откатись на `--scope paragraph` и accept'ай по одному абзацу — голос держится в 2-3 ключевых абзацах, остальные можно формализовать без потери
+
+Иногда правильный ответ — **не делать shift**, а написать formal-версию с нуля. Если voice настолько силён, что без него текст теряет смысл — авто-shift не поможет.
+
+### Shift получился косметическим — ничего не поменялось
+
+Противоположная ловушка. Текст «прошёл pass», но читается так же, как был. Признаки: diff показывает 5-10 hunks, все они contractions (`don't → do not`), и больше ничего.
+
+Причина: скилл классифицировал baseline слишком близко к target'у. Если baseline `business-casual` и target `business-formal` — delta-distance мала, скилл двигает только верхний слой (contractions + одно-два hedge-слова).
+
+Лечение:
+
+- Если действительно нужно сильное движение — задай через `--from friendly --to business-formal` (override classification, заставляет скилл считать baseline дальше)
+- Или используй multi-stage (см. Scenario 2): casual → academic → business-formal. Двойной pass двигает агрессивнее, чем прямой прыжок.
+- Если baseline уже близок к target'у — возможно, тебе не нужен tone-shifter. Может, нужен `writer clean` или structural rewrite.
+
+### Register «съехал» к середине документа
+
+В длинном документе (> 2000 слов) скилл иногда теряет target к концу. Первые 5 абзацев — `business-formal`, последние 5 — снова `business-casual`. Это известная проблема batch-mode на длинных файлах.
+
+Лечение:
+
+- Разбей файл на куски по 800-1200 слов и прогони каждый отдельно (`--scope file` per chunk)
+- Или используй `--checkpoint-every 500-words` — скилл будет ре-классифицировать current state каждые 500 слов и корректировать
+- Если документ структурирован (секции с заголовками) — добавь маркеры (см. Edge case выше) и прогони с `--apply-markers`. Маркеры заставляют скилл re-anchor на каждой секции.
 
 ## Related
 

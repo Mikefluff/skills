@@ -364,7 +364,73 @@ PATTERNS: list[tuple[str, str]] = [
     ("SYNTHETIC", r"\bкоторую\s+стоит\s+разобрать\b"),
     ("SYNTHETIC", r"\bэто\s+не\s+хорошо\s+и\s+не\s+плохо\b"),
     ("SYNTHETIC", r"\bпросто\s+так\s+работает\b"),
+    # ─── MARKETING_HYPE (EN + RU) ───
+    # Superlatives that signal marketing rather than substance. Common in landing
+    # pages and release notes; explicitly banned in landing-copy/release-notes
+    # banned-patterns.md but absent from the base linter until now.
+    ("MARKETING_HYPE", r"\brevolutionary\b"),
+    ("MARKETING_HYPE", r"\bgame[- ]chang(ing|er)\b"),
+    ("MARKETING_HYPE", r"\bworld[- ]class\b"),
+    ("MARKETING_HYPE", r"\bindustry[- ]leading\b"),
+    ("MARKETING_HYPE", r"\bcutting[- ]edge\b"),
+    ("MARKETING_HYPE", r"\bbest[- ]in[- ]class\b"),
+    ("MARKETING_HYPE", r"\bgroundbreaking\b"),
+    ("MARKETING_HYPE", r"\bnext[- ]generation\b"),
+    ("MARKETING_HYPE", r"\bstate[- ]of[- ]the[- ]art\b"),
+    ("MARKETING_HYPE", r"\bunparalleled\b"),
+    ("MARKETING_HYPE", r"\bunmatched\b"),
+    # RU (standalone — AI_INTENSIFIER catches революционн+noun, this catches bare adjective)
+    ("MARKETING_HYPE", r"\bмирового\s+класса\b"),
+    ("MARKETING_HYPE", r"\bлидер(а|ом)?\s+отрасли\b"),
+    ("MARKETING_HYPE", r"\bпрорывн(ой|ая|ое|ые)\b"),
+    # ─── EMPTY_CTA ───
+    # CTAs without verb context — common in landing copy and microcopy. Forces
+    # the author to commit to a specific action (verb + object).
+    ("EMPTY_CTA", r"\b(click|tap)\s+(here|us|now)\b"),
+    ("EMPTY_CTA", r"\b(learn|read|find\s+out)\s+more\b(?!\s+about)"),
+    ("EMPTY_CTA", r"\bget\s+started\b(?!\s+with\s+)"),
+    # RU
+    ("EMPTY_CTA", r"\bнажмите\s+(здесь|сюда|тут)\b"),
+    ("EMPTY_CTA", r"\bузнайте\s+(больше|подробнее)\b(?!\s+о)"),
+    # ─── WEAK_OPENER ───
+    # Sentence-initial excitement preambles ("We're excited to announce") that
+    # add no information. Strip them and lead with the actual change.
+    ("WEAK_OPENER", r"(?m)^\s*we['’]re\s+(excited|thrilled|proud|delighted|pleased|happy)\s+to"),
+    ("WEAK_OPENER", r"(?m)^\s*we\s+are\s+(excited|thrilled|proud|delighted|pleased)\s+to"),
+    # RU
+    ("WEAK_OPENER", r"(?m)^\s*мы\s+(рады|счастлив\w*|горды|с\s+гордостью)"),
+    ("WEAK_OPENER", r"(?m)^\s*(с\s+радостью|с\s+удовольствием)\s+(объявля|сообщ|представля)"),
+    # ─── VAGUE_BENEFIT ───
+    # Generic productivity claims without numbers. Replace with specific metric
+    # ("60% review-time reduction") or remove.
+    ("VAGUE_BENEFIT", r"\bsave\s+(you\s+)?time\b"),
+    ("VAGUE_BENEFIT", r"\bboost\s+productivity\b"),
+    ("VAGUE_BENEFIT", r"\bget\s+more\s+done\b"),
+    ("VAGUE_BENEFIT", r"\bstreamline\s+your\s+workflow\b"),
+    ("VAGUE_BENEFIT", r"\bsupercharge\s+your\b"),
+    ("VAGUE_BENEFIT", r"\blevel\s+up\s+your\b"),
+    # RU
+    ("VAGUE_BENEFIT", r"\bэконом(ит|ьте|им|ия)\s+врем(я|ени|енем)\b"),
+    ("VAGUE_BENEFIT", r"\bповыша(ет|йте)\s+продуктивност\w*"),
+    # ─── WRONG_TENSE_RELEASE ───
+    # Future tense for already-shipped work (release-notes anti-pattern).
+    # "will support" → "supports". Advisory severity (some legitimate uses exist
+    # for upcoming/deprecated callouts).
+    ("WRONG_TENSE_RELEASE", r"\bwill\s+(support|enable|provide|introduce|allow|enhance)\b"),
 ]
+
+# Severity per category. Default "caution" for any category not listed.
+# blocker — flag prominently (count toward neuroslop threshold)
+# caution — standard flag (count toward borderline threshold)
+# nit     — advisory only (does NOT trigger borderline alone)
+SEVERITY: dict[str, str] = {
+    "MARKETING_HYPE": "caution",
+    "EMPTY_CTA": "caution",
+    "WEAK_OPENER": "caution",
+    "VAGUE_BENEFIT": "caution",
+    "WRONG_TENSE_RELEASE": "nit",
+    "TYPOGRAPHY": "nit",
+}
 
 COMPILED = [(cat, re.compile(p, re.IGNORECASE)) for cat, p in PATTERNS]
 
@@ -375,12 +441,14 @@ class Hit:
     col: int
     category: str
     match: str
+    severity: str = "caution"
 
     def to_dict(self) -> dict:
         return {
             "line": self.line,
             "col": self.col,
             "category": self.category,
+            "severity": self.severity,
             "match": self.match,
         }
 
@@ -400,19 +468,58 @@ class Report:
             out[h.category] = out.get(h.category, 0) + 1
         return out
 
+    @property
+    def by_severity(self) -> dict[str, int]:
+        out: dict[str, int] = {"blocker": 0, "caution": 0, "nit": 0}
+        for h in self.hits:
+            out[h.severity] = out.get(h.severity, 0) + 1
+        return out
+
     def verdict(self) -> tuple[int, str]:
-        cats = self.by_category
+        # Nit-only hits don't escalate verdict.
+        non_nit_total = sum(1 for h in self.hits if h.severity != "nit")
+        cats = {}
+        for h in self.hits:
+            if h.severity == "nit":
+                continue
+            cats[h.category] = cats.get(h.category, 0) + 1
         max_per_cat = max(cats.values(), default=0)
-        if self.total >= 5 or max_per_cat >= 3:
+        if non_nit_total >= 5 or max_per_cat >= 3:
             return 2, "neuroslop suspected"
-        if self.total >= 2:
+        if non_nit_total >= 2:
             return 1, "borderline"
         return 0, "clean"
 
 
-def scan(text: str) -> Report:
+def _mask_code_blocks(text: str) -> str:
+    """Replace lines inside fenced code blocks with empty strings.
+
+    Why: linter scans line-by-line and would otherwise flag "revolutionary" or
+    "click here" inside code examples and command output. Markdown fences open
+    with ``` or ~~~ at line start (after optional indent); the same delimiter
+    closes the block.
+    """
+    out: list[str] = []
+    fence: str | None = None  # active fence marker, or None
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if fence is None:
+            if stripped.startswith("```") or stripped.startswith("~~~"):
+                fence = stripped[:3]
+                out.append("")
+                continue
+            out.append(line)
+        else:
+            out.append("")
+            if stripped.startswith(fence):
+                fence = None
+    return "\n".join(out)
+
+
+def scan(text: str, skip_code_blocks: bool = True) -> Report:
     report = Report()
-    lines = text.splitlines()
+    scanned = _mask_code_blocks(text) if skip_code_blocks else text
+    lines = scanned.splitlines()
     for line_idx, line in enumerate(lines, start=1):
         for cat, regex in COMPILED:
             for m in regex.finditer(line):
@@ -421,6 +528,7 @@ def scan(text: str) -> Report:
                         line=line_idx,
                         col=m.start() + 1,
                         category=cat,
+                        severity=SEVERITY.get(cat, "caution"),
                         match=m.group(0)[:80],
                     )
                 )
@@ -440,7 +548,7 @@ def format_human(report: Report) -> str:
     out.append("")
     out.append("Hits:")
     for h in report.hits[:200]:
-        out.append(f"  L{h.line}:{h.col}  {h.category:<22}  {h.match!r}")
+        out.append(f"  L{h.line}:{h.col}  [{h.severity:<7}] {h.category:<22}  {h.match!r}")
     if len(report.hits) > 200:
         out.append(f"  ... and {len(report.hits) - 200} more")
     return "\n".join(out) + "\n"
@@ -457,29 +565,40 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Offline regex linter for the writer skill.")
     parser.add_argument("path", help="Path to text file, or '-' for stdin")
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument(
+        "--scan-code-blocks",
+        action="store_true",
+        help="Also scan inside fenced code blocks (default: skipped).",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Only emit when verdict is not clean.",
+    )
     args = parser.parse_args(argv)
 
     text = read_input(args.path)
-    report = scan(text)
+    report = scan(text, skip_code_blocks=not args.scan_code_blocks)
+    code, label = report.verdict()
 
     if args.json:
-        code, label = report.verdict()
         print(
             json.dumps(
                 {
                     "verdict": label,
                     "total": report.total,
                     "by_category": report.by_category,
+                    "by_severity": report.by_severity,
                     "hits": [h.to_dict() for h in report.hits],
                 },
                 ensure_ascii=False,
                 indent=2,
             )
         )
-    else:
+    elif not (args.quiet and code == 0):
         sys.stdout.write(format_human(report))
 
-    return report.verdict()[0]
+    return code
 
 
 if __name__ == "__main__":

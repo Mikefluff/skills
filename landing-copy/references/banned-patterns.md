@@ -2,6 +2,13 @@
 
 Strip these from any landing-page / SEO / ad copy. Each marks the text as low-quality marketing.
 
+> **See also (shared across cold-email / landing-copy / release-notes):**
+> [`common/references/banned-patterns-hype.md`](../../common/references/banned-patterns-hype.md) ·
+> [`common/references/banned-patterns-preambles.md`](../../common/references/banned-patterns-preambles.md) ·
+> [`common/references/banned-patterns-empty-cta.md`](../../common/references/banned-patterns-empty-cta.md)
+>
+> The base linter (`writer/scripts/lint.py`) catches the regex-detectable subset under `MARKETING_HYPE` / `WEAK_OPENER` / `EMPTY_CTA` / `VAGUE_BENEFIT`.
+
 ---
 
 ## 1. Marketing hype adjectives

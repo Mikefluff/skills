@@ -1,0 +1,71 @@
+# Skill index
+
+Auto-generated map of every skill in the collection — by layer, by
+domain, and by supported language. The body between the markers below
+is regenerated from `skills.json` by `python3 scripts/gen-skill-index.py
+--write` (or `make gen-index`).
+
+For scenario-driven discovery ("I want to write a landing page"), see
+[USER-GUIDE.md](USER-GUIDE.md). For workflow recipes (chaining multiple
+skills), see [COMPOSING.md](COMPOSING.md).
+
+<!-- BEGIN skill-index (auto-generated; run `make gen-index`) -->
+
+## By layer
+
+### Base
+
+| Skill | Tags | Languages |
+| --- | --- | --- |
+| [`writer`](../writer/) | editing | ru / en |
+
+### Wrappers
+
+| Skill | Tags | Languages |
+| --- | --- | --- |
+| [`viral-text`](../viral-text/) | marketing, social, generation | ru / en |
+| [`prose-edit`](../prose-edit/) | fiction, editing | ru |
+| [`essay-write`](../essay-write/) | non-fiction, generation | ru |
+| [`pelevin-digression`](../pelevin-digression/) | fiction, non-fiction, generation | ru |
+| [`tone-shifter`](../tone-shifter/) | editing | en / ru |
+| [`cold-email`](../cold-email/) | outreach, generation | en / ru |
+| [`image-prompt`](../image-prompt/) | visual, generation | en / ru |
+| [`video-prompt`](../video-prompt/) | visual, generation | en / ru |
+| [`microcopy`](../microcopy/) | ux-copy, product, generation | en / ru |
+| [`release-notes`](../release-notes/) | product, tech-docs, generation | en / ru |
+| [`rfc-writer`](../rfc-writer/) | tech-docs, generation | en / ru |
+| [`landing-copy`](../landing-copy/) | marketing, generation | en / ru |
+
+### Linters (read-only)
+
+| Skill | Tags | Languages |
+| --- | --- | --- |
+| [`style-check`](../style-check/) | audit, editing | ru / en |
+| [`translation-sync`](../translation-sync/) | translation, audit | ru / en / pt-br |
+| [`canon-check`](../canon-check/) | fiction, audit | ru / en |
+
+### Meta
+
+| Skill | Tags | Languages |
+| --- | --- | --- |
+| [`skills-update`](../skills-update/) | ops | en / ru |
+
+## By domain
+
+- **fiction** — [`prose-edit`](../prose-edit/), [`canon-check`](../canon-check/), [`pelevin-digression`](../pelevin-digression/)
+- **marketing** — [`viral-text`](../viral-text/), [`landing-copy`](../landing-copy/)
+- **non-fiction** — [`essay-write`](../essay-write/), [`pelevin-digression`](../pelevin-digression/)
+- **outreach** — [`cold-email`](../cold-email/)
+- **product** — [`microcopy`](../microcopy/), [`release-notes`](../release-notes/)
+- **social** — [`viral-text`](../viral-text/)
+- **tech-docs** — [`release-notes`](../release-notes/), [`rfc-writer`](../rfc-writer/)
+- **ux-copy** — [`microcopy`](../microcopy/)
+- **visual** — [`image-prompt`](../image-prompt/), [`video-prompt`](../video-prompt/)
+
+## By language
+
+- **EN + PT-BR + RU** (1) — [`translation-sync`](../translation-sync/)
+- **EN + RU** (13) — [`writer`](../writer/), [`viral-text`](../viral-text/), [`style-check`](../style-check/), [`canon-check`](../canon-check/), [`skills-update`](../skills-update/), [`tone-shifter`](../tone-shifter/), [`cold-email`](../cold-email/), [`image-prompt`](../image-prompt/), [`video-prompt`](../video-prompt/), [`microcopy`](../microcopy/), [`release-notes`](../release-notes/), [`rfc-writer`](../rfc-writer/), [`landing-copy`](../landing-copy/)
+- **RU** (3) — [`prose-edit`](../prose-edit/), [`essay-write`](../essay-write/), [`pelevin-digression`](../pelevin-digression/)
+
+<!-- END skill-index -->

@@ -125,13 +125,22 @@ your-skill/
 ### Verify locally
 
 ```bash
-make validate         # frontmatter + cross-link + description-length checks
+make validate         # frontmatter + cross-link + description-length + tag dict
 make smoke            # full smoke: validate + lint snapshot + fixtures
-make check-docs       # README/USER-GUIDE/walkthroughs/CHANGELOG consistency
+make check-docs       # README/USER-GUIDE/walkthroughs/CHANGELOG/SKILL-INDEX consistency
+make lint-all         # writer linter across every reference/example/doc file (advisory)
 shellcheck install.sh scripts/*.sh
 ```
 
-All four must be green before opening a PR.
+All four required gates must be green before opening a PR (`lint-all` is advisory but recommended).
+
+### Optional: local pre-commit hook
+
+```bash
+make install-precommit-hook
+```
+
+Installs `.git/hooks/pre-commit` that runs the writer linter on staged `.md` files and re-runs `make smoke` before each commit. Bypass once with `git commit --no-verify`. Uninstall: `rm .git/hooks/pre-commit`.
 
 ---
 

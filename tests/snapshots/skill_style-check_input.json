@@ -7,29 +7,38 @@
     "PSEUDO_SMART": 1,
     "SYNTHETIC": 1
   },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 4,
+    "nit": 0
+  },
   "hits": [
     {
       "line": 11,
       "col": 53,
       "category": "AI_HEDGE",
+      "severity": "caution",
       "match": "можно сказать"
     },
     {
       "line": 15,
       "col": 1,
       "category": "FILLER_INTRO",
+      "severity": "caution",
       "match": "В современном мире"
     },
     {
       "line": 21,
       "col": 1,
       "category": "PSEUDO_SMART",
+      "severity": "caution",
       "match": "В конечном счёте"
     },
     {
       "line": 21,
       "col": 62,
       "category": "SYNTHETIC",
+      "severity": "caution",
       "match": "осознанного"
     }
   ]

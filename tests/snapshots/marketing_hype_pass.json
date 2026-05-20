@@ -1,0 +1,150 @@
+{
+  "verdict": "neuroslop suspected",
+  "total": 19,
+  "by_category": {
+    "MARKETING_HYPE": 9,
+    "WEAK_OPENER": 2,
+    "VAGUE_BENEFIT": 3,
+    "EMPTY_CTA": 5
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 19,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 3,
+      "col": 32,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "revolutionary"
+    },
+    {
+      "line": 3,
+      "col": 47,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "game-changing"
+    },
+    {
+      "line": 3,
+      "col": 84,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "industry-leading"
+    },
+    {
+      "line": 3,
+      "col": 112,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "state-of-the-art"
+    },
+    {
+      "line": 3,
+      "col": 1,
+      "category": "WEAK_OPENER",
+      "severity": "caution",
+      "match": "We're thrilled to"
+    },
+    {
+      "line": 5,
+      "col": 59,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "world-class"
+    },
+    {
+      "line": 5,
+      "col": 81,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "Best-in-class"
+    },
+    {
+      "line": 5,
+      "col": 108,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "unparalleled"
+    },
+    {
+      "line": 5,
+      "col": 1,
+      "category": "VAGUE_BENEFIT",
+      "severity": "caution",
+      "match": "Save time"
+    },
+    {
+      "line": 5,
+      "col": 12,
+      "category": "VAGUE_BENEFIT",
+      "severity": "caution",
+      "match": "boost productivity"
+    },
+    {
+      "line": 5,
+      "col": 36,
+      "category": "VAGUE_BENEFIT",
+      "severity": "caution",
+      "match": "get more done"
+    },
+    {
+      "line": 7,
+      "col": 1,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Click here"
+    },
+    {
+      "line": 7,
+      "col": 15,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "learn more"
+    },
+    {
+      "line": 7,
+      "col": 27,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Get started"
+    },
+    {
+      "line": 9,
+      "col": 39,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "мирового класса"
+    },
+    {
+      "line": 9,
+      "col": 21,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "прорывной"
+    },
+    {
+      "line": 9,
+      "col": 73,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "нажмите здесь"
+    },
+    {
+      "line": 9,
+      "col": 56,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Узнайте больше"
+    },
+    {
+      "line": 9,
+      "col": 1,
+      "category": "WEAK_OPENER",
+      "severity": "caution",
+      "match": "Мы рады"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install install-local update list uninstall check validate smoke lint test coverage check-docs gen-readme install-hook new-skill bump-patch bump-minor bump-major release clean-test
+.PHONY: help install install-local update list uninstall check validate smoke lint lint-all test coverage check-docs gen-readme gen-index install-hook install-precommit-hook new-skill bump-patch bump-minor bump-major release clean-test
 
 PREFIX ?= $(HOME)/.claude/skills
 VERSION := $(shell cat VERSION 2>/dev/null || echo "?")
@@ -56,8 +56,11 @@ check-docs: ## Verify skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs ↔
 gen-readme: ## Regenerate the README skills table from skills.json (write in place)
 	python3 scripts/gen-skills-table.py --write
 
+gen-index: ## Regenerate docs/SKILL-INDEX.md from skills.json (write in place)
+	python3 scripts/gen-skill-index.py --write
+
 lint: ## Run writer offline linter on every skill's examples/
-	@for skill in $$(find . -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' ! -name 'hooks' ! -name 'tests'); do \
+	@for skill in $$(find . -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' ! -name 'hooks' ! -name 'tests' ! -name 'common'); do \
 	  if [ -d $$skill/examples ]; then \
 	    for f in $$skill/examples/*.md; do \
 	      [ -f "$$f" ] || continue; \
@@ -67,6 +70,18 @@ lint: ## Run writer offline linter on every skill's examples/
 	    done; \
 	  fi; \
 	done
+
+lint-all: ## Run writer linter across every reference, example, and doc file (quiet)
+	@echo "Linting references…"
+	@find . -path './node_modules' -prune -o -path './.git' -prune -o -type f -name '*.md' -path '*/references/*' -print 2>/dev/null | xargs -n1 python3 writer/scripts/lint.py --quiet || true
+	@echo "Linting examples…"
+	@find . -path './node_modules' -prune -o -path './.git' -prune -o -type f -name '*.md' -path '*/examples/*' -print 2>/dev/null | xargs -n1 python3 writer/scripts/lint.py --quiet || true
+	@echo "Linting docs…"
+	@find docs -type f -name '*.md' 2>/dev/null | xargs -n1 python3 writer/scripts/lint.py --quiet || true
+	@echo "lint-all: done (advisory; non-clean reports printed above)"
+
+install-precommit-hook: ## Install local .git/hooks/pre-commit (writer linter on staged .md files)
+	bash scripts/install-precommit-hook.sh
 
 # ── scaffolding ──────────────────────────────────────────────────────────
 

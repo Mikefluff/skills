@@ -33,6 +33,10 @@ See [Docker usage](docs/USER-GUIDE.md#use-the-docker-image).
 
 **→ [User Guide](docs/USER-GUIDE.md)** — pick your scenario, walk through it end-to-end.
 
+**→ [Skill Index](docs/SKILL-INDEX.md)** — all 17 skills indexed by layer, domain, and language.
+
+**→ [Composing recipes](docs/COMPOSING.md)** — 14 named workflows showing how to chain skills.
+
 Quick scenario picker:
 
 | You want to … | Walkthrough |
@@ -64,7 +68,7 @@ If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESH
 
 | Skill | Layer | Languages | Purpose |
 | --- | --- | --- | --- |
-| [`writer`](writer/) | base | ru/en | Base clean-prose editor — antinyeyroslop (23 categories), typography, structural synthetics, RU calques. Invoked by all other prose skills. |
+| [`writer`](writer/) | base | ru/en | Base clean-prose editor — antinyeyroslop (28 categories), typography, structural synthetics, RU calques. Invoked by all other prose skills. |
 | [`viral-text`](viral-text/) | wrapper | ru/en | Write viral social media content — hooks, numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules + platform adaptation. |
 | [`prose-edit`](prose-edit/) | wrapper | ru | Fiction rewrite layer — Pelevin/Manson voice vector, 10-item style drift checklist, no meta-refs / anglicisms in narrator voice, long artistic rewrite (no comma-stitching), ToV pattern, 5-trigger structural-synthesis detector, Postirony depth-pass. |
 | [`essay-write`](essay-write/) | wrapper | ru | Non-fiction layer — long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content. |

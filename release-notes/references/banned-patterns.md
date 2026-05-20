@@ -2,6 +2,12 @@
 
 Strip these on sight. Each one signals "marketing fluff" or "engineer-talking-to-engineer" — neither serves the actual reader.
 
+> **See also (shared across cold-email / landing-copy / release-notes):**
+> [`common/references/banned-patterns-hype.md`](../../common/references/banned-patterns-hype.md) ·
+> [`common/references/banned-patterns-preambles.md`](../../common/references/banned-patterns-preambles.md)
+>
+> The base linter (`writer/scripts/lint.py`) catches the regex-detectable subset under `MARKETING_HYPE` / `WEAK_OPENER` / `WRONG_TENSE_RELEASE`.
+
 ---
 
 ## 1. Marketing hype

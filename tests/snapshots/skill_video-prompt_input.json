@@ -1,20 +1,27 @@
 {
-  "verdict": "borderline",
+  "verdict": "clean",
   "total": 2,
   "by_category": {
     "TYPOGRAPHY": 2
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 0,
+    "nit": 2
   },
   "hits": [
     {
       "line": 22,
       "col": 14,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"she smiles\""
     },
     {
       "line": 22,
       "col": 54,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"subtle movement\""
     }
   ]

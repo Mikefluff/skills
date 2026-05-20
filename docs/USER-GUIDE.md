@@ -48,6 +48,7 @@ Seventeen skills layered on top of one base linter (`writer`):
 Skills work on any text file (`.md`, `.tex`, `.txt`, …) — there's no assumed file format or project layout.
 
 For the dependency graph and composition patterns, see [COMPOSING.md](COMPOSING.md).
+For an index of every skill by layer, domain, and language, see [SKILL-INDEX.md](SKILL-INDEX.md).
 
 ---
 
@@ -334,6 +335,7 @@ After that, you'll see ` · skills v1.0.1→1.2.0 +1 skill (some-new-skill)` in 
 
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
-- [COMPOSING](COMPOSING.md) — how the 9 skills compose; dependency graph
+- [COMPOSING](COMPOSING.md) — how the 17 skills compose; recipe library
+- [SKILL-INDEX](SKILL-INDEX.md) — every skill indexed by layer / domain / language
 - [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection
 - [VERSIONING](VERSIONING.md) — semver policy, release flow
