@@ -1,0 +1,20 @@
+# Exclude from npm package
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+node_modules/
+.git/
+.github/
+.claude/
+docs/audits/
+docs/launch-posts/
+docs/LAUNCH-POST.md
+tests/
+scripts/
+Dockerfile
+Makefile
+.gitignore
+CHANGELOG.md
+CONTRIBUTING.md
+Formula/
