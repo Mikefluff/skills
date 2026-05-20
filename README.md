@@ -43,22 +43,41 @@ Three ways, increasing in eagerness:
 
 1. **On demand from inside Claude Code.** Invoke `/skills-update` (the `skills-update` skill is shipped as part of this collection). It checks the latest tag, shows the CHANGELOG diff for what you'd be installing, asks for confirmation, then runs `install.sh --update`.
 
-2. **Ambient banner via status-line hook** *(opt-in)*. The repo ships `hooks/skills-update-banner.js` — a Node script that fits into Claude Code's `statusLine` slot and tacks ` · skills v0.1.0→0.2.0 (run /skills-update)` onto your status line when an update is available. It caches the remote tag for 24 h and fails silently if the network is down.
+2. **Ambient banner via status-line hook** *(opt-in)*. The repo ships `hooks/skills-update-banner.js` — a Node script that fits into Claude Code's `statusLine` slot and tacks ` · skills v0.3.0→0.4.0 +2 skills (translation-sync description)` onto your status line when an update is available. It caches the remote tag for 24 h and fails silently if the network is down.
 
    To install:
-   ```jsonc
-   // ~/.claude/settings.json
-   {
-     "statusLine": {
-       "type": "command",
-       "command": "node /absolute/path/to/skills/hooks/skills-update-banner.js"
-     }
-   }
+   ```bash
+   bash scripts/install-hook.sh
+   # or: make install-hook
    ```
+
+   The script idempotently merges the `statusLine` block into `~/.claude/settings.json`. If you already have a `statusLine` set to a different command, it asks before overwriting; with `--yes` it defaults to cancel (safer).
+
+   To remove: `bash scripts/install-hook.sh --uninstall`.
 
 3. **From the command line.** Just re-run the install command with `--update`.
 
 The banner never prompts and never installs — it only nudges. The installer never runs without your explicit invocation. The `/skills-update` skill never updates without your explicit `AskUserQuestion` confirmation.
+
+---
+
+## Quick start
+
+After install, open Claude Code and try:
+
+| You want to … | Invoke |
+|---|---|
+| Write a viral Telegram post about morning routines | `/viral-text утренние ритуалы` |
+| Clean a draft pasted in chat | `/writer clean` (then paste) |
+| Rewrite a fiction chapter fragment | `/prose-edit rewrite books/god-academy/ru/chapters/ch05.tex 142:198` |
+| Draft a non-fiction chapter on quantum coherence | `/essay-write chapter` (then describe topic) |
+| Insert a Pelevin-style digression at a specific line | `/pelevin-digression at ch07.tex:201 "брендовая социология"` |
+| Lint staged changes before commit | `/style-check staged` |
+| Verify a translation matches across RU/EN/PT-BR | `/translation-sync chapter god-academy ch05` |
+| Check a chapter against the story bible | `/canon-check chapter era-arkhitektorov ch12` |
+| See if there's a new version of the collection | `/skills-update` |
+
+See [docs/COMPOSING.md](docs/COMPOSING.md) for the full dependency graph and "when to invoke which" decision tree.
 
 ---
 
@@ -96,13 +115,23 @@ skills/
 │   └── release.yml          # conventional-commits-driven auto-release
 ├── docs/
 │   ├── CONTRIBUTING.md      # how to add a skill
-│   └── VERSIONING.md        # semver policy + release flow
+│   ├── VERSIONING.md        # semver policy + release flow
+│   ├── COMPOSING.md         # which skill to invoke when; dependency graph + scenarios
+│   └── LINTER-COVERAGE.md   # which of the 23 neuroslop categories lint.py detects via regex
 ├── scripts/
-│   ├── validate.sh          # frontmatter + cross-link check
-│   ├── smoke.sh             # validate + writer linter regression
-│   ├── bump.sh              # bump VERSION + open new CHANGELOG section
+│   ├── validate.sh          # frontmatter + cross-link + description-quality check
+│   ├── smoke.sh             # validate + writer linter regression + fixture snapshots
+│   ├── bump.sh              # bump VERSION + promote [Unreleased] section
 │   ├── new-skill.sh         # bootstrap a new skill folder
-│   └── decide-bump.sh       # parse conventional commits since last tag
+│   ├── decide-bump.sh       # parse conventional commits since last tag
+│   ├── lint-description.py  # frontmatter description quality (advisory)
+│   ├── coverage.py          # regenerate docs/LINTER-COVERAGE.md
+│   └── install-hook.sh      # idempotent status-line banner installer
+├── tests/
+│   ├── README.md
+│   ├── fixtures/            # short Russian fragments with known verdicts
+│   ├── snapshots/           # frozen linter outputs per fixture
+│   └── run.sh               # compare linter output to snapshot, fail on drift
 ├── hooks/
 │   └── skills-update-banner.js  # opt-in status-line update banner
 ├── writer/                  # the 9 skills
@@ -126,12 +155,18 @@ Every skill follows the same SOTA progressive-disclosure layout — compact `SKI
 make help                  # list all targets
 
 make install               # install from this checkout into ~/.claude/skills
-make validate              # frontmatter + cross-link check
-make smoke                 # validate + writer linter regression
+make uninstall             # remove all installed skills + marker (interactive)
+make check                 # compare installed version to latest release
+make list                  # list installed skills under PREFIX
+make install-hook          # opt in to the status-line update banner
+make validate              # frontmatter + cross-link + description-quality check
+make smoke                 # validate + writer linter regression + fixture snapshots
+make test                  # snapshot tests only
+make coverage              # regex coverage report (which of 23 categories lint.py detects)
 make lint                  # run writer/scripts/lint.py over every skill's examples/
 make new-skill NAME=foo-bar DESC="..."   # scaffold a new skill
 
-make bump-patch            # 0.1.0 → 0.1.1 (+ CHANGELOG section)
+make bump-patch            # 0.1.0 → 0.1.1 (+ promoted CHANGELOG section)
 make bump-minor            # 0.1.0 → 0.2.0
 make bump-major            # 0.1.0 → 1.0.0
 make release               # tag + push current VERSION (CI builds release)

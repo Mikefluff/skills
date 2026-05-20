@@ -1,0 +1,122 @@
+{
+  "verdict": "neuroslop suspected",
+  "total": 17,
+  "by_category": {
+    "PSEUDO_SMART": 2,
+    "AI_INTENSIFIER": 2,
+    "BUREAU_INV": 1,
+    "CORPORATE": 3,
+    "GPT_FILLER": 2,
+    "FILLER_INTRO": 1,
+    "PSEUDO_CAUSAL": 1,
+    "NEURAL_METAPHOR": 1,
+    "AI_QA": 1,
+    "NE_X_A_Y": 1,
+    "AI_HEDGE": 1,
+    "WIDE_NET": 1
+  },
+  "hits": [
+    {
+      "line": 1,
+      "col": 155,
+      "category": "PSEUDO_SMART",
+      "match": "по сути дела"
+    },
+    {
+      "line": 1,
+      "col": 108,
+      "category": "AI_INTENSIFIER",
+      "match": "беспрецедентный"
+    },
+    {
+      "line": 1,
+      "col": 124,
+      "category": "AI_INTENSIFIER",
+      "match": "революционный подход"
+    },
+    {
+      "line": 1,
+      "col": 169,
+      "category": "BUREAU_INV",
+      "match": "представляет собой"
+    },
+    {
+      "line": 1,
+      "col": 209,
+      "category": "CORPORATE",
+      "match": "целевой аудитории"
+    },
+    {
+      "line": 1,
+      "col": 188,
+      "category": "CORPORATE",
+      "match": "ключевые метрики"
+    },
+    {
+      "line": 1,
+      "col": 35,
+      "category": "GPT_FILLER",
+      "match": "важно понимать"
+    },
+    {
+      "line": 1,
+      "col": 1,
+      "category": "FILLER_INTRO",
+      "match": "В современном мире"
+    },
+    {
+      "line": 3,
+      "col": 139,
+      "category": "PSEUDO_SMART",
+      "match": "в конечном счёте"
+    },
+    {
+      "line": 3,
+      "col": 110,
+      "category": "CORPORATE",
+      "match": "синергия"
+    },
+    {
+      "line": 3,
+      "col": 194,
+      "category": "GPT_FILLER",
+      "match": "стоит отметить"
+    },
+    {
+      "line": 3,
+      "col": 94,
+      "category": "PSEUDO_CAUSAL",
+      "match": "дело в том, что"
+    },
+    {
+      "line": 3,
+      "col": 25,
+      "category": "NEURAL_METAPHOR",
+      "match": "трещит по швам"
+    },
+    {
+      "line": 5,
+      "col": 61,
+      "category": "AI_QA",
+      "match": "Знакомо?"
+    },
+    {
+      "line": 5,
+      "col": 1,
+      "category": "NE_X_A_Y",
+      "match": "Ты не разработчик — ты архитектор"
+    },
+    {
+      "line": 5,
+      "col": 82,
+      "category": "AI_HEDGE",
+      "match": "по большому счёту"
+    },
+    {
+      "line": 5,
+      "col": 101,
+      "category": "WIDE_NET",
+      "match": "нет ничего, что бы"
+    }
+  ]
+}

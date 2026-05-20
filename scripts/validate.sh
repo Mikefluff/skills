@@ -9,6 +9,9 @@ cd "$ROOT"
 
 err=0
 checked=0
+desc_pass=0
+desc_info=0
+desc_warn=0
 
 red()    { printf '\033[31m%s\033[0m\n' "$*"; }
 green()  { printf '\033[32m%s\033[0m\n' "$*"; }
@@ -86,6 +89,24 @@ for skill in $SKILLS; do
       pass "examples/ has $n file(s)"
     fi
   fi
+
+  # 4) description quality (advisory, never blocks)
+  if [ -x scripts/lint-description.py ] || [ -f scripts/lint-description.py ]; then
+    desc_out="$(python3 scripts/lint-description.py "$skill" 2>&1)"
+    # Echo every line except the verdict line, and count the verdict.
+    printf '%s\n' "$desc_out" | while IFS= read -r line; do
+      case "$line" in
+        *"description-verdict:"*) ;;  # consumed below
+        *) [ -n "$line" ] && printf '%s\n' "$line" ;;
+      esac
+    done
+    verdict_line="$(printf '%s\n' "$desc_out" | grep 'description-verdict:' || true)"
+    case "$verdict_line" in
+      *PASS*) desc_pass=$((desc_pass + 1)) ;;
+      *INFO*) desc_info=$((desc_info + 1)) ;;
+      *WARN*) desc_warn=$((desc_warn + 1)) ;;
+    esac
+  fi
 done
 
 echo
@@ -94,4 +115,11 @@ if [ "$err" = "0" ]; then
 else
   red   "validate: FAILED"
 fi
+
+# Description-quality summary (advisory)
+total_desc=$((desc_pass + desc_info + desc_warn))
+if [ "$total_desc" -gt 0 ]; then
+  dim "description quality: $desc_pass PASS · $desc_info INFO · $desc_warn WARN"
+fi
+
 exit "$err"

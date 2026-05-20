@@ -16,11 +16,11 @@ if [ ! -x scripts/validate.sh ]; then
   red "scripts/validate.sh is not executable"; exit 1
 fi
 
-echo "─── 1/2 validate ─────────────────────────────────────────────"
+echo "─── 1/3 validate ─────────────────────────────────────────────"
 bash scripts/validate.sh
 
 echo
-echo "─── 2/2 writer/lint.py self-test ─────────────────────────────"
+echo "─── 2/3 writer/lint.py self-test ─────────────────────────────"
 # writer/examples/before-after.md contains intentional BEFORE samples that
 # should trip the linter. Verdict must be "neuroslop suspected".
 if ! command -v python3 >/dev/null 2>&1; then
@@ -37,6 +37,10 @@ else
   red   "  ✗ writer linter did NOT flag fixture — regression"
   exit 2
 fi
+
+echo
+echo "─── 3/3 fixture snapshots ────────────────────────────────────"
+bash tests/run.sh
 
 echo
 green "smoke: OK"

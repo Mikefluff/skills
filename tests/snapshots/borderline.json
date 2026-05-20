@@ -1,0 +1,29 @@
+{
+  "verdict": "borderline",
+  "total": 3,
+  "by_category": {
+    "AI_QA": 1,
+    "BUREAU_INV": 1,
+    "GPT_FILLER": 1
+  },
+  "hits": [
+    {
+      "line": 3,
+      "col": 1,
+      "category": "AI_QA",
+      "match": "Шаг за шагом"
+    },
+    {
+      "line": 3,
+      "col": 189,
+      "category": "BUREAU_INV",
+      "match": "играет важную роль"
+    },
+    {
+      "line": 3,
+      "col": 140,
+      "category": "GPT_FILLER",
+      "match": "Стоит отметить"
+    }
+  ]
+}

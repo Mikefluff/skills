@@ -14,6 +14,38 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — installer
+- **`install.sh --list`** — print available skills + descriptions and exit.
+- **`install.sh --check`** — compare local install marker to latest release, report status.
+- **`install.sh --uninstall`** — remove all installed skills + marker (interactive with `[y/N]`, scriptable with `--yes`).
+- **`install.sh --prune`** — used with `--update`; remove installed skills that are no longer in the upstream manifest.
+- **`scripts/install-hook.sh`** — idempotent installer for the status-line banner. Detects existing `statusLine` block, asks before overwriting, supports `--uninstall`.
+
+### Added — quality gates
+- **`scripts/lint-description.py`** — advisory linter for `description:` field quality (length, prefix smell, invocation hint, internal-path bleed). Wired into `validate.sh` — emits ⚠ / · lines per skill plus a `description quality: N PASS · M INFO · K WARN` summary.
+- **GitHub Actions** — `shellcheck` job (action-shellcheck, error severity only) and `markdownlint` job (markdownlint-cli2-action) added to CI.
+- **`.markdownlint.json`** + **`.markdownlintignore`** — permissive base config (MD013/MD024/MD033/MD036/MD041 off, MD001/MD009/MD012/MD022/MD025/MD040 on); examples/ excluded as calibration fixtures.
+- **CI install-flow coverage** — ci.yml now also exercises `--list` and `--uninstall` end-to-end.
+
+### Added — testing
+- **`tests/`** with 5 Russian-language fixtures (`neuroslop_full_pass`, `clean_prose`, `borderline`, `staccato`, `ru_calques`) and frozen snapshots of `python3 writer/scripts/lint.py --json` output. `tests/run.sh` compares actual vs snapshot; `--update` re-baselines.
+- **`smoke.sh`** now runs the fixture snapshots as Stage 3.
+- **`scripts/coverage.py`** — generates `docs/LINTER-COVERAGE.md` showing which of the 23 neuroslop categories `lint.py` regex-detects (currently 18 covered / 3 partial / 2 intentionally LLM-only).
+
+### Added — community
+- **`.github/ISSUE_TEMPLATE/`** with bug-report and new-skill-proposal forms, plus `config.yml` linking to Discussions.
+- **`.github/PULL_REQUEST_TEMPLATE.md`** with conventional-commits reminder + pre-merge checklist.
+- **`SECURITY.md`** — responsible-disclosure policy, scope, contact.
+- **GitHub Discussions** enabled, repo topics set (`claude-code`, `claude-skills`, `prose-editing`, `russian-language`, `anti-llm-detection`, `neuroslop`, `writing-tools`).
+
+### Added — docs
+- **`docs/COMPOSING.md`** — dependency graph (ASCII), "when to invoke which" decision tree, common composition patterns, anti-patterns.
+- **README** — Quick Start block with typical invocations; updated project layout; Makefile targets section refreshed.
+
+### Improved
+- **`hooks/skills-update-banner.js`** v2 — now shows `skills vX→vY +N skills (release topline)` instead of bare version delta. Fetches `skills.json` from remote release to compute skill-count delta. Extracts first bullet from release body for topline. Caches both for 24h.
+- **`Makefile`** — new targets: `uninstall`, `check`, `install-hook`, `test`, `coverage`.
+
 ## [0.3.0] — 2026-05-20
 
 ### Added — new skills

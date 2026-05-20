@@ -1,0 +1,67 @@
+name: New skill proposal
+description: Propose a new skill for the collection (or a major capability addition to an existing one)
+title: "skill: "
+labels: ["enhancement", "new-skill"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when you want to suggest a new skill or a substantial new capability layer. For small additions to an existing skill, use the bug report or open a PR directly.
+
+  - type: input
+    id: name
+    attributes:
+      label: Proposed skill name
+      description: kebab-case, ≤ 30 chars
+      placeholder: "ru-poetry-meter"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer
+      options:
+        - base (standalone, doesn't wrap other skills)
+        - wrapper (wraps writer + applies a voice / domain)
+        - linter (read-only, produces a report)
+        - meta (operates on the collection itself)
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: What problem does it solve?
+      description: Concrete user-facing scenario. "I want to do X but no existing skill does it."
+    validations:
+      required: true
+
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies on existing skills
+      description: Which skills (if any) would this skill invoke as part of its pipeline?
+      placeholder: "writer (final cleanup), prose-edit (if fiction context)"
+
+  - type: textarea
+    id: overlap
+    attributes:
+      label: Overlap with existing skills
+      description: Why isn't this just a section in an existing skill? Where does it genuinely diverge?
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: 1-2 example invocations
+      description: What would the user type / what would the skill produce? Mock it up.
+
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: Author agreement
+      options:
+        - label: I have read [docs/CONTRIBUTING.md](../blob/main/docs/CONTRIBUTING.md) and understand the SOTA layout requirements
+          required: true

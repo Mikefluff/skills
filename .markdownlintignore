@@ -1,0 +1,7 @@
+# Auto-generated / vendored content excluded from markdownlint
+node_modules/
+.git/
+
+# Intentionally fragmented per-skill examples — they're calibration fixtures,
+# not finished prose, so formatting nits would just churn.
+*/examples/*.md

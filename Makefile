@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install install-local update list validate smoke lint new-skill bump-patch bump-minor bump-major release clean-test
+.PHONY: help install install-local update list uninstall check validate smoke lint test coverage install-hook new-skill bump-patch bump-minor bump-major release clean-test
 
 PREFIX ?= $(HOME)/.claude/skills
 VERSION := $(shell cat VERSION 2>/dev/null || echo "?")
@@ -27,13 +27,28 @@ update: ## Re-install from this checkout, overwriting existing skills
 list: ## List installed skills under $(PREFIX)
 	@ls -1 $(PREFIX) 2>/dev/null || echo "(nothing installed)"
 
+uninstall: ## Remove all installed skills + marker (interactive)
+	bash install.sh --uninstall --prefix $(PREFIX)
+
+check: ## Compare installed version to latest release
+	bash install.sh --check --prefix $(PREFIX)
+
+install-hook: ## Install the status-line update banner (idempotent)
+	bash scripts/install-hook.sh
+
 # ── quality gates ────────────────────────────────────────────────────────
 
 validate: ## Validate frontmatter + cross-links of all skills
 	bash scripts/validate.sh
 
-smoke: ## Validate + writer linter regression check
+smoke: ## Validate + writer linter regression + fixture snapshots
 	bash scripts/smoke.sh
+
+test: ## Run snapshot tests on fixtures (writer linter)
+	bash tests/run.sh
+
+coverage: ## Show which of the 23 neuroslop categories lint.py detects via regex
+	python3 scripts/coverage.py
 
 lint: ## Run writer offline linter on every skill's examples/
 	@for skill in $$(find . -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' ! -name 'hooks' ! -name 'tests'); do \

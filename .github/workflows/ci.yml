@@ -24,10 +24,10 @@ jobs:
       - name: install jq
         run: sudo apt-get install -y jq
 
-      - name: validate frontmatter + cross-links
+      - name: validate frontmatter + cross-links + description quality
         run: bash scripts/validate.sh
 
-      - name: writer linter regression
+      - name: writer linter regression + fixture snapshots
         run: bash scripts/smoke.sh
 
       - name: install.sh dry-run (local copy mode)
@@ -39,3 +39,39 @@ jobs:
           ls /tmp/skills-ci
           test -f /tmp/skills-ci/writer/SKILL.md
           test -f /tmp/skills-ci/.skills-collection.json
+
+      - name: install.sh --list
+        run: bash install.sh --copy-from . --list
+
+      - name: install.sh --uninstall
+        run: |
+          bash install.sh --uninstall --prefix /tmp/skills-ci --yes
+          test ! -f /tmp/skills-ci/.skills-collection.json
+          test ! -d /tmp/skills-ci/writer
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ludeeus/action-shellcheck@master
+        env:
+          # SC2086: we intentionally rely on word splitting in several loops
+          # SC1091: we don't follow externally-sourced scripts during static analysis
+          SHELLCHECK_OPTS: -e SC2086 -e SC1091
+        with:
+          severity: error
+          scandir: '.'
+          additional_files: 'install.sh'
+
+  markdownlint:
+    name: markdownlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: |
+            **/*.md
+            #node_modules/**
+            #.git/**

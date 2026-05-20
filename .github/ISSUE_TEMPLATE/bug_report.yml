@@ -1,0 +1,69 @@
+name: Bug report
+description: A skill misbehaves, the installer breaks, or the linter gives the wrong verdict
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing. The more concrete the better — paste actual commands and actual output instead of paraphrasing.
+
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Which skill (or piece of infra) is affected?
+      options:
+        - writer
+        - viral-text
+        - prose-edit
+        - essay-write
+        - style-check
+        - translation-sync
+        - canon-check
+        - pelevin-digression
+        - skills-update
+        - install.sh / installer
+        - hooks/skills-update-banner.js
+        - scripts/* (validate / smoke / bump / lint.py / etc.)
+        - CI workflow
+        - other (describe in body)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Collection version
+      description: "Output of `cat ~/.claude/skills/.skills-collection.json | grep version` — or just the tag you have checked out."
+      placeholder: "v0.3.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands or prompts. Paste them, don't summarize.
+      placeholder: |
+        1. cat input.md  (attach content if non-trivial)
+        2. python3 writer/scripts/lint.py input.md
+        3. observed: ...
+        4. expected: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: macOS / Linux + version. Bash version if relevant (`bash --version`). Python version for linter bugs.
+      placeholder: |
+        macOS 14.5
+        bash 3.2.57(1)-release
+        Python 3.12.4
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Logs, screenshots, suspicions about what's going on. Optional.
