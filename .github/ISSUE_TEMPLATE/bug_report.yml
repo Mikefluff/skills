@@ -22,6 +22,8 @@ body:
         - canon-check
         - pelevin-digression
         - skills-update
+        - tone-shifter
+        - cold-email
         - install.sh / installer
         - hooks/skills-update-banner.js
         - scripts/* (validate / smoke / bump / lint.py / etc.)

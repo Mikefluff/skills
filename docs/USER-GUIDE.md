@@ -16,21 +16,26 @@ Then open Claude Code — skills are auto-discovered by name. No `~/.claude/sett
 
 | You want to … | Walkthrough |
 |---|---|
-| Write a viral social-media post (Telegram / Instagram / Threads / etc.) | [Viral post](walkthroughs/viral-post.md) |
+| Write a viral social-media post (Telegram / Instagram / Threads / etc.) | [Viral post (RU)](walkthroughs/viral-post.md) · [Viral post (EN)](walkthroughs/en-viral-post.md) |
 | Rewrite a fiction chapter from rough draft to commit-ready | [Fiction chapter](walkthroughs/fiction-chapter.md) |
 | Draft a long-form essay or popular-science chapter with sources | [Non-fiction long-form](walkthroughs/non-fiction.md) |
 | Verify a translation matches across RU / EN / PT-BR | [Translation parity](walkthroughs/translation-parity.md) |
 | Auto-lint every commit before it lands | [Pre-commit hook](walkthroughs/pre-commit-hook.md) |
+| Audit a fresh chapter against your story bible | [Story-bible audit](walkthroughs/canon-check-audit.md) |
+| Insert a Pelevin-vector digression into an essay or scene | [Digression insertion](walkthroughs/digression-insertion.md) |
+| Get a read-only quality verdict without auto-edits | [Style-check gate](walkthroughs/style-check-gate.md) |
+| Rewrite text in a different register (casual ↔ business ↔ academic ↔ plain) | [Tone-shifter](#tone-shifter--register-rewrites) |
+| Draft a cold-outreach email (founder / recruiter / journalist / VC) | [Cold-email](#cold-email--outreach-drafting) |
 | Stuck or confused | [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md) |
 
 ---
 
 ## The collection in one paragraph
 
-Nine prose-editing skills layered on top of one base linter (`writer`):
+Eleven prose-editing skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 23 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill in the collection.
-- **Wrappers** (call `writer` automatically): `viral-text` for social posts, `prose-edit` for fiction, `essay-write` for non-fiction longreads, `pelevin-digression` for opt-in voice inserts.
+- **Wrappers** (call `writer` automatically): `viral-text` for social posts, `prose-edit` for fiction, `essay-write` for non-fiction longreads, `pelevin-digression` for opt-in voice inserts, `tone-shifter` for register changes, `cold-email` for outreach.
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint, `translation-sync` for multilingual parity, `canon-check` for story-bible consistency.
 - **Meta**: `skills-update` checks for new releases of this collection and applies them on confirmation.
 
@@ -96,12 +101,62 @@ If your chapter is a hypothesis chapter (claim isn't established fact), the skil
 
 ---
 
+### "I want to rewrite text in a different register" {#tone-shifter--register-rewrites}
+
+`/tone-shifter --to <target> [--from <source>]` rewrites a passage in a named register without changing the underlying claims. Six registers: `casual`, `friendly-professional`, `business-formal`, `academic`, `technical`, `plain-explainer`.
+
+```
+/tone-shifter --to business-formal
+<paste casual draft>
+
+/tone-shifter --to plain-explainer --from academic
+<paste research abstract>
+```
+
+Use cases: turning a casual brain-dump into an exec memo, rewriting an academic paragraph for a general audience, softening corporate-speak to friendly-professional. Preserves facts, structure, and information — shifts vocabulary, sentence length, contractions, hedges, jargon level. See `tone-shifter/references/registers.md` for the full taxonomy.
+
+---
+
+### "I want to write a cold email"
+
+`/cold-email first-touch <recipient-context>` drafts a first-touch outreach to founders, VCs, recruiters, journalists, or partners. 5-block structure (hook / value / ask / easy-yes / sign-off), ≤120-word budget, banned ceremony patterns (no "I hope this email finds you well"), anti-template subject lines.
+
+```
+/cold-email first-touch "Sarah at Acorn Capital, VC who led Beta Corp's A round"
+/cold-email follow-up <previous email>
+/cold-email intro-request via=Marcus to="CISO at MegaCorp" why="audit-log compression"
+```
+
+Modes: `first-touch`, `follow-up`, `intro-request` (produces both the email to the intro-giver and the forwardable block), `re-engage`, `forwardable`. See `cold-email/references/structure.md` for the per-variant template.
+
+---
+
 ### "I want auto-lint on every commit"
 
 There's no built-in git-hook installer (we don't want to silently touch your `.git/` directory). The [pre-commit hook walkthrough](walkthroughs/pre-commit-hook.md) gives you a ready-to-paste `.git/hooks/pre-commit` script with two variants:
 
 - Full Claude Code invocation of `/style-check staged` (smart; requires the CLI)
 - Offline-only fallback via `python3 .../writer/scripts/lint.py` on staged diff (fast; no Claude needed)
+
+---
+
+## Use in your CI
+
+If you want the writer linter to gate every push / PR in your own repository (no Claude Code required — pure Python regex pass), copy our GitHub Action template:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/Mikefluff/skills/main/.github/workflows-template/skills-lint.yml.template
+mv skills-lint.yml.template .github/workflows/skills-lint.yml
+git add .github/workflows/skills-lint.yml && git commit -m "ci: add prose lint via Mikefluff/skills"
+```
+
+The template pins to a specific `SKILLS_VERSION` for reproducibility and lets you configure:
+
+- `LINT_PATHS` — which files to lint (default: `**/*.md`)
+- `FAIL_THRESHOLD` — `0` (clean only) / `1` (borderline+) / `2` (neuroslop only — default; lenient)
+- Excluded paths — defaults to `node_modules/`, `vendor/`, `.git/`, `.skills-cache/`
+
+Read the template comments before committing. The workflow runs in 30-60 seconds even on large repos because the linter is pure regex (no LLM call).
 
 ---
 
@@ -160,5 +215,5 @@ After that, you'll see ` · skills v1.0.1→1.2.0 +1 skill (some-new-skill)` in 
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
 - [COMPOSING](COMPOSING.md) — how the 9 skills compose; dependency graph
-- [CONTRIBUTING](CONTRIBUTING.md) — adding your own skill to the collection
+- [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection
 - [VERSIONING](VERSIONING.md) — semver policy, release flow
