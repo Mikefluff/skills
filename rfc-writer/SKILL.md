@@ -1,6 +1,6 @@
 ---
 name: rfc-writer
-description: "Write engineer-facing design documents — RFCs, ADRs (Architecture Decision Records), Tech Specs, Design Docs. Structure: context / problem / proposal / alternatives / consequences / decision / open questions. RFC 2119 keywords (MUST/SHOULD/MAY). Use when the user says 'write an RFC for...', 'design doc for...', 'ADR for...', 'tech spec for...'."
+description: "Write engineer-facing design documents — RFCs, ADRs (Architecture Decision Records), Tech Specs, Design Docs. Structure: context / problem / proposal / alternatives / consequences / decision / open questions. RFC 2119 keywords (MUST/SHOULD/MAY). Wraps `writer`. Use when the user says 'write an RFC for...', 'design doc for...', 'ADR for...', 'tech spec for...'."
 license: MIT
 allowed-tools:
   - Read
@@ -100,5 +100,16 @@ When the user says any of:
 - "document the decision to use X"
 - "explore alternatives for ..."
 - "review this RFC"
+
+RU triggers (use the skill when the user writes any of):
+- «RFC для ... / напиши RFC по ...»
+- «ADR для ... / запиши архитектурное решение»
+- «дизайн-док / технический документ / тех-спек»
+- «спецификация на ...»
+- «задокументируй решение использовать X»
+- «рассмотри альтернативы для ...»
+- «отревьюй этот RFC»
+
+For RU template variants (RU-localized headers, отметка про английские RFC 2119 keywords), see [`references/templates.md`](references/templates.md) section `RU template variants`.
 
 Use this skill. For user-facing release notes → `release-notes`. For prose documentation → `essay-write`. For viral / marketing content about a launch → `viral-text` or `landing-copy`.

@@ -84,4 +84,14 @@ When the user says any of:
 - "product shot / portrait / scene prompt"
 - "improve this image prompt"
 
+RU triggers (use the skill when the user writes any of):
+- «промпт для Midjourney / DALL-E / Flux / Nano Banana / SD»
+- «обложка для статьи / поста / лонгрида»
+- «промпт для DALL-E на русском»
+- «сгенерируй промпт для картинки про ...»
+- «hero-картинка для лендинга»
+- «улучшить промпт для изображения»
+
+The prompt itself is usually written in English (most models parse EN best). Only when the user explicitly asks for an RU-language prompt should the body be RU. RU terminology mapping for lighting + camera vocabulary lives in [`references/lighting-vocabulary.md`](references/lighting-vocabulary.md) (section `RU терминология`).
+
 Use this skill. For video — use `video-prompt` (different vocabulary, has temporal flow + camera movement, not single-frame lighting).

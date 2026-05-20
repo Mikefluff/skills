@@ -102,6 +102,19 @@ When the user says any of:
 - "toast notification text"
 - "inline alert wording"
 
+RU triggers (use the skill when the user writes any of):
+- «текст ошибки / сообщение об ошибке / напиши ошибку для ...»
+- «empty state на русском / пустое состояние / "ничего не найдено"»
+- «лейбл для кнопки / надпись на кнопке / текст кнопки»
+- «тултип / подсказка при наведении / hover-текст»
+- «404 / 500 / страница "оффлайн" на русском»
+- «онбординг-карточка / текст для туториала»
+- «текст модалки / заголовок модального окна»
+- «уведомление / toast / поп-ап текст»
+- «перепиши эту микрокопию короче»
+
+For RU patterns per UI element (typography «ёлочки», обращение «вы», friendly vs formal register), see [`references/element-types.md`](references/element-types.md) section `RU patterns per element`.
+
 Use this skill. For longer-form (landing page sections, marketing copy) → not this skill; use `essay-write` or a marketing-specific skill.
 
 If user wants register/tone shift of EXISTING microcopy — pair with `tone-shifter` (e.g. shift formal → friendly).

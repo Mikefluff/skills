@@ -108,4 +108,14 @@ When the user says any of:
 - "4-second clip of {action}"
 - "shot for TikTok / Reels / Shorts"
 
+RU triggers (use the skill when the user writes any of):
+- «промпт для Kling / Veo / Sora / Runway / Pika / Hailuo / Luma»
+- «оживи картинку / оживи это фото»
+- «motion-промпт для Reels / Shorts / TikTok»
+- «image-to-video промпт»
+- «4 секунды клипа с {действие}»
+- «сделай видео из этой картинки»
+
+Sam prompt body is still best written in English (the video models parse EN much better than RU). The RU → EN camera-vocabulary mapping lives in [`references/camera-vocabulary.md`](references/camera-vocabulary.md) (section `RU термины`).
+
 Use this skill. For static image — `image-prompt`. For full storyboard — neither (use a dedicated tool).
