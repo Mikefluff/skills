@@ -152,4 +152,5 @@ ch07.tex:312 — ANGLICISM в авторском голосе («post-door»)
 | [references/cleanness-checklist.md](references/cleanness-checklist.md) | Перед коммитом — 10-пунктовый прогон по pre-commit шероховатостям. |
 | [references/pitfalls.md](references/pitfalls.md) | После рерайта — проверить, не свалился ли результат в типовую ловушку. |
 | [references/synthetic-ai-words.md](references/synthetic-ai-words.md) | При встрече «рамка / нарратив / дискурс / парадигма / концепт / оптика» — карта замен. |
+| [references/depth-pass.md](references/depth-pass.md) | 10-пунктный Postirony depth-pass checklist + IT-blog test для отличия художки от статьи. |
 | [examples/before-after.md](examples/before-after.md) | Калибровка: образцы БЫЛО/НАДО для staccato, double negation, длинного рерайта, АБ ToV, тавтологии, comparison overload. |

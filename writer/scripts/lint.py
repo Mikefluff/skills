@@ -192,6 +192,18 @@ PATTERNS: list[tuple[str, str]] = [
     ("NEURAL_METAPHOR", r"\bоптик\w+\s+(проблемы|взгляда|вопроса)"),
     ("NEURAL_METAPHOR", r"\bв\s+рамках\s+(модели|подхода|логики)"),
     ("NEURAL_METAPHOR", r"\b(шёпот|шепот)\w*|прошептал\w*"),
+    # Extra "держать" abstract-metaphor variants flagged by the author in own drafts
+    # (feedback_no_synthetic_words.md / feedback_prose_cleanness.md)
+    ("NEURAL_METAPHOR", r"\bдержит\s+(веер|линию|роль|компас|тревог)"),
+    ("NEURAL_METAPHOR", r"\bсвязка\s+\w+\s+держит"),
+    ("NEURAL_METAPHOR", r"\bкомпас\s+держит"),
+    # Literal шёпот also banned (see neuroslop-categories.md cat 22)
+    ("NEURAL_METAPHOR", r"\b(шёпотом?|прошептал\w*)\b"),
+    # --- DOUBLE_NEG_REGEX (feedback_no_double_negation.md) ---
+    # Run these before commit; rewrite each match into an affirmative/contrast form.
+    ("DOUBLE_NEG_REGEX", r"\bне\s+[а-яё]+,?\s+не\s+[а-яё]+"),
+    ("DOUBLE_NEG_REGEX", r"\bбез\s+[а-яё]+,?\s+без\s+[а-яё]+"),
+    ("DOUBLE_NEG_REGEX", r"\bни\s+[а-яё]+,?\s+ни\s+[а-яё]+,?\s+ни\b"),
     # --- 23. TYPOGRAPHY ---
     ("TYPOGRAPHY", r'"[^"\n]{1,80}"'),  # straight quotes (rough — flags any "X")
     ("TYPOGRAPHY", r"“[^”\n]{1,80}”"),  # curly "X"

@@ -70,9 +70,12 @@ Skills are organized by layer: one base editor + wrappers/linter on top.
 |---|---|---|
 | [`writer`](writer/) | base | Base clean-prose editor. Antinyeyroslop (23 categories), typography, structural synthetics (staccato / double negation / chunks / inversions / repetitions), RU calque dictionary. Invoked by all other prose skills as their final pipeline step. Can also be called directly in `clean` / `lint` / `apply` modes. Ships with an offline regex linter (`writer/scripts/lint.py`). |
 | [`viral-text`](viral-text/) | wrapper | Write viral social media content (RU/EN) — hooks, 5 numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules, hook criteria, research via WebSearch, platform adaptation (Telegram / Threads / Instagram / Twitter / LinkedIn / Facebook), two-stage validation. Built on top of `writer`. |
-| [`prose-edit`](prose-edit/) | wrapper | Fiction rewrite layer for the author's books (АБ / ЭА / НК). Voice (Pelevin/Manson), 10-item style drift checklist, canon check, no meta-refs / anglicisms in narrator voice, long artistic rewrite preferred over compression, AB ToV pattern, 5-trigger structural synthesis detector. |
-| [`essay-write`](essay-write/) | wrapper | Non-fiction layer (НК chapters, longreads, essays). Long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content, sparing with metaphors. |
-| [`style-check`](style-check/) | linter | Read-only pre-commit lint stacked on top of writer / prose-edit / essay-write. Auto-routes by file path (`books/god-academy/` → fiction; `books/heavenly-code/` → non-fic). BLOCKING / WARNING / INFO severity. Exit-code semantics for git hooks. |
+| [`prose-edit`](prose-edit/) | wrapper | Fiction rewrite layer for the author's books (АБ / ЭА / НК). Voice (Pelevin/Manson), 10-item style drift checklist, canon check, no meta-refs / anglicisms in narrator voice, long artistic rewrite preferred over compression, AB ToV pattern, 5-trigger structural synthesis detector, Postirony depth-pass checklist, AI-aphorism trap. |
+| [`essay-write`](essay-write/) | wrapper | Non-fiction layer (НК chapters, longreads, essays). Long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content, sparing with metaphors, 7-case structural synthesis false-positive filter, V/H/P hypothesis markers. |
+| [`style-check`](style-check/) | linter | Read-only pre-commit lint stacked on top of writer / prose-edit / essay-write. Auto-routes by file path (`books/god-academy/` → fiction; `books/heavenly-code/` → non-fic). BLOCKING / WARNING / INFO severity. Exit-code semantics for git hooks. Includes post-rewrite signature catalogue. |
+| [`translation-sync`](translation-sync/) | linter | Pre-commit parity checker for multilingual book translations (RU ↔ EN ↔ PT-BR). Per-language typography, terminology canon, anchor-quote translations, names / patronymics / diminutives, cultural-realia footnote pattern, "do not smooth this number" guard. Read-only. |
+| [`canon-check`](canon-check/) | linter | Story-bible consistency auditor for the author's book series (АБ / ЭА / НК). Greps entities in changed chapters, cross-references `story-bible.tex`, flags BLOCKING contradictions / WARNING gaps / INFO new details. Principle: trust the text, not memory. |
+| [`pelevin-digression`](pelevin-digression/) | wrapper | Write a Pelevin-voice-vector digression for a fiction or non-fiction passage. 12 structural techniques (bracket-essay, brand-name sociology, anti-gradation list, forward-link, …) + 5 banned constructions. Invoked by request, composes with `prose-edit` (fiction) or `essay-write` (non-fic). |
 | [`skills-update`](skills-update/) | meta | User-invocable update check + apply for this collection (see Update section above). |
 
 ---
@@ -102,11 +105,14 @@ skills/
 │   └── decide-bump.sh       # parse conventional commits since last tag
 ├── hooks/
 │   └── skills-update-banner.js  # opt-in status-line update banner
-├── writer/                  # the 5 skills + the meta skill
+├── writer/                  # the 9 skills
 ├── viral-text/
 ├── prose-edit/
 ├── essay-write/
 ├── style-check/
+├── translation-sync/
+├── canon-check/
+├── pelevin-digression/
 └── skills-update/
 ```
 
@@ -138,7 +144,7 @@ CI runs `validate` + `smoke` on every push and PR. Releases are automated from `
 ## Uninstall
 
 ```bash
-rm -rf ~/.claude/skills/{writer,viral-text,prose-edit,essay-write,style-check,skills-update}
+rm -rf ~/.claude/skills/{writer,viral-text,prose-edit,essay-write,style-check,translation-sync,canon-check,pelevin-digression,skills-update}
 rm -f  ~/.claude/skills/.skills-collection.json
 ```
 

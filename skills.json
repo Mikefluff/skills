@@ -69,6 +69,43 @@
       ]
     },
     {
+      "name": "translation-sync",
+      "dir": "translation-sync",
+      "layer": "linter",
+      "description": "Read-only pre-commit parity checker for trilingual book translations (RU↔EN↔PT-BR) — typography per language, terminology canon, anchor-quote drift, names/patronymics/diminutives, cultural realia footnotes, no-smoothing of numbers/brands/dates. BLOCKING/WARNING/INFO severity with exit-code semantics for git hook.",
+      "languages": [
+        "ru",
+        "en",
+        "pt-br"
+      ],
+      "deps": []
+    },
+    {
+      "name": "canon-check",
+      "dir": "canon-check",
+      "layer": "linter",
+      "description": "Story-bible consistency auditor for the author's book series. Greps entities in changed chapters, cross-references story-bible.tex, flags BLOCKING contradictions / WARNING gaps / INFO new details. Read-only.",
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "deps": []
+    },
+    {
+      "name": "pelevin-digression",
+      "dir": "pelevin-digression",
+      "layer": "wrapper",
+      "description": "Write a Pelevin-style digression for a fiction or non-fiction passage — 12 structural techniques + 5 banned constructions. Wraps prose-edit (fiction) or essay-write (non-fic). Invoked by request, not auto-applied.",
+      "languages": [
+        "ru"
+      ],
+      "deps": [
+        "writer",
+        "prose-edit",
+        "essay-write"
+      ]
+    },
+    {
       "name": "skills-update",
       "dir": "skills-update",
       "layer": "meta",

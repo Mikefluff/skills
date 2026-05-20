@@ -143,6 +143,7 @@ ch03.tex:142 — VIRAL_FORMAT (numbered list в нон-фикшн)
 | [references/metaphors.md](references/metaphors.md) | After draft — to count and prune metaphors |
 | [references/connecting-chapters.md](references/connecting-chapters.md) | When adding meta-references between НК chapters |
 | [references/plain-russian.md](references/plain-russian.md) | When explaining a complex scientific concept |
+| [references/structural-synthesis-keepers.md](references/structural-synthesis-keepers.md) | 7 случаев когда parallelism — приём, а не нейрослоп (false-positive filter). |
 | [examples/sample-opening.md](examples/sample-opening.md) | Calibration sample — load to recalibrate voice and structure |
 
 </instructions>
