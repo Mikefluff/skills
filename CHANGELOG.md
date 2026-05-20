@@ -14,6 +14,8 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-05-20
+
 ### Added — new skills
 - **`translation-sync`** (linter). Pre-commit parity checker for multilingual book translations (RU ↔ EN ↔ PT-BR). 15-point pre-commit checklist + per-language typography rules + terminology canon table + anchor-quote canonical translations + names / patronymics / diminutives rules + cultural-realia footnote pattern + "do not smooth this number" guard. Read-only — produces a structured parity report.
 - **`canon-check`** (linter). Story-bible consistency auditor for the author's book series (АБ / ЭА / НК). Greps entities in changed chapters, cross-references `story-bible.tex`, flags BLOCKING contradictions / WARNING gaps / INFO new details. Core principle: trust the text, not memory. Ships with the documented incident catalogue (хват Ирэн, яйцо-Квинта, рыжая ведьма, число смехов Вэй Лина, возраст Лии, возраст отца Дана).
@@ -48,6 +50,7 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v0.3.0...HEAD
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
+[0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0
