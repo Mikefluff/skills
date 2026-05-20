@@ -1,6 +1,28 @@
 {
-  "verdict": "clean",
-  "total": 0,
-  "by_category": {},
-  "hits": []
+  "verdict": "borderline",
+  "total": 2,
+  "by_category": {
+    "MARKETING_HYPE": 2
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 2,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 26,
+      "col": 22,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "revolutionary"
+    },
+    {
+      "line": 26,
+      "col": 38,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "world-class"
+    }
+  ]
 }

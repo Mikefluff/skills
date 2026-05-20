@@ -4,11 +4,17 @@
   "by_category": {
     "TYPOGRAPHY": 1
   },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 0,
+    "nit": 1
+  },
   "hits": [
     {
       "line": 5,
       "col": 24,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"Why AI is changing engineering teams in 2026\""
     }
   ]

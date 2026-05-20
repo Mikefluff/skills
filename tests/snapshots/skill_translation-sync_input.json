@@ -1,32 +1,41 @@
 {
-  "verdict": "neuroslop suspected",
+  "verdict": "clean",
   "total": 4,
   "by_category": {
     "TYPOGRAPHY": 4
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 0,
+    "nit": 4
   },
   "hits": [
     {
       "line": 14,
       "col": 7,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"Nikolskaya Street\""
     },
     {
       "line": 16,
       "col": 7,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"7:15am\""
     },
     {
       "line": 18,
       "col": 7,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"350 meters\""
     },
     {
       "line": 20,
       "col": 7,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"dark grey\""
     }
   ]

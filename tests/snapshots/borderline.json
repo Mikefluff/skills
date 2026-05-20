@@ -6,23 +6,31 @@
     "BUREAU_INV": 1,
     "GPT_FILLER": 1
   },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 3,
+    "nit": 0
+  },
   "hits": [
     {
       "line": 3,
       "col": 1,
       "category": "AI_QA",
+      "severity": "caution",
       "match": "Шаг за шагом"
     },
     {
       "line": 3,
       "col": 189,
       "category": "BUREAU_INV",
+      "severity": "caution",
       "match": "играет важную роль"
     },
     {
       "line": 3,
       "col": 140,
       "category": "GPT_FILLER",
+      "severity": "caution",
       "match": "Стоит отметить"
     }
   ]

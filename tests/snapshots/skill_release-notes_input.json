@@ -4,11 +4,17 @@
   "by_category": {
     "TYPOGRAPHY": 1
   },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 0,
+    "nit": 1
+  },
   "hits": [
     {
       "line": 13,
       "col": 16,
       "category": "TYPOGRAPHY",
+      "severity": "nit",
       "match": "\"Save draft\""
     }
   ]
