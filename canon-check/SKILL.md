@@ -1,6 +1,6 @@
 ---
 name: canon-check
-description: "Verify story-bible consistency for any fiction series with a documented canon. Greps character names / artifacts / locations in changed chapters, cross-references against the project's story bible, flags drift between chapters and between bible and text. Read-only — produces a structured drift report; never edits files or the bible. Use before opening a new chapter, before committing a chapter, or when introducing a character / artifact / location that may have been established elsewhere."
+description: "Read-only story-bible auditor for fiction series with a documented canon. Cross-references character / artifact / location mentions in chapters against the bible and flags drift. Produces a drift report — never edits files. Use before opening or committing a chapter, or when reintroducing an established entity."
 license: MIT
 allowed-tools:
   - Read

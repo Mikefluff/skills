@@ -1,6 +1,6 @@
 ---
 name: translation-sync
-description: "Pre-commit parity checker for multilingual book translations (RU↔EN↔PT-BR). Validates typography in each target language, terminology consistency, anchor-quote canonical translations, names/patronymics/diminutives handling, and cultural realia footnotes. Read-only by default — produces a structured parity report; never edits files. Use before committing a translated chapter to catch terminology drift, typography mismatches, and 'smoothed' numbers."
+description: "Read-only parity checker for multilingual translations (RU↔EN↔PT-BR). Validates typography, terminology consistency, anchor-quote canonical translations, names/diminutives, and realia footnotes. Produces a parity report; never edits. Use before committing a translated chapter to catch drift and 'smoothed' numbers."
 license: MIT
 allowed-tools:
   - Read

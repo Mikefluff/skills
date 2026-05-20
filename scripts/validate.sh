@@ -58,7 +58,7 @@ for skill in $SKILLS; do
   }
   missing=$(awk_check_fm "$skill/SKILL.md")
   if [ -n "$missing" ]; then
-    fail "frontmatter missing fields: $(echo $missing | tr '\n' ' ')"
+    fail "frontmatter missing fields: $(echo "$missing" | tr '\n' ' ')"
   else
     pass "frontmatter OK (name, description, license, allowed-tools)"
   fi

@@ -1,6 +1,6 @@
 ---
 name: essay-write
-description: "Write and edit non-fiction prose — long-form essays, popular-science chapters, longreads. Wraps `writer` and adds: source-backed claims, long subordinate sentences (Manson-style ironic coda), deep mechanism over viral surface, sparing metaphors, philosophy through humor, V/H/P hypothesis markers. Use when drafting or rewriting a non-fiction passage that needs argumentative weight (longer than a viral post, shorter than a doctoral chapter)."
+description: "Write or edit non-fiction prose — essays, popular-science chapters, longreads. Wraps `writer`; adds source-backed claims, Manson-style ironic coda, mechanism over surface, sparing metaphors, V/H/P hypothesis markers. Use when drafting non-fiction that needs argumentative weight — longer than a viral post, shorter than a doctoral chapter."
 license: MIT
 allowed-tools:
   - Read

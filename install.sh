@@ -87,7 +87,7 @@ run() {
   if [ "$DRY_RUN" = "true" ]; then
     note "[dry-run] $*"
   else
-    eval "$@"
+    "$@"
   fi
 }
 
@@ -140,7 +140,7 @@ resolve_source() {
   if ! curl -fsSL "$TARBALL_URL" -o "$TMPDIR/skills.tar.gz"; then
     die "failed to download tarball — does tag $TAG exist?"
   fi
-  run "tar -xzf '$TMPDIR/skills.tar.gz' -C '$TMPDIR'"
+  run tar -xzf "$TMPDIR/skills.tar.gz" -C "$TMPDIR"
 
   SRC_DIR="$(find "$TMPDIR" -maxdepth 1 -mindepth 1 -type d | head -n1)"
   [ -d "$SRC_DIR" ] || die "unexpected tarball layout"
@@ -191,10 +191,10 @@ install_one() {
       warn "$name already installed at $dst (use --update to overwrite)"
       return
     fi
-    run "rm -rf '$dst'"
+    run rm -rf "$dst"
   fi
 
-  run "cp -R '$src' '$dst'"
+  run cp -R "$src" "$dst"
   ok "installed $name → $dst"
 }
 
@@ -254,17 +254,10 @@ fetch_remote_tag() {
 semver_cmp() {
   # echoes -1 / 0 / 1 for a < b / a == b / a > b
   local a="$1" b="$2"
-  local a1 a2 a3 b1 b2 b3
-  IFS='.' read -r a1 a2 a3 <<EOF
-$a
-EOF
-  IFS='.' read -r b1 b2 b3 <<EOF
-$b
-EOF
+  local av bv
   for i in 1 2 3; do
-    local av bv
-    av="$(eval echo \$a$i)"
-    bv="$(eval echo \$b$i)"
+    av="$(printf '%s' "$a" | cut -d. -f"$i")"
+    bv="$(printf '%s' "$b" | cut -d. -f"$i")"
     av="${av:-0}"
     bv="${bv:-0}"
     [ "$av" -lt "$bv" ] && { echo -1; return; }
@@ -358,13 +351,13 @@ cmd_uninstall() {
   for s in $installed; do
     local dst="$PREFIX/$s"
     if [ -e "$dst" ] || [ -L "$dst" ]; then
-      run "rm -rf '$dst'"
+      run rm -rf "$dst"
       ok "removed $s"
     else
       note "$s already absent"
     fi
   done
-  run "rm -f '$PREFIX/.skills-collection.json'"
+  run rm -f "$PREFIX/.skills-collection.json"
   ok "uninstalled"
   log ""
 }
@@ -385,7 +378,7 @@ prune_removed() {
       *)
         local dst="$PREFIX/$name"
         if [ -e "$dst" ] || [ -L "$dst" ]; then
-          run "rm -rf '$dst'"
+          run rm -rf "$dst"
           ok "pruned $name (no longer in upstream manifest)"
         fi
         ;;
@@ -435,7 +428,7 @@ main() {
       write_install_marker
 
       log ""
-      ok "done. installed $(echo $INSTALL_SKILLS | wc -w | tr -d ' ') skills at $PREFIX"
+      ok "done. installed $(echo "$INSTALL_SKILLS" | wc -w | tr -d ' ') skills at $PREFIX"
       log ""
       log "Next steps:"
       log "  • Open Claude Code — skills will be auto-discovered by name"
