@@ -11,21 +11,26 @@ A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs
 
 ---
 
-## Install (5 seconds)
+## Install
 
 ```bash
+# Curl (5 seconds, no deps)
 curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | bash
-```
 
-Opens up after Claude Code session restart. Skills are auto-discovered by `name:` and `description:` in their frontmatter — no `~/.claude/settings.json` edits required.
+# npm
+npm install -g @mikefluff/skills && skills install
 
-Prefer Docker?
+# Homebrew (after tap)
+brew tap mikefluff/tap https://github.com/Mikefluff/homebrew-tap
+brew install mikefluff/tap/skills && skills install
 
-```bash
+# Docker (for CI — no install into ~/.claude needed)
 docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills lint /work/draft.md
 ```
 
-See [Docker usage](docs/USER-GUIDE.md#use-the-docker-image).
+Skills appear after Claude Code session restart. Discovery is automatic via `name:` and `description:` in each skill's frontmatter — no `~/.claude/settings.json` edits required.
+
+For all install options + troubleshooting, see [`docs/INSTALL.md`](docs/INSTALL.md).
 
 ---
 

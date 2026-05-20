@@ -1,0 +1,112 @@
+# Substack / personal blog (long form)
+
+```markdown
+# I'm tired of my writing sounding like Claude
+
+I've been writing with LLMs for two years. The output saves time. The output also reads more and more like everyone else's LLM output. "It's important to note that..." "delve into..." "rich tapestry of..." "navigate the complexities..." "we're excited to announce..." "revolutionary, game-changing..." — every LinkedIn post, every product update, every newsletter.
+
+So I built a tool that strips them. Then I extended it. Now it's 17 Claude Code skills, MIT-licensed, with one curl to install.
+
+## The shape
+
+The base is a ~500-line Python regex linter — `writer/scripts/lint.py`. No LLM call. Pure regex, ~50ms on a 5,000-word file. It catches 28 categories of LLM-prose tells:
+
+- **Filler intros** — "In today's fast-paced world...", "In a world where...", "As we all know..."
+- **AI bridges** — "Furthermore", "Moreover", "Additionally", "In conclusion" as paragraph openers
+- **Stock metaphors** — "tapestry of", "navigate the complexities of", "embark on a journey", "cornerstone of", "pivotal role"
+- **Intensifier ladders** — "truly remarkable", "absolutely critical", "deeply important", "incredibly powerful"
+- **Balance hedges** — "while there are valid points on both sides", "on one hand... on the other hand", "both perspectives have merit"
+- **GPT filler** — "It's important to note", "It's worth noting", "Let's delve into", "Bear in mind"
+- **Marketing hype** — "revolutionary", "game-changing", "world-class", "industry-leading", "cutting-edge", "best-in-class" (new in v1.8 — catches the patterns that landing-page LLMs default to)
+- **Empty CTAs** — "click here", "learn more", "get started" (alone)
+- **Weak openers** — "We're excited to announce", "We're thrilled to share"
+- **Vague benefits** — "save time", "boost productivity", "get more done"
+- Plus 18 more: comma-splice, em-dash overuse, double-negation, nominalization, pseudo-causal bridges, vague-person ("some experts say"), pseudo-science triggers, AI triplets, synthetic-authenticity templates...
+
+Sample output, on a synthetic neuroslop fixture (the kind of text Claude produces if you ask "write a paragraph about AI"):
+
+\`\`\`
+writer-lint: neuroslop suspected (54 hits)
+
+By category:
+  STOCK_METAPHOR         6
+  AI_INTENSIFIER         5
+  AI_QA                  5
+  BUREAU_INV             5
+  GPT_FILLER             4
+  PSEUDO_SMART           4
+  CORPORATE              4
+  ...
+
+By severity:
+  blocker  0
+  caution  52
+  nit      2
+\`\`\`
+
+54 hits across 18 categories in 300 words. That's typical first-draft LLM output.
+
+## The wrappers
+
+The linter alone is useful as a CI gate. But for actual editing, twelve wrappers compose on top:
+
+**Prose** (5):
+- `viral-text` — generates social posts with EN viral hook patterns + numbered points + NLP question + CTA. Strips clichés.
+- `prose-edit` — fiction rewrite. Pelevin / Manson voice vectors (not impersonation). Catches staccato, comma-stitching, double-negation.
+- `essay-write` — non-fiction longreads. Source-backed claims, Manson-style ironic codas, V/H/P hypothesis markers.
+- `pelevin-digression` — inserts opinionated voice digressions (concrete sociology via brand-name, bracket-essay, forward-link, anti-gradation list).
+- `tone-shifter` — rewrite a passage in a different register without changing meaning. 6 named registers: casual / friendly-professional / business-formal / academic / technical / plain-explainer.
+
+**Product / tech-docs** (4):
+- `landing-copy` — hero (Julian Shapiro 5-step formula + 5 alternative formulas), features, pricing, FAQ, SEO meta (title + description + Open Graph + Twitter), ad copy with strict per-platform char limits (Google RSA / Facebook / LinkedIn / X / Reddit / TikTok).
+- `release-notes` — Keep-a-Changelog format with per-audience tone (end-user / dev / ops). Anti-marketing-fluff bans.
+- `rfc-writer` — RFCs, ADRs, Tech Specs, Design Docs. Structure: context / problem / proposal / alternatives / consequences / decision. RFC 2119 keywords. Forces at-least-2-alternatives + "do nothing" baseline.
+- `microcopy` — error messages, empty states, tooltips, button labels, modals, 404/500 pages, onboarding. ≤8 words for buttons, never blames user.
+
+**Outreach** (1):
+- `cold-email` — first-touch, follow-up, intro-request, re-engage. 5-block structure (hook / value / ask / easy-yes / sign-off). ≤120-word budget. Banned ceremony patterns.
+
+**Visual prompts** (2):
+- `image-prompt` — Midjourney / DALL-E / Flux / Nano Banana / Stable Diffusion. 6-part formula (subject + setting + style + lighting + camera + texture), per-model deltas, negative prompts.
+- `video-prompt` — Kling / Veo / Sora / Runway / Pika / Hailuo / Luma. CHARACTER FIRST law, beat structure (Beat 1/2/3), exact camera vocabulary, pacing modes.
+
+## The read-only linters
+
+For pre-commit and pre-publish gating:
+
+- `style-check` — stacks writer + prose-edit + essay-write rules. BLOCKING / WARNING / INFO severity. Exit-code semantics for git hook.
+- `translation-sync` — multilingual book parity (RU/EN/PT-BR). Catches typography mismatches, terminology drift, "smoothed" numbers.
+- `canon-check` — story-bible consistency for long-form fiction. Greps entities, cross-references the bible, flags drift.
+
+## Install
+
+\`\`\`bash
+# Curl
+curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | bash
+
+# Or npm
+npm install -g @mikefluff/skills && skills install
+
+# Or Homebrew
+brew install mikefluff/tap/skills
+
+# Or Docker (for CI)
+docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills lint /work/draft.md
+\`\`\`
+
+MIT-licensed. No external dependencies (the linter is pure Python regex; wrappers run inside Claude Code).
+
+## What it doesn't do
+
+It doesn't replace your voice. It strips the noise so your voice can land.
+
+It doesn't catch every false positive. The regex set is high-recall by design.
+
+It doesn't work as one mega-skill. Each skill is sharp and discriminating — Claude Code matches user requests against the `description:` field, and overlapping descriptions hurt discovery.
+
+## Repo
+
+github.com/Mikefluff/skills
+
+If you write LLM-assisted prose and the output is starting to sound generic — try the offline linter on your last three drafts. Highest-leverage 30 seconds you'll spend this week.
+```

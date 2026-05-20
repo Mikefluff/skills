@@ -1,0 +1,61 @@
+{
+  "name": "@mikefluff/skills",
+  "version": "1.8.1",
+  "description": "17 Claude Code skills for editing prose, marketing copy, release notes, RFCs, cold outreach, and AI image/video prompts. Offline regex linter (28 categories) catches LLM-prose tells in EN + RU.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skills",
+    "prose-editing",
+    "linter",
+    "writing",
+    "marketing-copy",
+    "release-notes",
+    "rfc",
+    "cold-email",
+    "viral",
+    "ai-prose"
+  ],
+  "homepage": "https://github.com/Mikefluff/skills",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mikefluff/skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Mikefluff/skills/issues"
+  },
+  "license": "MIT",
+  "author": "Mikefluff",
+  "bin": {
+    "skills": "bin/skills.js"
+  },
+  "files": [
+    "bin/",
+    "install.sh",
+    "skills.json",
+    "VERSION",
+    "LICENSE",
+    "README.md",
+    "writer/",
+    "viral-text/",
+    "prose-edit/",
+    "essay-write/",
+    "style-check/",
+    "translation-sync/",
+    "canon-check/",
+    "pelevin-digression/",
+    "skills-update/",
+    "tone-shifter/",
+    "cold-email/",
+    "image-prompt/",
+    "video-prompt/",
+    "microcopy/",
+    "release-notes/",
+    "rfc-writer/",
+    "landing-copy/",
+    "common/"
+  ],
+  "engines": {
+    "node": ">=14"
+  }
+}
