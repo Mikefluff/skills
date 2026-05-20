@@ -11,6 +11,7 @@
 #      or table cell)
 #   5. New skill folders (since last release tag) must be mentioned in
 #      CHANGELOG.md [Unreleased]
+#   6. docs/SKILL-INDEX.md is up to date with skills.json (auto-generated)
 #
 # Usage:
 #   bash scripts/check-docs-consistency.sh
@@ -45,7 +46,7 @@ skill_dirs_on_disk() {
 
 # ── Check 1 — README table is in sync with skills.json ──────────────────────
 
-echo "[1/5] README skills table ↔ skills.json"
+echo "[1/6] README skills table ↔ skills.json"
 if python3 scripts/gen-skills-table.py --check >/dev/null 2>&1; then
   pass "README table is up to date with skills.json"
 else
@@ -56,7 +57,7 @@ echo
 
 # ── Check 2 — every disk skill folder is in skills.json ─────────────────────
 
-echo "[2/5] skill folders on disk ↔ skills.json"
+echo "[2/6] skill folders on disk ↔ skills.json"
 manifest_set=" $(skills_in_manifest | tr '\n' ' ')"
 unregistered=""
 for dir in $(skill_dirs_on_disk); do
@@ -76,7 +77,7 @@ echo
 
 # ── Check 3 — walkthroughs cite only real skills ────────────────────────────
 
-echo "[3/5] docs/walkthroughs/ frontmatter ↔ skills.json"
+echo "[3/6] docs/walkthroughs/ frontmatter ↔ skills.json"
 if [ -d docs/walkthroughs ]; then
   walked=0
   for w in docs/walkthroughs/*.md; do
@@ -118,7 +119,7 @@ echo
 
 # ── Check 4 — every skill is named somewhere in USER-GUIDE.md ───────────────
 
-echo "[4/5] every skill is mentioned in docs/USER-GUIDE.md"
+echo "[4/6] every skill is mentioned in docs/USER-GUIDE.md"
 if [ -f docs/USER-GUIDE.md ]; then
   guide="$(cat docs/USER-GUIDE.md)"
   missing=""
@@ -142,7 +143,7 @@ echo
 
 # ── Check 5 — new skills since last tag must be in CHANGELOG [Unreleased] ───
 
-echo "[5/5] new skills since last v* tag ↔ CHANGELOG [Unreleased]"
+echo "[5/6] new skills since last v* tag ↔ CHANGELOG [Unreleased]"
 last_tag="$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)"
 if [ -z "$last_tag" ]; then
   info "no v* tag yet — skipping (this check matters only after first release)"
@@ -188,6 +189,20 @@ else
 fi
 
 echo
+# ── Check 6 — SKILL-INDEX.md is up to date with skills.json ─────────────────
+
+echo "[6/6] docs/SKILL-INDEX.md ↔ skills.json"
+if [ -f scripts/gen-skill-index.py ]; then
+  if python3 scripts/gen-skill-index.py --check >/dev/null 2>&1; then
+    pass "SKILL-INDEX.md is up to date with skills.json"
+  else
+    fail "SKILL-INDEX.md out of date — run: python3 scripts/gen-skill-index.py --write (or make gen-index)"
+  fi
+else
+  info "scripts/gen-skill-index.py missing — skipping"
+fi
+echo
+
 if [ "$err" = "0" ]; then
   green "docs-consistency: OK"
 else

@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install install-local update list uninstall check validate smoke lint test coverage check-docs gen-readme install-hook new-skill bump-patch bump-minor bump-major release clean-test
+.PHONY: help install install-local update list uninstall check validate smoke lint lint-all test coverage check-docs gen-readme gen-index install-hook install-precommit-hook new-skill bump-patch bump-minor bump-major release clean-test
 
 PREFIX ?= $(HOME)/.claude/skills
 VERSION := $(shell cat VERSION 2>/dev/null || echo "?")
@@ -55,6 +55,9 @@ check-docs: ## Verify skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs ↔
 
 gen-readme: ## Regenerate the README skills table from skills.json (write in place)
 	python3 scripts/gen-skills-table.py --write
+
+gen-index: ## Regenerate docs/SKILL-INDEX.md from skills.json (write in place)
+	python3 scripts/gen-skill-index.py --write
 
 lint: ## Run writer offline linter on every skill's examples/
 	@for skill in $$(find . -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' ! -name 'hooks' ! -name 'tests'); do \

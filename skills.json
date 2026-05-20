@@ -9,11 +9,12 @@
       "name": "writer",
       "dir": "writer",
       "layer": "base",
-      "description": "Base clean-prose editor — antinyeyroslop (23 categories), typography, structural synthetics, RU calques. Invoked by all other prose skills.",
+      "description": "Base clean-prose editor — antinyeyroslop (28 categories), typography, structural synthetics, RU calques. Invoked by all other prose skills.",
       "languages": [
         "ru",
         "en"
       ],
+      "tags": ["editing"],
       "deps": []
     },
     {
@@ -25,6 +26,7 @@
         "ru",
         "en"
       ],
+      "tags": ["marketing", "social", "generation"],
       "deps": [
         "writer"
       ]
@@ -37,6 +39,7 @@
       "languages": [
         "ru"
       ],
+      "tags": ["fiction", "editing"],
       "deps": [
         "writer"
       ]
@@ -49,6 +52,7 @@
       "languages": [
         "ru"
       ],
+      "tags": ["non-fiction", "generation"],
       "deps": [
         "writer"
       ]
@@ -62,6 +66,7 @@
         "ru",
         "en"
       ],
+      "tags": ["audit", "editing"],
       "deps": [
         "writer",
         "prose-edit",
@@ -78,6 +83,7 @@
         "en",
         "pt-br"
       ],
+      "tags": ["translation", "audit"],
       "deps": []
     },
     {
@@ -89,6 +95,7 @@
         "ru",
         "en"
       ],
+      "tags": ["fiction", "audit"],
       "deps": []
     },
     {
@@ -99,6 +106,7 @@
       "languages": [
         "ru"
       ],
+      "tags": ["fiction", "non-fiction", "generation"],
       "deps": [
         "writer",
         "prose-edit",
@@ -114,6 +122,7 @@
         "en",
         "ru"
       ],
+      "tags": ["ops"],
       "deps": []
     },
     {
@@ -125,6 +134,7 @@
         "en",
         "ru"
       ],
+      "tags": ["editing"],
       "deps": [
         "writer"
       ]
@@ -138,6 +148,7 @@
         "en",
         "ru"
       ],
+      "tags": ["outreach", "generation"],
       "deps": [
         "writer"
       ]
@@ -151,6 +162,7 @@
         "en",
         "ru"
       ],
+      "tags": ["visual", "generation"],
       "deps": []
     },
     {
@@ -162,6 +174,7 @@
         "en",
         "ru"
       ],
+      "tags": ["visual", "generation"],
       "deps": []
     },
     {
@@ -173,6 +186,7 @@
         "en",
         "ru"
       ],
+      "tags": ["ux-copy", "product", "generation"],
       "deps": [
         "writer"
       ]
@@ -186,6 +200,7 @@
         "en",
         "ru"
       ],
+      "tags": ["product", "tech-docs", "generation"],
       "deps": [
         "writer"
       ]
@@ -199,6 +214,7 @@
         "en",
         "ru"
       ],
+      "tags": ["tech-docs", "generation"],
       "deps": [
         "writer"
       ]
@@ -212,6 +228,7 @@
         "en",
         "ru"
       ],
+      "tags": ["marketing", "generation"],
       "deps": [
         "writer"
       ]
