@@ -6,11 +6,11 @@ Use this as the reference for tone, layout, and level of detail. Paths and line 
 
 ```
 === translation-sync ===
-Mode: chapter god-academy ch11
+Mode: chapter your-book ch11
 Languages: ru en pt-br
 Routing: typography (per-lang) + terminology + anchor-quotes + names/realia + no-smoothing
 
-[TYPOGRAPHY] books/god-academy/en/chapters/ch11.tex
+[TYPOGRAPHY] your-book/en/chapters/ch11.md
   L42 — straight quotes "voice modulator" in EN context
         → should be ``voice modulator'' (TeX outer)
         (typography.md §Quotes)
@@ -21,87 +21,87 @@ Routing: typography (per-lang) + terminology + anchor-quotes + names/realia + no
         → should be `…` or `\dots`
         (typography.md §Ellipsis)
 
-[TYPOGRAPHY] books/god-academy/pt-br/chapters/ch11.tex
+[TYPOGRAPHY] your-book/pt-br/chapters/ch11.md
   L67 — French «...» quotes in PT-BR context
         → house rule: TeX-style ``...'' (English style)
         (typography.md §Quotes)
 
 [TERMINOLOGY] ru → en
-  L120 ru "Pointer Architecture" → en "Pointer Architecture" — OK (do not translate)
-  L156 ru "опорная структура" → en "support structure"
-        → DRIFT from canon: terminology.md lists no entry for "опорная структура"
-        but the recurring HC term is rendered as "load-bearing structure" elsewhere
+  L120 ru "Proper Noun X" → en "Proper Noun X" — OK (do not translate)
+  L156 ru "supporting structure" → en "support structure"
+        → DRIFT from canon: terminology.md lists no entry for this term
+        but the recurring concept is rendered as "load-bearing structure" elsewhere
         → recommend: standardize and register
-        (terminology.md §HC specific — open candidate)
-  L201 ru "поток 118" → en "stream 118"
-        → DRIFT: canonical is "flow 118" or "current 118" (open question)
+        (terminology.md §Book-specific — open candidate)
+  L201 ru "flow term" → en "stream"
+        → DRIFT: canonical is "flow" or "current" (open question)
         chapter 11 currently uses "stream" — neither option
-        (terminology.md §Reality stack)
-  L312 ru "интегратор" → en "integrator agent"
+        (terminology.md §Shared concepts)
+  L312 ru "integrator concept" → en "integrator agent"
         → DRIFT: canonical EN is "integrator" (one word, no suffix)
-        (terminology.md §Reality stack)
+        (terminology.md §Shared concepts)
 
 [TERMINOLOGY] ru → pt-br
-  L156 ru "опорная структура" → pt-br "estrutura de apoio"
+  L156 ru "supporting structure" → pt-br "estrutura de apoio"
         → DRIFT: see EN finding above; PT-BR likewise unregistered
-  L201 ru "поток 118" → pt-br "fluxo 118"
+  L201 ru "flow term" → pt-br "fluxo"
         → OK (canonical)
 
 [ANCHOR_QUOTES] ru → en
-  L302 ru "Программа — одна. Режим — выбираете вы" (Dan, ch.11)
-        en "The program is one, and the mode is yours to choose"
-        → DRIFT from canonical: "The program is one. The mode is your choice"
-        word count and punctuation must match (anchor-quotes.md АБ)
-  L315 ru "Я — аналитик. Это то же самое, только без гранта и с пистолетом" (Artyom)
-        en "I am an analyst. It's the same thing, only without funding and with a pistol"
-        → DRIFT from canonical: "I'm an analyst. Same thing, just without the grant and with a gun"
-        (anchor-quotes.md АБ)
+  L302 ru "Anchor quote — Character A, ch.11" (canonical short form)
+        en "The expanded English with an added connective and extra clause"
+        → DRIFT from canonical: locked EN form is shorter and punchier
+        word count and punctuation must match (anchor-quotes.md §Book A)
+  L315 ru "Anchor quote — Character B" (canonical, terse)
+        en "I am an analyst. It is the same thing, only without funding and with a pistol"
+        → DRIFT from canonical contracted form; verbatim match required
+        (anchor-quotes.md §Book A)
 
 [ANCHOR_QUOTES] ru → pt-br
-  L302 ru "Программа — одна. Режим — выбираете вы"
-        pt-br "O programa é um. O modo, você escolhe"
+  L302 ru "Anchor quote — Character A, ch.11"
+        pt-br "Locked PT-BR canonical form"
         → OK (canonical)
 
 [NAMES_REALIA] ru → en
-  L201 ru "Серёжа" → en "Sergei"
-        → WRONG: canonical EN is "Seryozha"
-        (names-and-realia.md §Russian fictional characters)
-  L256 ru "Sam Battle" → en "Sam Battle" — OK
-  L289 ru "Лубянка" → en "Lubyanka"
+  L201 ru "diminutive form of Character C" → en "incorrect transliteration"
+        → WRONG: canonical EN form per names-and-realia.md §diminutives
+        (names-and-realia.md §Fictional characters)
+  L256 ru "Real Person" → en "Real Person" — OK
+  L289 ru "Local Place" → en "Local Place"
         → first mention in this chapter has NO footnote
-        → required: "Lubyanka, FSB headquarters in central Moscow"
+        → required: short explanatory footnote (e.g. "Local Place, brief description")
         (names-and-realia.md §Cultural realia)
-  L401 ru "Артём Сергеевич" (formal address from secretary)
-        en "Artyom Sergeyevich"
+  L401 ru "Formal patronymic address from secretary"
+        en "literal patronymic transliteration"
         → WARNING: mechanical patronymic transliteration in non-document context
-        consider: "Mr Val" or "Artyom"
+        consider: "Mr Surname" or short form
         (names-and-realia.md §Patronymics)
 
 [NAMES_REALIA] ru → pt-br
-  L289 ru "Лубянка" → pt-br "Lubyanka"
+  L289 ru "Local Place" → pt-br "Local Place"
         → first mention has no footnote (same issue as EN)
 
 [NO_SMOOTHING] ru → en
-  L412 ru "900 миллисекунд" → en "under a second"
+  L412 ru "900 milliseconds" → en "under a second"
         → BLOCKING: smoothing forbidden
         canon: "900 milliseconds"
         (what-not-to-smooth.md §Numbers)
-  L445 ru "17 дней" → en "a couple of weeks"
+  L445 ru "17 days" → en "a couple of weeks"
         → BLOCKING: smoothing forbidden
         canon: "17 days"
         (what-not-to-smooth.md §Numbers)
-  L478 ru "Тинькофф" → en "a Russian bank"
+  L478 ru "BrandName" → en "a regional bank"
         → BLOCKING: brand name replaced with generic
-        canon: "Tinkoff"
+        canon: "BrandName" (kept literal)
         (what-not-to-smooth.md §Brand names)
 
 [NO_SMOOTHING] ru → pt-br
-  L412 ru "900 миллисекунд" → pt-br "900 milissegundos" — OK
-  L445 ru "17 дней" → pt-br "17 dias" — OK
-  L478 ru "Тинькофф" → pt-br "Tinkoff" — OK
+  L412 ru "900 milliseconds" → pt-br "900 milissegundos" — OK
+  L445 ru "17 days" → pt-br "17 dias" — OK
+  L478 ru "BrandName" → pt-br "BrandName" — OK
 
 === SUMMARY ===
-Files checked: 3 (god-academy: ru ch11.tex, en ch11.tex, pt-br ch11.tex)
+Files checked: 3 (your-book: ru ch11.md, en ch11.md, pt-br ch11.md)
 Findings:
   - typography:    4 (4 warning)
   - terminology:   4 (3 blocking, 1 warning)
@@ -117,9 +117,9 @@ Severity totals:
 Recommended action:
   - Fix the three EN smoothing failures FIRST (these are pure mistranslation).
   - Restore the two anchor quotes to canonical form (word-for-word).
-  - Add the missing Lubyanka first-mention footnotes in EN and PT-BR.
-  - Standardize "опорная структура" — propose adding to terminology.md.
-  - Resolve "поток 118" → flow / current open question, then re-sync EN ch11.
+  - Add the missing first-mention footnotes for the local-place name in EN and PT-BR.
+  - Standardize "supporting structure" — propose adding to terminology.md.
+  - Resolve "flow term" → flow / current open question, then re-sync EN ch11.
 
 Exit code (if invoked as pre-commit hook): 2 (BLOCKING present)
 ```
@@ -130,7 +130,7 @@ Exit code (if invoked as pre-commit hook): 2 (BLOCKING present)
 
 - **Sections** correspond to the six pipeline stages: typography, terminology, anchor-quotes, names/realia, no-smoothing.
 - **`ru → en` / `ru → pt-br` headers** group findings by source-to-target language pair.
-- **Line numbers** are from the target-language file (where the drift was found), not the RU source.
+- **Line numbers** are from the target-language file (where the drift was found), not the source.
 - **Each finding** includes: line, source snippet, target snippet, the drift diagnosis, and the reference file + section that owns the rule.
-- **`OK` entries** are shown selectively — only where they help confirm that a checked rule passed (useful for the author to see that the pipeline did consider that line).
+- **`OK` entries** are shown selectively — only where they help confirm that a checked rule passed (useful for the user to see that the pipeline did consider that line).
 - **`SUMMARY`** counts findings by category and severity, then proposes an action order: smoothing first (mistranslation), then anchors (canon), then footnotes (mechanical), then registry updates (housekeeping).

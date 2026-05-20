@@ -1,129 +1,123 @@
 # WORKFLOW — 3-step canon-check protocol
 
-Источник: `memory/feedback_check_canon.md` автора. Три шага, каждый — конкретные команды.
+A three-step protocol, each step a concrete set of commands. The skill follows this protocol on every invocation.
 
 ---
 
 ## STEP 1 — Extract entities
 
-Извлечь из проверяемого текста (главы или staged diff) три класса сущностей:
+Pull from the text under review (a chapter or staged diff) three classes of entity:
 
-### 1a. Персонажи
+### 1a. Characters
 
-Capitalized слова (русские/латиница), длиной ≥ 2 символа. Часть будет ложными совпадениями (начало предложения, топонимы), потому второй проход — фильтр через список установленных имён из bible.
+Capitalized words (any script), ≥ 2 characters. Some hits will be false positives (sentence-starts, toponyms), so the second pass filters through the list of established names from the bible.
 
 ```bash
-# Все capitalized из главы (RU + EN):
-grep -oE '[А-ЯЁ][а-яё]{2,}|[A-Z][a-z]{2,}' books/<book>/ru/chapters/<chN>.tex | sort -u
+# All capitalized tokens from a chapter (works for Latin + Cyrillic; extend per script):
+grep -oE '[A-Z][a-z]{2,}|[А-ЯЁ][а-яё]{2,}' <book>/<lang>/chapters/<chN>.{md,tex} | sort -u
 
-# Сверить с известными именами из bible:
-grep -oE '\\textbf\{[А-ЯЁA-Z][^}]{1,40}\}' books/<book>/notes/story-bible.tex | sort -u
+# Cross-reference with known names from the bible (Markdown headings or LaTeX subsections):
+grep -oE '^#+\s+[A-Z][^[:space:]]+|\\textbf\{[A-Z][^}]{1,40}\}' <book>/notes/story-bible.* | sort -u
 ```
 
-Известные имена — сравнить два списка, остатки — кандидаты в «новые сущности».
+Known names — compare the two lists; the leftover tokens are candidates for "new entity / silent canon".
 
-### 1b. Артефакты
+### 1b. Artifacts
 
-Словарь по книге. Извлекается из bible `\subsection{Физические инварианты}` или `\subsection{...артефакты}`. Базовый словарь:
-
-| Book | Артефакты |
-| --- | --- |
-| god-academy (АБ) | яйцо, PDF, Nokia, феназепам, башня (Шуховская), трость (только ЭА!), кубитная лаборатория, 11 трещин, 900 мс, ноль три процента |
-| era-arkhitektorov (ЭА) | Квинта, яйцо-Квинта, Времяход, дневник Лии, трость Дана, Книга Жизни |
-| heavenly-code (НК) | конкретные локации/события автобиографии — см. user_biography\*.md |
+Project-specific dictionary. Built from the bible's `Physical invariants` / `Artifacts` section. Each book has its own. Typical artifacts you might track: heirlooms, instruments, weapons, named documents, signature objects, key-numbers ("the 11 cracks", "the 900 ms lag", "the 0.3 percent").
 
 ```bash
-# Грепнуть конкретный артефакт по всем главам:
-grep -rn -i "яйц\|квинт" books/era-arkhitektorov/ru/chapters/
+# Grep a specific artifact across all chapters:
+grep -rn -i "<artifact-keyword>" <book>/<lang>/chapters/
 ```
 
-**NB:** артефакт в АБ и в ЭА может быть «одним и тем же», но иметь разные локации (в АБ — Хамовники, в ЭА — Академия). Это **ЭА-канон**, не ретроретропроецировать в АБ.
+**NB:** an artifact may appear in a parent book and its sequel with the SAME identity but DIFFERENT locations — relocations are explicitly canonized in the sequel and should NOT be retro-projected back into the parent book.
 
-### 1c. Локации
+### 1c. Locations
 
-Из `\subsection{Локации}` / `\subsection{Локации с весом}`. Базовый набор для АБ: Шаболовка, Нескучный сад, Хамовники, Баррикадная, Академия. Для ЭА — собственный список. Для НК — `\subsection{Локации с весом}` биографического канона.
+From the bible's `Locations` / `Locations of weight` section. The base set varies per book; build the dictionary from each book's bible.
 
 ```bash
-grep -rn "Шаболовк\|Нескучн\|Хамовник\|Баррикадн\|Академи" books/god-academy/ru/chapters/
+grep -rn "<location-1>\|<location-2>\|<location-3>" <book>/<lang>/chapters/
 ```
 
 ---
 
 ## STEP 2 — Trust the text, not memory
 
-Для каждой извлечённой сущности:
+For each extracted entity:
 
-### 2a. Прочитать bible entry
-
-```bash
-# Найти секцию про сущность в bible:
-grep -n -B 1 -A 10 "<entity>" books/<book>/notes/story-bible.tex
-```
-
-Прочитать целиком, не по одной строке. Bible — единственный источник, который автор пометил как канон.
-
-### 2b. Собрать все появления сущности в других главах
+### 2a. Read the bible entry
 
 ```bash
-# Все главы той же книги:
-grep -rn "<entity>" books/<book>/ru/chapters/
-
-# Если книга АБ-родственница ЭА — иногда нужно искать и в АБ (для ЭА-проверки):
-grep -rn "<entity>" books/god-academy/ru/chapters/ books/era-arkhitektorov/ru/chapters/
+# Find the section about this entity in the bible:
+grep -n -B 1 -A 10 "<entity>" <book>/notes/story-bible.*
 ```
 
-Прочитать **каждое появление**. Цитировать в отчёт только то, что реально прочитал. Не цитировать по памяти.
+Read the whole section, not just one line. The bible is the only source the user has explicitly marked as canon.
 
-### 2c. Сравнить с текущим текстом
+### 2b. Collect every appearance of the entity in other chapters
 
-Искать конкретные классы дрейфа:
+```bash
+# All chapters of the same book:
+grep -rn "<entity>" <book>/<lang>/chapters/
 
-| Класс дрейфа | Пример | Где смотреть в bible |
+# If the book is a sequel — also search the parent book's chapters:
+grep -rn "<entity>" <parent-book>/<lang>/chapters/ <sequel-book>/<lang>/chapters/
+```
+
+Read **every appearance**. Cite in the report only what you actually read. Do not cite from memory.
+
+### 2c. Compare with the current text
+
+Look for specific drift classes:
+
+| Drift class | Example | Where to look in the bible |
 | --- | --- | --- |
-| **Возраст** | bible: Лия 7 в гл.~13; текст: 10 лет 8 месяцев | `\subsection{Имена, возрасты, даты}` |
-| **Физический инвариант** | хват, лаг, число (трещины, секунды, проценты) | `\subsection{Физические инварианты}` |
-| **Цитата-якорь** | «Я знаю.» (два слова), «Один. Целый. Черновик.» (через точку) | `\subsection{Цитаты-якоря}` |
-| **Жест с нагрузкой** | отец кладёт трубку без прощания; Ольга с тряпкой ДО пролития | `\subsection{Жесты с сюжетной нагрузкой}` |
-| **Локация артефакта** | яйцо-Квинта — в АБ в Хамовниках, в ЭА в Академии | `\subsection{Локации}` |
-| **Род / pronoun артефакта** | яйцо-Квинта — **она**, не «он»/«оно» (Вэй Лин про Квинту, АБ ch04) | `\subsection{Цитаты-якоря}` |
-| **Континуити имени** | «рыжая» / «Татьяна Ларина / Ginger / Рыжая Ведьма» — обобщение vs полное имя | поиск по всем главам обязателен |
+| **Age** | bible: Character is 7 in ch.13; text: 10 years 8 months | `Names, ages, dates` |
+| **Physical invariant** | grip, lag, count (cracks, seconds, percentages) | `Physical invariants` |
+| **Anchor quote** | locked short utterance, exact word count and punctuation | `Anchor quotes` |
+| **Loaded gesture** | a documented action pattern (e.g. character always exits without saying goodbye) | `Loaded gestures` |
+| **Artifact location** | artifact's canonical room / owner | `Locations` / `Artifacts` |
+| **Artifact gender / pronoun** | canonically `she`, accidentally `it` / `he` | `Anchor quotes` |
+| **Name continuity** | descriptor ("the redhead") vs locked full name | search across all chapters mandatory |
 
-**Правило приоритета** (повторяю — критично):
+**Priority rule** (repeating — critical):
 
-1. Опубликованная глава = ground truth.
-2. Story-bible = ground truth, если не противоречит главе.
-3. Память модели = НЕ ground truth никогда. Грепни.
+1. Published chapter = ground truth.
+2. Story bible = ground truth, when it doesn't contradict a published chapter.
+3. Model memory = NEVER ground truth. Grep first.
 
 ---
 
 ## STEP 3 — Flag, don't auto-write
 
-Если на шаге 2 обнаружена:
+If step 2 found:
 
-- **Новая сущность** (имя / артефакт / локация в тексте, нет в bible) → **WARNING (silent canon)**. Не дописывать bible. Сообщить автору: «персонаж X появляется в ch07:142 и ch09:88 без bible entry — добавить?»
+- **A new entity** (name / artifact / location in the text, none in the bible) → **WARNING (silent canon)**. Do not auto-append to the bible. Tell the user: "entity X appears in ch07:142 and ch09:88 with no bible entry — add?"
 
-- **Противоречие с bible** → **BLOCKING**. Указать file:line + bible §X.Y + цитата bible + цитата текста.
+- **A contradiction with the bible** → **BLOCKING**. Cite file:line + bible §X.Y + bible quote + text quote.
 
-- **Противоречие между главами, bible молчит** → **WARNING (cross-chapter drift)**. Указать обе строки + предложить автору решить.
+- **A contradiction between chapters, bible silent** → **WARNING (cross-chapter drift)**. Cite both lines + propose the user resolve.
 
-- **Расширение детали** (новый факт о известной сущности, не противоречит) → **INFO (canon expansion)**. Опционально предложить добавить в bible.
+- **A detail expansion** (new fact about a known entity, no contradiction) → **INFO (canon expansion)**. Optionally suggest adding to the bible.
 
-**Никогда не редактировать ни главу, ни bible.** Только отчёт.
+**Never edit the chapter or the bible.** Only the report.
 
 ---
 
 ## Quick reference: standard one-liners
 
 ```bash
-# Все упоминания персонажа во всех главах книги:
-grep -rn "Ирэн\|Ирин" books/era-arkhitektorov/ru/chapters/ books/god-academy/ru/chapters/
+# All mentions of a character across the whole series:
+grep -rn "<character>" <book>/<lang>/chapters/ <parent-book>/<lang>/chapters/
 
-# Все цитаты-якоря в bible (для регрессии перевода или рерайта):
-grep -n -A 1 "Цитаты-якоря" books/god-academy/notes/story-bible.tex
+# All anchor quotes in the bible (for regression on translations or rewrites):
+grep -n -A 1 "Anchor quotes" <book>/notes/story-bible.*
 
-# Все физические инварианты — список ключевых чисел/жестов:
-awk '/Физические инварианты/,/\\subsection/' books/god-academy/notes/story-bible.tex
+# All physical invariants — quick list of key numbers / gestures:
+awk '/Physical invariants/,/^#|\\subsection/' <book>/notes/story-bible.*
 
-# Найти все главы, упоминающие артефакт:
-grep -rl "Квинт" books/era-arkhitektorov/ru/chapters/
+# Find every chapter mentioning an artifact:
+grep -rl "<artifact-keyword>" <book>/<lang>/chapters/
 ```

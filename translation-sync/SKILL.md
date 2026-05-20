@@ -10,14 +10,14 @@ allowed-tools:
 ---
 
 <objective>
-Read-only parity auditor for trilingual book translations across RU, EN, PT-BR. Operates over `books/<book>/{ru,en,pt-br}/chapters/` trees and flags drift between language versions.
+Read-only parity auditor for trilingual book translations across RU, EN, PT-BR. Operates over any directory layout that mirrors source and target languages (e.g. `your-book/{ru,en,pt-br}/chapters/*.{md,tex,txt}`) and flags drift between language versions.
 
 Use cases:
 - before `git commit` — check staged changes in any of the three language directories
-- chapter audit — run a full parity check on `chN.tex` across all three languages
+- chapter audit — run a full parity check on a chapter file across all three languages
 - post-commit — verify the last commit didn't introduce drift
 - range — diff across commit range when catching up after a depth-pass
-- pre-commit hook — if the author wires it into `.git/hooks/pre-commit`
+- pre-commit hook — if the user wires it into `.git/hooks/pre-commit`
 
 This skill **does not translate**. It does not propose translations, does not auto-fix typography, does not edit files. It reads, compares, and reports.
 </objective>
@@ -26,7 +26,7 @@ This skill **does not translate**. It does not propose translations, does not au
 
 Translation parity auditor. Never a translator. Never an editor.
 
-The author owns every translation decision. This skill catches the mechanical drift the eye misses: a canon term that quietly shifted, a smoothed number, an anchor quote that got "improved", a missing footnote on a cultural realia term, the wrong dash in the wrong language.
+The user owns every translation decision. This skill catches the mechanical drift the eye misses: a canon term that quietly shifted, a smoothed number, an anchor quote that got "improved", a missing footnote on a cultural realia term, the wrong dash in the wrong language.
 
 If a finding is debatable, surface it and let the author decide. If the canon registry in [references/terminology.md](references/terminology.md) is silent on a term, **do not invent** a ruling — flag the unknown and move on.
 
@@ -35,8 +35,8 @@ If a finding is debatable, surface it and let the author decide. If the canon re
 Three target languages, each with distinct typographic and stylistic constraints:
 
 - **RU** — «ёлочки» for outer quotes, `\enquote{...}` for inner. Em-dash `---` with non-breaking space after for direct speech. Numbers spelled out except years and decimals. Real foreign names stay in Latin script.
-- **EN** — TeX-style `` ``...'' `` for outer, `` `...' `` for inner quotes. Em-dash `---` **with spaces** (our house rule, against AmE norm — keeps rhythm parity with RU/PT-BR). Numbers spelled out with hyphens (`twenty-eight`). Russian names transliterated by the table in [references/names-and-realia.md](references/names-and-realia.md).
-- **PT-BR** — TeX-style `` ``...'' `` for outer, `` `...' `` for inner (English style, not French «...» — house rule). Em-dash `---` with spaces. Numbers spelled out without hyphens (`vinte e oito`). Russian names transliterated; Latin-script names stay Latin.
+- **EN** — TeX-style `` ``...'' `` for outer, `` `...' `` for inner quotes. Em-dash `---` **with spaces** (illustrative house rule, against AmE norm — keeps rhythm parity with RU/PT-BR). Numbers spelled out with hyphens (`twenty-eight`). Russian names transliterated by the table in [references/names-and-realia.md](references/names-and-realia.md).
+- **PT-BR** — TeX-style `` ``...'' `` for outer, `` `...' `` for inner (English style, not French «...» — illustrative house rule). Em-dash `---` with spaces. Numbers spelled out without hyphens (`vinte e oito`). Russian names transliterated; Latin-script names stay Latin.
 
 Full per-language typography table in [references/typography.md](references/typography.md).
 
@@ -46,14 +46,14 @@ Full per-language typography table in [references/typography.md](references/typo
 ```bash
 git diff --cached --name-only
 ```
-For each staged `.tex` file under `books/<book>/{ru,en,pt-br}/chapters/`:
+For each staged prose file (`.md` / `.tex` / `.txt` / `.rst`) under a per-language directory tree:
 1. Detect target language by path segment (`/ru/`, `/en/`, `/pt-br/`)
 2. Pull added/changed lines: `git diff --cached -U0 <file>`
 3. Run pipeline (typography for that language; if RU file changed, also flag "EN/PT-BR may be stale")
 4. Aggregate findings
 
 ### `chapter <book> <chN>` — full parity check across all three languages
-Read `books/<book>/ru/chapters/<chN>.tex`, `books/<book>/en/chapters/<chN>.tex`, `books/<book>/pt-br/chapters/<chN>.tex`. Run the full 15-point checklist from [references/checklist.md](references/checklist.md) across all three.
+Read the source chapter and its two sibling translations (e.g. `<book>/ru/chapters/<chN>`, `<book>/en/chapters/<chN>`, `<book>/pt-br/chapters/<chN>`). Run the full 15-point checklist from [references/checklist.md](references/checklist.md) across all three.
 
 ### `range <from>..<to>` — diff across commit range
 ```bash
@@ -73,7 +73,7 @@ For each in-scope file, run six passes. Each pass references its own rule file:
 1. **Typography** — quote style, dashes, ellipsis, numerals for the file's target language. Rules: [references/typography.md](references/typography.md).
 2. **Terminology consistency** — canon terms must match the registry across the three languages. "Do not translate" markers respected (e.g. `Pointer Architecture` stays English everywhere). Rules: [references/terminology.md](references/terminology.md).
 3. **Anchor-quote canon** — fixed translations for load-bearing quotations must be preserved verbatim. No "improvements", no extenders. Rules: [references/anchor-quotes.md](references/anchor-quotes.md).
-4. **Names & realia** — real people in Latin script in all languages; Russian patronymics not transliterated mechanically; diminutives table (`Дан / Даня / Даниил → Dan / Danya / Daniil`) respected; cultural realia (Лубянка, Шуховская башня) carry footnote on first mention. Rules: [references/names-and-realia.md](references/names-and-realia.md).
+4. **Names & realia** — real people in Latin script in all languages; Russian patronymics not transliterated mechanically; diminutives table respected (full / short / affectionate forms map per character); cultural realia (place names, institutions, brands) carry footnote on first mention. Rules: [references/names-and-realia.md](references/names-and-realia.md).
 5. **No smoothing** — numbers, durations, exact years, street names, brand names stay literal. `900 ms` does not become `under a second`. Rules: [references/what-not-to-smooth.md](references/what-not-to-smooth.md).
 6. **15-point checklist aggregate** — the final pre-commit run-through. List: [references/checklist.md](references/checklist.md).
 
@@ -83,31 +83,31 @@ Structured report grouped by file, then by check category. Each finding cites li
 
 ```
 === translation-sync ===
-Mode: chapter god-academy ch05
+Mode: chapter your-book ch05
 Languages: ru en pt-br
 
-[TYPOGRAPHY] en/chapters/ch05.tex
+[TYPOGRAPHY] your-book/en/chapters/ch05.md
   L42 — straight quotes "..." in EN context — should be ``...'' (TeX outer)
   L88 — em-dash without spaces in EN context — house rule: em-dash with spaces
 
 [TERMINOLOGY] ru → en
-  L120 ru "Pointer Architecture" → en "Pointer Architecture" — OK (do not translate)
-  L156 ru "опорная структура" → en "support structure" — drifts from canon:
+  L120 ru "Term X" → en "Term X" — OK (do not translate)
+  L156 ru "supporting structure" → en "support structure" — drifts from canon:
        terminology.md lists this term as "load-bearing structure"
 
 [ANCHOR_QUOTES] ru → pt-br
-  L201 ru "Один. Целый. Черновик." (canonical)
-       pt-br "Um rascunho completo." — drift; canonical PT-BR is
-       "Um. Inteiro. Rascunho." (anchor-quotes.md АБ §finale)
+  L201 ru "Anchor quote A" (canonical RU form)
+       pt-br "smoothed paraphrase" — drift; canonical PT-BR per
+       anchor-quotes.md §finale must be preserved verbatim
 
 [NAMES_REALIA] ru → en
-  L302 ru "Серёжа" → en "Sergei" — wrong: canonical EN is "Seryozha"
-       (names-and-realia.md §diminutives)
-  L315 ru "Лубянка" → en "Lubyanka" — no first-mention footnote in this chapter
-       (names-and-realia.md §cultural realia)
+  L302 ru "diminutive form" → en "incorrect transliteration"
+       — wrong: canonical EN form per names-and-realia.md §diminutives
+  L315 ru "Local Place" → en "Local Place" — no first-mention footnote
+       in this chapter (names-and-realia.md §cultural realia)
 
 [NO_SMOOTHING] ru → en
-  L412 ru "900 миллисекунд" → en "under a second" — smoothing forbidden
+  L412 ru "900 milliseconds" → en "under a second" — smoothing forbidden
        (what-not-to-smooth.md §numbers)
 
 === SUMMARY ===
@@ -152,13 +152,13 @@ In normal (non-hook) invocation, exit code is not used; only the report.
 
 ## WHAT NOT TO DO
 
-- **Do not translate.** This skill audits; translation is the author's call. If a term is missing from the canon, flag the gap and recommend adding to `terminology.md` — do not invent a translation.
-- **Do not auto-fix typography.** Flag and let the author decide. The author may have stylistic reasons for an "incorrect" dash.
+- **Do not translate.** This skill audits; translation is the user's call. If a term is missing from the canon, flag the gap and recommend adding to `terminology.md` — do not invent a translation.
+- **Do not auto-fix typography.** Flag and let the user decide. The user may have stylistic reasons for an "incorrect" dash.
 - **Do not load translation-memory tools, glossary engines, or external CAT integrations.** Pure markdown skill — Read + Grep + Bash only.
 - **Do not edit any files.** Read-only.
 - **Do not run inside `loop`.** This is a one-shot pre-commit check.
 - **Do not flag rhythm differences as drift.** EN is ~30% more compact than RU; PT-BR is mellower. Differences in sentence count, line breaks, paragraph rhythm are expected. Only flag if a concrete image or number was lost.
-- **Do not transcribe real people.** `Sam Battle` stays `Sam Battle` in RU. `Vazza & Feletti` stay Italian in EN. Russian historical figures (Иван Елагин, братья Стругацкие, Николай Фёдоров) get standard transliteration in EN/PT-BR; never the reverse.
+- **Do not transcribe real people.** Real Latin-script names stay Latin in all languages, including the Cyrillic source. Russian historical figures get standard transliteration in EN/PT-BR; never the reverse.
 
 ## REFERENCES (load on demand)
 

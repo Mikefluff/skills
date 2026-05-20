@@ -1,6 +1,6 @@
 ---
 name: essay-write
-description: "Написание и правка нон-фикшн прозы — главы НК («Небесный Код»), длинные посты, эссе, лонгриды. Тонкая обёртка над writer: чистая проза + аргументация с источниками + длинные сложноподчинённые предложения (Мэнсон-стиль) + глубокое раскрытие механизмов вместо виральной поверхности."
+description: "Write and edit non-fiction prose — long-form essays, popular-science chapters, longreads. Wraps `writer` and adds: source-backed claims, long subordinate sentences (Manson-style ironic coda), deep mechanism over viral surface, sparing metaphors, philosophy through humor, V/H/P hypothesis markers. Use when drafting or rewriting a non-fiction passage that needs argumentative weight (longer than a viral post, shorter than a doctoral chapter)."
 license: MIT
 allowed-tools:
   - Read
@@ -14,21 +14,23 @@ allowed-tools:
 ---
 
 <objective>
-Скилл для нон-фикшн прозы автора. Главная цель — главы НК («Небесный Код»):
-- `books/heavenly-code/ru/chapters/` — основная локация
-- статус: 5.5 а.л. готово, нужно расширить до 8 а.л. для Эксмо
-- жанр: научпоп с философией, аргументация с источниками, авторский голос
+Non-fiction style and structure pass on top of `writer`. Works on any text format (markdown, LaTeX, plain text).
 
-Также покрывает: длинные посты в Telegram/LinkedIn (когда формат не «вирал», а развёрнутая мысль), эссе, лонгриды для PUBLISHING.md и preprints/.
+Covers:
+- popular-science / philosophy-of-science chapters
+- long-form essays and longreads
+- "long Telegram / LinkedIn posts" — when the format is "developed argument", not "viral 5-points"
 
-Скилл НЕ для художественной прозы (для АБ/ЭА используй `prose-edit`) и НЕ для коротких виральных постов с hook+points+CTA (используй `viral-text`).
+NOT for:
+- fiction prose → use `prose-edit`
+- short viral posts with hook + numbered points + CTA → use `viral-text`
 </objective>
 
 <instructions>
 
 ## DEPENDENCY ON `writer`
 
-Базовые правила (антинейрослоп regex 20 категорий, типографика, стаккато/отрицания/обрубки/инверсии/повторы, кальки) — из `writer/SKILL.md`. Этот скилл не дублирует, а применяет writer 4-layer pass + добавляет нон-фикшн слой.
+Базовые правила (антинейрослоп regex 23 категории, типографика, стаккато/отрицания/обрубки/инверсии/повторы, кальки) — из `writer/SKILL.md`. Этот скилл не дублирует, а применяет writer 4-layer pass + добавляет нон-фикшн слой.
 
 ## ROLE
 
@@ -46,13 +48,13 @@ allowed-tools:
 
 Главный приём — длинная фраза с подчинительными союзами, причастными/деепричастными оборотами, конкретными образами и иронией. Голос — философия через юмор, не лекция. Примеры «плохо/надо», ключевые маркеры и приёмы PHILOSOPHY THROUGH HUMOR — [references/voice-long-sentences.md](references/voice-long-sentences.md).
 
-## STRUCTURE — главы НК
+## STRUCTURE — глава нон-фикшна
 
-Типичная глава НК (3-5 страниц) — лид → тезис → 3-7 секций раскрытия → переход. Без виральной NLP-концовки, без дробления на «1./2.». Полная схема структуры — [references/structure.md](references/structure.md).
+Типичная глава (3-5 страниц) — лид → тезис → 3-7 секций раскрытия → переход. Без виральной NLP-концовки, без дробления на «1./2.». Опциональные V/H/P маркеры для гипотез + блок «что опровергнет». Полная схема — [references/structure.md](references/structure.md).
 
 ## BIOGRAPHY THROUGH SCENES
 
-Биографические дигрессии автора — через сцены с годом/местом/деталями, а не через «как я когда-то…». Факты сверять с `memory/user_biography*.md`, ничего не выдумывать. Примеры и протокол сверки — [references/biography.md](references/biography.md).
+Биографические дигрессии — через сцены с годом / местом / конкретными деталями, а не через «как я когда-то…». Никаких выдуманных дат / имён / последовательностей событий. Примеры и протокол — [references/biography.md](references/biography.md).
 
 ## BANNED CONSTRUCTIONS (поверх writer)
 
@@ -64,7 +66,7 @@ allowed-tools:
 
 ## CONNECTING TO OTHER CHAPTERS
 
-Внутри НК meta-references между главами допустимы и желательны; ссылки на АБ/ЭА — запрещены; декоративные ссылки — запрещены. Правила и примеры — [references/connecting-chapters.md](references/connecting-chapters.md).
+Внутри одной нон-фикшн-книги meta-references между главами допустимы и желательны; ссылки на свои другие книги (особенно художку) — запрещены в авторском голосе; декоративные ссылки — запрещены. Правила и примеры — [references/connecting-chapters.md](references/connecting-chapters.md).
 
 ## PLAIN-RUSSIAN COMPLEX CONTENT
 
@@ -74,13 +76,13 @@ allowed-tools:
 
 ### `chapter <topic>` — написать главу с нуля
 1. Уточнить тезис главы (одно предложение)
-2. Уточнить, для какой книги/раздела — НК / отдельное эссе / лонгрид
+2. Уточнить формат — глава книги / отдельное эссе / лонгрид
 3. Research через WebSearch: 3-5 источников по теме
 4. Структура: лид → тезис → 3-7 секций раскрытия → переход
 5. Прогнать writer 4-layer pass + нон-фикшн слой
 6. Выдать готовый текст с источниками
 
-### `expand <file> [target=8al]` — расширить существующую главу
+### `expand <file> [target=N-words]` — расширить существующую главу
 1. Прочитать текущую главу
 2. Определить, какие тезисы недораскрыты, какие источники не цитированы
 3. Предложить план расширения (список новых секций / абзацев)
@@ -97,7 +99,7 @@ allowed-tools:
 
 ## OUTPUT FORMAT
 
-Для `chapter` (новая глава) — готовый текст в LaTeX-форме (если файл `.tex`) или markdown.
+Для `chapter` (новая глава) — готовый текст в формате исходного файла (markdown / LaTeX / plain). Формат вывода соответствует расширению файла.
 
 Для `expand` и `rewrite` — diff с явными правками:
 ```
@@ -109,10 +111,10 @@ allowed-tools:
 
 Для `lint` — структурированный список с серьёзностью:
 ```
-ch03.tex:42 — UNCITED_CLAIM («исследования показывают»)
-ch03.tex:88 — ACADEMIC_PATHOS («рассмотрим следующий аспект»)
-ch03.tex:115 — METAPHOR_OVERLOAD (7 сравнений на главу)
-ch03.tex:142 — VIRAL_FORMAT (numbered list в нон-фикшн)
+ch03.md:42 — UNCITED_CLAIM («исследования показывают»)
+ch03.md:88 — ACADEMIC_PATHOS («рассмотрим следующий аспект»)
+ch03.md:115 — METAPHOR_OVERLOAD (7 сравнений на главу)
+ch03.md:142 — VIRAL_FORMAT (numbered list в нон-фикшн)
 ```
 
 В конце — общая сводка:
@@ -125,7 +127,7 @@ ch03.tex:142 — VIRAL_FORMAT (numbered list в нон-фикшн)
 ## WHAT NOT TO DO
 
 - **Не выдумывать источники, цитаты, фамилии, эксперименты, цифры.** Если не нашёл — переформулировать как авторскую гипотезу.
-- **Не использовать sub-agents** для написания/правки текста главы. Только Bash/Grep/Glob/WebSearch для подсобной работы. (Правило проекта: на слабых моделях агенты пишут мусор.)
+- **Не использовать sub-agents** для написания/правки текста главы. Только Bash/Grep/Glob/WebSearch для подсобной работы. (На слабых моделях агенты пишут мусор.)
 - **Не коммитить за автора.** Скилл выдаёт текст или diff — автор решает.
 - **Не применять виральные приёмы в нон-фикшн.** Никаких hook+points+CTA, NLP-вопросов, ==keyword==.
 - **Не «улучшать» работающую авторскую шероховатость.** Если фраза звучит странно, но в этом голос — оставить.
@@ -134,16 +136,16 @@ ch03.tex:142 — VIRAL_FORMAT (numbered list в нон-фикшн)
 
 | File | When to load |
 |---|---|
-| [references/differentiation.md](references/differentiation.md) | When deciding between non-fiction / viral / fiction mode, or explaining the distinction |
+| [references/differentiation.md](references/differentiation.md) | When deciding between non-fiction / viral / fiction mode |
 | [references/sourcing.md](references/sourcing.md) | When adding scientific claims, citations, or building a source list |
 | [references/voice-long-sentences.md](references/voice-long-sentences.md) | When writing/rewriting prose — long subordinate sentences + humour |
-| [references/structure.md](references/structure.md) | When planning or auditing the structure of an НК chapter |
-| [references/biography.md](references/biography.md) | When inserting biographical digressions (BOOM, Bali, AfrikaBurn, etc.) |
-| [references/banned-constructions.md](references/banned-constructions.md) | During lint pass or before output — to filter academic/lecturer/viral constructions |
+| [references/structure.md](references/structure.md) | When planning or auditing a chapter / longread structure (incl. V/H/P markers) |
+| [references/biography.md](references/biography.md) | When inserting biographical digressions |
+| [references/banned-constructions.md](references/banned-constructions.md) | During lint pass — to filter academic / lecturer / viral constructions |
 | [references/metaphors.md](references/metaphors.md) | After draft — to count and prune metaphors |
-| [references/connecting-chapters.md](references/connecting-chapters.md) | When adding meta-references between НК chapters |
+| [references/connecting-chapters.md](references/connecting-chapters.md) | When adding meta-references between chapters of the same non-fiction book |
 | [references/plain-russian.md](references/plain-russian.md) | When explaining a complex scientific concept |
-| [references/structural-synthesis-keepers.md](references/structural-synthesis-keepers.md) | 7 случаев когда parallelism — приём, а не нейрослоп (false-positive filter). |
+| [references/structural-synthesis-keepers.md](references/structural-synthesis-keepers.md) | 7 cases when parallelism is a device, not nyeyroslop (false-positive filter) |
 | [examples/sample-opening.md](examples/sample-opening.md) | Calibration sample — load to recalibrate voice and structure |
 
 </instructions>

@@ -33,7 +33,7 @@
       "name": "prose-edit",
       "dir": "prose-edit",
       "layer": "wrapper",
-      "description": "Fiction rewrite layer — Pelevin/Manson voice, 10-item style drift checklist, canon check, no meta-refs/anglicisms, long artistic rewrite, AB ToV pattern.",
+      "description": "Fiction rewrite layer — Pelevin/Manson voice vector, 10-item style drift checklist, no meta-refs / anglicisms in narrator voice, long artistic rewrite (no comma-stitching), ToV pattern, 5-trigger structural-synthesis detector, Postirony depth-pass.",
       "languages": [
         "ru"
       ],
@@ -57,7 +57,7 @@
       "name": "style-check",
       "dir": "style-check",
       "layer": "linter",
-      "description": "Read-only pre-commit lint — auto-routes by file path (books/god-academy/ → fiction; books/heavenly-code/ → non-fic), BLOCKING/WARNING/INFO severity, exit-code semantics for git hook.",
+      "description": "Read-only pre-commit lint that stacks writer + prose-edit + essay-write rules. Routes by configurable path patterns (fiction vs non-fic), BLOCKING/WARNING/INFO severity, exit-code semantics for git hook.",
       "languages": [
         "ru",
         "en"
@@ -84,7 +84,7 @@
       "name": "canon-check",
       "dir": "canon-check",
       "layer": "linter",
-      "description": "Story-bible consistency auditor for the author's book series. Greps entities in changed chapters, cross-references story-bible.tex, flags BLOCKING contradictions / WARNING gaps / INFO new details. Read-only.",
+      "description": "Story-bible consistency auditor for any book series. Greps entities (characters / artifacts / locations) in changed chapters, cross-references the project's story-bible document, flags BLOCKING contradictions / WARNING gaps / INFO new details. Read-only — trust the text, not memory.",
       "languages": [
         "ru",
         "en"

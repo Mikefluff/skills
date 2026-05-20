@@ -1,15 +1,44 @@
-# ROUTING — какой набор правил применить
+# ROUTING — which rule set to apply
 
-По пути проверяемого файла:
+The skill picks a rule layer by file path. The patterns below are **illustrative defaults**; adapt them to your project's actual directory layout.
+
+## Default pattern (illustrative)
 
 ```
-books/god-academy/{ru,en,pt-br}/chapters/*.tex        → writer + prose-edit
-books/era-arkhitektorov/{ru,en,pt-br}/chapters/*.tex  → writer + prose-edit
-books/heavenly-code/{ru,en,pt-br}/chapters/*.tex      → writer + essay-write
-preprints/**/*.tex                                    → writer (+ essay-write для нарративных секций)
-*.md (root, books/*/notes/, etc.)                     → writer
-*.tex (root, arcs/, lore/, inserts/, dialogs/)        → writer + prose-edit (это inserts в книги)
-любой другой текстовый файл                           → writer
+fiction/**/*.{md,tex,txt}          → writer + prose-edit
+novels/**/*.{md,tex,txt}           → writer + prose-edit
+essays/**/*.{md,tex,txt,rst}       → writer + essay-write
+longreads/**/*.{md,txt}            → writer + essay-write
+preprints/**/*.{md,tex}            → writer (+ essay-write for narrative sections)
+notes/**/*.md, README.md, *.md     → writer
+any other text file                → writer
 ```
 
-Если файл — код (`.py`, `.js`, `.ts`, etc.) — пропустить, это не задача скилла.
+If the file is code (`.py`, `.js`, `.ts`, `.go`, `.rs`, `.java`, `.c`, `.cpp`, `.h`, `.rb`, `.php`, `.swift`, `.kt`, etc.) — skip silently. Not the skill's job.
+
+## File extensions accepted
+
+`.md`, `.tex`, `.txt`, `.rst`, plain text — all routed through the same rule machinery. Markup (LaTeX commands, Markdown syntax, restructured-text directives) is ignored by the linter, which only inspects the prose content.
+
+## Configuring your own routing
+
+The routing patterns above are not hard-wired. To adapt the skill to your project:
+
+1. Identify which directories hold **fiction prose** (novels, short stories, chapters) and route them through `writer + prose-edit`.
+2. Identify which directories hold **non-fiction prose** (essays, longreads, op-eds, book chapters of non-fiction) and route them through `writer + essay-write`.
+3. Everything else with prose-like text — base `writer`.
+4. Code files — skip.
+
+You can implement this by:
+- editing this routing table to match your real paths, OR
+- letting the model infer routing from filename heuristics on each invocation (e.g. "this is in `essays/` → non-fiction layer"), OR
+- prefacing the skill call with an explicit routing override ("treat this file as fiction layer").
+
+The skill defers to the most specific available signal — explicit user instruction beats path-pattern matching beats filename heuristic.
+
+## Edge cases
+
+- **Mixed-content files** (a notebook with prose and code blocks) — prose blocks get linted, code blocks get skipped.
+- **Empty files / files with only markup** — skip with an `INFO` note.
+- **Symlinks** — follow once, skip if the target is binary or code.
+- **Files inside `.git/`, `node_modules/`, `vendor/`, `build/`, `dist/`** — skip.

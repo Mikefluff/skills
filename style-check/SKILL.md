@@ -1,6 +1,6 @@
 ---
 name: style-check
-description: "Read-only pre-commit lint поверх writer/prose-edit/essay-write. Берёт staged diff (или указанный файл / range коммитов) и сигналит про нейрослоп, синтетику, нарушения голоса. Не правит — только показывает. Использовать перед `git commit` или как pre-commit hook."
+description: "Read-only pre-commit lint over writer/prose-edit/essay-write. Takes a staged diff (or a specified file / commit range) and flags neuro-slop, synthetic structures, voice drift in prose. Read-only — never edits. Use before `git commit`, as a post-commit check, or as a pre-commit hook."
 license: MIT
 allowed-tools:
   - Read
@@ -10,93 +10,97 @@ allowed-tools:
 ---
 
 <objective>
-Универсальный read-only линтер по стилистическим правилам автора. Не пишет, не правит, не коммитит — только проверяет.
+Universal read-only style linter for prose projects. Does not write, does not edit, does not commit — only checks.
 
 Use cases:
-- перед `git commit` — проверить staged изменения на нейрослоп
-- post-commit — проверить последний коммит
-- ручной запуск на файле / диапазоне строк
-- pre-commit hook (если автор добавит его в `.git/hooks/pre-commit`)
+- before `git commit` — check staged changes for neuro-slop
+- post-commit — check the last commit
+- manual run on a file / line range
+- pre-commit hook (if the user wires it into `.git/hooks/pre-commit`)
 
-Скилл сам определяет, какой набор правил применить (writer / prose-edit / essay-write) по пути файла:
-- `books/{god-academy,era-arkhitektorov}/*/chapters/` → художка (prose-edit)
-- `books/heavenly-code/*/chapters/` → нон-фикшн (essay-write)
-- `preprints/`, `*.md`, `*.tex` вне `books/` → базовый writer
-- любое другое — базовый writer
+The skill picks which rule layer to apply (writer / prose-edit / essay-write) based on file path. Default routing is illustrative; configure your own path patterns — see [references/routing.md](references/routing.md):
+- fiction project files (e.g. `fiction/*.md`, `novels/**/*.tex`) → fiction layer (prose-edit)
+- non-fiction project files (e.g. `essays/*.md`, `longreads/*.md`) → non-fiction layer (essay-write)
+- generic prose / notes → base writer
+- code files (`.py`, `.js`, `.ts`, …) → skipped silently
 </objective>
 
 <instructions>
 
 ## DEPENDENCY
 
-Этот скилл использует правила из:
-- `writer/SKILL.md` — базовый антинейрослоп (20 категорий) + структурная синтетика
-- `prose-edit/SKILL.md` — художественный слой для АБ/ЭА
-- `essay-write/SKILL.md` — нон-фикшн слой для НК/эссе
+This skill applies rules from:
+- `writer/SKILL.md` — baseline anti-neuro-slop (20 categories) + structural synthetic markers
+- `prose-edit/SKILL.md` — fiction layer
+- `essay-write/SKILL.md` — non-fiction layer
 
-Скилл НЕ пишет и НЕ правит. Только читает файлы, прогоняет правила и возвращает структурированный отчёт.
+The skill DOES NOT write or edit. It reads files, runs rules, returns a structured report.
+
+## FILE-FORMAT AGNOSTIC
+
+Accepts any text format: `.md`, `.tex`, `.txt`, `.rst`, plain text. Auto-skips binary files and known source-code extensions.
 
 ## ROUTING
 
-Скилл определяет набор правил по пути файла (художка → writer+prose-edit, нон-фикшн НК → writer+essay-write, всё остальное → writer; код пропускается). Полная таблица маршрутизации, edge cases и список расширений-исключений — в [references/routing.md](references/routing.md).
+The skill picks a rule set by file path (fiction → writer+prose-edit, non-fiction → writer+essay-write, anything else → writer only; code is skipped). The default routing table is illustrative — adapt the patterns to your project's directory layout. Full routing table, edge cases, extension-skip list, and a "configuring your own routing" note — see [references/routing.md](references/routing.md).
 
 ## MODES
 
-### `staged` (default) — проверить staged изменения
+### `staged` (default) — check staged changes
 ```bash
 git diff --cached --name-only
 ```
-Для каждого staged файла:
-1. Если двоичный или код — пропустить
-2. Получить добавленные/изменённые строки: `git diff --cached -U0 <file>`
-3. Применить соответствующий набор правил (по routing)
-4. Выдать отчёт
+For each staged file:
+1. If binary or a code extension — skip
+2. Pull added/changed lines: `git diff --cached -U0 <file>`
+3. Apply the matching rule set (per routing)
+4. Emit a report
 
-### `last` — проверить последний коммит
+### `last` — check the last commit
 ```bash
 git diff HEAD~1 HEAD --name-only
 ```
-Аналогично, но на последнем коммите.
+Same pipeline, scoped to the last commit.
 
-### `range <from>..<to>` — проверить диапазон коммитов
+### `range <from>..<to>` — check a commit range
 ```bash
 git diff <from>..<to> --name-only
 ```
 
-### `file <path>` — проверить весь файл целиком
-Не diff, а полный пасс по файлу. Полезно для проверки старых файлов.
+### `file <path>` — check the whole file
+Not a diff; a full pass over the file. Useful for older files.
 
-### `file <path> <line1>:<line2>` — проверить диапазон строк
-Полный пасс по указанному фрагменту.
+### `file <path> <line1>:<line2>` — check a line range
+Full pass on the indicated fragment.
 
 ## OUTPUT FORMAT
 
-Структурированный отчёт по файлам с группировкой нарушений (L<line> CATEGORY «цитата» → правило/совет), плюс блок `=== SUMMARY ===` со счётчиками по слоям и разбивкой по severity. Полный пример отчёта-эталона — в [references/output-format.md](references/output-format.md), отдельный калибровочный артефакт — в [examples/sample-report.md](examples/sample-report.md).
+Structured report grouped by file, then by violations (L<line> CATEGORY «quote» → rule/advice), plus a `=== SUMMARY ===` block with counters by layer and severity breakdown. Full reference template — in [references/output-format.md](references/output-format.md); a separate calibration sample — in [examples/sample-report.md](examples/sample-report.md).
 
 ## SEVERITY LEVELS
 
-Три уровня: **BLOCKING** (canon drift, uncited claim, fabricated source, broken latex), **WARNING** (нейрослоп ≥2 совпадения, staccato/inversion/double-neg, tavtology/meta-ref/anglicism, academic pathos, viral format), **INFO** (1-совпадение L1, metaphor overload, style drift). Полный список категорий по уровням — в [references/severity.md](references/severity.md).
+Three levels: **BLOCKING** (canon drift, uncited claim, fabricated source, broken markup), **WARNING** (neuro-slop ≥2 matches, staccato/inversion/double-neg, tautology/meta-ref/anglicism, academic pathos, viral format), **INFO** (single-match L1, metaphor overload, style drift). Full category-by-level breakdown — in [references/severity.md](references/severity.md).
 
-## EXIT CODE (если запущен как pre-commit hook)
+## EXIT CODE (if invoked as a pre-commit hook)
 
-При использовании в качестве git hook'а:
-- `0` — только INFO, можно коммитить
-- `1` — есть WARNING, спросить автора (или показать и продолжить — зависит от настройки)
-- `2` — есть BLOCKING, прервать коммит
+When wired as a git hook:
+- `0` — only INFO, commit allowed
+- `1` — WARNING present, ask the author (or show-and-continue, depending on configuration)
+- `2` — BLOCKING present, abort the commit
 
-В обычном вызове (не hook) — exit code не используется, только отчёт.
+In a normal (non-hook) call, exit code is not used — just the report.
 
 ## INTEGRATION
 
-Скилл сам не ставит хук. Если автор попросит — выдать инструкцию по установке `.git/hooks/pre-commit`-враппера. Готовый bash-снипет и шаги установки — в [references/pre-commit-hook.md](references/pre-commit-hook.md).
+The skill does not install the hook itself. If the user asks — emit installation instructions for a `.git/hooks/pre-commit` wrapper. Ready-made bash snippet and installation steps — in [references/pre-commit-hook.md](references/pre-commit-hook.md).
 
 ## WHAT NOT TO DO
 
-- **Не правит файлы.** Только читает и сигналит. Для правки — `writer`/`prose-edit`/`essay-write`.
-- **Не запускает sub-agents.** Это легковесный read-only скилл, всё делается напрямую через Read+Grep+Bash.
-- **Не выдумывает источники для проверки фабрикации.** Просто помечает подозрительные ссылки как `UNVERIFIED_SOURCE`, проверка — на авторе.
-- **Не блокирует коммит автоматически без exit code.** Если запущен как обычный скилл — только отчёт. Блокировка — только через установленный hook.
-- **Не лезет в код.** `.py`, `.js`, `.ts`, `.go` и т.п. — пропускает молча.
+- **Does not edit files.** Reads and reports only. For editing — use `writer`/`prose-edit`/`essay-write`.
+- **Does not spawn sub-agents.** Lightweight read-only skill, everything goes through Read+Grep+Bash directly.
+- **Does not fabricate sources to check fabrication.** It only marks suspicious citations as `UNVERIFIED_SOURCE` — verification is the author's job.
+- **Does not block commits automatically without exit code.** When run as a normal skill — report only. Blocking happens only via an installed hook.
+- **Does not touch code.** `.py`, `.js`, `.ts`, `.go` and similar — silently skipped.
 
 </instructions>
 
@@ -104,8 +108,8 @@ git diff <from>..<to> --name-only
 
 | File | When to load |
 | --- | --- |
-| [references/routing.md](references/routing.md) | Решаешь, какой набор правил применить к конкретному пути / расширению; нужны edge cases. |
-| [references/severity.md](references/severity.md) | Нужно классифицировать нарушение по BLOCKING / WARNING / INFO или сверить полный список категорий. |
-| [references/output-format.md](references/output-format.md) | Формируешь итоговый отчёт — нужен полный шаблон с примером и блоком SUMMARY. |
-| [references/pre-commit-hook.md](references/pre-commit-hook.md) | Автор просит поставить style-check как git pre-commit hook — нужен bash-снипет и шаги. |
-| [examples/sample-report.md](examples/sample-report.md) | Нужна калибровка тона/детализации отчёта — эталонный сэмпл. |
+| [references/routing.md](references/routing.md) | Deciding which rule set applies to a given path / extension; need edge cases or want to configure your own routing patterns. |
+| [references/severity.md](references/severity.md) | Need to classify a violation as BLOCKING / WARNING / INFO or want the full category list. |
+| [references/output-format.md](references/output-format.md) | Producing the final report — need the full template with the SUMMARY block. |
+| [references/pre-commit-hook.md](references/pre-commit-hook.md) | The user asks to install style-check as a git pre-commit hook — need the bash snippet and steps. |
+| [examples/sample-report.md](examples/sample-report.md) | Need tone/detail calibration — reference sample. |

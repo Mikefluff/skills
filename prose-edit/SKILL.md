@@ -1,6 +1,6 @@
 ---
 name: prose-edit
-description: "Художественный рерайт и стилистический пасс для книг автора (АБ, ЭА, НК). Тонкая обёртка над writer: подключает базовый антинейрослоп + добавляет художественные правила (Пелевин/Мэнсон-голос, канон-сверка, запрет на бизнес-редактирование, длинный артистический рерайт, ToV-структуры). Использовать при работе над файлами в books/*/{ru,en,pt-br}/chapters/."
+description: "Fiction-prose rewrite and style pass. Wraps `writer` and adds a fiction layer: voice vector (Pelevin/Manson — not impersonation), no-business-editing rules, long artistic rewrite over compression, ToV patterns, 5-trigger structural-synthesis detector, depth-pass checklist. Use when rewriting a fiction chapter / scene / passage in any text format (md / tex / txt). Pairs with `canon-check` for story-bible consistency."
 license: MIT
 allowed-tools:
   - Read
@@ -12,17 +12,12 @@ allowed-tools:
 ---
 
 <objective>
-Скилл для стилистической работы над художественной прозой автора — три книги в репозитории godacademy:
-- `books/god-academy/` (АБ — «Академия Богов», роман, готов к Эксмо)
-- `books/era-arkhitektorov/` (ЭА — «Эра Архитекторов», роман-продолжение)
-- `books/heavenly-code/` (НК — «Небесный Код», нон-фикшн)
+Fiction style pass on top of `writer`. Works on any text file (markdown, LaTeX, plain text) — no assumed project layout or file extension.
 
-Каждая книга — мультиязычная (`ru/`, `en/`, `pt-br/`), главы в `chapters/`, story-bible в `notes/story-bible.tex`.
-
-Скилл НЕ пишет главу с нуля. Он:
-- редактирует существующий фрагмент по правилам литературного голоса автора;
-- проверяет канон до того, как что-то ломает;
-- ловит то, что универсальный `writer` пропустит (художественная синтетика поверх общей).
+The skill does NOT write a chapter from scratch. It:
+- rewrites an existing fragment per fiction voice rules
+- catches what the generic `writer` pass misses (fiction-specific synthetic-prose patterns layered on top of universal ones)
+- defers story-bible consistency to the separate `canon-check` skill (compose them — see [docs/COMPOSING.md](../docs/COMPOSING.md))
 </objective>
 
 <instructions>
@@ -35,7 +30,7 @@ allowed-tools:
 
 ## CRITICAL — что НЕ переносить из бизнес-редактирования
 
-Художественная проза автора живёт по другим правилам. Не применять к ней:
+Художественная проза живёт по другим правилам. Не применять к ней:
 
 - **filler trim** — повторы и «лишние» слова часто работают как ритм/голос
 - **восклицания** — характерные для автора, не убирать
@@ -53,13 +48,13 @@ allowed-tools:
 
 ## Canon check + meta-references + anglicisms (краткое резюме)
 
-Перед редактированием ЭА (или любого продолжения АБ) — обязательная сверка с `story-bible.tex` по канону. В голосе рассказчика запрещены meta-ссылки на свои же книги и латиница/IT-слэнг (в прямой речи персонажей допустимо).
+В голосе рассказчика запрещены meta-ссылки на свои же книги/главы и латиница/IT-слэнг (в прямой речи персонажей допустимо). Story-bible consistency — задача отдельного скилла `canon-check`; этот скилл его не дублирует.
 
-Полный протокол, исключения и список «дважды ломанных» элементов — [references/canon-check.md](references/canon-check.md).
+Полный протокол и исключения для meta-refs / anglicisms — [references/canon-check.md](references/canon-check.md).
 
 ## Rewrite principles (краткое резюме)
 
-Структурную синтетику (стаккато/отрицания/обрубки) в авторском голосе чинить ДЛИННЫМ рерайтом — сложноподчинённая фраза с конкретным образом, а НЕ заменой точек на запятые. Сверху — self-implication caveats, АБ ToV pattern «flat statement → разворот», лимит 3-5 сравнений на главу и 5-триггерный Structural Synthesis Detector.
+Структурную синтетику (стаккато/отрицания/обрубки) в авторском голосе чинить ДЛИННЫМ рерайтом — сложноподчинённая фраза с конкретным образом, а НЕ заменой точек на запятые. Сверху — self-implication caveats, «flat statement → разворот» ToV pattern, лимит 3-5 сравнений на главу и 5-триггерный Structural Synthesis Detector.
 
 Полные правила, примеры «БЫЛО / ПЛОХО / НАДО» и список архитектурных триггеров — [references/rewrite-principles.md](references/rewrite-principles.md).
 
@@ -85,28 +80,25 @@ allowed-tools:
 
 ### `rewrite <file> <lines>` — точечный рерайт фрагмента
 Пользователь указывает файл и диапазон строк. Скилл:
-1. Читает контекст (вся глава, не только указанный фрагмент)
-2. Если ЭА/АБ — читает соответствующую story-bible
-3. Применяет writer pass + художественный слой
-4. Возвращает diff с правками + короткую сводку («исправлено: стаккато ×2, нейрослоп ×1, тавтология ×1»)
-5. НЕ коммитит — это решает автор
+1. Читает контекст (вся глава/окружающие абзацы, не только указанный фрагмент)
+2. Применяет writer pass + художественный слой
+3. Возвращает diff с правками + короткую сводку («исправлено: стаккато ×2, нейрослоп ×1, тавтология ×1»)
+4. НЕ коммитит — это решает автор. Для canon-check вызвать одноимённый скилл отдельно.
 
 ### `chapter <file>` — проход по главе целиком
 1. Читает всю главу
-2. Канон-сверка (если ЭА)
-3. Прогоняет writer 4-layer pass + художественный слой
-4. Выдаёт пронумерованный список предлагаемых правок (строка → старое → новое → почему)
-5. НЕ редактирует напрямую — автор смотрит список и решает
+2. Прогоняет writer 4-layer pass + художественный слой
+3. Выдаёт пронумерованный список предлагаемых правок (строка → старое → новое → почему)
+4. НЕ редактирует напрямую — автор смотрит список и решает
 
 ### `lint <file>` — read-only проверка
 Только список нарушений с локациями, никаких правок. Полезно перед коммитом.
 
 ```
-ch07.tex:142 — STACCATO (3+ односоставных подряд)
-ch07.tex:201 — TAVTOLOGY ("открытое открытие")
-ch07.tex:256 — CANON DRIFT (хват Ирэн противоречит story-bible §3.2)
-ch07.tex:289 — META-REF («как в гл. 4 АБ»)
-ch07.tex:312 — ANGLICISM в авторском голосе («post-door»)
+ch07.md:142 — STACCATO (3+ односоставных подряд)
+ch07.md:201 — TAVTOLOGY («открытое открытие»)
+ch07.md:289 — META-REF («как в главе 4 первой книги»)
+ch07.md:312 — ANGLICISM в авторском голосе («post-door»)
 ```
 
 ### `diff-check <commit>` — пасс по последнему коммиту
@@ -128,9 +120,10 @@ ch07.tex:312 — ANGLICISM в авторском голосе («post-door»)
 В конце — общая сводка:
 ```
 Прогон: Layer 1 — N1 hits, Layer 2 — N2 violations, художественный слой — N3 hits.
-Канон: OK / N расхождений со story-bible.
 Голос: drift низкий/средний/высокий.
 ```
+
+(Для story-bible consistency — отдельный пасс через `canon-check`.)
 
 ## WHAT NOT TO DO
 
@@ -138,7 +131,7 @@ ch07.tex:312 — ANGLICISM в авторском голосе («post-door»)
 - **Не коммитить за автора.** Скилл предлагает — автор решает.
 - **Не «улучшать» работающую шероховатость.** Если фрагмент звучит странно, но в этом голос автора — оставить.
 - **Не применять виральные правила.** Никаких numbered points, hook'ов, CTA, NLP-вопросов в художке.
-- **Не переводить художку.** Если файл `ru/`, работаем в русском. `en/` и `pt-br/` — это отдельные версии, для них своя работа (не задача этого скилла).
+- **Не переводить художку.** Если файл в RU — работаем в русском. Multi-language parity — задача `translation-sync`, не этого скилла.
 
 </instructions>
 
@@ -147,10 +140,10 @@ ch07.tex:312 — ANGLICISM в авторском голосе («post-door»)
 | File | When to load |
 |------|--------------|
 | [references/voice.md](references/voice.md) | Перед любым художественным пассом — сверить вектор голоса и 10-пунктовый style drift checklist. |
-| [references/canon-check.md](references/canon-check.md) | Перед правкой ЭА или любого фрагмента с персонажами/событиями АБ; также при meta-ссылках и латинице в авторском голосе. |
+| [references/canon-check.md](references/canon-check.md) | Когда автор использует meta-ссылки на свои же книги/главы или вставляет латиницу/IT-слэнг в голос рассказчика. (Story-bible consistency — отдельный скилл `canon-check`.) |
 | [references/rewrite-principles.md](references/rewrite-principles.md) | Когда нужно переписать структурную синтетику (стаккато/отрицания/тире-цепочки) — длинный артистический рерайт, ToV, Structural Synthesis Detector. |
 | [references/cleanness-checklist.md](references/cleanness-checklist.md) | Перед коммитом — 10-пунктовый прогон по pre-commit шероховатостям. |
 | [references/pitfalls.md](references/pitfalls.md) | После рерайта — проверить, не свалился ли результат в типовую ловушку. |
 | [references/synthetic-ai-words.md](references/synthetic-ai-words.md) | При встрече «рамка / нарратив / дискурс / парадигма / концепт / оптика» — карта замен. |
 | [references/depth-pass.md](references/depth-pass.md) | 10-пунктный Postirony depth-pass checklist + IT-blog test для отличия художки от статьи. |
-| [examples/before-after.md](examples/before-after.md) | Калибровка: образцы БЫЛО/НАДО для staccato, double negation, длинного рерайта, АБ ToV, тавтологии, comparison overload. |
+| [examples/before-after.md](examples/before-after.md) | Калибровка: образцы БЫЛО/НАДО для staccato, double negation, длинного рерайта, ToV pattern, тавтологии, comparison overload. |

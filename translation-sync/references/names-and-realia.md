@@ -42,22 +42,30 @@ Russian-language historical figures take their Cyrillic form in RU, standard tra
 | Братья Стругацкие | братья Стругацкие | the Strugatsky brothers |
 | Николай Фёдоров | Николай Фёдоров | Nikolai Fyodorov |
 
-## Russian fictional characters — transliteration table
+## Russian fictional characters — transliteration table (illustrative)
+
+These rows are **illustrative patterns**, not your project's canon. Replace with your own character registry; the *rules* the table demonstrates are what to keep:
+
+- the full / short / diminutive trio gets distinct EN forms
+- transliterate to phonetics actually pronounceable in EN/PT-BR
+- never "translate" a name (Лена ≠ Helen)
+- when two Russian names sound similar in EN, mark explicitly which is which
+- preserve `ё` (Artyom, not Artem)
+- Chinese / non-Russian names follow the source language's standard transliteration (pinyin for Chinese), not Russian-pass-through
 
 | Character (full / short / diminutive) | RU | EN | PT-BR |
 |--------------------------------------|-----|-----|-------|
 | Daniil (full, formal) | Даниил | Daniil _(formal context only — passport, documents)_ | Daniil |
 | Dan (everyday) | Дан | Dan _(default in the books)_ | Dan |
 | Danya (childhood, affectionate) | Даня | Danya _(mother in flashbacks; NOT "Danny")_ | Danya |
-| Reynov, Daniil (surname + name) | Даниил Рейнов | "Reynov, Daniil" _in documents only_; in speech `Dan` or `Daniil Reynov` | as EN |
+| Surname + name | Даниил Рейнов | "Reynov, Daniil" _in documents only_; in speech `Dan` or `Daniil Reynov` | as EN |
 | Lena | Лена | Lena _(not "Helen", not "Elena")_ | Lena |
 | Seryozha | Серёжа | Seryozha _(NOT "Sergei" — he is Seryozha, not Sergei)_ | Seryozha |
-| Kira Nova | Кира Нова | Kira Nova | Kira Nova |
-| Iren | Ирэн | Iren _(NOT "Irene" — different name)_ | Iren |
-| Irina | Ирина | Irina _(NOT "Irene")_ | Irina |
-| Artyom | Артём | Artyom _(NOT "Artem" — there's a "ё" sound)_ | Artyom |
-| Liya | Лия | Liya _(NOT "Lia")_ | Liya |
-| Wei Lin (Chinese) | Вэй Лин | Wei Lin _(pinyin)_ | Wei Lin |
+| Two-part name | Кира Нова | Kira Nova | Kira Nova |
+| Russian name #1 (with ё-like) | Артём | Artyom _(NOT "Artem" — there's a "ё" sound)_ | Artyom |
+| Russian name #2 (similar-sounding) | Ирина | Irina _(NOT "Irene")_ | Irina |
+| Short fictional name | Лия | Liya _(NOT "Lia")_ | Liya |
+| Chinese name | Вэй Лин | Wei Lin _(pinyin)_ | Wei Lin |
 
 ## Patronymics
 

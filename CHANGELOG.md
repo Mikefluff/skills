@@ -14,6 +14,21 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Changed — decoupled from author's specific LaTeX book project
+
+The collection no longer assumes any specific book repository, LaTeX build, or character canon. Skills now work on any text file (`.md` / `.tex` / `.txt` / etc.) and any prose project — the editorial rules, voice principles, regex catalogues, and structural patterns stay intact; only the bindings to one author's particular setup are gone.
+
+- **`prose-edit`**: removed `books/{god-academy,era-arkhitektorov,heavenly-code}/` paths, removed АБ/ЭА/НК naming, removed assumed `.tex` extension. Renamed AB-specific ToV section to generic "ToV pattern". `references/canon-check.md` reduced to meta-references + anglicisms rules; story-bible consistency moved entirely to the standalone `canon-check` skill.
+- **`essay-write`**: removed НК naming, generic non-fiction framing. `references/structure.md` describes hypothesis chapters in general (V/H/P markers still useful for any non-fic with mixed-confidence claims). `references/biography.md` no longer references specific places or the author's memory directory — generic protocol for verifying biographical facts.
+- **`style-check`**: routing table now illustrative + configurable, no hardcoded book paths.
+- **`translation-sync`**: terminology / anchor-quote tables generalized to placeholder rows; transliteration table marked as illustrative pattern rather than the author's character canon.
+- **`canon-check`**: SKILL.md framed as "for any book series with a story bible". `references/known-incidents.md` restructured from 6 author-specific past incidents into 5 generic detection categories.
+- **`pelevin-digression`**: removed assumption that fiction context = a specific series; routing now uses frontmatter / extension / explicit user signal.
+- **`writer`**: cleaned references in SKILL.md objective and `references/integration.md` to remove project-specific naming.
+- **`skills.json`** + **`README.md`** + **`docs/COMPOSING.md`** — all descriptions, Quick Start examples, decision-tree text now generic.
+
+Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — they describe what was done at release time, including the author-specific framing the project then had. Going forward, descriptions stay generic.
+
 ## [0.4.1] — 2026-05-20
 
 ### Changed

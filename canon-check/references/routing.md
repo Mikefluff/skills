@@ -1,82 +1,95 @@
-# ROUTING — какой canon-источник применить
+# ROUTING — which canon source to apply
 
-По пути проверяемого файла:
+The skill picks the bible to apply based on the file path. The patterns below are **illustrative defaults**; adapt them to your project layout.
+
+## Default routing (illustrative)
 
 ```
-books/god-academy/{ru,en,pt-br}/chapters/*.tex
-    → books/god-academy/notes/story-bible.tex
+<book>/<lang>/chapters/*.{md,tex,txt,rst}
+    → <book>/notes/story-bible.{md,tex,txt}
 
-books/era-arkhitektorov/{ru,en,pt-br}/chapters/*.tex
-    → books/era-arkhitektorov/notes/story-bible.tex
-    + books/god-academy/notes/story-bible.tex
-      (раздел «КАНОН АБ» — для проверки наследия)
+sequel-book/<lang>/chapters/*
+    → sequel-book/notes/story-bible.*
+    + parent-book/notes/story-bible.*
+      (read the parent's `Inherited canon` / `Canon overview` section
+       so the sequel respects the parent's locked details)
 
-books/heavenly-code/{ru,en,pt-br}/chapters/*.tex
-    → books/heavenly-code/notes/story-bible.tex
-    + ~/.claude/projects/-Users-mikefluff-Documents-godacademy/memory/user_biography*.md
-      (биографический канон, includes user_biography_kesha.md, user_biography_mogwai.md)
+non-fiction-book/<lang>/chapters/*
+    → non-fiction-book/notes/story-bible.*
+    + (optional) any external biographical-canon files
+      the user configures explicitly
 
-books/*/notes/*.tex
-books/*/notes/*.md
-    → SKIP (это сами bibles и заметки — не главы)
+*/notes/*.{md,tex,txt}
+    → SKIP (these ARE the bibles, not chapters)
 
-любой другой путь
-    → SKIP тихо
+any other path
+    → SKIP silently
 ```
 
 ---
 
-## Почему ЭА читает оба bible
+## Why a sequel reads both bibles
 
-ЭА — прямой сиквел АБ. Раздел `КАНОН АБ` в bible АБ описывает то, что **нельзя ретропроецировать в АБ из ЭА**. Но это же — каркас, который ЭА **обязана соблюсти**: хват Ирэн, цитаты-якоря, имена-возрасты ключевых персонажей.
+If your project has multi-book continuity (a sequel inheriting characters and rules from a prior book), the sequel's bible typically has an `Inherited canon` section describing what cannot be retro-projected back. That section is the skeleton the sequel must respect: physical invariants of returning characters, anchor quotes, names/ages of key figures, locked locations.
 
-Конкретно — детали, которые ЭА **наследует** от АБ:
+Concretely — details a sequel typically **inherits** from its parent book:
 
-- Хват матери (большой+указательный сверху)
-- Дан-лаг 900 мс
-- Возрасты: Дан 28 на сентябрь 2026 — отсчёт от этой точки
-- Цитаты-якоря: «Я знаю.» (два слова отца), «Один. Целый. Черновик.» (финал АБ)
-- Локации: Шаболовка, Хамовники (для АБ), Нескучный сад, Баррикадная
-- Безымянный PDF (нельзя называть Михаила Савченко в художке)
+- Established physical invariants of returning characters
+- Established temporal anchors (a character's age in book A → reference point for book B's chronology)
+- Anchor quotes locked in the parent book
+- Locations with documented in-world history
 
-Детали, которые **в ЭА изменились** и это новый канон:
+Details that **change** in the sequel and become new canon:
 
-- Яйцо получило имя **Квинта**
-- Вэй Лин переехал из Хамовников в Академию
-- Появилась трость, Nokia (ЭА-канон, не ретропроецировать в АБ)
+- New names introduced for previously-unnamed objects
+- Relocations explicitly written into the sequel's text
+- New artifacts, new locations, new characters
 
-При канон-чеке ЭА главы — оба bible открываются, оба читаются. При канон-чеке АБ главы — только bible АБ.
+When canon-checking a sequel chapter — both bibles open, both read. When canon-checking a parent-book chapter — only the parent's bible.
 
 ---
 
-## Почему НК читает и bible, и memory
+## Why non-fiction may read multiple sources
 
-НК — нон-фикшн. «Канон» здесь — биография автора, а не выдуманная вселенная. Биография фрагментарно зафиксирована в:
+A biographical non-fiction project (memoir, autobiography, biographical essay collection) typically has its canon spread across:
 
-1. `books/heavenly-code/notes/story-bible.tex` — структурированный канон (хронология, жёны/дети, локации с весом)
-2. `~/.claude/.../memory/user_biography.md` — основной биографический файл
-3. `user_biography_details.md` — углублённые детали
-4. `user_biography_kesha.md`, `user_biography_mogwai.md` — отдельные арки (мемуарные)
+1. The book's own `notes/story-bible.*` — structured canon (timeline, named people, weighted locations).
+2. Optional external memory / notes documents the user maintains — extended biographical detail, per-character side documents.
 
-Между ними иногда есть расхождения. **Правило:** при противоречии bible vs memory — спросить автора, не угадывать. memory может быть устаревшей; bible может быть неполной.
+Between them there may be discrepancies. **Rule:** when bible and external memory disagree — ask the user; do not guess. External memory may be outdated; the bible may be incomplete.
+
+The location of any external biographical-canon source is project-specific. To wire it in, list the paths explicitly here (the skill doesn't auto-discover them).
+
+---
+
+## Configuring your own routing
+
+The defaults above assume a `<book>/<lang>/chapters/` and `<book>/notes/story-bible.*` layout. If your project uses something different:
+
+1. **Single-book project** — point the skill at your single bible: `<your-prose-dir>/* → <your-bible-path>`.
+2. **Multi-book series** — list each book's chapter pattern alongside its bible. If books inherit canon, list the parent bible too.
+3. **Non-fiction** — point at the structured bible and any external memory files the user maintains, with paths spelled out.
+4. **Mixed-content repo (prose + code)** — make sure code paths are explicitly skipped (`SKIP`), and prose paths are explicit.
+
+The routing can also be overridden per-invocation by the user (e.g. `canon-check chapter your-book ch07 --bible custom/path/bible.md`).
 
 ---
 
 ## Edge cases
 
-- **Файл в `arcs/` / `lore/` / `inserts/` / `dialogs/`** — это вставки в художку. Если из контекста ясно, в какую книгу — применить bible этой книги. Если непонятно — SKIP с предупреждением.
-- **Файл в `preprints/`** — научные тексты, канон-чек не нужен. SKIP.
-- **Главы вне `ru/`** (`en/`, `pt-br/`) — это переводы. Канон тот же, что у RU-оригинала. Канон-чек применим, но **физические инварианты + цитаты-якоря** проверяются ещё строже: переводчик не должен сглаживать конкретику.
-- **Код (`.py`, `.js`, `.ts`, etc.)** — SKIP молча.
+- **Files in `arcs/` / `lore/` / `inserts/` / `dialogs/`** — these are prose inserts. If the context makes the target book clear — apply that book's bible. If not — SKIP with a warning.
+- **Files in `preprints/`** — scientific texts, canon-check usually not needed. SKIP.
+- **Chapters outside the source language directory** (translations: `en/`, `pt-br/`, …) — the canon is the same as for the source-language original. Canon-check applies, and **physical invariants + anchor quotes** are checked more strictly here: a translator must not smooth concrete specifics.
+- **Code (`.py`, `.js`, `.ts`, etc.)** — SKIP silently.
 
 ---
 
-## Кратко в одной таблице
+## Short summary table
 
-| Path pattern | Bible | Доп. источники |
+| Path pattern | Bible | Additional sources |
 | --- | --- | --- |
-| `books/god-academy/{ru,en,pt-br}/chapters/*.tex` | `god-academy/notes/story-bible.tex` | — |
-| `books/era-arkhitektorov/{ru,en,pt-br}/chapters/*.tex` | `era-arkhitektorov/notes/story-bible.tex` | + АБ bible (наследие) |
-| `books/heavenly-code/{ru,en,pt-br}/chapters/*.tex` | `heavenly-code/notes/story-bible.tex` | + `memory/user_biography*.md` |
-| `books/*/notes/*` | — (это и есть bible) | SKIP |
-| `preprints/**`, code files, `.gitignore`, … | — | SKIP молча |
+| `<book>/<lang>/chapters/*` | `<book>/notes/story-bible.*` | — |
+| `<sequel-book>/<lang>/chapters/*` | `<sequel-book>/notes/story-bible.*` | + parent-book bible (inherited canon) |
+| `<non-fiction-book>/<lang>/chapters/*` | `<non-fiction-book>/notes/story-bible.*` | + (optional) external biographical canon files |
+| `*/notes/*` | — (this IS the bible) | SKIP |
+| `preprints/**`, code files, `.gitignore`, … | — | SKIP silently |

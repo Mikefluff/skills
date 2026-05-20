@@ -1,58 +1,58 @@
 # SEVERITY LEVELS
 
-Категории по серьёзности:
+Categories ranked by severity:
 
-**BLOCKING** — нужно поправить до коммита:
-- `CANON_DRIFT` (расхождение со story-bible в ЭА/АБ)
-- `UNCITED_CLAIM` (научное утверждение без источника в НК)
-- `FABRICATED_SOURCE` (если детектор подозревает выдуманный источник: незнакомый журнал + нет на arXiv/Crossref)
-- `BROKEN_LATEX` (синтаксическая ошибка в `.tex`, ломающая билд)
+**BLOCKING** — must fix before committing:
+- `CANON_DRIFT` (mismatch with a story bible — applies when working on a fiction series with a documented canon)
+- `UNCITED_CLAIM` (scientific claim without a source in non-fiction)
+- `FABRICATED_SOURCE` (detector suspects a fabricated source: unknown journal + not found on arXiv/Crossref)
+- `BROKEN_MARKUP` (syntactic error in `.tex` / `.md` / `.rst` that breaks the build or renderer)
 
-**WARNING** — стоит посмотреть:
-- Все writer L1 категории (нейрослоп) с >2 совпадениями
+**WARNING** — worth a look:
+- Every writer L1 category (neuro-slop) with >2 matches
 - `STACCATO`, `DOUBLE_NEG`, `INVERSION`, `INCOMPLETE_PREDICATE` (writer L2)
 - `TAVTOLOGY`, `META_REF`, `ANGLICISM` (prose-edit)
 - `ACADEMIC_PATHOS`, `LECTURER_TONE`, `VIRAL_FORMAT` (essay-write)
 
-**INFO** — на усмотрение автора:
-- Writer L1 с 1 совпадением (часто организм)
-- `METAPHOR_OVERLOAD` (превышение рекомендации, но не критично)
-- `STYLE_DRIFT` (мягкие признаки съезжания голоса)
+**INFO** — author's discretion:
+- Writer L1 with a single match (often organic)
+- `METAPHOR_OVERLOAD` (above the recommended count, not critical)
+- `STYLE_DRIFT` (mild signs the voice is slipping)
 
 ---
 
-## Post-rewrite сигнатуры (что искать ПОСЛЕ собственной правки)
+## Post-rewrite signatures (what to look for AFTER your own rewrite)
 
-Конкретные паттерны, которые автор реально находил в собственных правках Claude (источник — `feedback_rewrite_pitfalls.md`, секция «Самоаудит ПОСЛЕ каждой переписи»). Прогонять как пост-аудит ПОСЛЕ применения writer-pass'a, до коммита. На сессии 2026-05-10 пользователь ловил ровно эти ошибки в моих собственных «правках» — каждый раз приходилось править правку.
+Concrete patterns that recur in machine-assisted rewrites. Run as a post-audit AFTER applying a writer-pass, before committing. The same handful of errors keep showing up in model-edits, so each rewrite has to be re-checked against this short list.
 
-### Дубли punch'и
-
-```
-Фура.\nФура
-```
-
-Одна короткая фраза повторена через `\n` («Фура.\nФура прошла молча») → собственная правка склеила два варианта, оставила оба. Пример рецидива: ch01:195. Перечитать соседние строки, удалить дубль.
-
-### Калька «не X, а Y» в начале строки
+### Punch-line duplicates
 
 ```
-^[^,]*не [^,]+, а
+Truck.\nTruck
 ```
 
-«не X, а Y» в начале строки — калька оживает в собственном рерайте даже после явного запрета. Примеры рецидивов: ch16:41 «а не территории или ресурсов», ch08:171 «Мир --- не предмет, а процесс». Переписать в утвердительное «Y, а не X» либо в два предложения.
+A short phrase repeated across a `\n` (e.g. `"Truck.\nTruck went past in silence"`) → your own edit glued two variants together and left both. Re-read neighbouring lines, remove the duplicate.
 
-### Огрызки-наречия без существительного
-
-```
-(просто|поверх|без)\s+—\s*$
-```
-
-«просто —», «поверх —» в конце строки → редактор вставил тире и не закончил. Пример: ch16:193 «не выходит на безопасный» (наречие/прилагательное без существительного). Достроить дополнение или снять тире.
-
-### Подозрительные инверсии N+Gen
+### Calque "not X, but Y" at line start
 
 ```
-[а-я]+а\s+[а-я]+
+^[^,]*not [^,]+, but
 ```
 
-Потенциальная инверсия N+Gen → Gen+N — «инженера сын» вместо «сын инженера» (см. writer/references/structural-prose.md, секция «N+Gen → Gen+N»). Грубый эвристический паттерн, много false positives — глазами проверять каждый хит. Особенно ловить в коротких репликах диалогов.
+`"not X, but Y"` at line start — a calque that revives even after an explicit ban. Rewrite as the positive `"Y, not X"` or split into two sentences.
+
+### Adverb stumps without a noun
+
+```
+(just|over|without)\s+—\s*$
+```
+
+`"just —"`, `"over —"` at line end → the editor inserted a dash and never finished. Complete the complement or remove the dash.
+
+### Suspicious N+Gen inversions
+
+```
+[a-z]+a\s+[a-z]+
+```
+
+Possible inversion N+Gen → Gen+N — `"engineer's son"` rendered as `"the son of an engineer"` (or the reverse, depending on house style) (see writer/references/structural-prose.md, section "N+Gen → Gen+N"). Coarse heuristic, lots of false positives — check each hit visually. Especially watch for it in short dialogue replies.

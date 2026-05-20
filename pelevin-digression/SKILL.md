@@ -1,6 +1,6 @@
 ---
 name: pelevin-digression
-description: "Write or rewrite a passage as a Pelevin-style digression — concrete sociology via brand-name, bracket-essay, forward-link, anti-gradation list. 12 structural techniques + 5 banned constructions. Use when the author requests a digression in this specific voice for a fiction chapter (АБ/ЭА) or non-fiction essay (НК). Wraps `prose-edit` (for fiction context) or `essay-write` (for non-fic) as the final cleanup pass — does not bypass them."
+description: "Write or rewrite a passage as a Pelevin-voice-vector digression — concrete sociology via brand-name, bracket-essay, forward-link, anti-gradation list. 12 structural techniques + 5 banned constructions. Use when you want a 1-3-paragraph digression in this specific voice inside a fiction chapter or non-fiction essay. Wraps `prose-edit` (fiction) or `essay-write` (non-fic) as the final cleanup pass — does not bypass them. Pelevin-VECTOR, not impersonation."
 license: MIT
 allowed-tools:
   - Read
@@ -12,13 +12,13 @@ allowed-tools:
 ---
 
 <objective>
-Этот скилл пишет или переписывает фрагмент как пелевинскую дигрессию — короткое (1-3 абзаца, 200-400 слов) отступление в определённом голосе, встроенное в сцену или эссе автора.
+Этот скилл пишет или переписывает фрагмент как пелевинскую дигрессию — короткое (1-3 абзаца, 200-400 слов) отступление в определённом голосе, встроенное в сцену или эссе.
 
 Применяется в двух контекстах:
-- художественные книги (`books/god-academy/`, `books/era-arkhitektorov/`) — дигрессии внутри глав от лица рассказчика (Дан, Серёжа и т.д.)
-- нон-фикшн (`books/heavenly-code/`, `preprints/`) — отступления внутри эссе и лонгридов
+- художественная проза — дигрессии внутри глав от лица рассказчика
+- нон-фикшн (эссе, лонгриды, главы научпоп-книги) — отступления внутри развёрнутой мысли
 
-ВАЖНО: это **опциональный** голосовой слой, который автор вызывает ЯВНО. Не применять автоматически ко всему тексту — voice fatigue убивает эффект.
+ВАЖНО: это **опциональный** голосовой слой, который вызывается ЯВНО. Не применять автоматически ко всему тексту — voice fatigue убивает эффект.
 
 Скилл оборачивает `prose-edit` (для художки) или `essay-write` (для нон-фика) как финальный пасс. НЕ заменяет их.
 </objective>
@@ -48,15 +48,17 @@ allowed-tools:
 ## PIPELINE
 
 1. Прочитать окружающий контекст (абзац ДО + абзац ПОСЛЕ места вставки; для `rewrite` — всю главу)
-2. Если файл — глава художки, прочитать соответствующий story-bible.tex
+2. Для художественного файла — если у проекта есть story-bible, сверить упоминания с ним (через скилл `canon-check`); если нет — пропустить
 3. Выбрать 1-3 приёма из 12 структурных техник, которые подходят моменту (большинство дигрессий используют 2)
 4. Написать черновик дигрессии, максимум 200-400 слов
 5. Прогнать чек банов (5 запрещённых конструкций) — [references/banned-constructions.md](references/banned-constructions.md)
-6. Прогнать обёрнутый пайплайн:
-   - Если файл в `books/god-academy/` или `books/era-arkhitektorov/` → финальный пасс через `prose-edit` (4-layer + АБ ToV check)
-   - Если файл в `books/heavenly-code/` или `preprints/` → финальный пасс через `essay-write` (source-and-voice pass)
+6. Прогнать обёрнутый пайплайн в зависимости от контекста файла:
+   - Художественная проза → финальный пасс через `prose-edit` (4-layer + ToV check)
+   - Нон-фикшн → финальный пасс через `essay-write` (source-and-voice pass)
    - Всегда: 23-категорийный нейрослоп пасс `writer` — последним
 7. Выдать результат в формате OUTPUT FORMAT (см. ниже)
+
+Определение контекста (художка vs нон-фик) — по фронтматтеру, расширению, расположению или явному указанию пользователя. Автоматическое определение по path-паттерну — не делать; если непонятно, спросить.
 
 Полный разбор 12 техник — [references/techniques.md](references/techniques.md).
 Что такое «вектор» (что IS / что ISN'T) — [references/voice-vector.md](references/voice-vector.md).
@@ -103,9 +105,9 @@ allowed-tools:
 Для `audit`:
 
 ```
-ch07.tex:142 — MISSED OPPORTUNITY: длинное объяснение → можно anti-gradation list
-ch07.tex:201 — MISSED OPPORTUNITY: бренд без социологии (упомянут «iPhone 5» без развёртки)
-ch07.tex:289 — MISSED OPPORTUNITY: forward-link возможен (упомянут эпизод, к которому стоит вернуться позже)
+ch07.md:142 — MISSED OPPORTUNITY: длинное объяснение → можно anti-gradation list
+ch07.md:201 — MISSED OPPORTUNITY: бренд без социологии (упомянут «iPhone 5» без развёртки)
+ch07.md:289 — MISSED OPPORTUNITY: forward-link возможен (упомянут эпизод, к которому стоит вернуться позже)
 ```
 
 ## WHAT NOT TO DO
@@ -115,7 +117,7 @@ ch07.tex:289 — MISSED OPPORTUNITY: forward-link возможен (упомян
 - **Не пропускать обёрнутый пасс.** `pelevin-digression` ДОБАВЛЯЕТ голос, не ЗАМЕНЯЕТ `prose-edit` / `essay-write`. Финальный пасс — всегда.
 - **Не использовать sub-agents для написания дигрессии.** Слабые модели промахиваются с таймингом и пастишируют. Всё в foreground.
 - **Не закрывать дигрессии афористическим жестом.** Запрещённая конструкция №1 — концовки-обнулители («остальное — комментарии»). См. [references/banned-constructions.md](references/banned-constructions.md).
-- **Не обходить канон.** Если фрагмент про АБ/ЭА — story-bible перед написанием обязательна (через `prose-edit` правила канон-сверки).
+- **Не обходить канон.** Если у проекта есть story-bible и дигрессия касается его персонажей/событий — прогнать `canon-check` перед написанием.
 
 </instructions>
 

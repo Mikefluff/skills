@@ -58,23 +58,19 @@ The 9 skills aren't independent — they're stacked. `writer` is the foundation;
 ### "I want to write a viral Telegram post"
 → `/viral-text` directly. It handles hook → 5 points → micro-conclusion → CTA, then runs `writer` cleanup internally.
 
-### "I'm rewriting a chapter of АБ / ЭА"
-→ `/prose-edit` on the file or fragment. It applies fiction voice rules, runs canon-check internally if you point at an ЭА chapter, then runs `writer` cleanup.
+### "I'm rewriting a fiction chapter"
+→ `/prose-edit` on the file or fragment. It applies fiction voice rules then runs `writer` cleanup. If you have a story bible — chain `/canon-check` separately.
 
-### "I'm drafting a non-fiction chapter of НК / a longread"
+### "I'm drafting a non-fiction chapter / longread"
 → `/essay-write`. It enforces long subordinate sentences, source-backed claims, V/H/P hypothesis markers, then runs `writer` cleanup.
 
 ### "I want a Pelevin-style digression in the middle of a scene"
-→ `/pelevin-digression at <file:line>`. It writes the digression in voice, then chains to `prose-edit` (if you're in a fiction chapter) or `essay-write` (non-fic), which themselves chain to `writer`.
+→ `/pelevin-digression at <file:line>`. It writes the digression in voice, then chains to `prose-edit` (if you're in a fiction passage) or `essay-write` (non-fic), which themselves chain to `writer`.
 
 **Don't invoke `pelevin-digression` for a whole chapter.** Voice fatigue kills the effect. It's a single-passage tool by design.
 
 ### "I want to lint my draft before I commit"
-→ `/style-check staged` (or `style-check chapter <book> <chN>`). It auto-routes by file path:
-- `books/god-academy/**/chapters/*.tex` → fiction lint (writer + prose-edit rules)
-- `books/era-arkhitektorov/**/chapters/*.tex` → fiction lint + canon-check trigger
-- `books/heavenly-code/**/chapters/*.tex` → non-fiction lint (writer + essay-write rules)
-- anything else → writer-only lint
+→ `/style-check staged` (or `/style-check file <path>`). It routes by configurable path patterns — defaults are illustrative (fiction folder → fiction lint, essays folder → non-fic lint), point them at your own paths.
 
 ### "I'm about to commit a translated chapter"
 → `/translation-sync chapter <book> <chN>`. Read-only — produces a parity report across RU / EN / PT-BR versions. Fix what BLOCKING says before committing.
@@ -104,10 +100,9 @@ The wrapper does the voice work. `style-check` is a safety net before committing
 
 ```
 chapter has a flat exposition paragraph at line 142
-  → /pelevin-digression at ch05.tex:142 "брендовая социология двухтысячных"
+  → /pelevin-digression at fiction/ch05.md:142 "брендовая социология двухтысячных"
     → produces voice-shaped passage
-    → chains to /prose-edit (canon-check + fiction voice)
-    → chains to /writer (final cleanup)
+    → chains to /prose-edit (fiction voice + writer cleanup)
   → diff shown to author
   → author commits
 ```
@@ -116,19 +111,19 @@ chapter has a flat exposition paragraph at line 142
 
 ```
 finish RU chapter
-  → /translation-sync chapter god-academy ch07 (parity report)
-  → fix terminology drift in en/ch07.tex per report
-  → /style-check file en/ch07.tex
+  → /translation-sync chapter <your-book> ch07 (parity report)
+  → fix terminology drift in en/ch07.md per report
+  → /style-check file en/ch07.md
   → commit all 3 files together
 ```
 
 ### Pattern: introducing a new entity
 
 ```
-about to add a new character to ch08 of EA
-  → /canon-check entity era-arkhitektorov "новое-имя"  (probably reports "no bible entry")
+about to add a new character to ch08 of your series
+  → /canon-check entity <your-book> "<new-name>"  (probably reports "no bible entry")
   → write the chapter
-  → /canon-check chapter era-arkhitektorov ch08  (now flags WARNING: new entity)
+  → /canon-check chapter <your-book> ch08  (now flags WARNING: new entity)
   → manually add bible entry per the WARNING
   → re-run /canon-check (now INFO: confirmed)
   → commit
@@ -152,7 +147,7 @@ The voice is designed for 1-3 paragraph inserts. Apply chapter-wide and you get 
 
 ### Editing the story-bible from a chapter PR
 
-`canon-check` flags drift; the author decides what's canonical. Don't edit `story-bible.tex` and a chapter in the same commit — the bible should change deliberately, with its own commit, after the chapter is settled.
+`canon-check` flags drift; the author decides what's canonical. Don't edit your story-bible document and a chapter in the same commit — the bible should change deliberately, with its own commit, after the chapter is settled.
 
 ### Running translation-sync before all three languages exist
 

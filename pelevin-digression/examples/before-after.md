@@ -1,6 +1,6 @@
 # Калибровочные образцы — пелевинская дигрессия
 
-**CALIBRATION SAMPLES — used to test the skill's voice technique catalogue. Examples are author-voice-consistent but generic (no real АБ/ЭА/НК references).** Все имена/события — иллюстративные, не из канона книг.
+**CALIBRATION SAMPLES — used to test the skill's voice technique catalogue. Examples are deliberately generic — no real book canon, no real characters.** Все имена/события — иллюстративные.
 
 ---
 

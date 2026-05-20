@@ -69,12 +69,12 @@ After install, open Claude Code and try:
 |---|---|
 | Write a viral Telegram post about morning routines | `/viral-text утренние ритуалы` |
 | Clean a draft pasted in chat | `/writer clean` (then paste) |
-| Rewrite a fiction chapter fragment | `/prose-edit rewrite books/god-academy/ru/chapters/ch05.tex 142:198` |
+| Rewrite a fiction chapter fragment | `/prose-edit rewrite fiction/ch05.md 142:198` |
 | Draft a non-fiction chapter on quantum coherence | `/essay-write chapter` (then describe topic) |
-| Insert a Pelevin-style digression at a specific line | `/pelevin-digression at ch07.tex:201 "брендовая социология"` |
+| Insert a Pelevin-style digression at a specific line | `/pelevin-digression at fiction/ch07.md:201 "брендовая социология"` |
 | Lint staged changes before commit | `/style-check staged` |
-| Verify a translation matches across RU/EN/PT-BR | `/translation-sync chapter god-academy ch05` |
-| Check a chapter against the story bible | `/canon-check chapter era-arkhitektorov ch12` |
+| Verify a translation matches across RU/EN/PT-BR | `/translation-sync chapter your-book ch05` |
+| Check a chapter against your story bible | `/canon-check chapter your-book ch12` |
 | See if there's a new version of the collection | `/skills-update` |
 
 See [docs/COMPOSING.md](docs/COMPOSING.md) for the full dependency graph and "when to invoke which" decision tree.
@@ -89,11 +89,11 @@ Skills are organized by layer: one base editor + wrappers/linter on top.
 |---|---|---|
 | [`writer`](writer/) | base | Base clean-prose editor. Antinyeyroslop (23 categories), typography, structural synthetics (staccato / double negation / chunks / inversions / repetitions), RU calque dictionary. Invoked by all other prose skills as their final pipeline step. Can also be called directly in `clean` / `lint` / `apply` modes. Ships with an offline regex linter (`writer/scripts/lint.py`). |
 | [`viral-text`](viral-text/) | wrapper | Write viral social media content (RU/EN) — hooks, 5 numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules, hook criteria, research via WebSearch, platform adaptation (Telegram / Threads / Instagram / Twitter / LinkedIn / Facebook), two-stage validation. Built on top of `writer`. |
-| [`prose-edit`](prose-edit/) | wrapper | Fiction rewrite layer for the author's books (АБ / ЭА / НК). Voice (Pelevin/Manson), 10-item style drift checklist, canon check, no meta-refs / anglicisms in narrator voice, long artistic rewrite preferred over compression, AB ToV pattern, 5-trigger structural synthesis detector, Postirony depth-pass checklist, AI-aphorism trap. |
-| [`essay-write`](essay-write/) | wrapper | Non-fiction layer (НК chapters, longreads, essays). Long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content, sparing with metaphors, 7-case structural synthesis false-positive filter, V/H/P hypothesis markers. |
-| [`style-check`](style-check/) | linter | Read-only pre-commit lint stacked on top of writer / prose-edit / essay-write. Auto-routes by file path (`books/god-academy/` → fiction; `books/heavenly-code/` → non-fic). BLOCKING / WARNING / INFO severity. Exit-code semantics for git hooks. Includes post-rewrite signature catalogue. |
+| [`prose-edit`](prose-edit/) | wrapper | Fiction-prose rewrite layer. Voice vector (Pelevin/Manson — not impersonation), 10-item style drift checklist, no meta-refs / anglicisms in narrator voice, long artistic rewrite preferred over compression (no comma-stitching), ToV pattern, 5-trigger structural synthesis detector, Postirony depth-pass checklist, AI-aphorism trap. Works on any text format (md/tex/txt). |
+| [`essay-write`](essay-write/) | wrapper | Non-fiction layer (longreads, essays, popular-science chapters). Long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content, sparing with metaphors, 7-case structural synthesis false-positive filter, V/H/P hypothesis markers. |
+| [`style-check`](style-check/) | linter | Read-only pre-commit lint stacked on top of writer / prose-edit / essay-write. Routes by configurable path patterns (fiction vs non-fic — illustrative defaults, configure your own). BLOCKING / WARNING / INFO severity. Exit-code semantics for git hooks. Includes post-rewrite signature catalogue. |
 | [`translation-sync`](translation-sync/) | linter | Pre-commit parity checker for multilingual book translations (RU ↔ EN ↔ PT-BR). Per-language typography, terminology canon, anchor-quote translations, names / patronymics / diminutives, cultural-realia footnote pattern, "do not smooth this number" guard. Read-only. |
-| [`canon-check`](canon-check/) | linter | Story-bible consistency auditor for the author's book series (АБ / ЭА / НК). Greps entities in changed chapters, cross-references `story-bible.tex`, flags BLOCKING contradictions / WARNING gaps / INFO new details. Principle: trust the text, not memory. |
+| [`canon-check`](canon-check/) | linter | Story-bible consistency auditor for any book series. Greps entities in changed chapters, cross-references your project's story-bible document, flags BLOCKING contradictions / WARNING gaps / INFO new details. Principle: trust the text, not memory. |
 | [`pelevin-digression`](pelevin-digression/) | wrapper | Write a Pelevin-voice-vector digression for a fiction or non-fiction passage. 12 structural techniques (bracket-essay, brand-name sociology, anti-gradation list, forward-link, …) + 5 banned constructions. Invoked by request, composes with `prose-edit` (fiction) or `essay-write` (non-fic). |
 | [`skills-update`](skills-update/) | meta | User-invocable update check + apply for this collection (see Update section above). |
 

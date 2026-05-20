@@ -1,6 +1,6 @@
 ---
 name: canon-check
-description: "Verify story-bible consistency for the author's book series before editing or committing. Greps character names / artifacts / locations in changed chapters, cross-references against story-bible.tex per book, flags drift. Read-only — produces a structured drift report; never edits files or the bible. Use before opening a new chapter, before committing a chapter, or when introducing a character / artifact / location that may have been established elsewhere."
+description: "Verify story-bible consistency for any fiction series with a documented canon. Greps character names / artifacts / locations in changed chapters, cross-references against the project's story bible, flags drift between chapters and between bible and text. Read-only — produces a structured drift report; never edits files or the bible. Use before opening a new chapter, before committing a chapter, or when introducing a character / artifact / location that may have been established elsewhere."
 license: MIT
 allowed-tools:
   - Read
@@ -10,163 +10,155 @@ allowed-tools:
 ---
 
 <objective>
-Read-only story-bible auditor для книжной серии автора. Перед любой вставкой, рерайтом главы или коммитом — сверяет упоминания персонажей / артефактов / локаций в текущем тексте с зафиксированным каноном книги. Сигналит про дрейф. Не правит ни главу, ни bible.
+Read-only story-bible auditor for any book series that maintains a written canon. Before any insertion, rewrite, or commit — cross-references mentions of characters / artifacts / locations in the current text against the project's recorded canon. Flags drift. Does not edit the chapter or the bible.
 
-**Why this skill exists.** Автор ломал канон три раза подряд, каждый раз ловил вручную, цена — переписывание сцены, иногда дважды:
-
-1. **ЭА ch03** — перенёс встречу с Ирэн без учёта хвата из АБ гл. 21 (большой и указательный сверху, остальные три снизу).
-2. **ЭА ch06** — перенёс яйцо-Квинту из кабинета Вэй Лина в «комнату Номы» и дал ему мужской род.
-3. **НК-триптих** — написал врезку про «рыжую», не проверив, что она уже зафиксирована в `interlude10.tex` как **Татьяна Ларина / Ginger / Рыжая Ведьма** с развёрнутой биографией.
-
-Плюс невыясненные несоответствия из cleanup-session (требуют решения автора):
-- ch05 — число смехов Вэй Лина (bible: 2; текст: 1).
-- ch13 — возраст времяхода Лии (bible: «семилетней»; текст: 10 лет 8 месяцев, шесть фаз).
-- эпилог — возраст отца Дана (bible: 74; текст: 84).
+**Why this skill exists.** The same canon-break patterns recur across long-form fiction projects: a character's documented physical invariant gets accidentally inverted in a later chapter; an artifact moves room without explanation; a recurring character appears under a generic descriptor when an established proper name already exists; a count or age stated in the bible doesn't match what the text actually shows. Each break is cheap to catch at lint time and expensive to catch in print.
 
 Use cases:
-- перед открытием новой главы — проверить, что устанавливаемые имена / артефакты / локации не дублируют установленные;
-- перед `git commit` — staged diff vs канон;
-- при упоминании знакомого персонажа в новой сцене — собрать все его прошлые появления + bible entry;
-- read-only аудит самого bible (что упоминается в тексте, но не зафиксировано).
+- before opening a new chapter — confirm the names / artifacts / locations you're about to establish don't duplicate something already established;
+- before `git commit` — staged diff vs canon;
+- when mentioning a known character in a new scene — gather all their prior appearances + their bible entry;
+- read-only audit of the bible itself (what gets mentioned in the text but never canonized).
 
-**Books the skill knows about:**
-- `god-academy` (АБ) — художка, `books/god-academy/notes/story-bible.tex`, раздел «КАНОН АБ»
-- `era-arkhitektorov` (ЭА) — художка, `books/era-arkhitektorov/notes/story-bible.tex`, раздел «КАНОН АБ: детали, которые нельзя переврать» + собственный канон ЭА
-- `heavenly-code` (НК) — нон-фикшн, биографический канон в `~/.claude/projects/.../memory/user_biography*.md` + `books/heavenly-code/notes/story-bible.tex` (раздел «КАНОН АВТОБИОГРАФИИ»)
+**What the skill needs to know about your project:**
+- where your chapter files live (any of `.md` / `.tex` / `.txt` / `.rst`)
+- where your story bible lives (typically a single document per book — `<book>/notes/story-bible.{md,tex,txt}` or similar)
+- which books are in the same series (so the skill can cross-reference inherited canon)
+
+If the project follows the conventional layout (`<book>/{lang}/chapters/*` for chapters, `<book>/notes/story-bible.*` for the bible), the default routing works out of the box. Otherwise, override the routing patterns in [references/routing.md](references/routing.md).
 </objective>
 
 <instructions>
 
 ## ROLE
 
-Story-bible auditor. **NOT continuity editor.** Скилл только сигналит про расхождения между:
-- (a) текущим черновиком,
-- (b) story-bible,
-- (c) другими опубликованными главами той же книги.
+Story-bible auditor. **NOT a continuity editor.** The skill only signals discrepancies between:
+- (a) the current draft,
+- (b) the story bible,
+- (c) other published chapters of the same book.
 
-Решает автор. Скилл не правит ни главу, ни bible.
+The user decides. The skill does not edit the chapter or the bible.
 
 ## CORE PRINCIPLE — TRUST THE TEXT, NOT MEMORY
 
-Когда находится противоречие между «что говорит текущая глава», «что говорит bible» и «что „помнит“ модель» — приоритет разрешения:
+When a contradiction appears between "what the current chapter says", "what the bible says", and "what the model 'remembers'" — the resolution priority is:
 
-1. **Опубликованные главы той же книги** = ground truth. Всё, что зафиксировано в `books/<book>/ru/chapters/*.tex` — это канон, даже если bible молчит.
-2. **Story-bible.tex** = следующий уровень канона. Если глава и bible расходятся — это материал для решения автором, не для автоправки.
-3. **Память / утверждения о прошлом тексте** = НАИМЕНЕЕ доверенный источник. Если «помнишь», что было иначе, — ты ошибаешься. Грепни и перечитай.
+1. **Published chapters of the same book** = ground truth. Anything recorded in `<book>/<lang>/chapters/*` is canon, even if the bible is silent.
+2. **The story bible** = next canon tier. If a chapter and the bible disagree — this is material for the user to decide, not for auto-fix.
+3. **Model memory / claims about prior text** = LEAST trusted source. If you "remember" otherwise, you are wrong. Grep and re-read.
 
-Никогда не цитируй прошлый текст по памяти. Всегда `grep` + `Read` перед утверждением «в гл.~X было Y».
+Never cite prior text from memory. Always `grep` + `Read` before stating "in chapter X it was Y".
 
 ## ROUTING
 
-Скилл определяет, какой bible применить, по пути файла. Полная таблица — в [references/routing.md](references/routing.md). Кратко:
+The skill picks the bible to apply based on file path. Full table — in [references/routing.md](references/routing.md). Briefly (illustrative defaults; adapt to your project):
 
 ```
-books/god-academy/{ru,en,pt-br}/chapters/*.tex       → books/god-academy/notes/story-bible.tex
-books/era-arkhitektorov/{ru,en,pt-br}/chapters/*.tex → books/era-arkhitektorov/notes/story-bible.tex
-books/heavenly-code/{ru,en,pt-br}/chapters/*.tex     → ~/.claude/.../memory/user_biography*.md
-                                                     + books/heavenly-code/notes/story-bible.tex
-любой другой путь                                    → SKIP (тихо)
+<book>/{ru,en,pt-br,...}/chapters/*.{md,tex,txt,rst}  → <book>/notes/story-bible.{md,tex,txt}
+sequel-book/<lang>/chapters/*                         → sequel-book/notes/story-bible.* + parent-book/notes/story-bible.*
+                                                       (for inherited-canon sections)
+any other path                                        → SKIP silently
 ```
 
 ## MODES
 
-### `chapter <book> <chN>` — полный канон-скан главы
+### `chapter <book> <chN>` — full canon scan of a chapter
 
 ```bash
-# Пример:
-canon-check chapter god-academy ch07
-# → scans books/god-academy/ru/chapters/ch07.tex
-#   (плюс en/ch07.tex и pt-br/ch07.tex если есть — но bible один)
+# Example:
+canon-check chapter your-book ch07
+# → scans <book>/<lang>/chapters/ch07.{md,tex,...}
+#   (plus other-language siblings if present — but the bible is one)
 ```
 
-Полный пасс по файлу: извлечь сущности → сверить с bible → собрать другие появления.
+Full pass over the file: extract entities → cross-reference the bible → collect other appearances.
 
 ### `staged` — staged diff
 
 ```bash
 git diff --cached --name-only
-# для каждого .tex в books/<known>/{ru,en,pt-br}/chapters/ — pass по добавленным/изменённым строкам
+# for each known-book chapter file — pass over added/changed lines
 ```
 
-### `entity <book> <name>` — все появления сущности
+### `entity <book> <name>` — all appearances of an entity
 
 ```bash
-canon-check entity era-arkhitektorov "Ирэн"
-# → bible entry + список всех файлов и строк, где появляется
+canon-check entity your-book "Character A"
+# → bible entry + list of every file and line where it appears
 ```
 
-Полезно перед написанием новой сцены с уже установленным персонажем.
+Useful before writing a new scene with an already-established character.
 
-### `audit-bible <book>` — структурный аудит bible
+### `audit-bible <book>` — structural bible audit
 
-Найти сущности, которые упоминаются в `chapters/*.tex` ≥ N раз, но не имеют записи в bible (WARNING — «silent canon»). Не правит bible — только список.
+Find entities mentioned in `chapters/*` ≥ N times but with no bible entry (WARNING — "silent canon"). Does not edit the bible — just lists.
 
-## PIPELINE (краткая версия; полная — в [references/workflow.md](references/workflow.md))
+## PIPELINE (short version; full version — in [references/workflow.md](references/workflow.md))
 
-**Шаг 1. Извлечь сущности из проверяемого текста.**
-- **Персонажи:** capitalized слова (русские/латиница) + сверка с списком установленных имён из bible (`\subsection{Имена...}`, `\section{ГЛАВНЫЕ ПЕРСОНАЖИ}`, `\section{ВТОРОСТЕПЕННЫЕ ПЕРСОНАЖИ}`).
-- **Артефакты:** словарь из bible (Квинта, яйцо, посох, PDF, трость, Nokia, феназепам, …) — каждая книга имеет свой словарь, см. `\subsection{Физические инварианты}`.
-- **Локации:** топонимы из bible (`\subsection{Локации}` / `\subsection{Локации с весом}`).
+**Step 1. Extract entities from the text under review.**
+- **Characters:** capitalized words (any script) + cross-reference with the established-name list from the bible (`Characters` / `Main characters` / `Supporting characters` sections).
+- **Artifacts:** dictionary built from the bible's `Physical invariants` / `Artifacts` sections. Each book maintains its own dictionary.
+- **Locations:** toponyms from the bible's `Locations` / `Locations of weight` section.
 
-**Шаг 2. Для каждой сущности — собрать контекст.**
+**Step 2. For each entity — gather context.**
 
 ```bash
 # bible entry:
-grep -n -A 5 "<entity>" books/<book>/notes/story-bible.tex
+grep -n -A 5 "<entity>" <book>/notes/story-bible.*
 
-# другие появления в главах:
-grep -rn "<entity>" books/<book>/ru/chapters/
+# other appearances in chapters:
+grep -rn "<entity>" <book>/<lang>/chapters/
 ```
 
-Прочитать всё. Не цитировать по памяти.
+Read everything. Don't quote from memory.
 
-**Шаг 3. Сравнить с текущим текстом.**
+**Step 3. Compare with the current text.**
 
-Искать противоречия:
-- атрибут (возраст, профессия, локация, цвет) расходится с bible или с другой главой
-- жест / физический инвариант (хват, лаг, число) изменён
-- цитата-якорь перефразирована
-- артефакт сменил локацию / владельца / род
-- персонаж появился без имени, хотя в bible уже зафиксирован под именем
+Look for contradictions:
+- attribute (age, profession, location, colour) diverges from the bible or from another chapter
+- gesture / physical invariant (handedness, lag, count) altered
+- anchor quote paraphrased
+- artifact changed location / owner / grammatical gender
+- character appears without a name, even though the bible already locks them under a proper name
 
-**Шаг 4. Если новая сущность — flag for author.**
+**Step 4. If a new entity — flag for the user.**
 
-Если в тексте появляется явная новая сущность (имя собственное, артефакт), которой нет в bible — **WARNING, не auto-add**. Скилл не правит bible. Решает автор: канонизировать или вычистить.
+If a clearly new entity appears in the text (proper noun, artifact) that has no bible entry — **WARNING, not auto-add**. The skill does not edit the bible. The user decides: canonize or remove.
 
-Полный список known incidents и pattern detection — в [references/known-incidents.md](references/known-incidents.md).
+Full list of detection classes and pattern-detection recipes — in [references/known-incidents.md](references/known-incidents.md).
 
 ## SEVERITY LEVELS
 
-- **BLOCKING** — текст явно противоречит конкретной записи в bible (пример: bible «Ирэн правша, хват большой+указательный сверху»; текст «взяла левой рукой»). Или: текст противоречит другой опубликованной главе той же книги.
-- **WARNING (silent canon)** — сущность фигурирует в тексте ≥ 2 раз (в этой или других главах), но не имеет записи в bible. Должна быть добавлена.
-- **WARNING (cross-chapter drift)** — bible молчит, но две главы дают разные атрибуты сущности.
-- **INFO (canon expansion)** — введена новая деталь о уже зафиксированной сущности (не противоречие — расширение). Опционально добавить в bible.
+- **BLOCKING** — text contradicts a concrete bible entry (example: bible "Character A is right-handed, grip = thumb+index on top"; text "took it left-handed"). Or: text contradicts another published chapter of the same book.
+- **WARNING (silent canon)** — entity appears in the text ≥ 2 times (in this chapter or others), but has no bible entry. Should be added.
+- **WARNING (cross-chapter drift)** — bible silent, but two chapters give different attributes for the same entity.
+- **INFO (canon expansion)** — a new detail introduced about an already-canonized entity (not a contradiction — an expansion). Optionally add to the bible.
 
-## EXIT CODE (если запущен как pre-commit hook)
+## EXIT CODE (if invoked as a pre-commit hook)
 
-- `0` — только INFO. Можно коммитить.
-- `1` — WARNING (silent canon / cross-chapter drift). Спросить автора.
-- `2` — BLOCKING (явное противоречие). Прервать коммит.
+- `0` — only INFO. Commit allowed.
+- `1` — WARNING (silent canon / cross-chapter drift). Ask the user.
+- `2` — BLOCKING (clear contradiction). Abort the commit.
 
-В обычном вызове exit code не используется — только отчёт.
+In normal calls the exit code is not used — only the report.
 
 ## INTEGRATION
 
-Скилл сам не ставит hook. Если автор попросит — стандартный паттерн от style-check: `.git/hooks/pre-commit` вызывает враппер Claude Code с `/canon-check staged`. Скилл не редактирует `.git/hooks/` сам.
+The skill does not install the hook itself. If the user asks — the standard pattern from style-check: `.git/hooks/pre-commit` calls a Claude Code wrapper with `/canon-check staged`. The skill does not edit `.git/hooks/` itself.
 
 ## OUTPUT FORMAT
 
-Структурированный отчёт с тремя секциями (по severity) + SUMMARY с покрытием bible. Эталон — в [examples/sample-report.md](examples/sample-report.md).
+Structured report with three sections (by severity) + SUMMARY with bible coverage. Reference template — in [examples/sample-report.md](examples/sample-report.md).
 
 ## WHAT NOT TO DO
 
-- **Не правит главы.** Только сигналит. Правки — через `prose-edit` или вручную автором.
-- **Не правит story-bible.** Bible обновляет автор, после решения, какая версия канонична.
-- **Не доверяет собственной памяти** о прошлых главах — всегда `grep` + `Read`. Если «помнишь» иначе, чем сказано в тексте — текст победил.
-- **Не auto-canonize.** Новая сущность → WARNING для автора, не молчаливая запись в bible.
-- **Не запускает sub-agents.** Read-only, всё через Read + Grep + Bash.
-- **Не лезет в код.** `.py`, `.js`, `.ts`, `.go` — skip.
-- **Не запускается в `/loop` или `/schedule`.** Это интерактивный аудит, а не cron.
+- **Does not edit chapters.** Reports only. Edits — via `prose-edit` or by hand.
+- **Does not edit the story bible.** The user updates the bible after deciding which version is canonical.
+- **Does not trust its own memory** about prior chapters — always `grep` + `Read`. If you "remember" it differently from what the text says — the text wins.
+- **Does not auto-canonize.** A new entity → WARNING for the user, not a silent bible append.
+- **Does not spawn sub-agents.** Read-only, everything via Read + Grep + Bash.
+- **Does not touch code.** `.py`, `.js`, `.ts`, `.go` — skip.
+- **Does not run inside `/loop` or `/schedule`.** This is an interactive audit, not a cron job.
 
 </instructions>
 
@@ -174,8 +166,8 @@ grep -rn "<entity>" books/<book>/ru/chapters/
 
 | File | When to load |
 | --- | --- |
-| [references/workflow.md](references/workflow.md) | Нужны точные grep-команды для извлечения сущностей и сверки канона. 3-шаговый протокол с примерами. |
-| [references/bible-format.md](references/bible-format.md) | Нужна структура `story-bible.tex` — какие разделы существуют, куда автор добавит новые записи. |
-| [references/known-incidents.md](references/known-incidents.md) | Нужна калибровка по реальным канон-поломкам автора (хват Ирэн, яйцо-Квинта, рыжая ведьма + cleanup-session). |
-| [references/routing.md](references/routing.md) | Решаешь, какой bible применить к конкретному пути. |
-| [examples/sample-report.md](examples/sample-report.md) | Нужна калибровка тона/детализации отчёта. |
+| [references/workflow.md](references/workflow.md) | Need exact grep commands for entity extraction and canon cross-reference. 3-step protocol with examples. |
+| [references/bible-format.md](references/bible-format.md) | Need the typical structure of a story bible — what sections to expect, where new entries go. |
+| [references/known-incidents.md](references/known-incidents.md) | Need calibration on the general classes of canon break this skill is designed to catch (with detection recipes). |
+| [references/routing.md](references/routing.md) | Deciding which bible to apply to a given file path. |
+| [examples/sample-report.md](examples/sample-report.md) | Need tone/detail calibration for the report. |

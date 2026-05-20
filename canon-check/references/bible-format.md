@@ -1,109 +1,110 @@
-# BIBLE FORMAT — структура story-bible.tex
+# BIBLE FORMAT — typical structure of a story bible
 
-Каждая книга серии хранит канон в `books/<book>/notes/story-bible.tex`. Файлы — LaTeX (`\documentclass{article}`, `\section{}`, `\subsection{}`). Скилл читает их как текст, ищет секции по именам.
+Each book in a series typically holds its canon in a single document — usually `<book>/notes/story-bible.{md,tex,txt,rst}`. The skill reads it as plain text and locates sections by name.
 
-**Перед применением — verify against the actual file:** структура слегка отличается между АБ / ЭА / НК. Список ниже — реальный, снят с актуальных файлов мая 2026, но автор может реорганизовать. Если секция не найдена по имени — `grep -n "^\\\\section\|^\\\\subsection" <bible>` и подобрать ближайшую.
-
----
-
-## god-academy (АБ) — `books/god-academy/notes/story-bible.tex`
-
-Ключевые секции для канон-проверки:
-
-```
-\section{КАНОН АБ: что нельзя менять при переводах и в будущих книгах серии}
-  \subsection{Имена, возрасты, даты}              ← возрасты, профессии, факты-якоря
-  \subsection{Физические инварианты}              ← хваты, числа, лаги, кулак
-  \subsection{Цитаты-якоря (не перефразировать)}  ← «Я знаю.», «Один. Целый. Черновик.»
-  \subsection{Жесты с сюжетной нагрузкой}         ← порядок жестов, отсутствие прощаний
-  \subsection{Субъектные механики}                ← термины, которые нельзя путать
-  \subsection{Безымянный PDF (гл.~3)}             ← одиночный канонический факт
-  \subsection{Локации --- фиксированные}          ← Шаболовка, Хамовники, Нескучный
-
-\section{ГЛАВНЫЕ ПЕРСОНАЖИ}
-  \subsection{Даниил Рейнов (Дан)} ... \subsection{Отец Дана}
-
-\section{ВТОРОСТЕПЕННЫЕ ПЕРСОНАЖИ}
-  \subsection{Лена Маркова} ... \subsection{Марина}
-```
+**Before applying — verify against the actual file.** Project-specific bibles vary in section names and ordering. The structure below is a recommended template; adapt to your project. If a section is not found by its expected name, list the document's headings (`grep -n "^#\|^\\\\section\|^\\\\subsection" <bible>`) and pick the closest match.
 
 ---
 
-## era-arkhitektorov (ЭА) — `books/era-arkhitektorov/notes/story-bible.tex`
+## Recommended structure (for any single-book bible)
 
 ```
-\section{ЛОГЛАЙН И ТОНАЛЬНОСТЬ}
-  \subsection{Тональность и стиль}
+CANON OVERVIEW — what must not change in translations or sequels
+  Names, ages, dates             ← life-facts, profession anchors
+  Physical invariants            ← grips, counts, lags, gestures, named objects
+  Anchor quotes (not to paraphrase) ← load-bearing lines, with cross-language translations
+  Loaded gestures                ← action patterns with plot weight
+  Subject-mechanics              ← in-universe terminology not to confuse
+  Single-fact items              ← isolated canonical facts
+  Fixed locations                ← named places, addresses, weight
 
-\section{СТРУКТУРА ПО ГЛАВАМ}                    ← поглавный план + ожидаемые сцены
-\section{КАНОН АБ: детали, которые нельзя переврать}  ← наследие от АБ
-\section{КАНОН ЭА}                               ← собственный канон ЭА
-  \subsection{Имена, возрасты, даты}             ← включая Лия, время прохода
-  \subsection{Артефакты ЭА}                      ← Квинта, Времяход, Книга Жизни, трость
+MAIN CHARACTERS
+  <Character A>, <Character B>, ...
+
+SUPPORTING CHARACTERS
+  <Character N>, <Character M>, ...
 ```
 
-В ЭА bible хранит и наследие АБ (то, что нельзя переврать), и свои новые установки. **Перед изменением сцены, упоминающей АБ-персонажа в ЭА, читать оба bible**.
+For a sequel or series book, also include:
+
+```
+INHERITED CANON FROM PARENT BOOK — details that cannot be re-projected back
+  (typically a copy/excerpt from the parent book's "Canon overview" section)
+
+SEQUEL-SPECIFIC CANON
+  Names, ages, dates             ← new characters / shifted ages
+  Artifacts                      ← objects introduced in this book
+  (etc.)
+```
+
+For non-fiction with a biographical canon, structure is similar but the "characters" are real people and the "locations" carry weight from real biography:
+
+```
+BIOGRAPHICAL CANON
+  Timeline                       ← life events, dates
+  People and relationships       ← named individuals and their roles
+  Loaded locations               ← real places with documentary weight
+```
 
 ---
 
-## heavenly-code (НК) — биографический канон
+## Where the canon may live for non-fiction projects
 
-Два источника:
+Non-fiction biographical projects sometimes split canon across two sources:
 
-1. `books/heavenly-code/notes/story-bible.tex` — структура аналогичная (`\section{КАНОН АВТОБИОГРАФИИ}`, `\subsection{Хронология...}`, `\subsection{Жёны и дети}`, `\subsection{Локации с весом}`).
-2. `~/.claude/projects/-Users-mikefluff-Documents-godacademy/memory/user_biography*.md` — расширенный биографический канон:
-   - `user_biography.md` — основной
-   - `user_biography_details.md` — углублённый
-   - `user_biography_kesha.md`, `user_biography_mogwai.md` — отдельные арки/персонажи
+1. The book's own `notes/story-bible.{md,tex,...}` — formal structure (timelines, named individuals, locations).
+2. An external memory file or notes document the user maintains — extended biographical detail, character arcs, side memoirs.
 
-Для НК канон-чек должен пройти **по обоим источникам** (bible + memory). Перед вставкой о человеке/месте в врезку — грепнуть и user_biography\*, и опубликованные главы НК + interlude\*.
+For non-fiction canon-check, the skill should read **both sources** when available. The location and naming of any external memory file is project-specific; configure it in [references/routing.md](references/routing.md) and reference it explicitly.
+
+When sources disagree, ask the user — never guess. External memory may be outdated; the bible may be incomplete.
 
 ---
 
-## Как добавлять новые записи в bible
+## How to add new entries to the bible
 
-**Скилл этого не делает.** Канон обновляет автор. Но если автор спросит «как мне это добавить?» — следующий паттерн:
+**The skill does not do this.** Canon is updated by the user. But if asked "how do I add this?" — the following template applies (LaTeX shown; Markdown / plain-text equivalents work identically).
 
-### Персонаж
+### Character
 
 ```latex
-\subsection{<Имя Фамилия>}
-\textbf{<Имя>.} <возраст> лет, <профессия>, <локация>.
-<Одна-две дополнительные строки канон-фактов.>
+\subsection{<Name Surname>}
+\textbf{<Name>.} <age>, <profession>, <location>.
+<One or two additional lines of canon facts.>
 ```
 
-Поместить в `\section{ГЛАВНЫЕ ПЕРСОНАЖИ}` или `\section{ВТОРОСТЕПЕННЫЕ ПЕРСОНАЖИ}` по весу роли.
+Place in `Main characters` or `Supporting characters` by role weight.
 
-### Артефакт / физический инвариант
+### Artifact / physical invariant
 
-В `\subsection{Физические инварианты}`:
+In `Physical invariants`:
 
 ```latex
-\item \textbf{<Название артефакта>:} <конкретный факт, число, жест, локация>.
+\item \textbf{<Artifact name>:} <concrete fact, count, gesture, location>.
 ```
 
-Конкретика — не «несколько», а число; не «пауза», а 900 мс.
+Specifics — not "a few" but a number; not "a pause" but `900 ms`.
 
-### Цитата-якорь
+### Anchor quote
 
-В `\subsection{Цитаты-якоря (не перефразировать)}`:
+In `Anchor quotes (not to paraphrase)`:
 
 ```latex
-\item \textbf{<<цитата>>} (<персонаж>, гл.~<N>) --- <за чем фиксируется>. EN: \textit{<<English>>}. PT-BR: \textit{<<Portuguese>>}.
+\item \textbf{<<quote>>} (<character>, ch.~<N>) --- <what it locks>. EN: \textit{<<English>>}. PT-BR: \textit{<<Portuguese>>}.
 ```
 
-Цитата идёт сразу с переводами — на следующем переводном пассе переводчик не «улучшит» по смыслу.
+The quote ships with its translations — on the next translation pass, the translator does not "improve by meaning".
 
-### Локация
+### Location
 
-В `\subsection{Локации --- фиксированные}`:
+In `Fixed locations`:
 
 ```latex
-\item \textbf{<Топоним>.} <Что там, кто там бывает, какие конкретные детали (адрес, этаж, номер квартиры если есть).>
+\item \textbf{<Place name>.} <Who lives / works / passes through; concrete details (address, floor, apt no. if any).>
 ```
 
 ---
 
-## Версионирование bible
+## Versioning the bible
 
-В шапке bible — комментарий `% v3.2 — синхронизирована с депт-пассом мая 2026 ...`. После любого канон-обновления автор поднимает версию вручную. Скилл версию не трогает, но в отчёте может процитировать (для трассировки: «bible v3.2 §3.2 говорит X»).
+Header comment, e.g. `% v3.2 — synchronized with depth-pass of YYYY-MM-DD ...`. After any canon update, the user bumps the version manually. The skill does not touch the version, but may quote it in the report (for traceability: "bible v3.2 §3.2 says X").

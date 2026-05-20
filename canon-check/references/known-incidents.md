@@ -1,162 +1,135 @@
-# KNOWN INCIDENTS — реальные канон-поломки
+# KNOWN INCIDENT CATEGORIES — the canon-break patterns this skill is designed to catch
 
-Каждый кейс: **что сломалось / что должно быть по канону / как это детектить в будущем**. Скилл цитирует эти кейсы как калибровку.
+Each category: **what tends to break / what the canon usually fixes / how to detect it programmatically**. The skill cites these categories as calibration.
+
+These five categories are the recurring shapes of canon failure across long-form fiction projects. Replace any project-specific entity name in the examples with your own — the **detection pattern** is what matters.
 
 ---
 
-## INCIDENT 1 — Хват Ирэн (ЭА ch03)
+## CATEGORY 1 — Physical invariant drift
 
-**Что сломалось.** В ЭА ch03 при переписывании сцены встречи с Ирэн автор-рерайтер взял жест из памяти, не сверившись с АБ гл.~21. Хват из АБ — конкретный физический инвариант: «большой и указательный сверху, остальные три снизу».
+**What tends to break.** A character has a documented physical invariant — handedness, a specific grip, a tic, a count of something (cracks in a window, beats in a knock, eye colour, scar position). On a rewrite of a later chapter, the writer reaches for the gesture from memory and inverts it. Example shape: bible says "Character A is left-handed and grips with thumb + index on top, three fingers below"; chapter 07 has them take the cup right-handed, palm-up.
 
-**Что должно быть по канону.** АБ bible v3.2 § «Физические инварианты»:
+**What the canon usually fixes.** Concrete physical specifics — handedness, exact grip, a counted number tied to identity (e.g. "always carries seven coins"), a recurring gesture that recurs across scenes. The bible's `Physical invariants` section is the home for these.
 
-> Хват матери: большой и указательный сверху, остальные три снизу. Одинаковый для чашки (гл.~21) и детских тапочек (воспоминание Дана). Это инвариант подписи, а не описательная деталь.
+**Detection class.** **Physical invariant drift** — the text references the character performing an action (takes, holds, picks up, clenches, embraces) but doesn't match the locked gesture.
 
-**Класс детекции.** **Physical invariant drift** — текст упоминает действие персонажа (взяла, держала, подняла), но не соблюдает зафиксированный канонический жест.
-
-**Как ловить:**
+**How to detect:**
 ```bash
-# Грепнуть все упоминания персонажа в контексте действия:
-grep -n -B 1 -A 1 -E "Ирэн|Ирин" books/era-arkhitektorov/ru/chapters/ch*.tex | \
-  grep -iE "(взял|держ|подн|сжал|обхват|чашк|рук)"
+# All mentions of the character in action context:
+grep -n -B 1 -A 1 -E "<character-name>" <book>/<lang>/chapters/*.{md,tex} | \
+  grep -iE "(took|held|picked|clutched|grasped|hand|grip|fist|palm)"
 
-# Сверить с инвариантом из АБ bible:
-grep -n -A 1 "Хват матер" books/god-academy/notes/story-bible.tex
+# Cross-reference with the invariant in the bible:
+grep -n -A 1 "<invariant-name>" <book>/notes/story-bible.*
 ```
 
 Severity: **BLOCKING.**
 
 ---
 
-## INCIDENT 2 — Яйцо-Квинта (ЭА ch06)
+## CATEGORY 2 — Artifact location / pronoun / owner drift
 
-**Что сломалось.** Автор-рерайтер перенёс яйцо-Квинту из кабинета Вэй Лина в «комнату Номы». Плюс присвоил мужской род. Двойная поломка:
+**What tends to break.** A named artifact (an object with canon weight — an heirloom, an instrument, a stored item) accidentally moves between scenes: changes room, changes owner, changes grammatical gender / pronoun. Example shape: in Book A the artifact lives on a shelf in Character X's flat; on a rewrite in Book B the artifact relocates to "Character Y's room" with no in-scene transit. Or: the artifact is canonically referred to as `she` in established translations, and a later pass uses `it` / `he`.
 
-1. **Локация.** В АБ Вэй Лин живёт в Хамовниках; яйцо лежит на полке у него. В ЭА Вэй Лин переехал в Академию, яйцо — там же. Перенести в «комнату Номы» — это не ЭА-канон.
-2. **Род.** Цитата-якорь из АБ ch04: «Она. --- Пауза. --- Не опасна, скорее любопытна: вы её чем-то заинтересовали.» Двухтактная реплика Вэй Лина именно как поправка местоимения Дана. Менять «она» на «он» — ломать якорь.
+**What the canon usually fixes.** Per-artifact entry naming: owner, location, grammatical gender (matters for translations), provenance, who has touched it. The bible's `Artifacts` / `Physical invariants` / `Locations` sections hold these.
 
-**Что должно быть по канону.**
-- АБ bible §3.2 «Локации»: «Хамовники. Квартира Вэй Лина в АБ. Чёрное каменное яйцо на полке.»
-- АБ bible «Цитаты-якоря»: реплика Вэй Лина зафиксирована как канон.
-- ЭА bible (раздел про Квинту) — в Академии, у Вэй Лина, не у Номы. Род женский.
+**Detection class.** **Artifact location / pronoun drift** — the artifact changes owner, location, or pronoun between chapters or books.
 
-**Класс детекции.** **Artifact location / pronoun drift** — артефакт меняет владельца, локацию или род между главами / книгами.
-
-**Как ловить:**
+**How to detect:**
 ```bash
-# Все упоминания артефакта в контексте локации:
-grep -rn -i -B 1 -A 1 "квинт\|яйц" books/era-arkhitektorov/ru/chapters/
+# All mentions of the artifact in location context:
+grep -rn -i -B 1 -A 1 "<artifact-name>" <book>/<lang>/chapters/
 
-# Род — искать местоимения рядом:
-grep -rn -E "(квинт|яйц).{0,80}(он |его |ему )" books/era-arkhitektorov/ru/chapters/
+# Pronoun usage near the artifact name:
+grep -rn -E "<artifact-name>.{0,80}(he |his |him |she |her |it |its )" <book>/<lang>/chapters/
 ```
 
 Severity: **BLOCKING.**
 
 ---
 
-## INCIDENT 3 — Рыжая ведьма (НК interlude10 / триптих)
+## CATEGORY 3 — Generic-vs-canonical-name drift
 
-**Что сломалось.** Автор-рерайтер написал врезку про «рыжую», не проверив, что она уже зафиксирована в `interlude10.tex` под полным паспортом: **Татьяна Ларина / Ginger / Рыжая Ведьма**, с развёрнутой биографией. Использовать обобщение «рыжая» вместо установленного имени — терять континуити.
+**What tends to break.** A recurring character is established by full proper name in one chapter (with epithets, biography, paragraph of canonization), then re-appears in a later chapter under a generic descriptor — "the redhead", "the friend from out of town", "the second son", "the wife". The text loses continuity because the reader (and the search) can't link the two appearances.
 
-**Что должно быть по канону.** В НК (нон-фикшн, биографический канон):
+**What the canon usually fixes.** A rule: generic-role descriptors ("the redhead", "the friend from X", "the second son", "the wife") almost always refer to a person who has **already been named in the text** elsewhere. The full name is the canon; the descriptor is a callback.
 
-> «Рыжая», «второй сын», «жена», «друг из Питера» и подобные обобщения в реплике автора почти всегда означают, что в тексте это лицо **уже названо по паспорту** — искать надо именно полное имя.
+**Detection class.** **Generic-vs-canonical-name drift** — the text uses a descriptor instead of the established proper name.
 
-**Класс детекции.** **Generic-vs-canonical-name drift** — текст использует обобщение («рыжая», «друг», «жена», «второй сын»), но в других главах персонаж уже назван полным именем.
-
-**Как ловить:**
+**How to detect:**
 
 ```bash
-# Обобщения по характеристике/роли:
-grep -rn -iE "(рыж|друг из|втор(ой|ого) сын|жен(а|ы))" books/heavenly-code/ru/chapters/
+# Descriptors by trait / role:
+grep -rn -iE "(redhead|friend from|second son|wife|husband|the old man|the youngster)" <book>/<lang>/chapters/
 
-# Параллельно — поиск полных имён в interlude'ах и memory:
-grep -rn -iE "Татьян|Ларин|Ginger" books/heavenly-code/ru/chapters/
-grep -in "Татьян\|рыж" ~/.claude/projects/-Users-mikefluff-Documents-godacademy/memory/user_biography*.md
+# In parallel — search for full names in earlier chapters / interludes / memory:
+grep -rn -iE "<known-full-name-or-pattern>" <book>/<lang>/chapters/
 ```
 
-Severity: **BLOCKING** (это уже не silent canon, а противоречие с установленным именем).
+Severity: **BLOCKING** (this is not silent canon — it's a contradiction with an established proper name).
 
 ---
 
-## INCIDENT 4 — Число смехов Вэй Лина (ЭА ch05)
+## CATEGORY 4 — Bible-prescribed count / age / temporal mismatch
 
-**Что сломалось.** Bible:131 предписывает в ch05 ДВА смеха Вэй Лина: «не поняла, почему смешно» Лии + «на цвете Альфа-пары». В тексте ch05 — ОДИН (ch05:261, на цвете). Первый смех в тексте отсутствует.
+**What tends to break.** The bible prescribes a count, age, or sequence — "Character laughs twice in this chapter", "Character is 7 when X happens, 17 when Y happens", "the event has three phases" — and the text doesn't match. Two sub-shapes:
 
-**Что должно быть по канону.** ЭА bible §131 — два смеха. Текст — один. Это **bible-vs-text mismatch**, решать автору: дописать сцену или убрать из bible.
+- **Count mismatch.** Bible says 2 laughs in ch05; text contains 1. The first laugh is missing or got cut in editing.
+- **Age / temporal drift.** Bible says Character is `7 in chapter 13`; text says `10 years and 8 months, over six phases`. Whole-cloth divergence.
 
-**Класс детекции.** **Count mismatch** — bible предписывает N появлений события / детали в главе, текст даёт другое число.
+**What the canon usually fixes.** Numeric and structural prescriptions — counts of events per chapter, character ages at specific scenes, phase counts in arcs, exact years of past events, lag values, durations.
 
-**Как ловить:**
+**Detection class.** **Bible-prescribed count / temporal mismatch** — bible says N (occurrences / age / phases / years), text says M.
+
+**How to detect:**
 
 ```bash
-# Найти предписания в bible в формате «два смеха», «три появления», «N раз»:
-grep -n -E "(два|две|три|четыре|пять|N|[0-9]+) (смех|появ|раз|жест)" books/era-arkhitektorov/notes/story-bible.tex
+# Find numeric prescriptions in the bible:
+grep -n -E "(two|three|four|five|N|[0-9]+) (laugh|appear|times|gesture|phase|year)" <book>/notes/story-bible.*
 
-# Проверить в конкретной главе число событий:
-grep -cn "смех\|засмеял\|смешн" books/era-arkhitektorov/ru/chapters/ch05.tex
+# Count event occurrences in a specific chapter:
+grep -cn "<event-keyword>" <book>/<lang>/chapters/<chN>.{md,tex}
+
+# Find all age mentions for a character in bible vs text:
+grep -n -E "<character>.{0,30}(years old|year|age)" <book>/notes/story-bible.*
+grep -rn -E "<character>.{0,80}(years old|year|age|months)" <book>/<lang>/chapters/
 ```
 
-Severity: **WARNING (cross-chapter / bible drift)** — bible не противоречит сам себе, но текст не выполняет предписание.
+Severity: **WARNING** for count mismatch (the bible doesn't contradict itself; the text just doesn't fulfil the prescription) → **BLOCKING** for age / temporal contradiction (clear text-vs-bible mismatch).
 
 ---
 
-## INCIDENT 5 — Возраст времяхода Лии (ЭА ch13)
+## CATEGORY 5 — Silent canon (entity recurs without bible entry)
 
-**Что сломалось.** Bible:215: «возвращается семилетней, с опытом семнадцатилетней». Текст: Лие 10 лет 8 месяцев, она проходит ШЕСТЬ фаз (12, 17, 22, 30, 40+, 60). Полное расхождение возраста + структуры времяхода.
+**What tends to break.** An entity (character, artifact, location) appears across two or more chapters with consistent attributes, but the bible has no entry for it. The detail accumulates in the text without ever being canonized — and on the next rewrite, someone re-invents it from scratch and breaks accidental coherence.
 
-**Что должно быть по канону.** Решить автору: переписать bible (расширить до шести фаз) или сжать времяход к одному 17-летнему опыту.
+**What the canon usually fixes.** Anything that recurs ≥ 2 times in the prose should have at least a one-line bible entry. The bible doesn't store everything; it stores everything that recurs.
 
-**Класс детекции.** **Age / temporal canon drift** — bible фиксирует возраст или этапы события, текст даёт другие.
+**Detection class.** **Silent canon** — entity present in text ≥ 2 times, no bible entry.
 
-**Как ловить:**
+**How to detect:**
 
 ```bash
-# Найти все упоминания возраста персонажа в bible и в тексте:
-grep -n -E "Ли[ия] .{0,30}(лет|год)" books/era-arkhitektorov/notes/story-bible.tex
-grep -rn -E "Ли[ия].{0,80}(лет|год|месяц)" books/era-arkhitektorov/ru/chapters/
+# Collect all capitalized tokens from chapters (rough — produces a candidate list):
+grep -rhoE '[A-Z][a-z]{2,}|[А-ЯЁ][а-яё]{2,}' <book>/<lang>/chapters/ | sort | uniq -c | sort -rn | head -50
 
-# Структура времяхода — сколько фаз в тексте:
-grep -in "фаз\|этап\|возраст" books/era-arkhitektorov/ru/chapters/ch13.tex
+# For each candidate, check whether it has a bible entry:
+grep -n "<candidate>" <book>/notes/story-bible.* || echo "MISSING: <candidate>"
 ```
 
-Severity: **BLOCKING** (явное противоречие bible vs текст).
+Severity: **WARNING (silent canon)** — recommend adding to the bible.
 
 ---
 
-## INCIDENT 6 — Возраст отца Дана в эпилоге
+## SUMMARY — detection classes
 
-**Что сломалось.** Bible:148-149: «67 в начале, 74 в эпилоге». В эпилоге (текст) отцу 84. Десять лет разницы.
-
-**Что должно быть по канону.** Решить автору: исправить bible или скорректировать в эпилоге. **Это финальный возраст ключевого героя — менять нельзя без последствий для арки мостов.**
-
-**Класс детекции.** **Age-at-event canon drift** — bible фиксирует возраст к конкретной сцене, текст к ней пришёл с другим возрастом.
-
-**Как ловить:**
-
-```bash
-# Возраст отца — все упоминания:
-grep -rn -E "отц.{0,80}(лет|год)" books/god-academy/ru/chapters/ \
-                                    books/era-arkhitektorov/ru/chapters/
-
-# В bible:
-grep -n -E "отц.{0,80}([0-9]{2})" books/god-academy/notes/story-bible.tex \
-                                   books/era-arkhitektorov/notes/story-bible.tex
-```
-
-Severity: **BLOCKING.**
-
----
-
-## SUMMARY — классы детекции
-
-| Класс | Триггер-grep | Severity |
+| Class | Trigger grep | Severity |
 | --- | --- | --- |
-| Physical invariant drift | действия + персонаж + сверка с `\subsection{Физические инварианты}` | BLOCKING |
-| Artifact location/pronoun | артефакт + локация/местоимение | BLOCKING |
-| Generic-vs-canonical-name | обобщения («рыжая», «друг из …») + полные имена | BLOCKING |
-| Bible-prescribed count mismatch | bible says N, текст даёт M | WARNING |
-| Age / temporal drift | возраст персонажа в bible vs в сцене | BLOCKING |
-| Silent canon (silent canon) | сущность ≥ 2 появлений, нет bible entry | WARNING |
-| Canon expansion | новый факт о известной сущности, не противоречит | INFO |
+| Physical invariant drift | character + action verb + cross-check `Physical invariants` | BLOCKING |
+| Artifact location / pronoun | artifact + location / pronoun proximity | BLOCKING |
+| Generic-vs-canonical-name | descriptor ("the redhead", "the friend from …") + search for full names | BLOCKING |
+| Bible-prescribed count mismatch | bible says N, text gives M | WARNING |
+| Age / temporal drift | character age in bible vs in scene | BLOCKING |
+| Silent canon | entity ≥ 2 occurrences, no bible entry | WARNING |
+| Canon expansion | new fact about a known entity, no contradiction | INFO |
