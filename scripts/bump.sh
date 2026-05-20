@@ -55,17 +55,61 @@ PY
 fi
 echo "skills.json: version → $new"
 
-# Insert new section into CHANGELOG.md right after "## [Unreleased]"
+# Promote the accumulated [Unreleased] section into a new [<new>] section.
+# Layout we expect:
+#
+#   ## [Unreleased]
+#
+#   ### Added
+#   - foo
+#
+#   ## [<previous-version>] — DATE
+#   ...
+#
+# After bump:
+#
+#   ## [Unreleased]
+#
+#   ## [<new>] — TODAY
+#
+#   ### Added
+#   - foo
+#
+#   ## [<previous-version>] — DATE
+#   ...
+#
+# If [Unreleased] is empty (nothing accumulated), we still insert an empty
+# section with a placeholder bullet so the release notes aren't blank.
+
 tmp="$(mktemp)"
-awk -v new="$new" -v date="$today" '
-  /^## \[Unreleased\]/ {
-    print
-    print ""
-    print "## [" new "] — " date
-    next
-  }
-  { print }
-' CHANGELOG.md > "$tmp" && mv "$tmp" CHANGELOG.md
+python3 - "$new" "$today" >"$tmp" <<'PY'
+import sys, re, pathlib
+
+new_ver, today = sys.argv[1], sys.argv[2]
+text = pathlib.Path("CHANGELOG.md").read_text()
+
+# Split on top-level "## [..." headers, keeping the delimiter
+parts = re.split(r"(?m)^(?=## \[)", text)
+head, *sections = parts
+
+new_sections = []
+for sec in sections:
+    if sec.startswith("## [Unreleased]"):
+        # Strip the "## [Unreleased]" header line, keep the body
+        body = re.sub(r"^## \[Unreleased\][^\n]*\n", "", sec, count=1)
+        body = body.strip("\n")
+        if not body.strip():
+            body = "### Changed\n- (no notable changes captured in Unreleased — see commit log for v" + new_ver + ")"
+        # Emit fresh empty Unreleased + new versioned section
+        new_sections.append("## [Unreleased]\n\n")
+        new_sections.append(f"## [{new_ver}] — {today}\n\n{body}\n\n")
+    else:
+        new_sections.append(sec)
+
+out = head + "".join(new_sections)
+sys.stdout.write(out)
+PY
+mv "$tmp" CHANGELOG.md
 
 # Append compare link at the bottom (replace the first [Unreleased] anchor too)
 python3 - <<PY
