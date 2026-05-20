@@ -1,0 +1,57 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Mikefluff/skills/main/docs/skills.schema.json",
+  "collection": "Mikefluff/skills",
+  "version": "0.1.0",
+  "repo": "https://github.com/Mikefluff/skills",
+  "license": "MIT",
+  "skills": [
+    {
+      "name": "writer",
+      "dir": "writer",
+      "layer": "base",
+      "description": "Base clean-prose editor — antinyeyroslop (23 categories), typography, structural synthetics, RU calques. Invoked by all other prose skills.",
+      "languages": ["ru", "en"],
+      "deps": []
+    },
+    {
+      "name": "viral-text",
+      "dir": "viral-text",
+      "layer": "wrapper",
+      "description": "Write viral social media content — hooks, numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules + platform adaptation.",
+      "languages": ["ru", "en"],
+      "deps": ["writer"]
+    },
+    {
+      "name": "prose-edit",
+      "dir": "prose-edit",
+      "layer": "wrapper",
+      "description": "Fiction rewrite layer — Pelevin/Manson voice, 10-item style drift checklist, canon check, no meta-refs/anglicisms, long artistic rewrite, AB ToV pattern.",
+      "languages": ["ru"],
+      "deps": ["writer"]
+    },
+    {
+      "name": "essay-write",
+      "dir": "essay-write",
+      "layer": "wrapper",
+      "description": "Non-fiction layer — long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content.",
+      "languages": ["ru"],
+      "deps": ["writer"]
+    },
+    {
+      "name": "style-check",
+      "dir": "style-check",
+      "layer": "linter",
+      "description": "Read-only pre-commit lint — auto-routes by file path (books/god-academy/ → fiction; books/heavenly-code/ → non-fic), BLOCKING/WARNING/INFO severity, exit-code semantics for git hook.",
+      "languages": ["ru", "en"],
+      "deps": ["writer", "prose-edit", "essay-write"]
+    },
+    {
+      "name": "skills-update",
+      "dir": "skills-update",
+      "layer": "meta",
+      "description": "User-invocable update check + apply for this collection. Compares local install marker with latest GitHub release, shows CHANGELOG diff, asks for confirmation, runs install.sh --update.",
+      "languages": ["en", "ru"],
+      "deps": []
+    }
+  ]
+}

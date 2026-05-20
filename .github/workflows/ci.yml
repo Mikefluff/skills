@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate + smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up python (for writer linter)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: install jq
+        run: sudo apt-get install -y jq
+
+      - name: validate frontmatter + cross-links
+        run: bash scripts/validate.sh
+
+      - name: writer linter regression
+        run: bash scripts/smoke.sh
+
+      - name: install.sh dry-run (local copy mode)
+        run: bash install.sh --copy-from . --prefix /tmp/skills-ci --dry-run
+
+      - name: install.sh full (local copy mode)
+        run: |
+          bash install.sh --copy-from . --prefix /tmp/skills-ci
+          ls /tmp/skills-ci
+          test -f /tmp/skills-ci/writer/SKILL.md
+          test -f /tmp/skills-ci/.skills-collection.json

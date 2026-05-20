@@ -1,0 +1,105 @@
+name: release
+
+# Conventional-commit-driven auto-release:
+#   feat:       → minor bump
+#   fix: / perf: / refactor: → patch bump
+#   ! after type OR "BREAKING CHANGE:" in body → major bump
+#   docs / chore / style / ci / test → no release
+#
+# On push to main, the job determines the bump level from commits since the last
+# v* tag, updates VERSION + CHANGELOG + skills.json, commits, tags v<new>, pushes,
+# and publishes a GitHub Release with the source tarball attached.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      level:
+        description: 'Force bump level (patch/minor/major). Leave blank to let the workflow decide.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Don't loop on the release workflow's own commit
+    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    steps:
+      - name: checkout (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: configure git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: install jq
+        run: sudo apt-get install -y jq
+
+      - name: decide bump level
+        id: bump
+        run: |
+          if [ -n "${{ github.event.inputs.level }}" ]; then
+            level="${{ github.event.inputs.level }}"
+          else
+            level=$(bash scripts/decide-bump.sh)
+          fi
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+          echo "decided bump: $level"
+
+      - name: stop if no release-worthy commits
+        if: steps.bump.outputs.level == 'none'
+        run: |
+          echo "no release-worthy commits since last tag — nothing to do"
+
+      - name: bump version
+        if: steps.bump.outputs.level != 'none'
+        id: bumped
+        run: |
+          bash scripts/bump.sh ${{ steps.bump.outputs.level }}
+          new_version=$(cat VERSION)
+          echo "version=$new_version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$new_version" >> "$GITHUB_OUTPUT"
+
+      - name: commit + tag + push
+        if: steps.bump.outputs.level != 'none'
+        run: |
+          git add VERSION CHANGELOG.md skills.json
+          git commit -m "chore(release): v${{ steps.bumped.outputs.version }}"
+          git tag -a "${{ steps.bumped.outputs.tag }}" -m "release: ${{ steps.bumped.outputs.tag }}"
+          git push origin main
+          git push origin "${{ steps.bumped.outputs.tag }}"
+
+      - name: extract release notes from CHANGELOG
+        if: steps.bump.outputs.level != 'none'
+        id: notes
+        run: |
+          # Pull the section between "## [<new>]" and the next "## ["
+          new="${{ steps.bumped.outputs.version }}"
+          awk -v ver="$new" '
+            $0 ~ "^## \\[" ver "\\]" { capture=1; next }
+            capture && /^## \[/        { exit }
+            capture                    { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+          if [ ! -s /tmp/release-notes.md ]; then
+            echo "(No entries — see commit log.)" > /tmp/release-notes.md
+          fi
+          echo "── notes ──"
+          cat /tmp/release-notes.md
+
+      - name: create GitHub release
+        if: steps.bump.outputs.level != 'none'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.bumped.outputs.tag }}
+          name: ${{ steps.bumped.outputs.tag }}
+          body_path: /tmp/release-notes.md
+          generate_release_notes: false
+          make_latest: 'true'
