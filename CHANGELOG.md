@@ -14,6 +14,38 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+### Added — sprint v1.9 distribution + visibility
+
+- **Refreshed launch-post drafts** — `docs/LAUNCH-POST.md` rewritten as an
+  index pointing to per-platform files under `docs/launch-posts/`:
+  `x-thread.md` (single tweet + 9-tweet thread), `linkedin.md` (long post),
+  `hacker-news.md` (Show HN + body), `reddit.md` (r/ClaudeAI, r/programming,
+  r/copywriting variants), `substack.md` (long-form blog post),
+  `awesome-claude-code.md` (one-line entry + paragraph + PR body). All
+  drafts reflect current state (17 skills, 28 linter categories, all
+  wrappers) instead of the stale "11 / 23" numbers.
+
+- **npm packaging** — new `package.json` + `bin/skills.js` wrapper script.
+  Installable as `npm install -g @mikefluff/skills`; the `skills` binary
+  delegates every subcommand (`install` / `update` / `uninstall` / `check`
+  / `list` / `version` / `help`) to the bundled `install.sh`. `npm pack`
+  produces a 430 kB tarball with 142 files.
+
+- **Homebrew formula** — `Formula/skills.rb` for a future
+  `mikefluff/homebrew-tap`. Bundles the repo under `libexec/` and exposes
+  a `skills` binary; `skills install` copies into `~/.claude/skills/`.
+  SHA256 to be filled at release time.
+
+- **`docs/INSTALL.md`** — consolidated install reference covering curl,
+  npm, Homebrew, Docker, and manual paths, plus updates / uninstall /
+  troubleshooting sections.
+
+### Changed
+
+- README install section now shows curl + npm + Homebrew + Docker in one
+  block instead of just curl + Docker. Links to `docs/INSTALL.md` for the
+  complete reference.
+
 ### Fixed
 
 - **Finish Track E from v1.8** — v1.8.0 created `common/references/` and added
