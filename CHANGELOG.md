@@ -14,6 +14,8 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-05-20
+
 ### Added — Docker image
 
 - **`Dockerfile`** + **`.github/workflows/docker.yml`** — multi-arch (linux/amd64 + linux/arm64) Docker image published to `ghcr.io/mikefluff/skills` on push to main and on tag. Image ships `writer/scripts/lint.py` + all 11 skills' markdown. Entrypoint commands: `lint FILE`, `lint-all DIR`, `coverage`, `validate`, `list`, `version`, `help`.
@@ -213,7 +215,7 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v1.3.0...HEAD
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0
@@ -223,3 +225,4 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 [1.0.1]: https://github.com/Mikefluff/skills/releases/tag/v1.0.1
 [1.1.0]: https://github.com/Mikefluff/skills/releases/tag/v1.1.0
 [1.2.0]: https://github.com/Mikefluff/skills/releases/tag/v1.2.0
+[1.3.0]: https://github.com/Mikefluff/skills/releases/tag/v1.3.0
