@@ -9,6 +9,31 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.10.1] — 2026-05-21
+
+### Fixed
+
+- **`style-transfer` default model didn't work in v2.10.0.** The CLI passed `image_url` as the kwarg, but BFL's flux-kontext provider expects `input_image` — every call failed with "flux-kontext requires input_image". Now fixed at two layers:
+  - `bfl.py`: accepts either `input_image` (native) or `image_url` (cross-provider alias).
+  - `cli/stylize.py`: routes the right kwarg per provider explicitly.
+
+### Added (multi-provider support for `style-transfer`)
+
+- **`nano-banana-pro` image-to-image** is now wired. The `google_image.py` `NanoBananaProProvider` accepts `image_url` or `input_image` (path / URL / bytes), reads + base64-encodes the reference, and sends it as a multimodal `types.Part` alongside the prompt via the Gemini SDK. This unlocks identity-priority style transfer (best for portraits) and also benefits any plan-driven skill that passes `--photo` to nano-banana-pro (cover-maker / avatar-maker / thumbnail-maker / flyer-maker had been silently dropping the reference image for this provider).
+- **`replicate-image`** is now routable from `style-transfer` via `--model replicate-image --replicate-model <user>/<model>` — passes `image` as the input field (most Replicate style-transfer models read this).
+
+### Changed
+
+- **`style-transfer` CLI errors out cleanly for `gpt-image-2`** with a message pointing to flux-kontext / nano-banana-pro alternatives. gpt-image-2 image-to-image edits would need OpenAI's `/v1/images/edits` endpoint (different from the current `/v1/images/generations` wrapper) — tracked as a future enhancement, not in this patch.
+- **`style-transfer/references/providers.md`** — added explicit provider-status matrix.
+- **`style-transfer/references/troubleshoot.md`** — added entries for the flux-kontext bug, gpt-image-2 limitation, and nano-banana-pro re-roll guidance.
+- **`VERSION` + `skills.json:version`** → `2.10.1`.
+
+### Notes
+
+- This is a patch release — no new skills, no breaking changes, no schema changes.
+- The bfl.py alias affects ALL skills that pass `image_url` to flux-kontext (not just style-transfer) — cover-maker, flyer-maker, avatar-maker etc. will now correctly send reference images to Flux Kontext when the user picks `--model flux-kontext`.
+
 ## [2.10.0] — 2026-05-21
 
 ### Added

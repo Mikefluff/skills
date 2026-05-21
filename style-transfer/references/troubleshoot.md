@@ -98,6 +98,40 @@ Verify: `/skills-keys verify BFL_API_KEY`.
 
 ---
 
+## "flux-kontext requires input_image" error
+
+**Symptom**: error message about missing input_image.
+
+**Cause**: in v2.10.0 the skill passed the wrong kwarg name. **Fixed in v2.10.1** — the provider now accepts both `input_image` and `image_url` aliases.
+
+**Fix**: upgrade to v2.10.1: `skills-update`. If you cannot upgrade, pass `--image` correctly (the CLI in v2.10.1 routes it to the right kwarg per provider).
+
+---
+
+## "gpt-image-2 image-to-image edits not wired"
+
+**Symptom**: error message saying gpt-image-2 isn't wired for image-to-image.
+
+**Cause**: gpt-image-2's edit mode uses a different OpenAI endpoint (`/v1/images/edits`) than the standard `/v1/images/generations` the provider currently wraps. Wiring this is tracked as a future enhancement.
+
+**Fix**: use `--model flux-kontext` or `--model nano-banana-pro` instead. Both fully support image-to-image.
+
+---
+
+## Nano Banana Pro returned the original image (no style applied)
+
+**Symptom**: requested style but output looks identical to input.
+
+**Cause** (v2.10.1+): possible — Gemini sometimes returns the reference image unchanged when the prompt is interpreted as a request to "describe" rather than "transform".
+
+**Fix**:
+
+1. Strengthen the prompt: include explicit transformation verbs ("transform into", "convert to") — these are baked into the preset.
+2. Re-roll — Gemini is stochastic; sometimes the second call works.
+3. Switch to `--model flux-kontext` (more reliable for style transfer).
+
+---
+
 ## Cost is higher than expected
 
 Default Flux Kontext is $0.05 per edit. For batch:

@@ -106,13 +106,29 @@ def main() -> int:
         print(f"  ✗ unknown --style '{args.style}'. Available: {', '.join(STYLE_PROMPTS)} or 'custom'.", file=sys.stderr)
         return 2
 
-    kwargs = {
-        "image_url": args.image,
-        "variants": 1,
-    }
-    # provider-specific edit mode
+    # Route the image reference under the kwarg name each provider expects.
+    # flux-kontext + nano-banana-pro both now accept `image_url` or `input_image`
+    # (bfl.py and google_image.py normalize); replicate-image passes kwargs through
+    # to the hosted model, which typically expects `image` for style-transfer models.
+    kwargs: dict[str, Any] = {"variants": 1}
     if args.model == "flux-kontext":
-        kwargs["edit_mode"] = True
+        kwargs["input_image"] = args.image
+    elif args.model == "nano-banana-pro":
+        kwargs["image_url"] = args.image
+    elif args.model == "replicate-image":
+        # Most Replicate style-transfer models read `image` (the model's input field).
+        kwargs["image"] = args.image
+    elif args.model == "gpt-image-2":
+        print(
+            "  ✗ gpt-image-2 image-to-image edits not wired in this skill yet "
+            "(needs /v1/images/edits endpoint). Use --model flux-kontext or nano-banana-pro.",
+            file=sys.stderr,
+        )
+        return 2
+    else:
+        # Unknown / future provider — pass both aliases and hope for the best.
+        kwargs["image_url"] = args.image
+        kwargs["input_image"] = args.image
 
     print(
         f"Stylizing via {args.model} → {args.style} ...",

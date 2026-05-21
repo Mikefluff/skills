@@ -75,9 +75,14 @@ class _FluxProvider(Provider):
             aspect_ratio = kwargs.get("aspect_ratio")
             if aspect_ratio:
                 body["aspect_ratio"] = str(aspect_ratio)
-            input_image = kwargs.get("input_image")
+            # Accept either kwarg name — `input_image` is BFL's native key; `image_url`
+            # is the cross-provider alias used by plan-driven CLIs (cover/flyer/avatar/etc).
+            input_image = kwargs.get("input_image") or kwargs.get("image_url")
             if input_image is None:
-                raise ProviderError(self.name, None, "flux-kontext requires input_image")
+                raise ProviderError(
+                    self.name, None,
+                    "flux-kontext requires input_image (or image_url alias)",
+                )
             body["input_image"] = _encode_input_image(input_image)
         else:
             body["width"] = int(kwargs.get("width", 1024))

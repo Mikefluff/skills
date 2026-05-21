@@ -1,5 +1,19 @@
 # Providers — style-transfer
 
+## Provider status (v2.10.1+)
+
+| Provider | Image-to-image wired? | Notes |
+|---|---|---|
+| `flux-kontext` (default) | ✅ | BFL's native edit endpoint; best for natural-language style transfer |
+| `nano-banana-pro` | ✅ | Gemini 3 Pro Image multimodal; identity preserve priority |
+| `replicate-image` | ✅ | pass-through; works if the chosen Replicate model accepts `image` input field |
+| `gpt-image-2` | ❌ | not wired in v1 — needs `/v1/images/edits` endpoint (tracked as future enhancement) |
+| `flux-2-pro` / `flux-1-1-pro` | ❌ | text-to-image only; use flux-kontext for edits |
+
+If you pick an unsupported provider, the skill exits with a clear error message.
+
+---
+
 ## Default: `flux-kontext`
 
 Black Forest Labs Flux Kontext — best in class for natural-language style transfer in 2026.

@@ -3,13 +3,40 @@ Uses the google-genai SDK; reads GEMINI_API_KEY lazily inside generate()."""
 
 from __future__ import annotations
 
+import mimetypes
 import os
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
+
+import requests
 
 from ..cost import estimate
 from ..errors import ProviderError, QuotaError
 from .base import GenerationResult, JobHandle, Provider
+
+
+def _read_image_bytes_and_mime(value: str | bytes) -> tuple[bytes, str]:
+    """Resolve an image reference (path / URL / raw bytes) → (bytes, mime).
+
+    Used by NanoBananaProProvider to embed a reference image as a multimodal Part.
+    """
+    if isinstance(value, bytes):
+        return value, "image/png"
+    if value.startswith(("http://", "https://")):
+        resp = requests.get(value, timeout=30)
+        if not resp.ok:
+            raise ProviderError(
+                "nano-banana-pro", resp.status_code, f"failed to fetch image URL: {value}",
+            )
+        mime = resp.headers.get("Content-Type", "image/png").split(";")[0]
+        return resp.content, mime
+    # local file path
+    path = Path(value)
+    if not path.is_file():
+        raise ProviderError("nano-banana-pro", None, f"image file not found: {value}")
+    mime, _ = mimetypes.guess_type(str(path))
+    return path.read_bytes(), mime or "image/png"
 
 _IMAGEN_MODEL_IDS: dict[str, str] = {
     "imagen-4": "imagen-4.0-generate-001",
@@ -87,7 +114,7 @@ class _NanoBananaProProvider(Provider):
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         return estimate(self.name, **kwargs)
 
-    def generate(self, prompt: str, **kwargs: Any) -> GenerationResult | JobHandle:  # noqa: ARG002
+    def generate(self, prompt: str, **kwargs: Any) -> GenerationResult | JobHandle:
         self.ensure_available()
         try:
             from google import genai
@@ -95,11 +122,22 @@ class _NanoBananaProProvider(Provider):
         except ImportError as exc:
             raise ProviderError(self.name, None, "google-genai SDK not installed") from exc
 
+        # Accept reference image via either kwarg name — `image_url` is the cross-provider
+        # alias; `input_image` is the BFL native key. Either resolves to bytes + mime.
+        image_ref = kwargs.get("image_url") or kwargs.get("input_image")
+        contents: Any = prompt
+        if image_ref:
+            image_bytes, image_mime = _read_image_bytes_and_mime(image_ref)
+            contents = [
+                types.Part.from_bytes(data=image_bytes, mime_type=image_mime),
+                prompt,
+            ]
+
         try:
             client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
             response = client.models.generate_content(
                 model=self._model_id,
-                contents=prompt,
+                contents=contents,
                 config=types.GenerateContentConfig(
                     response_modalities=["TEXT", "IMAGE"],
                 ),
@@ -114,7 +152,7 @@ class _NanoBananaProProvider(Provider):
             content=image_bytes,
             mime="image/png",
             extension="png",
-            extra={"model_id": self._model_id},
+            extra={"model_id": self._model_id, "had_input_image": image_ref is not None},
         )
 
     @staticmethod
