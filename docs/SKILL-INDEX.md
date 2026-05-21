@@ -31,6 +31,7 @@ skills), see [COMPOSING.md](COMPOSING.md).
 | [`cold-email`](../cold-email/) | outreach, generation | en / ru |
 | [`image-prompt`](../image-prompt/) | visual, generation | en / ru |
 | [`video-prompt`](../video-prompt/) | visual, generation | en / ru |
+| [`music-prompt`](../music-prompt/) | audio, generation | en / ru |
 | [`microcopy`](../microcopy/) | ux-copy, product, generation | en / ru |
 | [`release-notes`](../release-notes/) | product, tech-docs, generation | en / ru |
 | [`rfc-writer`](../rfc-writer/) | tech-docs, generation | en / ru |
@@ -52,6 +53,7 @@ skills), see [COMPOSING.md](COMPOSING.md).
 
 ## By domain
 
+- **audio** — [`music-prompt`](../music-prompt/)
 - **fiction** — [`prose-edit`](../prose-edit/), [`canon-check`](../canon-check/), [`pelevin-digression`](../pelevin-digression/)
 - **marketing** — [`viral-text`](../viral-text/), [`landing-copy`](../landing-copy/)
 - **non-fiction** — [`essay-write`](../essay-write/), [`pelevin-digression`](../pelevin-digression/)
@@ -65,7 +67,7 @@ skills), see [COMPOSING.md](COMPOSING.md).
 ## By language
 
 - **EN + PT-BR + RU** (1) — [`translation-sync`](../translation-sync/)
-- **EN + RU** (13) — [`writer`](../writer/), [`viral-text`](../viral-text/), [`style-check`](../style-check/), [`canon-check`](../canon-check/), [`skills-update`](../skills-update/), [`tone-shifter`](../tone-shifter/), [`cold-email`](../cold-email/), [`image-prompt`](../image-prompt/), [`video-prompt`](../video-prompt/), [`microcopy`](../microcopy/), [`release-notes`](../release-notes/), [`rfc-writer`](../rfc-writer/), [`landing-copy`](../landing-copy/)
+- **EN + RU** (14) — [`writer`](../writer/), [`viral-text`](../viral-text/), [`style-check`](../style-check/), [`canon-check`](../canon-check/), [`skills-update`](../skills-update/), [`tone-shifter`](../tone-shifter/), [`cold-email`](../cold-email/), [`image-prompt`](../image-prompt/), [`video-prompt`](../video-prompt/), [`music-prompt`](../music-prompt/), [`microcopy`](../microcopy/), [`release-notes`](../release-notes/), [`rfc-writer`](../rfc-writer/), [`landing-copy`](../landing-copy/)
 - **RU** (3) — [`prose-edit`](../prose-edit/), [`essay-write`](../essay-write/), [`pelevin-digression`](../pelevin-digression/)
 
 <!-- END skill-index -->

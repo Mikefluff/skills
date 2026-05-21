@@ -26,8 +26,9 @@ Then open Claude Code — skills are auto-discovered by name. No `~/.claude/sett
 | Get a read-only quality verdict without auto-edits | [Style-check gate](walkthroughs/style-check-gate.md) |
 | Rewrite text in a different register (casual ↔ business ↔ academic ↔ plain) | [Tone-shifter](#tone-shifter--register-rewrites) |
 | Draft a cold-outreach email (founder / recruiter / journalist / VC) | [Cold-email](#cold-email--outreach-drafting) |
-| Generate prompts for AI image models (Midjourney / DALL-E / Flux) | [Image-prompt](#i-want-to-write-an-ai-image-prompt) |
-| Generate prompts for AI video models (Kling / Veo / Sora / Runway) | [Video-prompt](#i-want-to-write-an-ai-video-prompt) |
+| Generate prompts for AI image models (Midjourney v7 / Flux 2 / Imagen 4 / Nano Banana Pro / gpt-image-2 / Ideogram 3 / Seedream 4.5 / Qwen-Image / HiDream / SD 3.5) | [Image-prompt](#i-want-to-write-an-ai-image-prompt) |
+| Generate prompts for AI video models (Veo 3.1 + audio / Sora 2 + cameos / Kling 3.0 + Omni / Runway Gen-4 + Aleph V2V / Luma Ray 3 / Pika 2.2 / Hailuo 02 / Higgsfield / LTX-2 / Hunyuan / Wan 2.2 / Seedance 2.0) | [Video-prompt](#i-want-to-write-an-ai-video-prompt) |
+| Generate prompts for AI music models (Suno v5.5 / Udio v4 / Lyria 3 Pro / ElevenLabs Music / Stable Audio 2.5 / MusicGen) | [Music-prompt](#i-want-to-write-an-ai-music-prompt) |
 | Write UX microcopy (errors, empty states, tooltips, buttons) | [Microcopy](#i-want-to-write-ux-microcopy) |
 | Write release notes / changelogs / product update | [Release-notes](#i-want-to-write-release-notes) |
 | Write an RFC / ADR / design doc / tech spec | [RFC-writer](#i-want-to-write-an-rfc--design-doc) |
@@ -163,6 +164,22 @@ Targets supported: `midjourney-v6`, `dalle-3`, `flux-pro`, `nano-banana`, `sdxl`
 ```
 
 Targets: `kling`, `veo`, `sora`, `runway`, `pika`, `hailuo`, `luma`. Each parses prompts differently — Kling needs explicit temporal markers `First [0-2s]: ... Then [2-5s]: ...`; Sora handles narrative prose; Runway prefers shorter prompts. Pacing modes (`narrative`, `action`, `comedy`, `documentary`, `timelapse`) adjust camera energy rules.
+
+---
+
+### "I want to write an AI music prompt" {#i-want-to-write-an-ai-music-prompt}
+
+`/music-prompt <topic-or-brief>` generates a prompt for Suno v5.5, Udio v4, Google Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen, Tencent SongGeneration, Sonauto v2, Riffusion, or Mubert. The skill applies the 2026 canonical 8-category meta-tag taxonomy (Structure / Vocal delivery / Vocal effects / Instrumental / Mix-production / Energy-dynamics / Era-genre / FX), uses `|` stacking inside brackets, and respects the two-box Style+Lyrics workflow on Suno.
+
+```
+/music-prompt anthemic modern pop song about leaving home
+/music-prompt UK drill verse about night driving --model suno-v5-5
+/music-prompt long-form jazz fusion instrumental --model udio-v4 --instrumental
+/music-prompt label-safe epic orchestral cue for trailer --model lyria-3-pro
+/music-prompt indie folk ballad, breathy female vocal --model eleven-music --exclude "abrupt ending, electronic drums"
+```
+
+Targets: `suno-v5-5`, `udio-v4`, `lyria-3-pro`, `eleven-music`, `stable-audio-2-5`, `musicgen`, `tencent-song-generation`, `sonauto-v2`, `riffusion`, `mubert`. Genre recipes (`hyperpop`, `drill`, `country`, `lo-fi`, `ambient`, `orchestral`, `k-pop`, `afrobeats`, `jazz-fusion`, `hardcore-punk`, `synthwave`, `gospel`) live in `music-prompt/references/genre-recipes.md`. For Suno: brackets go in the Lyrics box ONLY; the Style of Music box accepts natural language only.
 
 ---
 
