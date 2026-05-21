@@ -9,6 +9,70 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.8.0] — 2026-05-21
+
+### Added
+
+- **`logo-maker` orchestrator skill** — brand mark / wordmark / logo generator. Defaults to `ideogram-3-quality` for cleanest embedded text. Six style presets: `wordmark` (default) / `minimal` / `illustrated` / `typographic` / `geometric` / `emblem`. Single-image output with N stochastic variants per call (default `--variants 4`). Optional palette hint via natural language or hex codes. Outputs `./generated/logo/<slug>/logo-v<N>.png` + `manifest.json` + `prompts.md`. Plan schema `skills.logo.plan.v1`.
+
+- **`quote-card-maker` orchestrator skill** — typography-dominant quote / aphorism graphics where the text IS the image. Six style presets biased toward text-friendly carousel anchors: `minimal-serif` (literary), `swiss-grid-poster` (marketing), `monochrome-bold` (manifesto), `editorial-magazine` (long-form), `gradient-mesh-modern` (SaaS), `russian-constructivist` (RU heritage). Multi-aspect (square / portrait / story / landscape). Constraint: ≤20 words per quote — longer text goes to `carousel-builder`. Plan schema `skills.quote.plan.v1`.
+
+- **`gif-maker` wrapper skill** — short looping GIF utility with two modes. Mode A: convert an existing MP4 → optimized GIF via ffmpeg 2-pass palette generation (palettegen + paletteuse with bayer dithering). Mode B: generate a 1-3s clip via a video provider (`veo-3-1-fast` default; also `kling-3` / `fal-video` / `sora-2`) then convert. Aspect crop presets: `1:1` / `9:16` / `16:9` / `4:5` / `2:1` / `1:2`. Trim controls (`--start` / `--duration`), fps + width tuning. Outputs `./generated/gif/<name>.gif`. ffmpeg required.
+
+- **`common/runners/cli/{logo,quote,gif}.py`** — three new CLI modules. `logo.py` and `quote.py` follow the cover.py / flyer.py plan-driven pattern (skill assembles `plan.json` with per-variant prompts; CLI runs batch via `common.runners.batch`). `gif.py` is argparse-driven with two-mode dispatch (Mode A converts directly; Mode B generates via a video provider then converts).
+
+- **`common/runners/ffmpeg.py:mp4_to_gif()`** — high-quality MP4→GIF conversion helper. Two-pass: palettegen (256-color, `stats_mode=diff`) then paletteuse (bayer dithering at `bayer_scale=5` for best size/quality tradeoff). Supports trim window (start/duration), fps + width controls, loop count.
+
+### Changed
+
+- **`skills.json`** — 33 entries (was 30). Three new skills registered.
+- **`docs/USER-GUIDE.md`** — added "I want to design a logo", "I want a quote card", "I want a short looping GIF" sections in the AI media group.
+- **`docs/COMPOSING.md`** — added 3 new orchestrator recipes: brand identity pack (logo + cover + quote card), quote card series for content marketing, animated reaction / hero loop.
+- **`docs/ROADMAP.md`** — marks `logo-maker`, `quote-card-maker`, `gif-maker` as SHIPPED.
+- **`VERSION` + `skills.json:version`** → `2.8.0`.
+
+### Notes
+
+- 33 skills total (was 30). All three new skills are additive — no breaking changes. Existing orchestrators / wrappers unchanged.
+- `logo-maker` & `quote-card-maker` reuse the carousel style library + batch executor infrastructure (no new dependencies).
+- `gif-maker` Mode B reuses the video provider abstraction from `video-prompt --execute`.
+- `gif-maker` is the first wrapper skill in v2.x with TWO operational modes (existing-input vs generation). Mode dispatch is via mutually exclusive arg groups.
+- Brand identity pack recipe (logo + cover + quote card) chains 3 skills into a $0.50-1.50 brand starter kit.
+
+## [2.7.0] — 2026-05-21
+
+### Added
+
+- **`cover-maker` orchestrator skill** — title + creator + medium → cover at the medium's native aspect. Mediums: `album` (1:1 3000²), `book` (2:3 portrait), `podcast` (1:1), `magazine` (2:3), `report` (A4 portrait), `deck-cover` (16:9), `linkedin-doc` (1:1). Optional `--photo` reference. Reuses the 24-style carousel library. Plan schema `skills.cover.plan.v1`.
+
+- **`thumbnail-maker` orchestrator skill** — 16:9 thumbnails with face-placement variants (left / right / center). Type presets: `youtube` (1920×1080), `blog` (1200×630 OG), `podcast-episode` (1920×1080). Face + bold-title aesthetic with model auto-pick (nano-banana-pro for identity-preserve, ideogram-3-quality for text-heavy). Plan schema `skills.thumbnail.plan.v1`.
+
+- **`bg-remover` wrapper skill** — background removal utility. Default model `851-labs/background-remover` (~$0.001-0.005/image via Replicate). Alternative `pollinations/modnet` for portrait hair edges. Transparent PNG output. Single image per call; loop for batch.
+
+- **`common/runners/cli/{cover,thumbnail,bg}.py`** — three new CLI modules. Cover & thumbnail are plan-driven (same shape as flyer.py); bg is argparse-driven (single transform).
+
+### Notes
+
+- 30 skills total (was 27). All three additive — no breaking changes.
+
+## [2.6.0] — 2026-05-21
+
+### Added
+
+- **`avatar-maker` orchestrator skill** — turn a user photo into N profile-pic / headshot / avatar variants in a consistent style. Identity-preserve is the differentiator — defaults to `nano-banana-pro`. Multi-aspect output (square 1:1, square-tight, cover 4:5, story 9:16, wide 16:9). Reuses the carousel style library, filtered to photoreal-friendly anchors via `--style auto`. Plan schema `skills.avatar.plan.v1`.
+
+- **`voiceover-maker` wrapper skill** — text-to-speech. Wraps ElevenLabs `eleven-tts` (multilingual, brand-voice via `voice_id`) + OpenAI `gpt-4o-mini-tts` (cheap English-strong). Supports voice picker, multilingual TTS, speed control, long-form scripts. Auto-picks provider based on language + script length + brand-voice needs.
+
+- **`subtitle-burner` wrapper skill** — burn captions onto an existing MP4 / MOV / WebM via ffmpeg. Supports SRT, WebVTT, plain text (evenly distributed). Style presets: `modern` (white on black backplate), `minimal` (no backplate), `bold` (yellow + dense backplate). Subcommands: `burn` / `preview`. No API calls — pure ffmpeg.
+
+- **`common/runners/ffmpeg.py:burn_captions()`** + **`common/runners/subtitles.py`** — SRT/VTT/plain-text parser + ffmpeg drawtext caption helper.
+
+- **`common/runners/cli/_shared.py`** — extended with `--voice-id` / `--speed` / `--lang` args for TTS.
+
+### Notes
+
+- 27 skills total (was 24). All three additive — no breaking changes.
+
 ## [2.5.0] — 2026-05-21
 
 ### Added

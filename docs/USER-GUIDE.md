@@ -84,12 +84,13 @@ Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ## The collection in one paragraph
 
-Twenty-two skills layered on top of one base linter (`writer`):
+Thirty-three skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 28 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill.
-- **Wrappers** (call `writer` automatically): 13 skills covering prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), and AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`).
+- **Wrappers** (17): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`).
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
-- **Orchestrators** (end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music.
+- **Orchestrators** (9, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker`) ship structured visual artifacts.
+- **Meta** (3): `skills-update`, `skills-keys`, `skills-styles`.
 - **Meta**: `skills-update` (apply newer release of this collection) and `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer).
 
 Skills work on any text file (`.md`, `.tex`, `.txt`, …) — there's no assumed file format or project layout.
@@ -554,6 +555,60 @@ Cost: $2-6 per 15s reel depending on video provider. Default budget cap: `SKILLS
 ffmpeg required for final stitch. install.sh offers to `brew install ffmpeg` / `apt-get install -y ffmpeg` automatically. Without ffmpeg, shots + music save separately and the skill prints the manual stitch command.
 
 For details: [reel-builder/SKILL.md](../reel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
+
+---
+
+### "I want to design a logo / brand mark" {#i-want-to-make-a-logo}
+
+`/logo-maker --brand "<name>"` generates N stochastic logo variants. Defaults to `ideogram-3-quality` for cleanest embedded text. Pick from six style presets: `wordmark` / `minimal` / `illustrated` / `typographic` / `geometric` / `emblem`.
+
+```
+/logo-maker --brand "Lunar Vault" --style wordmark --palette "deep teal + warm cream" --variants 4 --execute
+/logo-maker --brand "Brooklyn Bean Co" --tagline "Roasted since 2024" --style illustrated --variants 6 --model gpt-image-2 --execute
+/logo-maker --brand "Axis & Atrium" --style geometric --style-mod "Bauhaus 1923 inspiration, intersecting triangles + circle" --execute
+```
+
+Single image output (no aspect multiplexing — logos work the same at all sizes). Default `--variants 4` because logo selection is inherently subjective.
+
+To get transparent BG: chain with `bg-remover`. To get SVG: pick best variant → vector tool → auto-trace.
+
+For details: [logo-maker/SKILL.md](../logo-maker/SKILL.md) · [style-presets](../logo-maker/references/style-presets.md).
+
+---
+
+### "I want a quote card / aphorism post" {#i-want-to-make-a-quote-card}
+
+`/quote-card-maker --quote "<text>" --attribution "<name>"` builds a typography-dominant card where the quote IS the image. Multi-aspect (square / portrait / story / landscape).
+
+```
+/quote-card-maker --quote "Anxiety is the dizziness of freedom." --attribution "— Søren Kierkegaard" --style minimal-serif --aspects square,portrait --execute
+/quote-card-maker --quote "The best time to plant a tree was 20 years ago." --attribution "— Chinese proverb" --style gradient-mesh-modern --aspects square,landscape --execute
+/quote-card-maker --quote "Если в первом акте на стене висит ружьё, то в последнем оно должно выстрелить." --attribution "— А.П. Чехов" --style russian-constructivist --aspects story --lang ru --execute
+```
+
+Style presets: `minimal-serif` (literary/philosophical), `swiss-grid-poster` (marketing), `monochrome-bold` (manifesto), `editorial-magazine` (long-form), `gradient-mesh-modern` (SaaS/tech), `russian-constructivist` (RU heritage).
+
+≤20 words per quote. Past that, use `carousel-builder` to split across slides.
+
+For details: [quote-card-maker/SKILL.md](../quote-card-maker/SKILL.md) · [style-presets](../quote-card-maker/references/style-presets.md).
+
+---
+
+### "I want a short looping GIF" {#i-want-a-gif}
+
+`/gif-maker` runs in two modes: convert an existing MP4 → optimized GIF, or generate a 1-3s clip via a video provider and convert.
+
+```
+/gif-maker --input ./reel.mp4 --aspect 1:1 --duration 2.0 --output ./twitter.gif                # Mode A: convert
+/gif-maker --prompt "Abstract neural mesh waves rippling, seamless loop" --model veo-3-1-fast --duration 3 --aspect 2:1 --execute    # Mode B: generate + convert
+/gif-maker --input ./long.mp4 --start 12.0 --duration 1.5 --aspect 1:1 --width 480 --fps 10 --output ./slack-reaction.gif
+```
+
+2-pass palette generation (palettegen + paletteuse) for high-quality color. Aspect crop presets: `1:1` / `9:16` / `16:9` / `4:5` / `2:1` / `1:2`. Default `--fps 12 --width 720`.
+
+ffmpeg required. install.sh offers auto-install. Mode B cost: $1.20-3.00 per 3-sec clip depending on provider.
+
+For details: [gif-maker/SKILL.md](../gif-maker/SKILL.md) · [quality-tuning](../gif-maker/references/quality-tuning.md) · [model-picker](../gif-maker/references/model-picker.md).
 
 ---
 

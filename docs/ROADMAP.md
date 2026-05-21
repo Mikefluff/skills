@@ -4,12 +4,13 @@ Identified gaps where the collection is functional but UX-painful. Tracked here 
 
 Not all of these will be built. They're sorted by user-likely-to-want vs. effort, with notes on what could ship as a skill vs. what's better left as a one-liner in `image-prompt --execute` / `video-prompt --execute`.
 
-Last updated: 2026-05-21 (post v2.5.0).
+Last updated: 2026-05-21 (post v2.8.0).
 
 ---
 
 ## What landed in recent releases
 
+- v2.8.0 — `logo-maker` + `quote-card-maker` + `gif-maker` (brand mark / aphorism graphic / short looping animation)
 - v2.7.0 — `cover-maker` + `thumbnail-maker` + `bg-remover` (album/book/podcast covers, 16:9 thumbnails, transparent PNG utility)
 - v2.6.0 — `avatar-maker` + `voiceover-maker` + `subtitle-burner`
 - v2.5.0 — `flyer-maker` (event posters / flyers / promo graphics with multi-aspect output)
@@ -58,7 +59,7 @@ Each of these reuses 90% of the flyer-maker / carousel-builder infrastructure: s
 
 **Effort**: 1 day.
 
-### `logo-maker`
+### `logo-maker` ✅ SHIPPED v2.8.0
 
 **For**: brand mark / logo / wordmark.
 
@@ -66,7 +67,7 @@ Each of these reuses 90% of the flyer-maker / carousel-builder infrastructure: s
 
 **Effort**: 0.5 day. Almost a wrapper around image-prompt with a few defaults.
 
-### `quote-card-maker`
+### `quote-card-maker` ✅ SHIPPED v2.8.0
 
 **For**: bold quote + minimal visual. Twitter / Instagram quote cards.
 
@@ -127,16 +128,16 @@ These extend the runner's audio capabilities beyond music-prompt.
 
 **Effort**: 0.5 day (basic) to 2 days (with VAD ducking).
 
-### `gif-maker`
+### `gif-maker` ✅ SHIPPED v2.8.0
 
 **For**: short looping animation. Sometimes 2-3s on loop serves better than a still image.
 
 **Why it's a gap**: video-prompt covers it, but the output is MP4, not GIF. No `--format gif`.
 
 **What it adds**:
-- Wraps video-prompt for 1-3 second clips
-- Convert MP4 → GIF via ffmpeg with palette optimization
-- Aspect presets (1:1 social, 2:1 banner)
+- Wraps video-prompt for 1-3 second clips (Mode B), or convert an existing MP4 (Mode A)
+- Convert MP4 → GIF via ffmpeg with 2-pass palette optimization (palettegen + paletteuse + bayer dithering)
+- Aspect presets (1:1 social, 9:16 story, 16:9 banner, 2:1 wide, 4:5, 1:2)
 
 **Effort**: 0.5 day.
 

@@ -6,7 +6,7 @@
 
 AI content toolkit for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) — prose editing without LLM-shaped output, AI media generation (image / video / music) with optional in-line execution, and end-to-end content orchestrators (research → carousel / reel). Russian-first, English-capable.
 
-**Twenty-seven skills** across five layers: one base + fifteen wrappers + three linters + five orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning).
+**Thirty-three skills** across five layers: one base + seventeen wrappers + three linters + nine orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning + GIF conversion).
 
 ---
 
@@ -132,6 +132,9 @@ The bundled style library used by the orchestrators: [carousel](common/style-lib
 | [`subtitle-burner`](subtitle-burner/) | wrapper | en/ru | Burn captions / subtitles onto an existing video via ffmpeg. Supports SRT, WebVTT, and plain-text subtitle sources. Style presets (modern / minimal / bold) + per-flag customization (font-size, color, backplate). Outputs <video>-subtitled<ext>. No API calls — pure ffmpeg. Subcommands: burn / preview. |
 | [`flyer-maker`](flyer-maker/) | orchestrator | en/ru | Turn event details (title / date / location / CTA) plus an optional photo into a poster/flyer/social-event-graphic with embedded text in a chosen visual style. Wraps image-prompt --execute + the carousel style library (24 visual styles) + the runner's batch executor. Picks a text-friendly + multi-ref-capable model (gpt-image-2 / ideogram-3-quality / nano-banana-pro). Multi-aspect output (portrait / square / story / landscape / a4). Outputs: ./generated/flyer/<event-slug>/<aspect>.png + manifest.json + prompts.md. |
 | [`reel-builder`](reel-builder/) | orchestrator | en/ru | Turn a topic / research brief / script into a vertical reel: 1-4 video shots + matched background music + ffmpeg-stitched final.mp4 with optional burned-in captions. Wraps viral-text + video-prompt --execute + music-prompt --execute + common video/music style library + ffmpeg. Outputs final.mp4 + shots/ + music.mp3 + script.md + manifest. Modes: --topic / --research / --script-file; --shots 1-5; --style auto\|<library-id>; --music-style auto\|<library-id>; --captions on\|off; --execute; --resume. |
+| [`logo-maker`](logo-maker/) | orchestrator | en/ru | Brand mark / wordmark / logo generator. Defaults to ideogram-3-quality (cleanest embedded text). Six style presets (wordmark / minimal / illustrated / typographic / geometric / emblem) + optional palette hint. Single-image output, N stochastic variants per call. Outputs: ./generated/logo/<slug>/logo-v<N>.png + manifest.json. |
+| [`quote-card-maker`](quote-card-maker/) | orchestrator | en/ru | Quote card / aphorism graphic generator — short text + attribution on a typography-dominant composition. Wraps image-prompt --execute + the carousel style library biased toward text-friendly anchors (minimal-serif / swiss-grid / editorial-magazine / monochrome-bold / gradient-mesh-modern / russian-constructivist). Multi-aspect (square / portrait / story / landscape). Default model ideogram-3-quality. Outputs: ./generated/quote/<slug>/<aspect>.png + manifest.json. |
+| [`gif-maker`](gif-maker/) | wrapper | en/ru | Short looping GIF utility. Mode A: convert existing MP4 → GIF via ffmpeg 2-pass palette optimization. Mode B: generate 1-3s clip via a video provider (Veo / Kling / fal-video / Sora) then convert. Aspect crop presets (1:1 / 9:16 / 16:9 / 4:5 / 2:1). Outputs: ./generated/gif/<name>.gif. |
 
 <!-- END skills-table -->
 

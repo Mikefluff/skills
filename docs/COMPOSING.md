@@ -227,6 +227,35 @@ carousel-builder --topic "<text>" --platform instagram --execute
 
 Internally invokes `viral-text` (for Instagram / TikTok) or `essay-write` (for LinkedIn) to draft content, then runs the same pipeline as the research-driven path.
 
+#### Brand identity pack (logo + cover + quote card)
+
+```
+logo-maker --brand "<name>" --style wordmark --variants 6 --execute
+cover-maker --title "<brand-product>" --creator "<brand>" --medium book --execute
+quote-card-maker --quote "<brand-tagline>" --attribution "— <brand>" --style minimal-serif --execute
+```
+
+Pick the best logo variant. Use the same style anchor across all 3 for visual consistency (e.g., feed the same `--style swiss-grid-poster` to cover-maker and quote-card-maker). Cost: $0.50-1.50 total for a brand starter kit.
+
+#### Quote card series for content marketing
+
+```
+for q in <list-of-quotes>; do
+  quote-card-maker --quote "$q" --attribution "<source>" --style <fixed-anchor> --aspects square --execute --yes
+done
+```
+
+Fixed `--style` across all = visually consistent series. Set `--aspects square,portrait` to ship to multiple platforms in one pass.
+
+#### Animated reaction or hero loop (GIF)
+
+```
+gif-maker --prompt "<short-loop-description>" --model veo-3-1-fast --duration 3 --aspect 1:1 --execute
+gif-maker --input ./reel-final.mp4 --aspect 1:1 --duration 2 --output ./reaction.gif
+```
+
+Two modes. Mode A reuses an existing MP4 (e.g., a shot from `reel-builder`). Mode B generates from a prompt. GIFs <2MB for Twitter/Slack performance.
+
 ### Meta recipes
 
 #### Add or rotate API keys

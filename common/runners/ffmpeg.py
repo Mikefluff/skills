@@ -154,6 +154,74 @@ def burn_captions(
     return cmd
 
 
+def mp4_to_gif(
+    video: Path,
+    output: Path,
+    *,
+    fps: int = 12,
+    width: int | None = None,
+    start: float = 0.0,
+    duration: float | None = None,
+    loop: int = 0,
+    ffmpeg_bin: str = "ffmpeg",
+) -> list[str]:
+    """Convert an MP4 to a high-quality looping GIF via 2-pass palettegen/paletteuse.
+
+    width: scaled output width in px (keeps aspect). None = source width.
+    fps: target frame rate (12-15 is good for GIFs; 24+ inflates file size).
+    start / duration: optional trim window in seconds.
+    loop: 0 = infinite (default), -1 = no loop, N = N+1 plays.
+
+    Two passes:
+      1. ffmpeg ... palettegen → palette.png
+      2. ffmpeg ... -i palette.png paletteuse → output.gif
+
+    Returns the second-pass command run (the visible one). Raises CalledProcessError on failure.
+    """
+    output.parent.mkdir(parents=True, exist_ok=True)
+    palette = output.with_suffix(".palette.png")
+
+    scale_part = f"fps={fps}"
+    if width is not None and width > 0:
+        scale_part += f",scale={int(width)}:-1:flags=lanczos"
+
+    trim_in: list[str] = []
+    if start and start > 0:
+        trim_in += ["-ss", f"{start:.3f}"]
+    if duration and duration > 0:
+        trim_in += ["-t", f"{duration:.3f}"]
+
+    # Pass 1 — palette
+    pass1 = [
+        ffmpeg_bin, "-y", "-loglevel", "error",
+        *trim_in,
+        "-i", str(video),
+        "-vf", f"{scale_part},palettegen=max_colors=256:stats_mode=diff",
+        str(palette),
+    ]
+    subprocess.run(pass1, check=True, capture_output=True, text=True)
+
+    # Pass 2 — apply palette
+    pass2 = [
+        ffmpeg_bin, "-y", "-loglevel", "error",
+        *trim_in,
+        "-i", str(video),
+        "-i", str(palette),
+        "-filter_complex",
+        f"[0:v]{scale_part}[v];[v][1:v]paletteuse=dither=bayer:bayer_scale=5",
+        "-loop", str(loop),
+        str(output),
+    ]
+    subprocess.run(pass2, check=True, capture_output=True, text=True)
+
+    try:
+        palette.unlink()
+    except OSError:
+        pass
+
+    return pass2
+
+
 def get_duration(path: Path, *, ffmpeg_bin: str = "ffmpeg") -> float | None:
     """Return media duration in seconds via ffprobe-style probe with ffmpeg."""
     if not shutil.which("ffprobe"):
