@@ -10,6 +10,8 @@ Last updated: 2026-05-21 (post v2.5.0).
 
 ## What landed in recent releases
 
+- v2.7.0 — `cover-maker` + `thumbnail-maker` + `bg-remover` (album/book/podcast covers, 16:9 thumbnails, transparent PNG utility)
+- v2.6.0 — `avatar-maker` + `voiceover-maker` + `subtitle-burner`
 - v2.5.0 — `flyer-maker` (event posters / flyers / promo graphics with multi-aspect output)
 - v2.4.0 — `skills-styles` (local style library CRUD + upstream PR helper)
 - v2.3.1 — `skills-keys` (API key management with verify)

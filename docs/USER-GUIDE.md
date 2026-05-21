@@ -382,6 +382,48 @@ For details: [carousel-builder/SKILL.md](../carousel-builder/SKILL.md) and [rese
 
 ---
 
+### "I want a cover (album / book / podcast / report)" {#i-want-a-cover}
+
+`/cover-maker --title "<text>" --medium album|book|podcast|magazine|report|deck-cover|linkedin-doc --creator "<name>"` produces a cover at the medium's native aspect (album 1:1, book 2:3, podcast 1:1, magazine 2:3, report A4, deck 16:9, linkedin-doc 1:1). Optional `--photo` reference. Reuses carousel style library.
+
+```
+/cover-maker --title "Lunar Vault" --creator "Alex Reyes" --medium album --photo ./artwork.jpg --style neon-cyberpunk --execute
+/cover-maker --title "The Slow Software Manifesto" --creator "Alex Smith" --medium book --photo ./alex.jpg --style swiss-grid-poster --execute
+/cover-maker --title "Slow Software Podcast" --creator "Hosted by Alex" --medium podcast --style swiss-grid-poster --execute
+```
+
+For details: [cover-maker/SKILL.md](../cover-maker/SKILL.md).
+
+---
+
+### "I want a YouTube / blog / podcast thumbnail" {#i-want-a-thumbnail}
+
+`/thumbnail-maker --title "<text>"` produces 16:9 thumbnails with face-placement variants (left / right / center). Default `--type youtube` (1920×1080). Optional `--photo` reference.
+
+```
+/thumbnail-maker --title "How I Built a SaaS in 30 Days" --photo ./me.jpg --type youtube --execute
+/thumbnail-maker --title "The Slow Software Manifesto" --type blog --style kinfolk-minimal --execute
+/thumbnail-maker --title "Why We Killed Our Roadmap" --photo ./guest.jpg --type podcast-episode --variants 2 --execute
+```
+
+For details: [thumbnail-maker/SKILL.md](../thumbnail-maker/SKILL.md).
+
+---
+
+### "I want to remove the background from a photo" {#i-want-to-remove-background}
+
+`/bg-remover --image <path>` removes background via Replicate. Single image in, transparent PNG out. ~$0.001-0.005 per image.
+
+```
+/bg-remover --image ./me.jpg --execute
+/bg-remover --image ./shoe.jpg --output ./products/shoe-cutout.png --execute
+/bg-remover --image ./portrait.jpg --replicate-model pollinations/modnet --execute
+```
+
+For details: [bg-remover/SKILL.md](../bg-remover/SKILL.md).
+
+---
+
 ### "I want avatar / headshot variants from a photo" {#i-want-to-make-an-avatar}
 
 `/avatar-maker --photo <path>` produces N profile-pic / headshot variants in a consistent style. Identity-preserve is the priority — defaults to `nano-banana-pro` (industry-best at face preservation).
