@@ -14,6 +14,107 @@ Commit format follows [Conventional Commits](https://www.conventionalcommits.org
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-05-20
+
+### BREAKING — major restructure of `image-prompt` + `video-prompt`
+
+Both prompt skills now cover the 2025-2026 frontier across all major modes:
+text-to-image edit / multi-reference / text-in-image for image; T2V / I2V /
+V2V / extend / multi-shot / native-audio for video. The single
+`references/model-specifics.md` file is replaced by per-vendor / per-tier files
+under `references/models/`. Direct references to the old path will break — load
+via SKILL.md's REFERENCES table, not by hardcoded path.
+
+### Added — image-prompt (v2)
+
+- **14+ frontier image models**: Midjourney v7 (incl. `--sref`, `--oref`, `--raw`),
+  Flux 2 Pro / Flux 2 Dev / Flux 1.1 Pro Ultra (Raw) / Flux Kontext (edit) /
+  Flux Schnell / FLUX.1 Krea [dev], Imagen 4 / Imagen 4 Ultra / Imagen 4 Fast,
+  Nano Banana Pro (Gemini 3 Pro Image — 4K, 5-person consistency, 14 refs,
+  thinking mode), gpt-image-2 (~99% char accuracy, 16 refs; DALL-E 3 retired
+  2026-05-12), Ideogram 3 (Turbo / Default / Quality — text-in-image leader),
+  Recraft V3 (SVG vector), Seedream 4.5 / 5.0 (weighted multi-ref), Qwen-Image
+  2.0 + 2512 (Apache-2.0, CJK + multilingual typography), HiDream-O1-Image
+  (MIT, pixel-native), Krea-1 ("no AI look"), SD 3.5 Large + Turbo + Medium
+  (with weight-syntax no-op caveat).
+- **New modality references**: `references/editing-prompting.md` (i2i,
+  character/identity locks, multi-ref weighting, preserve/change grammar);
+  `references/text-in-image.md` (per-model text rendering rules + multilingual);
+  `references/model-picker.md` (intent → model decision tree + capability
+  matrix).
+- **New SKILL.md modes**: `--edit`, `--reference <path@role:weight>` (repeatable),
+  expanded `--model` enum to 14+ keys, pipeline step 2.5 (mode select),
+  intent-based default-model logic.
+- **Updated `prompt-formula.md`**: 7th conditional block "References / multi-ref"
+  with weighted-role syntax + Kontext deviation note.
+- **+4 new before-after pairs** in `examples/before-after.md`: text-in-image
+  (Ideogram 3 Quality), edit + character consistency (Flux Kontext), multi-ref
+  composite (Seedream 4.5), open-weights multilingual (Qwen-Image 2.0).
+
+### Added — video-prompt (v2)
+
+- **20+ frontier video models**: Veo 3.1 / 3.1 Fast (native synced audio, 4K,
+  ~120ms lip-sync, scene-extend), Sora 2 / Sora 2 Pro (audio + cameos +
+  multi-shot), Kling 3.0 / Kling 2.6 Elements (4 refs per scene) / Kling Master,
+  Runway Gen-4 / Gen-4 Turbo / Aleph (V2V — add / remove / replace / relight /
+  re-angle / restyle / extend) / Act-One (performance transposition),
+  Luma Ray 3 / Ray 3 Modify (Start+End keyframes + Character Ref swap),
+  Pika 2.2 (Pikaframes / Pikadditions / Pikaswaps), MiniMax Hailuo 02 /
+  Hailuo 02 Pro (best physics), Higgsfield Cinema Studio (70+ named camera
+  presets, Soul ID, Start+End frames — wraps Sora 2 / Veo 3.1 / Kling /
+  Seedance / Wan), LTX-2 / LTX-2 Distilled (Lightricks open-source 4K + audio),
+  HunyuanVideo 1.5 / HunyuanCustom (Tencent open-source), Wan 2.2 / 2.7
+  (Alibaba MoE), Seedance 1.0 Pro (ByteDance multi-shot), Mochi 1 (Genmo
+  legacy).
+- **New modality references**: `references/audio-prompting.md` (Dialogue /
+  SFX / Ambient grammar, prosody adverbs, lip-sync rules, talking-head
+  template, 5-layer cap); `references/i2v-prompting.md` (motion-over-still
+  law, never-re-describe-frame, physical tethers); `references/v2v-editing.md`
+  (action-verb-first grammar, single-change-per-pass, per-model duration
+  caps); `references/multi-shot.md` (Shot 1/2/3 blocks, style anchors,
+  transitions: `new shot:` / `cut to:` / `match cut on`); `references/
+  identity-references.md` (Sora Cameos / Kling Elements / Runway Act-One /
+  Higgsfield Soul ID / HunyuanCustom — "name the ref, don't re-describe").
+- **New SKILL.md modes**: `--mode t2v|i2v|v2v|extend`, `--audio`, `--dialogue
+  "..."`, `--end-frame "..."`, `--shots N`, `--ref name=path,...`, `--cluster
+  audio|i2v|v2v|open|aggregator`. Expanded `--model` enum to 22+ keys, with
+  deprecated aliases (`kling-1-6`, `pika-1-5`, `gen-3`, `luma-dream`).
+- **Updated `camera-vocabulary.md`**: + Higgsfield aggregator presets section
+  (Bullet Time / Crash Zoom / Vertigo / FPV / Robo-arm / Speed Ramp), + Sora 2
+  multi-shot transitions, + Cinema Studio lens/body vocab.
+- **Updated `pacing-modes.md`**: + dialogue-scene mode, + music-video mode
+  (beat-synced).
+- **Updated `beat-structure.md`**: appended "Beat structure with native
+  dialogue" — dialogue obeys beat budget, one speaker per beat, prosody before
+  the quote.
+- **+5 new before-after pairs** in `examples/before-after.md`: dialogue with
+  audio (Veo 3.1), I2V (Kling 3.0), V2V single-verb passes (Runway Aleph),
+  multi-shot mini-scene (Sora 2), RU audio (Veo 3.1 with verbatim RU
+  dialogue line).
+
+### Removed
+
+- `image-prompt/references/model-specifics.md` — content migrated to
+  `image-prompt/references/models/` (one file per vendor family) and
+  `image-prompt/references/model-picker.md`.
+- `video-prompt/references/model-specifics.md` — content migrated to
+  `video-prompt/references/models/` (one file per capability tier) and
+  `video-prompt/references/models/_index.md`.
+- DALL-E 3 — retired 2026-05-12 by OpenAI; replaced by gpt-image-2.
+  Reference retained as a brief retirement note in
+  `image-prompt/references/models/openai.md`.
+
+### Migration notes
+
+- Anything that loaded `references/model-specifics.md` directly should now
+  load via the SKILL.md REFERENCES table or via the per-vendor / per-tier
+  files under `references/models/`.
+- The deprecated model keys (`kling-1-6`, `pika-1-5`, `gen-3`, `luma-dream`
+  for video; old DALL-E references for image) still resolve with a
+  deprecation warning — schedule migration to the current keys.
+- Skill philosophy unchanged: declarative SKILL.md, load-on-demand
+  references, RU+EN parity, MIT, zero external deps.
+
 ## [1.9.1] — 2026-05-20
 
 ### Changed

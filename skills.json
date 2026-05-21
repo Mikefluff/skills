@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Mikefluff/skills/main/docs/skills.schema.json",
   "collection": "Mikefluff/skills",
-  "version": "1.9.1",
+  "version": "2.0.0",
   "repo": "https://github.com/Mikefluff/skills",
   "license": "MIT",
   "skills": [
@@ -189,7 +189,7 @@
       "name": "image-prompt",
       "dir": "image-prompt",
       "layer": "wrapper",
-      "description": "Write prompts for AI image generators (Midjourney, DALL-E, Flux, Nano Banana, Stable Diffusion). 6-part formula (subject + setting + style + lighting + camera + texture), per-model deltas, negative prompts.",
+      "description": "Write prompts for 14+ frontier AI image generators (Midjourney v7, Flux 2 / Flux Kontext, Imagen 4 Ultra, Nano Banana Pro / Gemini 3 Image, gpt-image-2, Ideogram 3, Recraft V3, Seedream 4.5, Qwen-Image, HiDream-O1, Krea-1, SD 3.5, SDXL). Modes: text-to-image, edit (preserve/change), multi-reference, text-in-image. 6-part formula + per-model deltas, character/identity locks, weighted multi-ref.",
       "languages": [
         "en",
         "ru"
@@ -204,7 +204,7 @@
       "name": "video-prompt",
       "dir": "video-prompt",
       "layer": "wrapper",
-      "description": "Write prompts for AI video generators (Kling, Veo, Sora, Runway, Pika, Hailuo, Luma). CHARACTER FIRST law, beat structure (Beat 1/2/3), exact camera vocabulary, pacing modes (narrative/action/comedy/documentary/timelapse).",
+      "description": "Write prompts for 20+ frontier AI video generators (Veo 3.1 + native audio, Sora 2 + cameos, Kling 3.0 / Elements, Runway Gen-4 / Aleph V2V / Act-One, Luma Ray 3 / Modify, Pika 2.2 / Pikaframes, Hailuo 02, Higgsfield, LTX-2, HunyuanCustom, Wan 2.2, Seedance). Modes: T2V / I2V / V2V / extend / multi-shot / dialogue+audio. CHARACTER FIRST law, beat structure, exact camera vocabulary, identity-reference grammar, pacing modes (incl. dialogue-scene + music-video).",
       "languages": [
         "en",
         "ru"

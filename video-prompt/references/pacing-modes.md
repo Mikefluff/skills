@@ -163,6 +163,68 @@ Light progression: {dawn → noon → sunset OR specific named states}
 
 ---
 
+## Dialogue-scene
+
+**When**: native-audio models (Veo 3.1, Sora 2, LTX-2) where dialogue IS the action. Talking-head shots, two-character argument, interview, confession.
+
+**Rules**:
+- Dialogue is the action — camera HOLDS (locked or subtle push-in, nothing punchier).
+- Eye-line + lip + breath matter more than body motion. Frame the face.
+- Shot-reverse-shot only via multi-shot block ([`multi-shot.md`](multi-shot.md)); inside one shot, hold one composition.
+- Dialogue obeys the beat budget — see [`beat-structure.md`](beat-structure.md) § Beat structure with native dialogue.
+- No competing SFX during speech beats. Drop ambient under the line.
+
+**Per-beat camera**:
+- Beat 1 (setup): static medium or slow push-in start. Face visible.
+- Beat 2 (delivery): hold. No camera move during the line itself.
+- Beat 3 (reaction): subtle settle. Optional rack focus to listener if two-shot.
+
+**Template**:
+
+```
+Beat 1 (0-2s): <character physical setup — body settled, gaze locked, breath in>
+Beat 2 (2-5s): <character delivers line>
+  Character: "<line>"
+  Ambient: <one bed, low>
+Beat 3 (5-8s): <reaction — held tension or release>
+  SFX: <one cue tied to action, if any>
+Camera: static medium / slow push-in held throughout
+```
+
+See [`audio-prompting.md`](audio-prompting.md) for full dialogue/SFX/ambient grammar.
+
+---
+
+## Music-video
+
+**When**: music or score leads the cut. Beat-synced camera punches, whip pans on transients, kinetic energy throughout.
+
+**Rules**:
+- Name the BPM or align camera beats to musical beats explicitly: "Beat 1 lands on the kick, Beat 2 on the snare hit, Beat 3 on the drop".
+- Diegetic vs non-diegetic split — name the music source if in-world (record player, band on stage); otherwise it's score overlay.
+- Camera moves on accents — whip pans on transients, crash zooms on the drop, freeze-frame on the iconic hit.
+- Subject motion choreographed to the beat — gestures land on accents, not between them.
+
+**Per-beat camera**:
+- Beat 1 (downbeat): hard establish — wide or extreme close-up. Strong silhouette.
+- Beat 2 (build): rising energy — push-in, orbit start, lateral track.
+- Beat 3 (drop / final accent): release — whip pan, crash zoom, freeze frame, or fast pull-back.
+
+**Template**:
+
+```
+Beat 1 (0-Xs, on kick): <wide or ECU setup, subject lands a defining pose>
+Beat 2 (X-Ys, on snare/build): <energy rises, body moves on beats, camera matches>
+Beat 3 (Y-end, on drop): <peak — whip pan / crash zoom / freeze>
+
+Music: <BPM or beat reference — "120 BPM electronic, beat lands on every Beat 1">
+Camera: <named moves aligned to beats>
+```
+
+Music-video pacing pairs naturally with `action` and `comedy` modes; rarely with `documentary`.
+
+---
+
 ## How to pick
 
 Default to **narrative** unless the user signals otherwise:
@@ -181,4 +243,9 @@ For 2+ second clips, only ONE mode applies per shot. Don't mix narrative + comed
 
 - Camera vocabulary: [`camera-vocabulary.md`](camera-vocabulary.md)
 - CHARACTER FIRST + beat structure: [`beat-structure.md`](beat-structure.md)
-- Per-model rules: [`model-specifics.md`](model-specifics.md)
+- Per-model rules: [`models/_index.md`](models/_index.md) + per-tier files in [`models/`](models/)
+- Native audio (dialogue / SFX / ambient): [`audio-prompting.md`](audio-prompting.md)
+- I2V motion-over-still: [`i2v-prompting.md`](i2v-prompting.md)
+- V2V edits: [`v2v-editing.md`](v2v-editing.md)
+- Multi-shot: [`multi-shot.md`](multi-shot.md)
+- Identity references: [`identity-references.md`](identity-references.md)

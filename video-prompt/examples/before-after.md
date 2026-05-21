@@ -275,3 +275,219 @@ Camera: slow dolly push-in across the 5 seconds, ending tight on her face and mu
 - Texture: ceramic imperfections, coffee ripple, sweater loops — даёт модели зацепки для шевеления, не статики
 - Rack focus в середине — мотивирован beat-structure, не «выглядит круто»
 - Промпт собран на EN; RU-объяснение этого выбора живёт только в нашем диалоге с пользователем
+
+---
+
+## Example 7 — Native dialogue scene (Veo 3.1)
+
+### Before (weak)
+
+```
+A woman tells a man she's leaving him at a restaurant. They argue. Sad music plays.
+```
+
+What's wrong:
+- No beat structure, single-instance verbs ("tells")
+- No Dialogue / SFX / Ambient blocks — Veo 3.1's native-audio capability ignored
+- "Sad music" is vague — no diegetic/non-diegetic split, no cue specificity
+- Lip-sync trigger (`Character: "line"` format) missing entirely
+
+### After (Veo 3.1)
+
+```
+Beat 1 (0-2s): She sets her wine glass down with a soft clink, both hands flat on the linen tablecloth, gaze locked on his face; her shoulders settle, breath in.
+
+Beat 2 (2-5s): She delivers the line, jaw moving evenly, no hesitation.
+  Character: "I'm not coming home tonight. Or any night after."
+  Ambient: low murmur of restaurant conversation, distant clink of cutlery
+
+Beat 3 (5-8s): He freezes for one beat, lips parting; throat works in a single swallow; his hand reaches halfway across the table and stops, suspended.
+  SFX: muted single glass clink from a neighboring table
+
+Camera: static medium two-shot held throughout, subtle handheld vibration, focus on the gap between their faces.
+```
+
+### Deltas applied
+
+- Dialogue placed in Beat 2 (not Beat 1) — Veo 3.1 needs a setup frame to lock the face for lip-sync
+- `Character: "..."` syntax with colon + double quotes — exact form that triggers Veo 3.1 lip-sync
+- Ambient (restaurant murmur) dropped to background under the line, NOT competing
+- One SFX cue tied to a physical beat — not on top of speech
+- Camera held — no push-in during dialogue (camera-energy rule for dialogue-scene pacing)
+- See `references/audio-prompting.md` and `references/pacing-modes.md` § Dialogue-scene
+
+---
+
+## Example 8 — I2V from still (Kling 3.0)
+
+### Before (weak — common mistake)
+
+```
+A woman in a red dress raises a wine glass at a candle-lit table. Warm tones, slow push-in.
+```
+
+Source image attached: woman in red dress at candle-lit dinner table, wine glass on table.
+
+What's wrong:
+- Re-describes everything the model already sees (dress, glass, table, candle, warm tones) — wastes tokens and confuses the model into "regenerating" the frame
+- Generic "raises" — single-instance verb → frozen pose
+- No Kling temporal flow
+- No physical tethers (what stays in frame, what moves)
+
+### After (Kling 3.0)
+
+```
+First [0-1.5s]: She wraps her fingers around the stem of the glass, lifting it about 8cm off the table; her gaze stays locked across the table on the man, head tilting slightly forward.
+
+Then [1.5-4s]: She continues raising the glass to chest height, jaw moving as her lips begin to part for a word; her shoulders settle, breath in; the man across the table flinches subtly, throat working in one swallow.
+
+Finally [4-6s]: She holds the glass suspended at chest height, gaze unbroken; the candle flame flickers once with her breath.
+
+Physical tether: the glass stays in her right hand throughout, never leaves the hand; the napkin in his lap stays draped; the candle stays upright.
+
+Environment: the candle flame flickers irregularly; the linen tablecloth shifts subtly when her elbow moves.
+
+Camera: slow dolly push-in across the 6 seconds, ending tight on the gap between their faces, focus on her hand on the stem.
+```
+
+### Deltas applied
+
+- No re-description of dress, table, candle, warm tones — model sees those
+- "Raises" → 3-beat motion: wrap, lift to chest, hold suspended
+- Added the reactor (the man) — body detail in Beat 2
+- Physical-tether block names what STAYS in frame (glass, napkin, candle) — Kling needs this to not teleport props
+- Environment-motion (flame flicker, tablecloth shift) — gives the scene life without re-describing the static elements
+- Kling temporal flow REQUIRED — `First [0-1.5s]... Then [1.5-4s]... Finally [4-6s]`
+- See `references/i2v-prompting.md`
+
+---
+
+## Example 9 — V2V edit (Runway Aleph)
+
+### Before (weak)
+
+```
+Take this daytime street footage and make it look like nighttime in winter with snow. Add a few people walking. Change the camera angle to low.
+```
+
+Source clip attached: 5s daytime street scene, three pedestrians walking, no snow.
+
+What's wrong:
+- Stacks three actions (relight + add + re-angle) in one prompt — Aleph produces unstable results
+- "Make it look like" — no clear action verb
+- "A few people" — vague target
+- Exceeds Aleph's 5s constraint for multi-edit
+
+### After (Runway Aleph — single-verb passes)
+
+Pass 1 (relight to winter dusk):
+
+```
+Relight to winter dusk. Drop the sun to low warm orange on the horizon, cool blue ambient in the shadows. Keep the existing pedestrians, the existing buildings, and the existing camera position unchanged.
+```
+
+Pass 2 (add snowfall — chain from Pass 1 output):
+
+```
+Add light snowfall throughout the frame, gentle drift downward, no accumulation on the ground. Match the existing winter-dusk lighting. Keep everything else unchanged.
+```
+
+(Re-angle requires a separate generation in a different model — Aleph holds the original camera position.)
+
+### Deltas applied
+
+- One action verb per pass — `Relight` then `Add` — never stacked
+- Each pass explicitly names what to PRESERVE (pedestrians, buildings, camera position)
+- Each pass specifies the outcome with concrete properties (warm orange / cool blue, drift downward, no accumulation)
+- 5s cap per Aleph generation respected
+- Re-angle moved to a different model — Aleph is V2V, not view-synthesis
+- See `references/v2v-editing.md`
+
+---
+
+## Example 10 — Multi-shot mini-scene (Sora 2)
+
+### Before (weak)
+
+```
+A three-shot scene of a woman and a man at dinner. Wide establishing, then close-up on her hand, then her reaction. They look at each other.
+```
+
+What's wrong:
+- No per-shot duration / framing breakdown
+- Re-describes the characters each shot ("a woman", "her") — causes identity drift across shots
+- No style anchor — lighting / grade will jump between shots
+- "They look at each other" — synchronised statues
+- No transitions
+
+### After (Sora 2)
+
+```
+Shot 1 (3s, wide establishing): A candle-lit dinner table from across the room, the warm pendant lamp above casting a pool of light on the scene; both figures visible — [ref:Sarah] sits camera-left, [ref:Marcus] camera-right; the room around them in soft darkness.
+
+new shot:
+
+Shot 2 (5s, extreme close-up on hands): [ref:Sarah]'s right hand wraps slowly around the stem of a wine glass; her thumb traces the curve once; [ref:Marcus]'s hand enters frame from the right, fingers tightening on his napkin.
+
+match cut on hand
+
+Shot 3 (4s, medium two-shot): [ref:Sarah] lifts the wine glass to chest height, gaze locking on [ref:Marcus]; [ref:Marcus] holds eye contact, throat working in one slow swallow, jaw clenching once.
+
+Style anchor: warm tungsten candle from below, dim ambient pendant overhead, editorial cinematic grade with shallow depth of field across all three shots.
+```
+
+### Deltas applied
+
+- Each shot block has duration + framing + action
+- Identity labels (`[ref:Sarah]`, `[ref:Marcus]`) used in every shot — physical traits NOT re-described between shots (locked by cameo refs)
+- Multi-shot transitions explicit (`new shot:`, `match cut on hand`) — Sora 2 parses these
+- One Style anchor sentence at the end binds all three shots' lighting / grade
+- "Look at each other" → described per character per beat
+- See `references/multi-shot.md` and `references/identity-references.md`
+
+---
+
+## Example 11 (RU audio) — Диалог на русском (Veo 3.1)
+
+### Контекст
+
+Пользователь даёт ТЗ на русском: «короткая RU-сцена, друг рассказывает мне новость в баре, надо чтобы он сказал реплику с интонацией усталости, плюс эмбиент бара, lip-sync должен совпасть». Модель — Veo 3.1.
+
+### До (weak)
+
+```
+В баре друг говорит мне с усталым голосом: "Я ухожу из компании". Шум бара на фоне. Lip-sync.
+```
+
+What's wrong:
+- Промпт на RU — Veo 3.1 парсит EN тело точнее, но RU-реплику внутри quotes держит хорошо
+- Нет beat-structure
+- Прозодика («усталым голосом») должна стоять ПЕРЕД quote — внутри quote только сама речь
+- Нет лип-синк триггера (`Character: "line"` с двоеточием и двойными кавычками)
+- Конкурирующее аудио (бар на фоне) не разведено по уровню
+
+### После (Veo 3.1)
+
+```
+Beat 1 (0-2s): A man in his thirties sits across from the camera at a small bar table, weary voice, shoulders settled, eyes lowered to his half-empty glass; he draws a slow breath in, lips part.
+
+Beat 2 (2-5s): He lifts his gaze to meet the camera, jaw moving evenly as he delivers the line.
+  Character: "Я ухожу из компании. Завтра подаю заявление."
+  Ambient: low bar chatter, distant clink of glasses, dropped under the line
+
+Beat 3 (5-8s): He holds the gaze for one full beat, exhales softly, shoulders dropping further; his hand wraps around the glass.
+  SFX: single muted glass clink from a neighboring table
+
+Camera: static medium close-up held throughout, subtle handheld vibration, focus on his eyes; warm tungsten pendant from upper-right, cool blue ambient from a neon sign camera-left.
+```
+
+### Применённые дельты
+
+- Body тело промпта — EN (Veo 3.1 парсит точнее); RU-реплика — verbatim внутри quotes (Veo 3.1 handles multilingual речь через `Character: "..."`)
+- `Character: "Я ухожу из компании. Завтра подаю заявление."` — exact lip-sync trigger format (двоеточие + двойные кавычки)
+- Прозодика «усталый голос» вынесена в `weary voice` ПЕРЕД quote, не внутрь
+- Beat 2 несёт диалог; Beat 1 — setup для face-lock; Beat 3 — реакция
+- Ambient «бар на фоне» → `low bar chatter, dropped under the line` — phrasing указывает модели понизить уровень под речь
+- Один SFX cue (`single muted glass clink`) уложен в Beat 3, не на речь
+- Camera static (dialogue-scene pacing) — никаких push-in во время реплики
+- See `references/audio-prompting.md` и `references/pacing-modes.md` § Dialogue-scene

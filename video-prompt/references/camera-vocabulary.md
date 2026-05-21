@@ -190,6 +190,76 @@ If you need three things to happen, split into two shots.
 
 ---
 
+## Aggregator camera presets (Higgsfield Cinema Studio)
+
+Higgsfield wraps Sora 2 / Veo 3.1 / Kling 3.0 / Seedance / Wan 2.7 behind a single interface with 70+ named camera presets. Pick by NAME, not by description — the system maps the name to the right backend syntax.
+
+**Stackable: max 3 presets per shot.** Beyond that the model averages them.
+
+| Preset | What it does | When to use |
+|---|---|---|
+| `Bullet Time` | 360° freeze-rotation around subject | Iconic peak moment, climax beat |
+| `Crash Zoom` | Fast push-in to a tight close-up | Hook, reveal, reaction |
+| `360 Rotation` | Smooth orbit around subject | Establishing, character reveal |
+| `FPV` | First-person dive / chase | Action, adrenaline, sport |
+| `Vertigo` | Dolly-zoom (Hitchcock effect) | Shock, dissociation, awe |
+| `Whip-Snap` | Hard whip pan into next action | Energy transfer, beat snap |
+| `Robo-arm` | Programmable arc move | Stylized, advertising look |
+| `Speed Ramp` | Variable-speed timing inside one shot | Drama-accent, action-accent |
+| `Spin Drift` | Slow drifting rotation | Atmospheric, dreamy |
+| `Time Freeze` | Subject moves, world frozen | Stylized peak |
+
+**Soul ID + Start+End frames**: combine preset + Soul ID label + start/end keyframes for character-locked, choreographed shots. See [`identity-references.md`](identity-references.md) and [`models/aggregators.md`](models/aggregators.md).
+
+---
+
+## Sora 2 multi-shot transitions
+
+Sora 2 (and Seedance 1.0 Pro) parse multi-shot prompts in one generation. Transition vocabulary:
+
+| Term | Effect |
+|---|---|
+| `new shot:` | Hard cut to next composition |
+| `cut to:` | Same — hard cut |
+| `match cut on [hand/eye/gesture]` | Cut on visual rhyme (action matches across the cut) |
+| `dissolve to:` | Soft cross-fade |
+
+Pattern:
+
+```
+Shot 1 (3s, wide): <action>
+new shot:
+Shot 2 (5s, close-up): <action>
+match cut on hand
+Shot 3 (2s, medium): <resolution>
+Style anchor: <one shared sentence — lighting, grade, identity>
+```
+
+Full multi-shot grammar in [`multi-shot.md`](multi-shot.md).
+
+---
+
+## Cinema Studio lens / body vocabulary
+
+For models that respond to camera-body and lens hints (Higgsfield Cinema Studio explicitly; Sora 2, Veo 3.1, Kling 3.0 implicitly via the trained vocabulary):
+
+| Term | Effect |
+|---|---|
+| `ARRI Alexa Mini` | Cinematic flagship feel, soft highlight rolloff |
+| `RED Komodo` | Sharp, high-contrast digital cinema |
+| `Sony FX6` / `FX3` | Modern indie cinema look |
+| `anamorphic 2.39:1` | Widescreen oval bokeh, lens flare |
+| `16mm film` | Grainy, organic, vintage doc |
+| `Super 8` | Heavily grainy, home-movie feel |
+| `35mm film` | Standard cinematic grain |
+| `IMAX 65mm` | Maximum-detail epic look |
+| `vintage lens flare` | Stylized highlights |
+| `shallow depth of field, f/1.4` | Cinematic separation |
+
+Combine with the focal length / aperture cheat in the main DOLLY/PAN sections above.
+
+---
+
 ## RU термины
 
 Промпт пишется на EN — модели парсят EN-cinematic-vocabulary точно, RU-описания получают через машинный пересказ и теряют термины. Эта секция нужна для двух кейсов: (1) пользователь даёт ТЗ на русском — нужен маппинг в EN-команды; (2) пользователь явно просит RU-промпт (редко — мы согласно правилу выше всё равно собираем EN-промпт и в комментарии даём краткий RU-перевод).

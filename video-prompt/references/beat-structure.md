@@ -244,3 +244,53 @@ Before submitting any motion prompt, verify:
 - [ ] One camera direction at the end
 - [ ] No transition language ("cut to", "reveal", "fade to") inside one shot
 - [ ] 5-8 sentences total
+
+---
+
+## Beat structure with native dialogue
+
+For models that support synced audio + dialogue (Veo 3.1, Sora 2, LTX-2), dialogue lines occupy beat budget the same way actions do. The CHARACTER FIRST law still holds — dialogue IS the character action; the camera still goes at the end.
+
+### Rules
+
+- **Dialogue is the Beat 2 (or Beat 3) action.** Beat 1 sets the speaker up physically — body, breath, gaze. Beat 2 or 3 is the line. Don't put a dialogue line in Beat 1 — the model needs a setup frame to lock the face for lip-sync.
+- **≤8 seconds of speech per 8-second clip.** Faster than that, lip-sync clips. Trim the line; don't compress it.
+- **One speaker per beat.** Two-character dialogue = beat per speaker. Beat 1: A sets up. Beat 2: A's line. Beat 3: B reacts + B's line (or held silence).
+- **Prosody adverbs BEFORE the quote, not inside.** `weary voice`, `shouts`, `whispers`. Inside the quote = literal speech only — no ellipsis-acting.
+- **No competing SFX during the line.** Drop ambient to background during dialogue beats. Layer SFX into Beat 1 setup or Beat 3 reaction, not on top of the line.
+- **Face must be visible in frame for lip-sync.** If you cut away during the line, sync drops.
+
+### Template — single-speaker line
+
+```
+Beat 1 (0-2s): <speaker physical setup — body settled, gaze locked, slow breath in, lips part>
+Beat 2 (2-5s): <speaker delivers the line>
+  Character: "<line>"
+  Ambient: <one bed, low>
+Beat 3 (5-8s): <reaction — listener's response or held tension on speaker>
+  SFX: <one cue if any>
+Camera: <static medium or slow push-in held throughout>
+```
+
+### Template — two-character exchange
+
+```
+Beat 1 (0-2s): <A setup — body, breath, gaze toward B>
+Beat 2 (2-5s): <A delivers line>
+  A: "<line>"
+  Ambient: <bed, low>
+Beat 3 (5-8s): <B reacts physically + optional line>
+  B: "<line OR held silence + physical reaction>"
+  SFX: <one cue>
+Camera: <static medium two-shot OR slow push-in>
+```
+
+### Anti-patterns
+
+❌ Line in Beat 1 — no setup, model can't lock the face: "Beat 1: 'I'm leaving.' Beat 2: ..."
+❌ Two speakers in the same beat — overlapping audio: "Beat 2: A says X, B says Y"
+❌ Acting via punctuation inside the quote: `"I... I just... I can't"` — model renders flat or weird. Use prosody adverb: `voice cracking on the second word, "I just can't"`.
+❌ Cutting away during the line — face out of frame breaks sync.
+❌ Music + dialogue + ambient + SFX all foreground — muddled mix.
+
+✅ Full Dialogue / SFX / Ambient grammar lives in [`audio-prompting.md`](audio-prompting.md).

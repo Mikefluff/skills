@@ -191,3 +191,131 @@ laptop, keyboard, skull, generic office, stock photo, smiling face, business sui
 - Negative addresses конкретный риск: «not laptop with skull, not generic office, not hopeful» — три самых частых fallback'а модели для тэга «burnout»
 - MJ params: `--ar 16:9` для обложки лонгрида, `--style raw` чтобы убрать MJ-перестилизацию
 - Промпт остался на EN — модель парсит точнее; RU был только в ТЗ от автора
+
+---
+
+## Example 7 — Text-in-image (poster)
+
+### Before (weak)
+
+```
+Conference poster about AI ethics
+```
+
+What's wrong:
+- No subject anchor
+- No layout, no copy, no style
+- Default models (MJ / Flux) butcher anything beyond 5 words
+
+### After (Ideogram 3 Quality)
+
+```
+A minimalist editorial conference poster, vertical 2:3, deep navy background with a single warm spotlight from upper-left. Layout: large display-serif title centered upper-third reads "RESPONSIBLE AI". Below in smaller sans-serif: "Ethics Summit — November 14-16, 2026 — San Francisco". A subtle line illustration of a human silhouette and a digital silhouette overlapping in muted gold sits below the type. Bottom-right corner sans-serif tag: "ai-ethics-summit.com". High-contrast type. Soft paper-grain texture. Editorial / Pentagram-style restraint. Sharp focus on type.
+```
+
+### Deltas applied
+
+- Specified the EXACT copy in the prompt (Ideogram 3 Quality reliably renders multi-line typography)
+- Named the layout (title position, body position, tag position) — Ideogram parses spatial language
+- Chose Ideogram 3 over Midjourney: legible text > "wow" factor for this use case
+- Style anchor: "editorial / Pentagram-style restraint" gives a brand-design feel
+- No `--ar` flag — Ideogram uses an API ratio parameter, not Midjourney syntax
+- See `references/text-in-image.md` for which models can render which text lengths
+
+---
+
+## Example 8 — Edit + character consistency (Flux Kontext)
+
+### Before (weak)
+
+```
+Make her dress red instead of blue
+```
+
+What's wrong:
+- Doesn't tell the model what to preserve — model may "regenerate" the woman
+- No source-image input flagged
+- No preserve-list
+
+### After (Flux Kontext)
+
+Source image attached: portrait of a woman in a blue dress, sunlit Brooklyn loft kitchen.
+
+```
+Replace the dress with a deep crimson red dress of the same cut and length. Keep the woman's face, hair, pose, hands, the marble countertop, the kitchen background, and the warm window lighting unchanged.
+```
+
+### Deltas applied
+
+- Kontext deviation: no 6-part formula — the source image carries subject / setting / style / lighting. Prompt = JUST the edit.
+- Explicit preserve-list ("face, hair, pose, hands, countertop, background, lighting") — Kontext keys off this
+- Specified the new attribute precisely ("deep crimson red, same cut and length") not just "red"
+- See `references/editing-prompting.md` § Flux Kontext
+
+For Nano Banana Pro the same edit is multi-turn in Gemini chat: generate base image, then "now make her dress crimson red, keep everything else".
+
+---
+
+## Example 9 — Multi-reference composite (Seedream 4.5)
+
+### Before (weak)
+
+```
+Combine these three images into one
+```
+
+What's wrong:
+- No roles assigned to refs (which ref is character? style? palette?)
+- No weights
+- No description of what the final scene IS
+
+### After (Seedream 4.5)
+
+References attached:
+- `ref:character` — portrait of a woman in her thirties (weight 1.0)
+- `ref:product` — a brushed-aluminum wireless earbuds case (weight 0.85)
+- `ref:style` — a Vogue product editorial spread (weight 0.7)
+- `ref:palette` — muted teal-and-orange swatch (weight 0.6)
+
+```
+[ref:character@1.0] holding [ref:product@0.85], styled per [ref:style@0.7], on [ref:palette@0.6] background. Editorial product portrait, soft directional studio light from upper-right, 50mm f/4, full-frame mirrorless, natural skin texture, brushed-metal grain on the product, sharp focus on the product in her hand, shallow depth of field on her face.
+```
+
+### Deltas applied
+
+- Each ref assigned an explicit role (character / product / style / palette)
+- Weights set per Seedream 4.5's role hierarchy (Character 1.0 — non-negotiable identity; Style 0.7 — guide, not lock)
+- Prompt describes what the refs do NOT carry: action ("holding"), composition ("editorial product portrait"), lens, lighting
+- Prompt does NOT re-describe the character's face / hair (locked by ref) or the product's metal (locked by ref)
+- See `references/editing-prompting.md` § Multi-reference composition
+
+For Flux 2 Pro multi-ref (≤10 refs) the syntax is similar; for gpt-image-2 the model handles up to 16 refs and infers roles from context.
+
+---
+
+## Example 10 — Open-weights + multilingual text (Qwen-Image 2.0)
+
+### Before (weak)
+
+```
+Storefront sign in Chinese and English
+```
+
+What's wrong:
+- No business name, no layout
+- Midjourney / Flux / SDXL produce gibberish for non-Latin scripts
+- No setting
+
+### After (Qwen-Image 2.0)
+
+```
+A photorealistic photo of a small tea shop storefront in a Shanghai longtang at dusk. The wooden hanging sign above the door reads, in vertical Chinese calligraphy on the right: "茶馆", and in horizontal sans-serif English below: "STILL HOURS TEA". The shop window is warmly lit from inside; a soft amber paper lantern hangs beside the door. Wet cobblestone reflections of warm window light in the foreground. Editorial documentary photo, 35mm f/2.8, full-frame mirrorless, sharp focus on the sign, shallow depth of field on the background alley.
+```
+
+### Deltas applied
+
+- Chose Qwen-Image 2.0: Apache-2.0 open-weights, native 2K, best in class for CJK + Latin mixed typography. SDXL / Midjourney would render the Chinese as nonsense glyphs.
+- Specified EXACT copy and exact script for each line ("vertical Chinese calligraphy: 茶馆" / "horizontal sans-serif English: STILL HOURS TEA") — Qwen parses script + orientation hints
+- Setting carries the cultural context (Shanghai longtang) so the model anchors the typography in the right visual culture
+- Kept full 6-part formula because this is T2I, not edit
+- See `references/text-in-image.md` § Multilingual rendering and `references/models/open-source.md` § Qwen-Image 2.0
