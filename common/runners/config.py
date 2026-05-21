@@ -56,7 +56,15 @@ def load_all_providers() -> None:
     """Force-import every provider module so they self-register.
 
     Called lazily from CLI entry points so import errors don't crash --check / --list.
+    Also pulls ~/.skills.env (if present) into os.environ — file entries lose
+    to existing shell exports.
     """
+    # Load ~/.skills.env into os.environ (no override of existing values).
+    try:
+        from . import keysfile
+        keysfile.load_into_env(override=False)
+    except Exception:  # noqa: BLE001 — never break runners over keysfile errors
+        pass
     from .providers import (  # noqa: F401
         bfl,
         elevenlabs,

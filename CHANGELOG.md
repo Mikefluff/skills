@@ -9,6 +9,31 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.3.1] — 2026-05-21
+
+### Added
+
+- **`skills-keys` meta-skill** — CRUD on `~/.skills.env` (chmod 600) so users don't have to hand-edit dotfiles. Subcommands: `list / add / update / remove / enable / disable / verify / export / path`. Interactive (silent) input via `getpass` when no value is passed on the CLI — keys never enter shell history or conversation transcript.
+
+- **`common/runners/keysfile.py`** — atomic CRUD over `~/.skills.env` with chmod 600 enforcement + `mask()` helper + `load_into_env(override=False)` that merges file entries into `os.environ` without overriding explicit shell exports. Precedence is documented: shell `export` > file > unset.
+
+- **`common/runners/verify.py`** — lightweight HTTP probe (no SDK deps) for 9 providers: OpenAI, Gemini, Anthropic, BFL, Ideogram, Replicate, FAL, Runway, ElevenLabs. Returns `valid | invalid | unknown | unsupported | unset`. Suno + Kling don't expose verify-friendly endpoints — they show `unsupported` (test via real generation).
+
+- **`common/runners/cli/keys.py`** — argparse-driven CLI with subcommands. Gate flag shortcuts (`enable / disable` for `SUNO_API_ENABLED`, `LYRIA_API_ENABLED`, `OPENAI_SORA_API_ENABLED`). `export` produces eval-ready lines for shell-level apply.
+
+- **`SKILLS_KEYS_FILE` env override** — relocate the file (useful for CI, multi-profile setups, dotfile syncing).
+
+### Changed
+
+- **`config.load_all_providers()`** now calls `keysfile.load_into_env(override=False)` before importing providers. Existing shell exports still win — this is purely additive: keys stored in `~/.skills.env` become visible to runners without the user having to `source` it.
+
+### Notes
+
+- Plaintext at rest + `chmod 600` is the v1 security posture. macOS Keychain / Linux Secret Service / encrypted vault deferred to keep cross-platform parity.
+- v1 verify covers 9 of the ~12 supported provider keys. Adding new probes is a 20-line PR in `common/runners/verify.py`.
+- This skill is a meta-skill (sibling to `skills-update`) — it operates on the user's machine state, not on prose.
+- 22 skills total (was 21).
+
 ## [2.3.0] — 2026-05-21
 
 ### Added

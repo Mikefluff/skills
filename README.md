@@ -7,7 +7,7 @@
 
 A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills for editing prose without producing text that reads like LLM output. Russian-first, English-capable.
 
-**Twenty-one skills**, one base linter + thirteen wrappers + three linters + three orchestrators + one meta-skill. Plain markdown, MIT-licensed, no required external deps (ffmpeg optional for reel stitching).
+**Twenty-two skills**, one base + thirteen wrappers + three linters + three orchestrators + two meta-skills. Plain markdown, MIT-licensed, no required external deps (ffmpeg optional for reel stitching).
 
 ---
 
@@ -38,7 +38,7 @@ For all install options + troubleshooting, see [`docs/INSTALL.md`](docs/INSTALL.
 
 **→ [User Guide](docs/USER-GUIDE.md)** — pick your scenario, walk through it end-to-end.
 
-**→ [Skill Index](docs/SKILL-INDEX.md)** — all 21 skills indexed by layer, domain, and language.
+**→ [Skill Index](docs/SKILL-INDEX.md)** — all 22 skills indexed by layer, domain, and language.
 
 **→ [Composing recipes](docs/COMPOSING.md)** — 14 named workflows showing how to chain skills.
 
@@ -66,6 +66,7 @@ Quick scenario picker:
 | Research a topic with cited sources (WebSearch + WebFetch + optional Firecrawl / Exa MCP) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
 | Build an Instagram / LinkedIn / TikTok carousel end-to-end (24 visual styles + batch execute) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
 | Build a vertical reel end-to-end (12 directorial styles + 12 music genres + ffmpeg stitch) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
+| Manage API keys for the execute layer (list / add / remove / update / verify / enable gate flags) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-manage-api-keys) |
 
 If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESHOOTING.md).
 
@@ -86,6 +87,7 @@ If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESH
 | [`canon-check`](canon-check/) | linter | ru/en | Story-bible consistency auditor for any book series. Greps entities (characters / artifacts / locations) in changed chapters, cross-references the project's story-bible document, flags BLOCKING contradictions / WARNING gaps / INFO new details. Read-only — trust the text, not memory. |
 | [`pelevin-digression`](pelevin-digression/) | wrapper | ru | Write a Pelevin-style digression for a fiction or non-fiction passage — 12 structural techniques + 5 banned constructions. Wraps prose-edit (fiction) or essay-write (non-fic). Invoked by request, not auto-applied. |
 | [`skills-update`](skills-update/) | meta | en/ru | User-invocable update check + apply for this collection. Compares local install marker with latest GitHub release, shows CHANGELOG diff, asks for confirmation, runs install.sh --update. |
+| [`skills-keys`](skills-keys/) | meta | en/ru | Manage API keys for the runner's --execute layer. CRUD on ~/.skills.env (chmod 600): list / add / update / remove / enable / disable gate flags / verify (ping vendor APIs) / export. Single source of truth for OPENAI / GEMINI / BFL / FAL / REPLICATE / RUNWAY / KLING / SUNO / ELEVENLABS / IDEOGRAM / ANTHROPIC keys + gate flags + S3 storage env vars. Explicit shell exports always win over file entries. |
 | [`tone-shifter`](tone-shifter/) | wrapper | en/ru | Rewrite a passage in a different register (formal↔casual, business↔academic, technical↔friendly, plain-explainer) without changing meaning. 6 registers + named transformation deltas. Wraps writer as final cleanup. |
 | [`cold-email`](cold-email/) | wrapper | en/ru | Write or rewrite cold outreach emails (first-touch, follow-up, intro request, re-engage). 5-block structure, ≤120-word budget, banned ceremony patterns, anti-template subject lines. Wraps writer as final cleanup. |
 | [`image-prompt`](image-prompt/) | wrapper | en/ru | Write prompts for 14+ frontier AI image generators (Midjourney v7, Flux 2 / Flux Kontext, Imagen 4 Ultra, Nano Banana Pro / Gemini 3 Image, gpt-image-2, Ideogram 3, Recraft V3, Seedream 4.5, Qwen-Image, HiDream-O1, Krea-1, SD 3.5, SDXL). Modes: text-to-image, edit (preserve/change), multi-reference, text-in-image. 6-part formula + per-model deltas, character/identity locks, weighted multi-ref. |

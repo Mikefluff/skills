@@ -351,6 +351,33 @@ For details: [reel-builder/SKILL.md](../reel-builder/SKILL.md) and [research-to-
 
 ---
 
+### "I want to manage API keys" {#i-want-to-manage-api-keys}
+
+`/skills-keys` is the management UI over `~/.skills.env` — the runner's key store. Single source of truth for all `--execute` provider keys + gate flags.
+
+```
+/skills-keys list                                  # masked overview
+/skills-keys add OPENAI_API_KEY sk-proj-...        # add or update
+/skills-keys add OPENAI_API_KEY                    # interactive: silent stdin prompt
+/skills-keys update OPENAI_API_KEY sk-new-...      # alias for add
+/skills-keys remove OPENAI_API_KEY                 # delete entry
+/skills-keys enable SUNO_API_ENABLED               # gate flag → upsert =1
+/skills-keys disable LYRIA_API_ENABLED             # gate flag → remove
+/skills-keys verify                                # ping all supported providers
+/skills-keys verify OPENAI_API_KEY GEMINI_API_KEY  # verify specific keys
+/skills-keys path                                  # print the keys-file path
+/skills-keys export                                # eval-ready `export KEY="..."` lines
+/skills-keys export --mask                         # same, but values masked
+```
+
+The file lives at `~/.skills.env` (override via `SKILLS_KEYS_FILE`), chmod 600. Runner loads it into `os.environ` at every CLI startup — explicit shell `export` always wins over file entries.
+
+Verify covers 9 providers via lightweight HTTP probes (OpenAI, Gemini, Anthropic, BFL, Ideogram, Replicate, FAL, Runway, ElevenLabs). Suno + Kling don't expose verify-friendly endpoints — they show `unsupported`.
+
+For details: [skills-keys/SKILL.md](../skills-keys/SKILL.md) and [skills-keys/references/usage.md](../skills-keys/references/usage.md).
+
+---
+
 ### "I want auto-lint on every commit"
 
 There's no built-in git-hook installer (we don't want to silently touch your `.git/` directory). The [pre-commit hook walkthrough](walkthroughs/pre-commit-hook.md) gives you a ready-to-paste `.git/hooks/pre-commit` script with two variants:
