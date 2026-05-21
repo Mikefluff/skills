@@ -25,16 +25,21 @@ Skills appear after Claude Code session restart. Discovery is automatic via the 
 
 ---
 
-## Start here
+## Documentation
 
-- **[Quickstart](docs/QUICKSTART.md)** — your first 5 minutes
-- **[User Guide](docs/USER-GUIDE.md)** — full scenarios index
-- **[Walkthroughs](docs/walkthroughs/)** — 19 step-by-step recipes, categorized
-- **[Skill Index](docs/SKILL-INDEX.md)** — all 22 skills by layer/domain/language
-- **[Composing recipes](docs/COMPOSING.md)** — named workflows for chaining skills
-- **[Style library](common/style-library/)** — 50 visual + directorial + genre presets used by carousel-builder / reel-builder / music-prompt
+The full doc hub: [`docs/`](docs/README.md). Most-used pages:
 
-If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESHOOTING.md).
+| Page | What |
+|---|---|
+| [QUICKSTART](docs/QUICKSTART.md) | 5-minute first run — install → first prose edit → first AI image → first end-to-end |
+| [USER-GUIDE](docs/USER-GUIDE.md) | The scenarios index — pick what you want to do |
+| [walkthroughs/](docs/walkthroughs/README.md) | 19 step-by-step recipes, categorized |
+| [SKILL-INDEX](docs/SKILL-INDEX.md) | Every skill by layer / domain / language |
+| [COMPOSING](docs/COMPOSING.md) | Named workflows for chaining skills + data flow + anti-patterns |
+| [INSTALL](docs/INSTALL.md) | Install methods (curl, npm, brew, Docker, local, pinned) |
+| [FAQ](docs/FAQ.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) | When something looks off |
+
+The bundled style library used by the orchestrators: [carousel](common/style-library/carousel/_index.md) · [video](common/style-library/video/_index.md) · [music](common/style-library/music/_index.md).
 
 ---
 
