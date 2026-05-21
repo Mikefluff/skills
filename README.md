@@ -6,7 +6,7 @@
 
 AI content toolkit for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) — prose editing without LLM-shaped output, AI media generation (image / video / music) with optional in-line execution, and end-to-end content orchestrators (research → carousel / reel). Russian-first, English-capable.
 
-**Twenty-two skills** across five layers: one base + thirteen wrappers + three linters + three orchestrators + two meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching).
+**Twenty-three skills** across five layers: one base + thirteen wrappers + three linters + three orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching).
 
 ---
 
@@ -85,6 +85,7 @@ The bundled style library used by the orchestrators: [carousel](common/style-lib
 | Scenario | Skill | Walkthrough |
 |---|---|---|
 | Manage API keys (add / remove / update / verify / enable gate flags) | [`skills-keys`](skills-keys/) | [skills-keys/examples/before-after.md](skills-keys/examples/before-after.md) |
+| Manage the style library (add / edit / validate / submit upstream) | [`skills-styles`](skills-styles/) | [skills-styles/examples/before-after.md](skills-styles/examples/before-after.md) |
 | Update the collection itself | [`skills-update`](skills-update/) | n/a — invoke directly |
 | Auto-lint every git commit | [`style-check`](style-check/) | [pre-commit-hook](docs/walkthroughs/pre-commit-hook.md) |
 | Run a read-only quality gate | [`style-check`](style-check/) | [style-check-gate](docs/walkthroughs/style-check-gate.md) |
@@ -107,6 +108,7 @@ The bundled style library used by the orchestrators: [carousel](common/style-lib
 | [`pelevin-digression`](pelevin-digression/) | wrapper | ru | Write a Pelevin-style digression for a fiction or non-fiction passage — 12 structural techniques + 5 banned constructions. Wraps prose-edit (fiction) or essay-write (non-fic). Invoked by request, not auto-applied. |
 | [`skills-update`](skills-update/) | meta | en/ru | User-invocable update check + apply for this collection. Compares local install marker with latest GitHub release, shows CHANGELOG diff, asks for confirmation, runs install.sh --update. |
 | [`skills-keys`](skills-keys/) | meta | en/ru | Manage API keys for the runner's --execute layer. CRUD on ~/.skills.env (chmod 600): list / add / update / remove / enable / disable gate flags / verify (ping vendor APIs) / export. Single source of truth for OPENAI / GEMINI / BFL / FAL / REPLICATE / RUNWAY / KLING / SUNO / ELEVENLABS / IDEOGRAM / ANTHROPIC keys + gate flags + S3 storage env vars. Explicit shell exports always win over file entries. |
+| [`skills-styles`](skills-styles/) | meta | en/ru | Manage the local style library — bundled styles (24 carousel + 12 video director + 12 music genre) plus user overrides at ~/.claude/style-library/<modality>/<id>.md. CRUD on user styles (add / edit / remove / show / list / diff / validate / path) and build upstream-PR submission packages (submit). Frontmatter + body schema validation per modality. Templates ship with the library. |
 | [`tone-shifter`](tone-shifter/) | wrapper | en/ru | Rewrite a passage in a different register (formal↔casual, business↔academic, technical↔friendly, plain-explainer) without changing meaning. 6 registers + named transformation deltas. Wraps writer as final cleanup. |
 | [`cold-email`](cold-email/) | wrapper | en/ru | Write or rewrite cold outreach emails (first-touch, follow-up, intro request, re-engage). 5-block structure, ≤120-word budget, banned ceremony patterns, anti-template subject lines. Wraps writer as final cleanup. |
 | [`image-prompt`](image-prompt/) | wrapper | en/ru | Write prompts for 14+ frontier AI image generators (Midjourney v7, Flux 2 / Flux Kontext, Imagen 4 Ultra, Nano Banana Pro / Gemini 3 Image, gpt-image-2, Ideogram 3, Recraft V3, Seedream 4.5, Qwen-Image, HiDream-O1, Krea-1, SD 3.5, SDXL). Modes: text-to-image, edit (preserve/change), multi-reference, text-in-image. 6-part formula + per-model deltas, character/identity locks, weighted multi-ref. |

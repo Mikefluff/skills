@@ -9,6 +9,31 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.4.0] — 2026-05-21
+
+### Added
+
+- **`skills-styles` meta-skill** — CRUD on the local style library + upstream-PR helper. Subcommands: `list / show / path / add [--from <existing>] / edit / remove / validate / diff / submit`. Skill operates ONLY on `~/.claude/style-library/<modality>/<id>.md` (user dir) — bundled styles stay read-only. The submit subcommand builds a self-contained `./style-submission-<ts>-<modality>-<id>/` package with the style file at the correct repo path + `PR-DESCRIPTION.md` template + `README.md` with step-by-step manual PR instructions. No auto-`gh pr create` (intentionally; v1 trusts user to do git ops).
+
+- **`common/runners/styles.py` extensions**:
+  - `REQUIRED_FRONTMATTER` + `REQUIRED_BODY_FIELDS` schemas per modality
+  - `validate_style(style) -> list[str]` returning issue messages
+  - `copy_template(modality, new_id)` — create user-override from `<modality>/_template.md`
+  - `copy_existing(source_id, new_id, modality)` — copy a bundled style as a starting point
+  - `resolution_status(id, modality)` — returns `bundled | user-only | override | missing`
+  - `resolved_path(id, modality)` — actual file the loader picks
+
+- **`common/runners/cli/styles.py`** — argparse subcommands for the keys CLI plumbing.
+
+- **Per-modality templates** at `common/style-library/<modality>/_template.md` (carousel + video + music). Each includes the full schema as placeholders + an inline `<!-- conventions -->` block reminding the user of the validator's rules + reviewer expectations.
+
+### Notes
+
+- 23 skills total (was 22). New skill is layer=meta, sibling to `skills-update` and `skills-keys`.
+- No breaking changes — additive. `carousel-builder`, `reel-builder`, `music-prompt` unchanged.
+- Style library loader (`load_style`, `list_styles`, `find_by_tags`) is unchanged — orchestrators consume it the same way.
+- v1 submit doesn't run `git` — it prepares a portable submission package + prints instructions. Future v2 may add `--auto` with `gh` CLI gating.
+
 ## [2.3.1] — 2026-05-21
 
 ### Added

@@ -414,6 +414,31 @@ For details: [reel-builder/SKILL.md](../reel-builder/SKILL.md) and [research-to-
 
 ## Meta (collection management)
 
+### "I want to manage the style library" {#i-want-to-manage-the-style-library}
+
+`/skills-styles` is the management UI for the local style library used by `carousel-builder`, `reel-builder`, and `music-prompt`. Bundled library at `<repo>/common/style-library/<modality>/<id>.md` is read-only; user overrides live at `~/.claude/style-library/<modality>/<id>.md` (user wins on resolution).
+
+```
+/skills-styles list                                   # bundled + user-overrides
+/skills-styles list carousel --user-only              # only your custom carousel styles
+/skills-styles show carousel kinfolk-minimal          # print resolved file
+/skills-styles add carousel retro-soviet-poster       # new from template
+/skills-styles add carousel my-variant --from kinfolk-minimal   # copy bundled as starting point
+/skills-styles edit carousel my-variant               # opens $EDITOR
+/skills-styles validate carousel my-variant           # frontmatter + body schema check
+/skills-styles diff carousel my-variant               # vs bundled (when overriding)
+/skills-styles remove carousel my-variant --force     # delete the user-override
+/skills-styles submit carousel my-variant             # build ./style-submission-<ts>/ for upstream PR
+```
+
+`submit` validates first, then assembles a self-contained submission package with the file at the correct repo path + `PR-DESCRIPTION.md` template + step-by-step manual PR instructions. Does NOT run `gh pr create` for you (intentional — fork detection + multi-step gh interaction is brittle in v1).
+
+After `add`, the file is a skeleton with `<placeholder>` text. Either edit yourself or ask Claude in chat to fill the content based on your description, then `validate`.
+
+For details: [skills-styles/SKILL.md](../skills-styles/SKILL.md) · [usage reference](../skills-styles/references/usage.md) · [templates schema](../skills-styles/references/templates.md).
+
+---
+
 ### "I want to manage API keys" {#i-want-to-manage-api-keys}
 
 `/skills-keys` is the management UI over `~/.skills.env` — the runner's key store. Single source of truth for all `--execute` provider keys + gate flags.
