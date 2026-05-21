@@ -6,7 +6,7 @@
 
 AI content toolkit for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) — prose editing without LLM-shaped output, AI media generation (image / video / music) with optional in-line execution, and end-to-end content orchestrators (research → carousel / reel). Russian-first, English-capable.
 
-**Thirty-three skills** across five layers: one base + seventeen wrappers + three linters + nine orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning + GIF conversion).
+**Thirty-six skills** across five layers: one base + eighteen wrappers + three linters + eleven orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning + GIF conversion).
 
 ---
 
@@ -135,6 +135,9 @@ The bundled style library used by the orchestrators: [carousel](common/style-lib
 | [`logo-maker`](logo-maker/) | orchestrator | en/ru | Brand mark / wordmark / logo generator. Defaults to ideogram-3-quality (cleanest embedded text). Six style presets (wordmark / minimal / illustrated / typographic / geometric / emblem) + optional palette hint. Single-image output, N stochastic variants per call. Outputs: ./generated/logo/<slug>/logo-v<N>.png + manifest.json. |
 | [`quote-card-maker`](quote-card-maker/) | orchestrator | en/ru | Quote card / aphorism graphic generator — short text + attribution on a typography-dominant composition. Wraps image-prompt --execute + the carousel style library biased toward text-friendly anchors (minimal-serif / swiss-grid / editorial-magazine / monochrome-bold / gradient-mesh-modern / russian-constructivist). Multi-aspect (square / portrait / story / landscape). Default model ideogram-3-quality. Outputs: ./generated/quote/<slug>/<aspect>.png + manifest.json. |
 | [`gif-maker`](gif-maker/) | wrapper | en/ru | Short looping GIF utility. Mode A: convert existing MP4 → GIF via ffmpeg 2-pass palette optimization. Mode B: generate 1-3s clip via a video provider (Veo / Kling / fal-video / Sora) then convert. Aspect crop presets (1:1 / 9:16 / 16:9 / 4:5 / 2:1). Outputs: ./generated/gif/<name>.gif. |
+| [`banner-maker`](banner-maker/) | orchestrator | en/ru | Banner-ad / display-creative generator with standard-size presets — Google Display (leaderboard, medium-rectangle, mobile-banner, wide-skyscraper), OG image, LinkedIn ad, Facebook ad, Twitter card. Headline + CTA + brand composition. Default model ideogram-3-quality for clean embedded text. Outputs: ./generated/banner/<slug>/<preset>.png + manifest.json. |
+| [`meme-card-maker`](meme-card-maker/) | orchestrator | en/ru | Meme-format graphic generator — top text + bottom text + optional centerpiece image. Wraps image-prompt --execute with Impact-style typography (bold white text + thick black stroke). Supports 5 template hints (drake / distracted-boyfriend / expanding-brain / two-buttons / change-my-mind) + custom mode. Optional --base-photo for user-image centerpiece. Default model gpt-image-2. Outputs: ./generated/meme/<slug>/meme-v<N>.png + manifest.json. |
+| [`upscaler`](upscaler/) | wrapper | en/ru | Image upscaling utility — single image in, upscaled image out (2× / 4× / 8×). Wraps Replicate-hosted upscalers (Real-ESRGAN default; alternatives: GFPGAN for faces, SwinIR, clarity-upscaler). Optional --face-enhance for portrait restoration. ~$0.005-0.02 per image. |
 
 <!-- END skills-table -->
 

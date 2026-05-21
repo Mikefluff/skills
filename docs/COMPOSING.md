@@ -256,6 +256,43 @@ gif-maker --input ./reel-final.mp4 --aspect 1:1 --duration 2 --output ./reaction
 
 Two modes. Mode A reuses an existing MP4 (e.g., a shot from `reel-builder`). Mode B generates from a prompt. GIFs <2MB for Twitter/Slack performance.
 
+#### Full launch campaign visuals (banner + cover + thumbnail)
+
+```
+banner-maker --headline "<launch-line>" --cta "<cta>" --brand "<name>" --presets og,linkedin-ad,facebook-ad --execute
+cover-maker --title "<launch-line>" --creator "<brand>" --medium linkedin-doc --execute
+thumbnail-maker --title "<launch-line>" --photo <hero> --type youtube --execute
+```
+
+Three skills, one launch line — covers OG previews + LinkedIn doc cover + YouTube video thumbnail. Run with the same `--style` for visual consistency. Cost: $0.50-1.50 total.
+
+#### Brand identity + ad creatives (logo + banner ads)
+
+```
+logo-maker --brand "<name>" --style wordmark --variants 6 --execute
+banner-maker --headline "<line>" --cta "<cta>" --brand "<name>" --logo ./generated/logo/<slug>/logo-v1.png --presets og,linkedin-ad,medium-rectangle --execute
+```
+
+Generate logo first → pass best variant as `--logo` to banner-maker so the brand mark inspires the banner composition.
+
+#### Meme + carousel content (cultural commentary post)
+
+```
+meme-card-maker --top "<setup>" --bottom "<punchline>" --template drake --variants 4 --execute
+carousel-builder --topic "<related-essay-angle>" --slides 5 --style swiss-grid-poster --execute
+```
+
+Meme as hook + carousel as substance. Post meme on Twitter (high reach), carousel on LinkedIn (long-form depth).
+
+#### Restore + repurpose old assets (upscale + cover)
+
+```
+upscaler --image ./old-photo.jpg --scale 4 --replicate-model tencentarc/gfpgan --execute
+cover-maker --title "<book>" --creator "<author>" --medium book --photo ./generated/upscaled/old-photo-4x.png --execute
+```
+
+Old family photo → upscale + face-restore → use as book cover reference.
+
 ### Meta recipes
 
 #### Add or rotate API keys

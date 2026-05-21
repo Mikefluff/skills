@@ -9,6 +9,34 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.9.0] — 2026-05-21
+
+### Added
+
+- **`banner-maker` orchestrator skill** — banner-ad / display-creative generator with standard-size presets. Headline + CTA + brand composition for OG (1200×630), LinkedIn ad (1200×627), Facebook ad (1200×628), Twitter card (1500×500), Google Display (leaderboard 1456×180, medium-rectangle 600×500, mobile-banner 640×200, wide-skyscraper 320×1200). All output at @2x retina for high-DPI displays. Default model `ideogram-3-quality` for clean embedded text. Style presets biased toward ad-friendly anchors (`swiss-grid-poster` / `gradient-mesh-modern` / `brutalist-grid` / `editorial-magazine` / `neon-cyberpunk`). Plan schema `skills.banner.plan.v1`.
+
+- **`meme-card-maker` orchestrator skill** — Impact-style meme generator. Top text + bottom text + optional centerpiece. 5 supported templates as composition hints: `drake` (2-panel rejection/approval), `distracted-boyfriend` (3-character), `expanding-brain` (4-panel ascending), `two-buttons` (decision), `change-my-mind` (sign), plus `custom` (default — model interprets freely). Optional `--base-photo` for user-image centerpiece. Default model `gpt-image-2` (best illustration + integrated text). Captions auto-uppercase for English; mixed-case for Cyrillic (`--lang ru`). Plan schema `skills.meme.plan.v1`.
+
+- **`upscaler` wrapper skill** — image super-resolution utility. Single image in → 2× / 4× / 8× output via Replicate-hosted models. Default `nightmareai/real-esrgan` (general-purpose). Alternatives: `tencentarc/gfpgan` (face-focused), `jingyunliang/swinir` (texture-preserving), `philz1337x/clarity-upscaler` (max fidelity). Optional `--face-enhance` flag enables face restoration in Real-ESRGAN. ~$0.005-0.02 per image.
+
+- **`common/runners/cli/{banner,meme,upscale}.py`** — three new CLI modules. Banner & meme are plan-driven (cover.py / flyer.py shape); upscale is argparse-driven single-image (bg.py shape).
+
+### Changed
+
+- **`skills.json`** — 36 entries (was 33). Three new skills registered.
+- **`docs/USER-GUIDE.md`** — added "I want a banner ad", "I want a meme", "I want to upscale / enhance an image" sections.
+- **`docs/COMPOSING.md`** — added 4 new orchestrator recipes: full launch campaign visuals (banner + cover + thumbnail), brand identity + ad creatives (logo + banner ads), meme + carousel content, restore + repurpose old assets (upscale + cover).
+- **`docs/ROADMAP.md`** — marks `banner-maker`, `meme-card-maker`, `upscaler` as SHIPPED.
+- **`VERSION` + `skills.json:version`** → `2.9.0`.
+
+### Notes
+
+- 36 skills total (was 33). All three new skills are additive — no breaking changes. Existing orchestrators / wrappers unchanged.
+- `banner-maker` & `meme-card-maker` reuse the carousel style library + batch executor infrastructure.
+- `upscaler` reuses the Replicate provider router from `bg-remover` (no new vendor abstractions).
+- Single-image siblings of `flyer-maker` family now complete: cover-maker / thumbnail-maker / avatar-maker / logo-maker / quote-card-maker / banner-maker / meme-card-maker. `deck-maker` remains deferred (heavier — multi-slide).
+- Image-utility family now has 3 wrappers: `bg-remover` (segmentation), `upscaler` (super-resolution), with `style-transfer` next on ROADMAP.
+
 ## [2.8.0] — 2026-05-21
 
 ### Added

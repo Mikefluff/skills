@@ -84,12 +84,12 @@ Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ## The collection in one paragraph
 
-Thirty-three skills layered on top of one base linter (`writer`):
+Thirty-six skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 28 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill.
-- **Wrappers** (17): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`).
+- **Wrappers** (18): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`).
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
-- **Orchestrators** (9, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker`) ship structured visual artifacts.
+- **Orchestrators** (11, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
 - **Meta** (3): `skills-update`, `skills-keys`, `skills-styles`.
 - **Meta**: `skills-update` (apply newer release of this collection) and `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer).
 
@@ -609,6 +609,54 @@ For details: [quote-card-maker/SKILL.md](../quote-card-maker/SKILL.md) · [style
 ffmpeg required. install.sh offers auto-install. Mode B cost: $1.20-3.00 per 3-sec clip depending on provider.
 
 For details: [gif-maker/SKILL.md](../gif-maker/SKILL.md) · [quality-tuning](../gif-maker/references/quality-tuning.md) · [model-picker](../gif-maker/references/model-picker.md).
+
+---
+
+### "I want a banner ad / OG image / display creative" {#i-want-a-banner}
+
+`/banner-maker --headline "<text>" --cta "<text>"` produces multi-preset display creatives in standard ad sizes — OG (1200×630), LinkedIn ad, Facebook ad, Twitter card, Google Display (leaderboard / medium-rectangle / mobile-banner / wide-skyscraper).
+
+```
+/banner-maker --headline "Ship 10x faster" --cta "Start free trial" --brand "Acme Cloud" --presets og,linkedin-ad --style swiss-grid-poster --execute
+/banner-maker --headline "Build faster" --cta "Try free" --presets leaderboard,medium-rectangle --style gradient-mesh-modern --variants 3 --execute
+/banner-maker --headline "DevConf 2026" --subhead "Brooklyn · June 20-22" --cta "Get ticket" --presets twitter-card --style brutalist-grid --execute
+```
+
+Defaults: `--presets og,linkedin-ad --variants 1 --style auto --model ideogram-3-quality`. Presets are at @2x retina resolution; downscale for 1× platform upload.
+
+For details: [banner-maker/SKILL.md](../banner-maker/SKILL.md) · [aspect-presets](../banner-maker/references/aspect-presets.md) · [composition-zones](../banner-maker/references/composition-zones.md).
+
+---
+
+### "I want a meme" {#i-want-a-meme}
+
+`/meme-card-maker --top "<text>" --bottom "<text>"` produces Impact-style meme cards. Optional `--template drake|distracted-boyfriend|expanding-brain|two-buttons|change-my-mind|custom` for template hints. Optional `--base-photo` to use a user photo as centerpiece.
+
+```
+/meme-card-maker --top "Using Jira to track bugs" --bottom "Crying in the shower" --template drake --variants 3 --execute
+/meme-card-maker --top "Me waiting for the build to pass" --bottom "Still failing" --base-photo ./mittens.jpg --execute
+/meme-card-maker --top "Use formatter / Use linter / Use type checker / Delete the code" --template expanding-brain --aspect portrait --execute
+```
+
+Defaults: `--variants 3 --aspect square --template custom --model gpt-image-2`. Captions auto-uppercase for English; mixed-case for Cyrillic.
+
+For details: [meme-card-maker/SKILL.md](../meme-card-maker/SKILL.md) · [templates](../meme-card-maker/references/templates.md) · [typography](../meme-card-maker/references/typography.md).
+
+---
+
+### "I want to upscale / enhance an image" {#i-want-to-upscale}
+
+`/upscaler --image <path> --scale 4` runs the image through a Replicate-hosted super-resolution model. Default Real-ESRGAN; switch to `--replicate-model tencentarc/gfpgan` for face restoration; `--face-enhance` flag toggles face restoration in Real-ESRGAN.
+
+```
+/upscaler --image ./generated/image/cover.png --scale 4 --execute                                                                  # 1024 → 4096 AI-gen
+/upscaler --image ./grandma-1972.jpg --scale 4 --replicate-model tencentarc/gfpgan --execute                                       # face restoration
+/upscaler --image ./shoe-iphone.jpg --scale 2 --replicate-model philz1337x/clarity-upscaler --output ./products/shoe-2k.png --execute  # product
+```
+
+Cost: ~$0.005-0.02 per image. Output: `./generated/upscaled/<stem>-<scale>x.png` (or `--output`).
+
+For details: [upscaler/SKILL.md](../upscaler/SKILL.md) · [providers](../upscaler/references/providers.md) · [use-cases](../upscaler/references/use-cases.md).
 
 ---
 

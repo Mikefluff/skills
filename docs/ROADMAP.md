@@ -4,12 +4,13 @@ Identified gaps where the collection is functional but UX-painful. Tracked here 
 
 Not all of these will be built. They're sorted by user-likely-to-want vs. effort, with notes on what could ship as a skill vs. what's better left as a one-liner in `image-prompt --execute` / `video-prompt --execute`.
 
-Last updated: 2026-05-21 (post v2.8.0).
+Last updated: 2026-05-21 (post v2.9.0).
 
 ---
 
 ## What landed in recent releases
 
+- v2.9.0 — `banner-maker` + `meme-card-maker` + `upscaler` (display ads / meme graphics / image super-resolution)
 - v2.8.0 — `logo-maker` + `quote-card-maker` + `gif-maker` (brand mark / aphorism graphic / short looping animation)
 - v2.7.0 — `cover-maker` + `thumbnail-maker` + `bg-remover` (album/book/podcast covers, 16:9 thumbnails, transparent PNG utility)
 - v2.6.0 — `avatar-maker` + `voiceover-maker` + `subtitle-burner`
@@ -51,7 +52,7 @@ Each of these reuses 90% of the flyer-maker / carousel-builder infrastructure: s
 
 **Effort**: 1 day.
 
-### `banner-maker`
+### `banner-maker` ✅ SHIPPED v2.9.0
 
 **For**: banner ads at standard sizes (Google Display 728×90 leaderboard, 300×250 medium rectangle, LinkedIn ad 1080×108, OG image 1200×630).
 
@@ -75,7 +76,7 @@ Each of these reuses 90% of the flyer-maker / carousel-builder infrastructure: s
 
 **Effort**: 0.5 day.
 
-### `meme-card-maker`
+### `meme-card-maker` ✅ SHIPPED v2.9.0
 
 **For**: meme-format graphics with top + bottom text + optional centerpiece image.
 
@@ -147,11 +148,11 @@ These extend the runner's audio capabilities beyond music-prompt.
 
 These call existing third-party providers (Replicate / fal). Pattern: thin wrapper around a single provider endpoint.
 
-### `upscaler`
+### `upscaler` ✅ SHIPPED v2.9.0
 
 **For**: image-upscaling (4× or 8×) for low-res images.
 
-**Provider options**: Replicate (Real-ESRGAN, GFPGAN), fal (clarity upscaler), Topaz Photo AI.
+**Provider options**: Replicate (Real-ESRGAN default, GFPGAN for faces, SwinIR alt, clarity-upscaler for max fidelity).
 
 **Why it's a gap**: no skill wraps "I have this blurry image, sharpen it". Currently you'd use `image-prompt --execute --model replicate-image --replicate-model real-esrgan --image-url ...` which is awkward + not discoverable.
 

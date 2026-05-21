@@ -40,6 +40,7 @@ skills), see [COMPOSING.md](COMPOSING.md).
 | [`voiceover-maker`](../voiceover-maker/) | audio, generation | en / ru |
 | [`subtitle-burner`](../subtitle-burner/) | visual, editing | en / ru |
 | [`gif-maker`](../gif-maker/) | visual, generation, editing | en / ru |
+| [`upscaler`](../upscaler/) | visual, editing | en / ru |
 
 ### Linters (read-only)
 
@@ -61,7 +62,7 @@ skills), see [COMPOSING.md](COMPOSING.md).
 
 - **audio** — [`music-prompt`](../music-prompt/), [`voiceover-maker`](../voiceover-maker/), [`reel-builder`](../reel-builder/)
 - **fiction** — [`prose-edit`](../prose-edit/), [`canon-check`](../canon-check/), [`pelevin-digression`](../pelevin-digression/)
-- **marketing** — [`viral-text`](../viral-text/), [`landing-copy`](../landing-copy/), [`carousel-builder`](../carousel-builder/), [`cover-maker`](../cover-maker/), [`thumbnail-maker`](../thumbnail-maker/), [`flyer-maker`](../flyer-maker/), [`reel-builder`](../reel-builder/), [`logo-maker`](../logo-maker/), [`quote-card-maker`](../quote-card-maker/)
+- **marketing** — [`viral-text`](../viral-text/), [`landing-copy`](../landing-copy/), [`carousel-builder`](../carousel-builder/), [`cover-maker`](../cover-maker/), [`thumbnail-maker`](../thumbnail-maker/), [`flyer-maker`](../flyer-maker/), [`reel-builder`](../reel-builder/), [`logo-maker`](../logo-maker/), [`quote-card-maker`](../quote-card-maker/), [`banner-maker`](../banner-maker/), [`meme-card-maker`](../meme-card-maker/)
 - **non-fiction** — [`essay-write`](../essay-write/), [`pelevin-digression`](../pelevin-digression/)
 - **outreach** — [`cold-email`](../cold-email/)
 - **product** — [`microcopy`](../microcopy/), [`release-notes`](../release-notes/)
@@ -69,12 +70,12 @@ skills), see [COMPOSING.md](COMPOSING.md).
 - **social** — [`viral-text`](../viral-text/)
 - **tech-docs** — [`release-notes`](../release-notes/), [`rfc-writer`](../rfc-writer/)
 - **ux-copy** — [`microcopy`](../microcopy/)
-- **visual** — [`skills-styles`](../skills-styles/), [`image-prompt`](../image-prompt/), [`video-prompt`](../video-prompt/), [`carousel-builder`](../carousel-builder/), [`cover-maker`](../cover-maker/), [`thumbnail-maker`](../thumbnail-maker/), [`bg-remover`](../bg-remover/), [`avatar-maker`](../avatar-maker/), [`subtitle-burner`](../subtitle-burner/), [`flyer-maker`](../flyer-maker/), [`reel-builder`](../reel-builder/), [`logo-maker`](../logo-maker/), [`quote-card-maker`](../quote-card-maker/), [`gif-maker`](../gif-maker/)
+- **visual** — [`skills-styles`](../skills-styles/), [`image-prompt`](../image-prompt/), [`video-prompt`](../video-prompt/), [`carousel-builder`](../carousel-builder/), [`cover-maker`](../cover-maker/), [`thumbnail-maker`](../thumbnail-maker/), [`bg-remover`](../bg-remover/), [`avatar-maker`](../avatar-maker/), [`subtitle-burner`](../subtitle-burner/), [`flyer-maker`](../flyer-maker/), [`reel-builder`](../reel-builder/), [`logo-maker`](../logo-maker/), [`quote-card-maker`](../quote-card-maker/), [`gif-maker`](../gif-maker/), [`banner-maker`](../banner-maker/), [`meme-card-maker`](../meme-card-maker/), [`upscaler`](../upscaler/)
 
 ## By language
 
 - **EN + PT-BR + RU** (1) — [`translation-sync`](../translation-sync/)
-- **EN + RU** (29) — [`writer`](../writer/), [`viral-text`](../viral-text/), [`style-check`](../style-check/), [`canon-check`](../canon-check/), [`skills-update`](../skills-update/), [`skills-keys`](../skills-keys/), [`skills-styles`](../skills-styles/), [`tone-shifter`](../tone-shifter/), [`cold-email`](../cold-email/), [`image-prompt`](../image-prompt/), [`video-prompt`](../video-prompt/), [`music-prompt`](../music-prompt/), [`microcopy`](../microcopy/), [`release-notes`](../release-notes/), [`rfc-writer`](../rfc-writer/), [`landing-copy`](../landing-copy/), [`research-brief`](../research-brief/), [`carousel-builder`](../carousel-builder/), [`cover-maker`](../cover-maker/), [`thumbnail-maker`](../thumbnail-maker/), [`bg-remover`](../bg-remover/), [`avatar-maker`](../avatar-maker/), [`voiceover-maker`](../voiceover-maker/), [`subtitle-burner`](../subtitle-burner/), [`flyer-maker`](../flyer-maker/), [`reel-builder`](../reel-builder/), [`logo-maker`](../logo-maker/), [`quote-card-maker`](../quote-card-maker/), [`gif-maker`](../gif-maker/)
+- **EN + RU** (32) — [`writer`](../writer/), [`viral-text`](../viral-text/), [`style-check`](../style-check/), [`canon-check`](../canon-check/), [`skills-update`](../skills-update/), [`skills-keys`](../skills-keys/), [`skills-styles`](../skills-styles/), [`tone-shifter`](../tone-shifter/), [`cold-email`](../cold-email/), [`image-prompt`](../image-prompt/), [`video-prompt`](../video-prompt/), [`music-prompt`](../music-prompt/), [`microcopy`](../microcopy/), [`release-notes`](../release-notes/), [`rfc-writer`](../rfc-writer/), [`landing-copy`](../landing-copy/), [`research-brief`](../research-brief/), [`carousel-builder`](../carousel-builder/), [`cover-maker`](../cover-maker/), [`thumbnail-maker`](../thumbnail-maker/), [`bg-remover`](../bg-remover/), [`avatar-maker`](../avatar-maker/), [`voiceover-maker`](../voiceover-maker/), [`subtitle-burner`](../subtitle-burner/), [`flyer-maker`](../flyer-maker/), [`reel-builder`](../reel-builder/), [`logo-maker`](../logo-maker/), [`quote-card-maker`](../quote-card-maker/), [`gif-maker`](../gif-maker/), [`banner-maker`](../banner-maker/), [`meme-card-maker`](../meme-card-maker/), [`upscaler`](../upscaler/)
 - **RU** (3) — [`prose-edit`](../prose-edit/), [`essay-write`](../essay-write/), [`pelevin-digression`](../pelevin-digression/)
 
 <!-- END skill-index -->
