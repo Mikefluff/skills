@@ -1,74 +1,88 @@
 # skills
 
 [![ci](https://github.com/Mikefluff/skills/actions/workflows/ci.yml/badge.svg)](https://github.com/Mikefluff/skills/actions/workflows/ci.yml)
-[![release](https://github.com/Mikefluff/skills/actions/workflows/release.yml/badge.svg)](https://github.com/Mikefluff/skills/actions/workflows/release.yml)
 [![version](https://img.shields.io/github/v/release/Mikefluff/skills?label=version)](https://github.com/Mikefluff/skills/releases/latest)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills for editing prose without producing text that reads like LLM output. Russian-first, English-capable.
+AI content toolkit for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) — prose editing without LLM-shaped output, AI media generation (image / video / music) with optional in-line execution, and end-to-end content orchestrators (research → carousel / reel). Russian-first, English-capable.
 
-**Twenty-two skills**, one base + thirteen wrappers + three linters + three orchestrators + two meta-skills. Plain markdown, MIT-licensed, no required external deps (ffmpeg optional for reel stitching).
+**Twenty-two skills** across five layers: one base + thirteen wrappers + three linters + three orchestrators + two meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching).
 
 ---
 
 ## Install
 
 ```bash
-# Curl (5 seconds, no deps)
+# Curl — 5 seconds, no deps
 curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | bash
-
-# npm
-npm install -g @mikefluff/skills && skills install
-
-# Homebrew (after tap)
-brew tap mikefluff/tap https://github.com/Mikefluff/homebrew-tap
-brew install mikefluff/tap/skills && skills install
-
-# Docker (for CI — no install into ~/.claude needed)
-docker run --rm -v "$PWD:/work" ghcr.io/mikefluff/skills lint /work/draft.md
 ```
 
-Skills appear after Claude Code session restart. Discovery is automatic via `name:` and `description:` in each skill's frontmatter — no `~/.claude/settings.json` edits required.
+Other methods (npm, Homebrew, Docker, local checkout, pinned version, custom prefix): [`docs/INSTALL.md`](docs/INSTALL.md).
 
-For all install options + troubleshooting, see [`docs/INSTALL.md`](docs/INSTALL.md).
+Skills appear after Claude Code session restart. Discovery is automatic via the `name:` and `description:` fields in each skill's frontmatter — no `~/.claude/settings.json` edits required.
+
+**API keys** (for `--execute` mode — entirely optional): manage via `/skills-keys add OPENAI_API_KEY ...` inside Claude Code, or copy `.env.example` to `~/.skills.env`. See [Managing keys](#managing-api-keys) below.
 
 ---
 
-## First time? Start here
+## Start here
 
-**→ [User Guide](docs/USER-GUIDE.md)** — pick your scenario, walk through it end-to-end.
-
-**→ [Skill Index](docs/SKILL-INDEX.md)** — all 22 skills indexed by layer, domain, and language.
-
-**→ [Composing recipes](docs/COMPOSING.md)** — 14 named workflows showing how to chain skills.
-
-Quick scenario picker:
-
-| You want to … | Walkthrough |
-|---|---|
-| Write a viral social-media post | [RU](docs/walkthroughs/viral-post.md) · [EN](docs/walkthroughs/en-viral-post.md) |
-| Edit a fiction chapter | [fiction-chapter](docs/walkthroughs/fiction-chapter.md) |
-| Draft a long-form essay | [non-fiction](docs/walkthroughs/non-fiction.md) |
-| Verify a multilingual translation | [translation-parity](docs/walkthroughs/translation-parity.md) |
-| Auto-lint every commit | [pre-commit-hook](docs/walkthroughs/pre-commit-hook.md) |
-| Audit a chapter against your story bible | [canon-check-audit](docs/walkthroughs/canon-check-audit.md) |
-| Insert a Pelevin-vector digression | [digression-insertion](docs/walkthroughs/digression-insertion.md) |
-| Run a read-only quality gate | [style-check-gate](docs/walkthroughs/style-check-gate.md) |
-| Rewrite text in a different register | [USER-GUIDE](docs/USER-GUIDE.md#tone-shifter--register-rewrites) |
-| Draft a cold outreach email | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-a-cold-email) |
-| Generate an AI image prompt (Midjourney v7 / Flux 2 / Imagen 4 / Nano Banana Pro / gpt-image-2 / Ideogram 3 / Seedream 4.5 / Qwen-Image / HiDream / SD 3.5 — edit, multi-ref, text-in-image) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-image-prompt) |
-| Generate an AI video prompt (Veo 3.1 + audio, Sora 2 + cameos, Kling 3.0 / Elements, Runway Gen-4 / Aleph V2V, Luma Ray 3, Pika 2.2, Hailuo 02, Higgsfield, LTX-2, Hunyuan, Wan 2.2, Seedance — T2V / I2V / V2V / multi-shot / dialogue) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-video-prompt) |
-| Generate an AI music prompt (Suno v5.5, Udio v4, Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen — meta-tags, `\|` stacking, two-box Style+Lyrics workflow, 12 genre recipes) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-music-prompt) |
-| Write UX microcopy (errors, empty states, tooltips, buttons) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-ux-microcopy) |
-| Write release notes / changelogs | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-release-notes) |
-| Write an RFC / ADR / design doc | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-rfc--design-doc) |
-| Write marketing copy (landing / SEO / ads) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-marketing-copy) |
-| Research a topic with cited sources (WebSearch + WebFetch + optional Firecrawl / Exa MCP) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
-| Build an Instagram / LinkedIn / TikTok carousel end-to-end (24 visual styles + batch execute) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
-| Build a vertical reel end-to-end (12 directorial styles + 12 music genres + ffmpeg stitch) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
-| Manage API keys for the execute layer (list / add / remove / update / verify / enable gate flags) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-manage-api-keys) |
+- **[Quickstart](docs/QUICKSTART.md)** — your first 5 minutes
+- **[User Guide](docs/USER-GUIDE.md)** — full scenarios index
+- **[Walkthroughs](docs/walkthroughs/)** — 19 step-by-step recipes, categorized
+- **[Skill Index](docs/SKILL-INDEX.md)** — all 22 skills by layer/domain/language
+- **[Composing recipes](docs/COMPOSING.md)** — named workflows for chaining skills
+- **[Style library](common/style-library/)** — 50 visual + directorial + genre presets used by carousel-builder / reel-builder / music-prompt
 
 If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESHOOTING.md).
+
+---
+
+## What you can do
+
+### Write & edit prose
+
+| Scenario | Skill(s) | Walkthrough |
+|---|---|---|
+| Clean an LLM-shaped draft | [`writer`](writer/) | [USER-GUIDE](docs/USER-GUIDE.md#i-just-want-to-clean-a-draft) |
+| Viral social post (RU + EN) | [`viral-text`](viral-text/) → writer | [RU](docs/walkthroughs/viral-post.md) · [EN](docs/walkthroughs/en-viral-post.md) |
+| Edit a fiction chapter (Pelevin/Manson voice) | [`prose-edit`](prose-edit/) → writer | [fiction-chapter](docs/walkthroughs/fiction-chapter.md) |
+| Draft a long-form essay (RU) | [`essay-write`](essay-write/) → writer | [non-fiction](docs/walkthroughs/non-fiction.md) |
+| Verify a trilingual translation (RU/EN/PT-BR) | [`translation-sync`](translation-sync/) | [translation-parity](docs/walkthroughs/translation-parity.md) |
+| Audit a chapter against your story bible | [`canon-check`](canon-check/) | [canon-check-audit](docs/walkthroughs/canon-check-audit.md) |
+| Insert a Pelevin-style digression | [`pelevin-digression`](pelevin-digression/) | [digression-insertion](docs/walkthroughs/digression-insertion.md) |
+| Rewrite in a different register (formal↔casual…) | [`tone-shifter`](tone-shifter/) → writer | [tone-shift](docs/walkthroughs/tone-shift.md) |
+| Write a cold outreach email | [`cold-email`](cold-email/) → writer | [cold-email-pitch](docs/walkthroughs/cold-email-pitch.md) |
+| Write UX microcopy (errors / empty states / tooltips) | [`microcopy`](microcopy/) → writer | [microcopy-error-states](docs/walkthroughs/microcopy-error-states.md) |
+| Write release notes / changelog | [`release-notes`](release-notes/) → writer | [release-notes-saas](docs/walkthroughs/release-notes-saas.md) |
+| Write an RFC / ADR / design doc | [`rfc-writer`](rfc-writer/) → writer | [rfc-architecture](docs/walkthroughs/rfc-architecture.md) |
+| Write landing / SEO / ad copy | [`landing-copy`](landing-copy/) → writer | [landing-launch](docs/walkthroughs/landing-launch.md) |
+
+### Generate AI media (prompt-first, execute optional)
+
+| Scenario | Skill(s) | Walkthrough |
+|---|---|---|
+| Generate an image prompt for 14+ models (Midjourney v7, Flux 2, Imagen 4 Ultra, Nano Banana Pro, gpt-image-2, Ideogram 3, Seedream 4.5, …) | [`image-prompt`](image-prompt/) | [image-prompt-cover](docs/walkthroughs/image-prompt-cover.md) |
+| Generate a video prompt for 20+ models (Veo 3.1 + audio, Sora 2, Kling 3.0, Runway Gen-4 / Aleph V2V, Luma Ray 3, Pika, Hailuo, Hunyuan, Wan 2.2, Seedance, …) | [`video-prompt`](video-prompt/) | [video-prompt-reel](docs/walkthroughs/video-prompt-reel.md) |
+| Generate a music prompt for 10+ models (Suno v5.5, Udio v4, Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen, …) | [`music-prompt`](music-prompt/) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-music-prompt) |
+| Actually run the prompt through the vendor API and save a real PNG / MP4 / MP3 | any of the three above + `--execute` | [execute-end-to-end](docs/walkthroughs/execute-end-to-end.md) |
+
+### Orchestrate end-to-end
+
+| Scenario | Skill(s) | Walkthrough |
+|---|---|---|
+| Research a topic with cited sources (WebSearch + WebFetch + optional Firecrawl/Exa MCP) | [`research-brief`](research-brief/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
+| Turn topic / research into an N-slide Instagram / LinkedIn / TikTok carousel (24 visual styles, batch execute) | [`carousel-builder`](carousel-builder/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
+| Turn topic / research / script into a vertical reel (12 directorial styles + 12 music genres + ffmpeg stitch) | [`reel-builder`](reel-builder/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
+
+### Manage the collection
+
+| Scenario | Skill | Walkthrough |
+|---|---|---|
+| Manage API keys (add / remove / update / verify / enable gate flags) | [`skills-keys`](skills-keys/) | [skills-keys/examples/before-after.md](skills-keys/examples/before-after.md) |
+| Update the collection itself | [`skills-update`](skills-update/) | n/a — invoke directly |
+| Auto-lint every git commit | [`style-check`](style-check/) | [pre-commit-hook](docs/walkthroughs/pre-commit-hook.md) |
+| Run a read-only quality gate | [`style-check`](style-check/) | [style-check-gate](docs/walkthroughs/style-check-gate.md) |
 
 ---
 
@@ -103,91 +117,101 @@ If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESH
 
 <!-- END skills-table -->
 
-Skills compose: wrappers call `writer` internally; linters reference the same rule files but don't mutate. See [docs/COMPOSING.md](docs/COMPOSING.md) for the dependency graph.
+Skills compose: wrappers call `writer` internally; linters reference the same rule files but don't mutate; orchestrators chain multiple wrappers + the execute runner. See [docs/COMPOSING.md](docs/COMPOSING.md) for the full dependency graph and named workflows.
 
 ---
 
-## Optional API execution (v2.2+)
+## The `--execute` layer (optional)
 
-The `image-prompt`, `video-prompt`, and `music-prompt` skills can call vendor APIs and save real PNG / MP4 / MP3 assets when API keys are set in env. Without keys, the skills stay prompt-only — the v2.1 behaviour.
+`image-prompt`, `video-prompt`, `music-prompt` produce paste-ready prompts by default. Pass `--execute` and they ALSO call the vendor API and save real PNG / MP4 / MP3 assets. Without API keys they stay prompt-only — no breakage.
 
-`install.sh` auto-creates `~/.claude/skills/.runners-venv` and installs the Python deps (requires Python ≥ 3.10) — **no separate `pip install` step**. Per-skill `scripts/run.py` re-execs through that venv automatically. Override with `SKILLS_SKIP_VENV=1 bash install.sh ...` to skip auto-venv (or if Python is missing).
-
-Setup (one-time):
-
-```bash
-cp .env.example ~/.skills.env
-${EDITOR:-vi} ~/.skills.env                    # fill in keys you have
-set -a; source ~/.skills.env; set +a
-```
-
-Usage:
+`carousel-builder` and `reel-builder` are orchestrators built on this layer — they assemble batches of prompts and execute them with a single style anchor + cost confirmation.
 
 ```bash
 # image
-python3 ~/.claude/skills/image-prompt/scripts/run.py --list-providers
-python3 ~/.claude/skills/image-prompt/scripts/run.py --model gpt-image-2 --prompt "..."
+~/.claude/skills/image-prompt/scripts/run.py --execute --model gpt-image-2 --prompt "..."
 
 # video (cost confirmation prompts; --yes to skip)
-python3 ~/.claude/skills/video-prompt/scripts/run.py --model veo-3-1-fast --prompt "..." --duration 8
+~/.claude/skills/video-prompt/scripts/run.py --execute --model veo-3-1-fast --prompt "..." --duration 8
 
 # music
-python3 ~/.claude/skills/music-prompt/scripts/run.py --model suno-v5-5 --prompt "..." --lyrics-file ./lyrics.txt
+~/.claude/skills/music-prompt/scripts/run.py --execute --model suno-v5-5 --prompt "..." --lyrics-file ./lyrics.txt
 ```
 
-Provider coverage:
+Vendors covered: OpenAI (gpt-image-2, Sora 2, TTS), Google (Imagen 4, Nano Banana Pro, Veo 3.1, Lyria 3 Pro), Black Forest Labs (Flux family + Kontext), Runway (Gen-4 + Aleph), Kuaishou (Kling 3.0), Ideogram (3 Turbo/Default/Quality), ElevenLabs (Music + TTS), Suno (v5.5), fal.ai + Replicate routers for everything else (Seedream, Hunyuan, LTX-2, Wan, MusicGen, Stable Audio, many open-source).
 
-- **OpenAI**: gpt-image-2 (image), Sora 2 / Sora 2 Pro (video — gated), gpt-4o-mini-tts (audio)
-- **Google**: Imagen 4 / 4 Ultra / 4 Fast, Nano Banana Pro (image); Veo 3.1 / Fast (video); Lyria 3 Pro (music — gated)
-- **Black Forest Labs**: Flux 1.1 Pro, Flux 2 Pro, Flux Kontext, Flux Schnell
-- **Runway**: Gen-4, Gen-4 Turbo, Aleph
-- **Kuaishou**: Kling 3.0
-- **Ideogram**: Ideogram 3 Turbo / Default / Quality
-- **ElevenLabs**: Eleven Music, Eleven TTS
-- **Suno**: Suno v5.5 (gated)
-- **fal.ai + Replicate routers**: cross-vendor — Flux, Seedream, Hunyuan, LTX-2, Wan, MusicGen, Stable Audio, many open-source models accessible through one of these two routers.
+Output: assets land at `./generated/<modality>/<timestamp>-<model>.<ext>`. If `S3_BUCKET` is set, they also upload to S3-compatible storage (AWS S3 / DigitalOcean Spaces / Cloudflare R2 / MinIO) and the URL is printed alongside.
 
-Output: assets land at `./generated/<modality>/<timestamp>-<model>.<ext>`. If `S3_BUCKET / S3_ACCESS_KEY / S3_SECRET_KEY` are also set, they're uploaded to your bucket (AWS S3 / DigitalOcean Spaces / Cloudflare R2 / MinIO supported) and the URL is printed alongside.
+Setup is one command:
 
-Full provider matrix + cost preview + troubleshooting: see `image-prompt/references/execute.md`, `video-prompt/references/execute.md`, `music-prompt/references/execute.md`.
+```bash
+# Inside Claude Code, after install
+/skills-keys add OPENAI_API_KEY sk-proj-...
+/skills-keys add GEMINI_API_KEY AIza...
+/skills-keys verify             # ping each vendor; confirm valid/invalid/unknown
+```
+
+The runner auto-creates `~/.claude/skills/.runners-venv` and installs Python deps (requires Python ≥ 3.10). Override with `SKILLS_SKIP_VENV=1` if Python is missing.
+
+Full provider matrix + cost preview + per-vendor troubleshooting: `image-prompt/references/execute.md`, `video-prompt/references/execute.md`, `music-prompt/references/execute.md`.
 
 ---
 
-## Updates
+## Managing API keys
 
-Three ways, increasing in eagerness:
+Keys for the `--execute` layer live in `~/.skills.env` (chmod 600). The runner auto-loads it into `os.environ` at every CLI startup — explicit shell exports still win.
 
-1. **On demand:** invoke `/skills-update` inside Claude Code.
-2. **Ambient status-line banner** *(opt-in)*: `bash scripts/install-hook.sh`. Shows ` · skills v1.0.1→1.2.0 +1 skill` when an update exists.
-3. **CLI:** `bash install.sh --check` / `bash install.sh --update [--prune]`.
+```bash
+/skills-keys list                                    # masked overview
+/skills-keys add OPENAI_API_KEY                      # interactive (silent stdin prompt)
+/skills-keys update OPENAI_API_KEY sk-proj-new...    # rotate
+/skills-keys remove OPENAI_API_KEY
+/skills-keys enable SUNO_API_ENABLED                 # gate-flag shortcut
+/skills-keys verify                                  # ping 9 providers (OpenAI/Gemini/Anthropic/BFL/Ideogram/Replicate/FAL/Runway/Eleven)
+/skills-keys export                                  # eval-ready lines for current shell
+```
 
-The banner / `/skills-update` never updates without explicit user confirmation.
+Full reference: [skills-keys/references/usage.md](skills-keys/references/usage.md) · [examples](skills-keys/examples/before-after.md).
+
+Don't have an API key for one of these vendors? The matching skill stays in prompt-only mode — paste the generated prompt into the vendor's UI manually. No skill requires any key.
+
+---
+
+## Updating
+
+```bash
+/skills-update                                       # in-Claude check + apply
+bash install.sh --check                              # CLI version diff
+bash install.sh --update                             # re-install from latest release
+```
+
+Optional ambient banner in your shell status line (opt-in): `bash scripts/install-hook.sh`. Shows ` · skills v2.3.0→2.3.1 +1 skill` when an update exists. Never updates without confirmation.
 
 ---
 
 ## Common install flags
 
 ```bash
-# install a subset
+# Install a subset
 curl -fsSL .../install.sh | bash -s -- --skills writer,viral-text
 
-# install to a custom prefix
+# Custom prefix
 curl -fsSL .../install.sh | bash -s -- --prefix /tmp/skills
 
-# pin a specific version
-curl -fsSL .../install.sh | bash -s -- --version 1.0.1
+# Pin a version
+curl -fsSL .../install.sh | bash -s -- --version 2.3.0
 
-# re-install (overwrite existing skills)
+# Update existing install (re-install + new deps)
 bash install.sh --update
 
-# check what's installed vs what's available
+# Diff local vs latest
 bash install.sh --check
 
-# uninstall everything
+# Uninstall everything
 bash install.sh --uninstall
 ```
 
-Full installer help: `bash install.sh --help`.
+Full installer help: `bash install.sh --help` · [`docs/INSTALL.md`](docs/INSTALL.md).
 
 ---
 
@@ -198,34 +222,47 @@ skills/
 ├── README.md                # this file
 ├── VERSION                  # semver, single source of truth
 ├── CHANGELOG.md             # Keep-a-Changelog
-├── skills.json              # machine-readable manifest used by installer
+├── skills.json              # machine-readable manifest used by the installer
 ├── install.sh               # pure-bash installer, curl-pipeable
+├── .env.example             # template for ~/.skills.env (manage via /skills-keys)
 ├── Makefile                 # local dev convenience
-├── CONTRIBUTING.md          # how to add a skill / report a bug / propose new one
+├── CONTRIBUTING.md          # how to add / report / propose a skill
+│
+├── <skill-name>/            # 22 skills, one folder each
+│
+├── common/
+│   ├── references/          # shared anti-pattern catalogues (hype words, preambles, …)
+│   ├── runners/             # optional Python execute layer (image/video/music)
+│   │   ├── providers/       # 14 image + 10 video + 5 music + 2 audio = 31 providers
+│   │   ├── cli/             # per-modality CLI entries (image / video / music / carousel / reel / keys)
+│   │   ├── styles.py        # style library loader
+│   │   ├── batch.py         # parallel executor for carousel / reel
+│   │   ├── ffmpeg.py        # concat / audio mix / caption burn-in
+│   │   ├── keysfile.py      # CRUD over ~/.skills.env
+│   │   ├── verify.py        # HTTP probes for 9 providers
+│   │   └── requirements.txt
+│   └── style-library/       # 50 bundled styles (24 carousel + 12 director + 12 music)
+│
 ├── docs/
-│   ├── USER-GUIDE.md        # ← start here as a user
-│   ├── walkthroughs/        # detailed per-scenario flows
-│   ├── FAQ.md
-│   ├── TROUBLESHOOTING.md
-│   ├── COMPOSING.md         # dependency graph + composition patterns
+│   ├── QUICKSTART.md        # 5-minute first run
+│   ├── USER-GUIDE.md        # scenarios with TOC
+│   ├── COMPOSING.md         # dependency graph + named workflows
+│   ├── INSTALL.md           # detailed install methods
+│   ├── SKILL-INDEX.md       # auto-generated, by layer/domain/language
+│   ├── FAQ.md               # short Q&A
+│   ├── TROUBLESHOOTING.md   # when things break
 │   ├── VERSIONING.md        # semver policy + release flow
-│   └── LINTER-COVERAGE.md   # auto-generated regex coverage
-├── scripts/
-│   ├── validate.sh          # frontmatter + cross-link + description-quality check
-│   ├── check-docs-consistency.sh  # skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs
-│   ├── gen-skills-table.py  # regenerate the README skills table from skills.json
-│   ├── smoke.sh             # validate + writer linter regression + fixture snapshots
-│   ├── coverage.py          # regenerate docs/LINTER-COVERAGE.md
-│   ├── bump.sh              # bump VERSION + promote [Unreleased] CHANGELOG section
-│   ├── new-skill.sh         # bootstrap a new skill folder
-│   ├── decide-bump.sh       # parse conventional commits since last tag
-│   ├── lint-description.py  # frontmatter description quality (advisory)
-│   └── install-hook.sh      # idempotent status-line banner installer
-├── hooks/
-│   └── skills-update-banner.js
-├── tests/                   # fixture snapshots for writer/scripts/lint.py
-├── .github/                 # workflows + issue/PR templates + SECURITY.md
-└── <skill-name>/            # the 18 skills, one folder each
+│   ├── LINTER-COVERAGE.md   # auto-generated regex coverage
+│   ├── LAUNCH-POST.md       # frozen v1.9 launch copy
+│   └── walkthroughs/
+│       ├── README.md        # categorized index
+│       └── *.md             # 19 detailed flows
+│
+├── scripts/                 # validate + smoke + doc generators
+├── hooks/                   # ambient update banner (opt-in)
+├── tests/                   # fixture snapshots
+├── bin/                     # the `skills` CLI shim (npm package)
+└── .github/                 # workflows + issue/PR templates + SECURITY.md
 ```
 
 ---
@@ -234,16 +271,16 @@ skills/
 
 ```bash
 make help                       # list all targets
-make install                    # install from this checkout to ~/.claude/skills/
+make install                    # install from this checkout into ~/.claude/skills/
 make smoke                      # validate + linter regression + fixture snapshots
 make check-docs                 # docs-consistency gate
-make gen-readme                 # regenerate skills table
+make gen-readme                 # regenerate the skills table
 make new-skill NAME=foo-bar DESC="..."
 ```
 
-Releases are automatic — push a conventional-commit message (`feat:`, `fix:`, `feat!:`, etc.) and `.github/workflows/release.yml` bumps + tags + publishes. See [docs/VERSIONING.md](docs/VERSIONING.md).
+Releases are manual — bump `VERSION`, write the CHANGELOG entry, tag `vX.Y.Z`, push tag, create GitHub Release. See [docs/VERSIONING.md](docs/VERSIONING.md).
 
-Want to contribute? Read [CONTRIBUTING.md](CONTRIBUTING.md). PRs welcome.
+Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

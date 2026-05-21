@@ -82,6 +82,10 @@ if [ -d docs/walkthroughs ]; then
   walked=0
   for w in docs/walkthroughs/*.md; do
     [ -f "$w" ] || continue
+    # README.md inside the walkthroughs dir is the categorized index, not a walkthrough.
+    case "$(basename "$w")" in
+      README.md) continue ;;
+    esac
     walked=$((walked + 1))
     # Extract the `skills:` list from frontmatter
     refs="$(awk '

@@ -1,59 +1,106 @@
 # User guide
 
-This is the entry point for using the collection — pick the scenario closest to what you want to do.
+The full scenarios index. New to the collection? Start with [QUICKSTART.md](QUICKSTART.md) — 5-minute first run. Then come back here when you need a specific scenario.
 
-If you haven't installed yet, run:
+If you haven't installed yet:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | bash
 ```
 
-Then open Claude Code — skills are auto-discovered by name. No `~/.claude/settings.json` edits required (the optional update banner is a separate one-line step covered in [pre-commit-hook walkthrough](walkthroughs/pre-commit-hook.md) and [FAQ](FAQ.md)).
+Skills auto-discover after Claude Code restart. No `~/.claude/settings.json` edits required.
 
 ---
 
-## Pick your starting point
+## Contents
 
-| You want to … | Walkthrough |
+- [Pick your scenario (jump table)](#pick-your-scenario)
+- [The collection in one paragraph](#the-collection-in-one-paragraph)
+- [Prose editing](#prose-editing)
+- [Marketing & ops prose](#marketing--ops-prose)
+- [AI media generation](#ai-media-generation)
+- [Orchestrators (end-to-end)](#orchestrators-end-to-end)
+- [Meta (collection management)](#meta-collection-management)
+- [Composing skills + CI](#composing-skills--ci)
+
+---
+
+## Pick your scenario
+
+Jump straight to the section for what you want to do.
+
+### Write & edit prose
+
+| You want to … | Section |
 |---|---|
-| Write a viral social-media post (Telegram / Instagram / Threads / etc.) | [Viral post (RU)](walkthroughs/viral-post.md) · [Viral post (EN)](walkthroughs/en-viral-post.md) |
-| Rewrite a fiction chapter from rough draft to commit-ready | [Fiction chapter](walkthroughs/fiction-chapter.md) |
-| Draft a long-form essay or popular-science chapter with sources | [Non-fiction long-form](walkthroughs/non-fiction.md) |
-| Verify a translation matches across RU / EN / PT-BR | [Translation parity](walkthroughs/translation-parity.md) |
-| Auto-lint every commit before it lands | [Pre-commit hook](walkthroughs/pre-commit-hook.md) |
-| Audit a fresh chapter against your story bible | [Story-bible audit](walkthroughs/canon-check-audit.md) |
-| Insert a Pelevin-vector digression into an essay or scene | [Digression insertion](walkthroughs/digression-insertion.md) |
-| Get a read-only quality verdict without auto-edits | [Style-check gate](walkthroughs/style-check-gate.md) |
-| Rewrite text in a different register (casual ↔ business ↔ academic ↔ plain) | [Tone-shifter](#tone-shifter--register-rewrites) |
-| Draft a cold-outreach email (founder / recruiter / journalist / VC) | [Cold-email](#cold-email--outreach-drafting) |
-| Generate prompts for AI image models (Midjourney v7 / Flux 2 / Imagen 4 / Nano Banana Pro / gpt-image-2 / Ideogram 3 / Seedream 4.5 / Qwen-Image / HiDream / SD 3.5) | [Image-prompt](#i-want-to-write-an-ai-image-prompt) |
-| Generate prompts for AI video models (Veo 3.1 + audio / Sora 2 + cameos / Kling 3.0 + Omni / Runway Gen-4 + Aleph V2V / Luma Ray 3 / Pika 2.2 / Hailuo 02 / Higgsfield / LTX-2 / Hunyuan / Wan 2.2 / Seedance 2.0) | [Video-prompt](#i-want-to-write-an-ai-video-prompt) |
-| Generate prompts for AI music models (Suno v5.5 / Udio v4 / Lyria 3 Pro / ElevenLabs Music / Stable Audio 2.5 / MusicGen) | [Music-prompt](#i-want-to-write-an-ai-music-prompt) |
-| Write UX microcopy (errors, empty states, tooltips, buttons) | [Microcopy](#i-want-to-write-ux-microcopy) |
-| Write release notes / changelogs / product update | [Release-notes](#i-want-to-write-release-notes) |
-| Write an RFC / ADR / design doc / tech spec | [RFC-writer](#i-want-to-write-an-rfc--design-doc) |
-| Write landing page / SEO meta / paid ad copy | [Landing-copy](#i-want-to-write-marketing-copy) |
-| Stuck or confused | [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md) |
+| Clean an LLM-shaped draft | [§ writer](#i-just-want-to-clean-a-draft) |
+| Edit a fiction chapter | [§ prose-edit](#i-want-to-edit-a-fiction-chapter) |
+| Write a long-form essay | [§ essay-write](#i-want-to-write-a-long-form-essay) |
+| Verify a trilingual translation | [§ translation-sync](#i-want-to-verify-a-translation) |
+| Audit against the story bible | [walkthrough](walkthroughs/canon-check-audit.md) |
+| Insert a Pelevin-style digression | [walkthrough](walkthroughs/digression-insertion.md) |
+| Rewrite in a different register | [§ tone-shifter](#tone-shifter--register-rewrites) |
+| Read-only quality gate | [walkthrough](walkthroughs/style-check-gate.md) |
+| Auto-lint every git commit | [walkthrough](walkthroughs/pre-commit-hook.md) |
+
+### Marketing & ops prose
+
+| You want to … | Section |
+|---|---|
+| Viral social-media post | [walkthroughs: RU](walkthroughs/viral-post.md) · [EN](walkthroughs/en-viral-post.md) |
+| Cold outreach email | [§ cold-email](#i-want-to-write-a-cold-email) |
+| UX microcopy | [§ microcopy](#i-want-to-write-ux-microcopy) |
+| Release notes / changelog | [§ release-notes](#i-want-to-write-release-notes) |
+| RFC / ADR / design doc | [§ rfc-writer](#i-want-to-write-an-rfc--design-doc) |
+| Landing / SEO / ad copy | [§ landing-copy](#i-want-to-write-marketing-copy) |
+
+### AI media generation
+
+| You want to … | Section |
+|---|---|
+| Image prompt (14+ models) | [§ image-prompt](#i-want-to-write-an-ai-image-prompt) |
+| Video prompt (20+ models) | [§ video-prompt](#i-want-to-write-an-ai-video-prompt) |
+| Music prompt (10+ models) | [§ music-prompt](#i-want-to-write-an-ai-music-prompt) |
+
+### Orchestrators (end-to-end)
+
+| You want to … | Section |
+|---|---|
+| Research a topic with citations | [§ research-brief](#i-want-to-research-a-topic) |
+| Build an N-slide carousel | [§ carousel-builder](#i-want-to-build-a-carousel) |
+| Build a vertical reel | [§ reel-builder](#i-want-to-build-a-reel) |
+| Full chain (research → carousel + reel) | [walkthrough](walkthroughs/research-to-carousel-reel.md) |
+
+### Manage the collection
+
+| You want to … | Section |
+|---|---|
+| Manage API keys (CRUD + verify) | [§ skills-keys](#i-want-to-manage-api-keys) |
+| Update the collection | [walkthrough](#i-want-to-update-the-collection) |
+
+Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ---
 
 ## The collection in one paragraph
 
-Seventeen skills layered on top of one base linter (`writer`):
+Twenty-two skills layered on top of one base linter (`writer`):
 
-- **Base**: `writer` strips 28 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill in the collection.
-- **Wrappers** (call `writer` automatically): `viral-text` for social posts, `prose-edit` for fiction, `essay-write` for non-fiction longreads, `pelevin-digression` for opt-in voice inserts, `tone-shifter` for register changes, `cold-email` for outreach.
-- **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint, `translation-sync` for multilingual parity, `canon-check` for story-bible consistency.
-- **Meta**: `skills-update` checks for new releases of this collection and applies them on confirmation.
+- **Base**: `writer` strips 28 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill.
+- **Wrappers** (call `writer` automatically): 13 skills covering prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), and AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`).
+- **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
+- **Orchestrators** (end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music.
+- **Meta**: `skills-update` (apply newer release of this collection) and `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer).
 
 Skills work on any text file (`.md`, `.tex`, `.txt`, …) — there's no assumed file format or project layout.
 
-For the dependency graph and composition patterns, see [COMPOSING.md](COMPOSING.md).
-For an index of every skill by layer, domain, and language, see [SKILL-INDEX.md](SKILL-INDEX.md).
+For the dependency graph and named workflows, see [COMPOSING.md](COMPOSING.md).
+For an index of every skill by layer / domain / language, see [SKILL-INDEX.md](SKILL-INDEX.md).
+For the categorized walkthrough list, see [walkthroughs/README.md](walkthroughs/README.md).
 
 ---
 
-## Two-minute orientation by use case
+## Prose editing
 
 ### "I just want to clean a draft"
 
@@ -125,6 +172,10 @@ Use cases: turning a casual brain-dump into an exec memo, rewriting an academic 
 
 ---
 
+---
+
+## Marketing & ops prose
+
 ### "I want to write a cold email"
 
 `/cold-email first-touch <recipient-context>` drafts a first-touch outreach to founders, VCs, recruiters, journalists, or partners. 5-block structure (hook / value / ask / easy-yes / sign-off), ≤120-word budget, banned ceremony patterns (no "I hope this email finds you well"), anti-template subject lines.
@@ -138,6 +189,10 @@ Use cases: turning a casual brain-dump into an exec memo, rewriting an academic 
 Modes: `first-touch`, `follow-up`, `intro-request` (produces both the email to the intro-giver and the forwardable block), `re-engage`, `forwardable`. See `cold-email/references/structure.md` for the per-variant template.
 
 ---
+
+---
+
+## AI media generation
 
 ### "I want to write an AI image prompt" {#i-want-to-write-an-ai-image-prompt}
 
@@ -276,6 +331,10 @@ Julian Shapiro hero formula, char limits per platform, i18n expansion factor, ba
 
 ---
 
+---
+
+## Orchestrators (end-to-end)
+
 ### "I want to research a topic with cited sources" {#i-want-to-research-a-topic}
 
 `/research-brief <topic>` produces a structured markdown brief — TL;DR, key facts with citations, notable quotes, suggested narrative angles, open questions, out-of-reach flags. Multi-source via WebSearch + WebFetch (always) + optional Firecrawl / Exa MCP (probed at runtime).
@@ -351,6 +410,10 @@ For details: [reel-builder/SKILL.md](../reel-builder/SKILL.md) and [research-to-
 
 ---
 
+---
+
+## Meta (collection management)
+
 ### "I want to manage API keys" {#i-want-to-manage-api-keys}
 
 `/skills-keys` is the management UI over `~/.skills.env` — the runner's key store. Single source of truth for all `--execute` provider keys + gate flags.
@@ -387,7 +450,31 @@ There's no built-in git-hook installer (we don't want to silently touch your `.g
 
 ---
 
-## Use in your CI
+### "I want to update the collection" {#i-want-to-update-the-collection}
+
+Three ways:
+
+```
+/skills-update                                   # in Claude Code — checks + shows CHANGELOG diff + applies
+```
+
+```bash
+bash install.sh --check                          # CLI: report version status
+bash install.sh --update                         # re-pull latest tarball, overwrite installed skills
+bash install.sh --update --prune                 # also remove skills no longer in upstream manifest
+```
+
+```bash
+bash scripts/install-hook.sh                     # opt-in ambient status-line banner
+```
+
+After installing the banner, you'll see ` · skills v2.3.0→2.3.1 +1 skill (some-new-skill)` in your status line when a release is available. Never updates without confirmation.
+
+---
+
+## Composing skills + CI
+
+### Use in your CI
 
 If you want the writer linter to gate every push / PR in your own repository (no Claude Code required — pure Python regex pass), copy our GitHub Action template:
 
@@ -407,7 +494,7 @@ Read the template comments before committing. The workflow runs in 30-60 seconds
 
 ---
 
-## Use the Docker image
+### Use the Docker image
 
 For users who prefer containers — or who run their own CI / pre-commit pipelines that can't `curl | bash`:
 
@@ -429,7 +516,7 @@ Image tags: `latest` (main branch), `X.Y.Z` (pinned, no `v` prefix — Docker co
 
 ---
 
-## Configuration
+### Configuration
 
 Each skill respects what's in its own `references/` directory — you can tune behaviour without forking by overriding routing patterns, terminology canons, banned-construction lists, and so on. See the relevant skill's `references/` files for what's configurable:
 
@@ -441,39 +528,15 @@ Each skill respects what's in its own `references/` directory — you can tune b
 
 ---
 
-## Skills by layer (auto-generated)
+### Skills by layer (auto-generated)
 
-See [`README.md`](../README.md#whats-in-the-box) for the up-to-date table. The table is regenerated from `skills.json` on every release.
-
----
-
-## Updating the collection
-
-```
-/skills-update                                 # check + apply via Claude Code
-```
-
-Or from the shell:
-
-```bash
-bash install.sh --check                        # report version status
-bash install.sh --update                       # re-pull latest tarball, overwrite installed skills
-bash install.sh --update --prune               # also remove skills no longer in upstream manifest
-```
-
-Or install the opt-in ambient status-line banner once:
-
-```bash
-bash scripts/install-hook.sh
-```
-
-After that, you'll see ` · skills v1.0.1→1.2.0 +1 skill (some-new-skill)` in your status line when a release is available.
+See [`README.md § What's in the box`](../README.md#whats-in-the-box) for the up-to-date table. Regenerated from `skills.json` on every release.
 
 ---
 
 ## When something looks off
 
-1. Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for the common failure modes (banner doesn't show, marker missing, false-positive linter, …).
+1. Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for the common failure modes (banner doesn't show, marker missing, false-positive linter, ffmpeg missing for reel-builder, …).
 2. Search [GitHub issues](https://github.com/Mikefluff/skills/issues) — your problem may already be reported.
 3. Open a new issue: use the bug-report template (it asks for the right diagnostics up front).
 
@@ -481,9 +544,11 @@ After that, you'll see ` · skills v1.0.1→1.2.0 +1 skill (some-new-skill)` in 
 
 ## See also
 
+- [QUICKSTART](QUICKSTART.md) — 5-minute first run
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
-- [COMPOSING](COMPOSING.md) — how the 17 skills compose; recipe library
+- [COMPOSING](COMPOSING.md) — how the 22 skills compose; recipe library
 - [SKILL-INDEX](SKILL-INDEX.md) — every skill indexed by layer / domain / language
+- [walkthroughs/README.md](walkthroughs/README.md) — 19 walkthroughs, categorized
 - [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection
 - [VERSIONING](VERSIONING.md) — semver policy, release flow
