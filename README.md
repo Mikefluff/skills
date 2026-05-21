@@ -6,7 +6,7 @@
 
 AI content toolkit for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) — prose editing without LLM-shaped output, AI media generation (image / video / music) with optional in-line execution, and end-to-end content orchestrators (research → carousel / reel). Russian-first, English-capable.
 
-**Twenty-four skills** across five layers: one base + thirteen wrappers + three linters + four orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching).
+**Twenty-seven skills** across five layers: one base + fifteen wrappers + three linters + five orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning).
 
 ---
 
@@ -70,7 +70,9 @@ The bundled style library used by the orchestrators: [carousel](common/style-lib
 | Generate an image prompt for 14+ models (Midjourney v7, Flux 2, Imagen 4 Ultra, Nano Banana Pro, gpt-image-2, Ideogram 3, Seedream 4.5, …) | [`image-prompt`](image-prompt/) | [image-prompt-cover](docs/walkthroughs/image-prompt-cover.md) |
 | Generate a video prompt for 20+ models (Veo 3.1 + audio, Sora 2, Kling 3.0, Runway Gen-4 / Aleph V2V, Luma Ray 3, Pika, Hailuo, Hunyuan, Wan 2.2, Seedance, …) | [`video-prompt`](video-prompt/) | [video-prompt-reel](docs/walkthroughs/video-prompt-reel.md) |
 | Generate a music prompt for 10+ models (Suno v5.5, Udio v4, Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen, …) | [`music-prompt`](music-prompt/) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-music-prompt) |
-| Actually run the prompt through the vendor API and save a real PNG / MP4 / MP3 | any of the three above + `--execute` | [execute-end-to-end](docs/walkthroughs/execute-end-to-end.md) |
+| Voiceover / narration via TTS (ElevenLabs multilingual + OpenAI gpt-4o-mini-tts) | [`voiceover-maker`](voiceover-maker/) | [voiceover-maker/examples/before-after.md](voiceover-maker/examples/before-after.md) |
+| Burn captions onto an existing video (SRT / VTT / plain text + ffmpeg) | [`subtitle-burner`](subtitle-burner/) | [subtitle-burner/examples/before-after.md](subtitle-burner/examples/before-after.md) |
+| Actually run the prompt through the vendor API and save a real PNG / MP4 / MP3 | any of the prompt skills + `--execute` | [execute-end-to-end](docs/walkthroughs/execute-end-to-end.md) |
 
 ### Orchestrate end-to-end
 
@@ -80,6 +82,7 @@ The bundled style library used by the orchestrators: [carousel](common/style-lib
 | Turn topic / research into an N-slide Instagram / LinkedIn / TikTok carousel (24 visual styles, batch execute) | [`carousel-builder`](carousel-builder/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
 | Turn topic / research / script into a vertical reel (12 directorial styles + 12 music genres + ffmpeg stitch) | [`reel-builder`](reel-builder/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
 | Make a flyer / event poster / promo graphic (title + date + location + optional photo, multi-aspect) | [`flyer-maker`](flyer-maker/) | [flyer-maker/examples/before-after.md](flyer-maker/examples/before-after.md) |
+| Headshot / profile-pic / avatar variants from a photo (identity-preserve via Nano Banana Pro, multi-aspect) | [`avatar-maker`](avatar-maker/) | [avatar-maker/examples/before-after.md](avatar-maker/examples/before-after.md) |
 
 ### Manage the collection
 
@@ -121,6 +124,9 @@ The bundled style library used by the orchestrators: [carousel](common/style-lib
 | [`landing-copy`](landing-copy/) | wrapper | en/ru | Write marketing copy — landing page sections (hero/features/pricing/FAQ), SEO meta (title+description+OG+Twitter), ad copy (Google/Facebook/LinkedIn/X). Julian Shapiro hero formula, char limits per platform. Wraps writer. |
 | [`research-brief`](research-brief/) | orchestrator | en/ru | Produce a structured research brief on any topic — TL;DR, key facts with citations, notable quotes, suggested angles, open questions. 3-15 queries by depth, multi-source (WebSearch + WebFetch + optional Firecrawl/Exa MCP). Output is a markdown file ready for downstream consumption by carousel-builder, reel-builder, viral-text, essay-write, landing-copy. |
 | [`carousel-builder`](carousel-builder/) | orchestrator | en/ru | Turn a topic or research brief into an N-slide Instagram / LinkedIn / TikTok carousel with consistent visual style and ready-to-post captions. Wraps essay-write + viral-text + image-prompt --execute + common style library (24 visual styles). Outputs PNG slides + captions.md + manifest. Modes: --topic / --research; --style auto\|<library-id>\|--style-ref <image>; --slides 3-12; --platform instagram\|linkedin\|tiktok; --text-mode embedded\|overlay\|none; --execute; --resume. |
+| [`avatar-maker`](avatar-maker/) | orchestrator | en/ru | Turn a user photo into N profile-pic / headshot / avatar variants in a consistent style. Wraps image-prompt --execute + the carousel style library + the runner's batch executor. Identity preserve is THE differentiator — defaults to nano-banana-pro for best face preservation. Multi-aspect output (square 1:1, square-tight, cover 4:5, story 9:16, wide 16:9). Outputs: ./generated/avatar/<slug>/<aspect>-v<N>.png + manifest.json. |
+| [`voiceover-maker`](voiceover-maker/) | wrapper | en/ru | Text-to-speech skill — script in, MP3 out. Wraps the runner's audio modality (ElevenLabs eleven-tts + OpenAI gpt-4o-mini-tts). Supports voice picker, multilingual TTS (Eleven), speed control, long-form scripts. Auto-picks provider based on language + script length + brand-voice needs. Saves to ./generated/audio/<timestamp>-<model>.mp3. |
+| [`subtitle-burner`](subtitle-burner/) | wrapper | en/ru | Burn captions / subtitles onto an existing video via ffmpeg. Supports SRT, WebVTT, and plain-text subtitle sources. Style presets (modern / minimal / bold) + per-flag customization (font-size, color, backplate). Outputs <video>-subtitled<ext>. No API calls — pure ffmpeg. Subcommands: burn / preview. |
 | [`flyer-maker`](flyer-maker/) | orchestrator | en/ru | Turn event details (title / date / location / CTA) plus an optional photo into a poster/flyer/social-event-graphic with embedded text in a chosen visual style. Wraps image-prompt --execute + the carousel style library (24 visual styles) + the runner's batch executor. Picks a text-friendly + multi-ref-capable model (gpt-image-2 / ideogram-3-quality / nano-banana-pro). Multi-aspect output (portrait / square / story / landscape / a4). Outputs: ./generated/flyer/<event-slug>/<aspect>.png + manifest.json + prompts.md. |
 | [`reel-builder`](reel-builder/) | orchestrator | en/ru | Turn a topic / research brief / script into a vertical reel: 1-4 video shots + matched background music + ffmpeg-stitched final.mp4 with optional burned-in captions. Wraps viral-text + video-prompt --execute + music-prompt --execute + common video/music style library + ffmpeg. Outputs final.mp4 + shots/ + music.mp3 + script.md + manifest. Modes: --topic / --research / --script-file; --shots 1-5; --style auto\|<library-id>; --music-style auto\|<library-id>; --captions on\|off; --execute; --resume. |
 

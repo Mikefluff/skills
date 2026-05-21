@@ -44,7 +44,10 @@ def build_parser(modality: Modality, models_hint: list[str] | None = None) -> ar
     parser.add_argument("--video-url", help="reference video URL (v2v)")
     parser.add_argument("--size", help='image size like "1024x1024"')
     parser.add_argument("--quality", help='image quality: low/medium/high')
-    parser.add_argument("--voice", help="voice id (TTS)")
+    parser.add_argument("--voice", help="voice id / name (TTS) — used by OpenAI TTS (alloy/echo/fable/...) and as fallback for ElevenLabs")
+    parser.add_argument("--voice-id", dest="voice_id", help="explicit ElevenLabs voice_id (preferred for Eleven)")
+    parser.add_argument("--speed", type=float, help="speech speed multiplier (0.5-2.0, provider-dependent)")
+    parser.add_argument("--lang", help="language hint for TTS (provider-dependent; Eleven multilingual auto-detects)")
     parser.add_argument("--fal-model", help="override fal.ai hosted model id")
     parser.add_argument("--replicate-model", help="override Replicate model id")
     if models_hint:
@@ -120,6 +123,12 @@ def gather_kwargs(args: argparse.Namespace) -> dict[str, Any]:
         kwargs["quality"] = args.quality
     if args.voice:
         kwargs["voice"] = args.voice
+    if getattr(args, "voice_id", None):
+        kwargs["voice_id"] = args.voice_id
+    if getattr(args, "speed", None) is not None:
+        kwargs["speed"] = args.speed
+    if getattr(args, "lang", None):
+        kwargs["lang"] = args.lang
     if args.fal_model:
         kwargs["fal_model"] = args.fal_model
     if args.replicate_model:

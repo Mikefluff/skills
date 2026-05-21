@@ -149,7 +149,9 @@ class ElevenTtsProvider(Provider):
 
     def generate(self, prompt: str, **kwargs: Any) -> GenerationResult:
         self.ensure_available()
-        voice_id: str = kwargs.get("voice_id", DEFAULT_VOICE_ID)
+        # Accept either --voice-id (explicit) or --voice (generic, also used by
+        # gpt-4o-mini-tts). voice_id wins if both set.
+        voice_id: str = kwargs.get("voice_id") or kwargs.get("voice") or DEFAULT_VOICE_ID
         model_id: str = kwargs.get("model_id", "eleven_multilingual_v2")
         body = {
             "text": prompt,

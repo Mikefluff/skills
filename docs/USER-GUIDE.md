@@ -382,6 +382,83 @@ For details: [carousel-builder/SKILL.md](../carousel-builder/SKILL.md) and [rese
 
 ---
 
+### "I want avatar / headshot variants from a photo" {#i-want-to-make-an-avatar}
+
+`/avatar-maker --photo <path>` produces N profile-pic / headshot variants in a consistent style. Identity-preserve is the priority — defaults to `nano-banana-pro` (industry-best at face preservation).
+
+```
+/avatar-maker --photo ./alex-headshot.jpg --style auto --variants 3 --execute
+/avatar-maker --photo ./me.jpg --style photo-editorial-bw --variants 5 --aspects square --execute
+/avatar-maker --photo ./me.jpg --style gradient-mesh-modern --aspects square,square-tight,cover,wide --variants 2 --execute   # cross-platform
+```
+
+Aspects:
+
+- `square` (1080×1080) — default; LinkedIn / Twitter / IG / GitHub
+- `square-tight` (1080×1080, face-fills-frame) — small thumbs
+- `cover` (1080×1350) — IG portrait / LinkedIn cover-banner area
+- `story` (1080×1920) — IG Story background
+- `wide` (1920×1080) — Twitter header / YouTube banner base
+
+Style library: reuses the 24 carousel styles, filtered to photoreal-friendly (`--style auto` skips illustration / 3D / abstract which lose identity).
+
+Cost: $0.15-0.45 per typical run (1-3 aspects × 3 variants × $0.05 NBP). Under default budget.
+
+For details: [avatar-maker/SKILL.md](../avatar-maker/SKILL.md) · [model-picker](../avatar-maker/references/model-picker.md).
+
+---
+
+### "I want a voiceover / TTS narration" {#i-want-a-voiceover}
+
+`/voiceover-maker --prompt "<script>"` (or `--prompt-file <path>`) generates an MP3 from text via the runner's audio modality. Wraps ElevenLabs `eleven-tts` (multilingual, brand-voice) + OpenAI `gpt-4o-mini-tts` (cheap fast English-strong).
+
+```
+/voiceover-maker --prompt "Welcome to the show." --model gpt-4o-mini-tts --voice alloy --execute
+/voiceover-maker --prompt-file ./episode-intro.txt --model eleven-tts --voice-id 21m00Tcm4TlvDq8ikWAM --execute
+/voiceover-maker --prompt-file ./ru-narration.txt --model eleven-tts --lang ru --execute
+/voiceover-maker --check --model eleven-tts                                                      # verify env + connectivity
+/voiceover-maker --prompt "test" --model gpt-4o-mini-tts --cost-only                              # preview cost
+```
+
+Auto-pick:
+
+- English short-form → `gpt-4o-mini-tts` (cheap: ~$0.015/min)
+- Multilingual or long-form (>2 min) → `eleven-tts` (~$0.30/min)
+- Brand voice consistency across episodes → `eleven-tts --voice-id <stable-id>`
+
+Outputs `./generated/audio/<timestamp>-<model>.mp3`. Cost preview built in; confirmation past $0.10.
+
+For details: [voiceover-maker/SKILL.md](../voiceover-maker/SKILL.md) · [voice-picker](../voiceover-maker/references/voice-picker.md) · [script-format](../voiceover-maker/references/script-format.md).
+
+---
+
+### "I want to burn subtitles onto my video" {#i-want-to-burn-subtitles}
+
+`/subtitle-burner burn <video> --subtitle <file>` burns captions onto an existing MP4 / MOV / WebM via ffmpeg. No API calls — pure ffmpeg. Style presets: `modern` (white on black backplate), `minimal` (no backplate), `bold` (yellow + dense backplate).
+
+```
+/subtitle-burner burn ./tiktok.mp4 --subtitle ./caps.srt --style modern
+/subtitle-burner burn ./reel.mp4 --subtitle ./captions.vtt --style bold
+/subtitle-burner burn ./morning.mp4 --subtitle ./quick-text.txt --style modern    # plain text distributed across video
+/subtitle-burner burn ./clip.mp4 --inline "FINALLY HERE." --style bold            # single caption for entire clip
+/subtitle-burner preview --subtitle ./caps.srt                                    # parse + print cues, no burn
+```
+
+Subtitle sources:
+
+- `.srt` — standard SubRip format
+- `.vtt` — WebVTT (from YouTube, web exports)
+- `.txt` — plain text, evenly distributed across video duration (uses ffprobe)
+- `--inline "<text>"` — single caption for the whole video
+
+Output: `<video>-subtitled<ext>` (or `--output <path>`).
+
+ffmpeg required. install.sh offers auto-install. No per-run cost.
+
+For details: [subtitle-burner/SKILL.md](../subtitle-burner/SKILL.md) · [subtitle-formats](../subtitle-burner/references/subtitle-formats.md) · [ffmpeg-styling](../subtitle-burner/references/ffmpeg-styling.md).
+
+---
+
 ### "I want to make a flyer / event poster" {#i-want-to-make-a-flyer}
 
 `/flyer-maker --title "<event>" --date "<when>" --location "<where>"` produces a multi-aspect event flyer (portrait + square + story by default) with embedded text in a chosen visual style. Optionally embeds a speaker photo or brand asset as a reference image.
