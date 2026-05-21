@@ -250,7 +250,7 @@ indie folk-pop, 2020s bedroom pop crossover, soft male lead vocal, warm tape sat
 | `She shouts: ...` | Model sings the direction | Use `[Scream]` tag or `(shouting)` ad-lib |
 | Mid-line code-switch | Mangled rendering | Switch at section boundary |
 | 8+ tags in one stack | Model averages, ignores half | Cap at 4-6 |
-| `[Verse 1 - Whispered | belted]` mixed separators | Ambiguous parser | Pick dash OR pipe |
+| `[Verse 1 - Whispered \| belted]` mixed separators | Ambiguous parser | Pick dash OR pipe |
 | Long ad-lib `(she sings softly as the wind blows)` | Sung as a full lyric | Cap ad-libs at 3 words |
 | `[Verse 5]` in a 4-min song | Model writes 2-3 verses worth | Use `[Verse]` / `[Verse 1]` / `[Verse 2]` / `[Verse 3]` |
 | `[Dry Vocal]` + `[Drenched in Reverb]` | Contradictory | Pick one |
