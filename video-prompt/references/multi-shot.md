@@ -1,6 +1,6 @@
 # Multi-shot prompts
 
-Multiple shots in one generation. Sora 2, Seedance 1.0 Pro, Veo scene-extend, Kling Elements.
+Multiple shots in one generation. Sora 2, Seedance 2.0, Veo scene-extend, Kling 3.0 Director.
 
 ---
 
@@ -67,8 +67,9 @@ Define each label once at the top OR rely on attached reference images. See `ide
 ## Per-model multi-shot limits
 
 - **Sora 2** — ~3-5 shots per prompt, total 10-15s clip length
-- **Seedance 1.0 Pro** — native multi-shot narrative, designed for it
+- **Seedance 2.0** — native multi-shot narrative (up to 6 shots, 30s total in one generation)
 - **Veo scene-extend** — extends an existing clip by N seconds; one continuation per call
+- **Kling 3.0 Director** — Auto mode (model plans shots) or Custom mode (you specify per-shot duration + framing + content); up to 6 shots in 15s
 - **Kling Elements** — multi-element references per scene, not multi-shot per se (each element can be a character, prop, style, environment)
 
 ---

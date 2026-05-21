@@ -112,7 +112,7 @@ See [examples/before-after.md](examples/before-after.md) — 6 calibration pairs
 ## CONSTRAINTS
 
 - **Suno: brackets go in the LYRICS box ONLY**. The Style of Music box accepts natural language only — brackets there are ignored or break the gen.
-- **Don't invent tags.** Every bracket tag must come from the canonical taxonomy in `references/meta-tags.md`. Invented tags (`[Dubstep Drop]` if not on the list) are ignored or hurt.
+- **Don't invent tags.** Every bracket tag must come from the canonical taxonomy in `references/meta-tags.md` OR its deep-dive extensions: `vocal-tags.md` (voice character / register / effects sub-tags), `instrumental-tags.md` (per-family instrument sub-tags), `mix-production-tags.md` (era / reverb / delay / saturation sub-tags). Together these four files form the full catalog. Tags outside this catalog (`[Dubstep Drop]` if not on the list) are ignored or hurt.
 - **Max 4-8 tags per stack.** Past 8, the model dilutes. Front-load core genre + era + mood; instruments + FX + vocal direction follow.
 - **One tag per category in a stack.** Don't combine two genres in one stack (`[hyperpop | country]`) unless deliberate fusion — combine two genres at most.
 - **Order matters**: core genre → era → mood → instrument → mix/FX → vocal direction.

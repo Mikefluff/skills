@@ -2,7 +2,7 @@
 
 The de-facto grammar for AI music. Bracketed cues steer section identity, vocal delivery, instrumentation, mix, and FX. Suno set the standard; Udio, ElevenLabs Music, and Sonauto v2 read the same dialect. Lyria 3 Pro is the outlier (natural-language only).
 
-Use exact tags from this taxonomy. Invented tags are silently dropped.
+Use exact tags from this taxonomy OR from its deep-dive extensions — `vocal-tags.md`, `instrumental-tags.md`, `mix-production-tags.md`. Together these four files form the full catalog. Tags outside this catalog are silently dropped.
 
 ---
 

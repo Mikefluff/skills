@@ -28,7 +28,7 @@ Decision tree — given user intent, pick the right music model and load the rig
 |---|---|---|---|---|---|---|---|---|---|---|
 | Suno v5.5 | ✓ | ✓ (12, Pro+) | ~8 min | ✓ | ✓ | ✓ (Premier) | ✓ (Cover) | ✓ | no | 50+ |
 | Udio v4 | ✓ | ✓ (2.0) | ~10-15 min | ✓ | partial | no | ✓ (remix) | partial | no | 30+ |
-| Google Lyria 3 Pro | ✓ | partial | ~6 min | no | no | no | no | ✓ (Vertex) | no | EN-first |
+| Google Lyria 3 Pro | ✓ | partial | 3 min (hard cap) | no | no | no | no | ✓ (Vertex) | no | EN / ES / FR / JP |
 | Stable Audio 2.5 | partial | no | ~4.5 min | partial | no | no | no | ✓ | partial (Open) | EN |
 | ElevenLabs Music | ✓ | ✓ | ~5 min | ✓ | partial | ✓ | no | ✓ | no | 30+ |
 | Tencent SongGeneration | ✓ | partial | ~4 min | ✓ | partial | no | no | partial | ✓ | CJK + EN |

@@ -215,7 +215,7 @@ Higgsfield wraps Sora 2 / Veo 3.1 / Kling 3.0 / Seedance / Wan 2.7 behind a sing
 
 ## Sora 2 multi-shot transitions
 
-Sora 2 (and Seedance 1.0 Pro) parse multi-shot prompts in one generation. Transition vocabulary:
+Sora 2 (and Seedance 2.0) parse multi-shot prompts in one generation. Transition vocabulary:
 
 | Term | Effect |
 |---|---|

@@ -1,6 +1,6 @@
 # Audio-tier models
 
-Models with native synchronized audio (dialogue + SFX + ambient) generated in one pass — no separate audio post. Beat 1/2/3 still applies. Every example below includes a Dialogue / SFX / Ambient block.
+Models with native synchronized audio (dialogue + SFX + ambient) generated in one pass — no separate audio post. Beat 1/2/3 still applies. Audio-bearing examples (Veo 3.1, Sora 2, LTX-2, Kling 3.0 Omni) include a Dialogue / SFX / Ambient block. Seedance 2.0 lives in this file because it's the visual-multi-shot peer in this tier; its audio support is unconfirmed and its example omits the audio block by design.
 
 ---
 
@@ -254,7 +254,7 @@ Camera: static medium two-shot held throughout, subtle handheld vibration, focus
 
 ## Format rules
 
-- Multi-shot block format: `Shot 1 (Xs, <framing>): <action> / Shot 2 (Ys, <framing>): <action>` — see [`multi-shot.md`](multi-shot.md).
+- Multi-shot block format: `Shot 1 (Xs, <framing>): <action> / Shot 2 (Ys, <framing>): <action>` — see [`multi-shot.md`](../multi-shot.md).
 - Style anchor sentence at the END applies across all shots — lighting, grade, identity.
 - Identity labels (`[ref:Name]`) for consistent characters across shots.
 - Audio: where supported, follow Veo / Sora syntax — `Character: "{line}"`, `SFX:`, `Ambient:`.

@@ -7,7 +7,7 @@
 
 A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills for editing prose without producing text that reads like LLM output. Russian-first, English-capable.
 
-**Seventeen skills**, one base linter + twelve wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
+**Eighteen skills**, one base linter + thirteen wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
 
 ---
 
@@ -38,7 +38,7 @@ For all install options + troubleshooting, see [`docs/INSTALL.md`](docs/INSTALL.
 
 **→ [User Guide](docs/USER-GUIDE.md)** — pick your scenario, walk through it end-to-end.
 
-**→ [Skill Index](docs/SKILL-INDEX.md)** — all 17 skills indexed by layer, domain, and language.
+**→ [Skill Index](docs/SKILL-INDEX.md)** — all 18 skills indexed by layer, domain, and language.
 
 **→ [Composing recipes](docs/COMPOSING.md)** — 14 named workflows showing how to chain skills.
 
@@ -171,7 +171,7 @@ skills/
 │   └── skills-update-banner.js
 ├── tests/                   # fixture snapshots for writer/scripts/lint.py
 ├── .github/                 # workflows + issue/PR templates + SECURITY.md
-└── <skill-name>/            # the 17 skills, one folder each
+└── <skill-name>/            # the 18 skills, one folder each
 ```
 
 ---

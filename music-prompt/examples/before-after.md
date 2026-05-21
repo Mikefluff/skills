@@ -143,7 +143,7 @@ What's wrong:
 
 ### After (Udio v4)
 
-**Why Udio**: Udio v4 is the only model that holds a coherent 10+ min instrumental without dropping the harmonic thread. Suno would fragment around the 5-min mark; Lyria 3 Pro caps at 6 min total.
+**Why Udio**: Udio v4 is the only model that holds a coherent 10+ min instrumental without dropping the harmonic thread. Suno would fragment around the 5-min mark; Lyria 3 Pro hard-caps at 3 min per generation.
 
 **Style prompt** (Udio's single-prompt format)
 
@@ -241,7 +241,7 @@ What's wrong:
 
 ### After (ElevenLabs Music)
 
-**Why Eleven Music**: Best-in-class vocal realism — sounds least synthetic of the major models. Exclude-styles parameter is unique: lets you bar specific tropes the model otherwise defaults to.
+**Why Eleven Music**: strongest vocal realism in 2026 testing — sounds least synthetic of the major models. Exclude-styles parameter is unique: lets you bar specific tropes the model otherwise defaults to.
 
 **Prompt** (single-prompt with bracketed style cues — Eleven supports light bracket syntax)
 

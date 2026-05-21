@@ -47,6 +47,7 @@ Quick router from intent → capability cluster → file. The CHARACTER FIRST la
 | Wan 2.2 | yes | yes | no | no | no | yes (first-frame) | 15s | no (480p / 720p native, upscale to 1080p / 4K) | yes | self-host |
 | Wan 2.7 | yes | yes | no | no | partial | yes | 15s | yes | yes | self-host |
 | Mochi 1 | yes | partial | no | no | no | no | 5.4s @ 30fps | 480p | yes | self-host (legacy) |
+| Seedance 2.0 | yes | yes | no | partial (unconfirmed) | yes (up to 6 shots, 30s total) | yes (identity labels) | 30s multi-shot / ~41s render | 1080p | no | mid |
 | Higgsfield (aggregator) | yes | yes | yes | passthrough | passthrough | yes (Soul ID) | depends on backend | depends | no | mid |
 
 ---
