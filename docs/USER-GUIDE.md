@@ -382,6 +382,34 @@ For details: [carousel-builder/SKILL.md](../carousel-builder/SKILL.md) and [rese
 
 ---
 
+### "I want to make a flyer / event poster" {#i-want-to-make-a-flyer}
+
+`/flyer-maker --title "<event>" --date "<when>" --location "<where>"` produces a multi-aspect event flyer (portrait + square + story by default) with embedded text in a chosen visual style. Optionally embeds a speaker photo or brand asset as a reference image.
+
+```
+/flyer-maker --title "Workshop: Slow Software" --date "15 June · 19:00" --location "Brooklyn Studio, NYC" --cta "Tickets: link in bio" --photo ./speaker.jpg --execute
+/flyer-maker --title "Концерт" --date "20 ноября" --location "Зал \"Космос\"" --style art-deco-gold --aspects portrait,square,story --lang ru --execute
+/flyer-maker --title "Conference Poster" --style swiss-grid-poster --aspects a4 --execute    # A4 print preview
+/flyer-maker --title "..." --prompts-only                                                     # dry run
+```
+
+Style library: reuses the 24 carousel visual styles (kinfolk-minimal, swiss-grid-poster, art-deco-gold, neon-cyberpunk, …). Pass `--style auto` to let the skill pick based on event type.
+
+Outputs `./generated/flyer/<event-slug>/`:
+
+- `portrait.png` (1080×1350, IG/LinkedIn feed)
+- `square.png` (1080×1080)
+- `story.png` (1080×1920, IG Story / TikTok)
+- `landscape.png` (1920×1080, LinkedIn / Twitter card / OG image) — opt in via `--aspects`
+- `a4.png` (1240×1754, A4 portrait preview at 150 DPI) — opt in
+- `manifest.json` + `style-used.md` + `prompts.md`
+
+Default cost: $0.15-0.50 per 3-aspect run depending on model. Budget cap inherits from `SKILLS_CAROUSEL_BUDGET=1.50`.
+
+For details: [flyer-maker/SKILL.md](../flyer-maker/SKILL.md) and [flyer-maker/examples/before-after.md](../flyer-maker/examples/before-after.md).
+
+---
+
 ### "I want to build a reel" {#i-want-to-build-a-reel}
 
 `/reel-builder --topic "<text>" | --research <path>` orchestrates the most-expensive workflow: script → 1-4 video shots + matched music + ffmpeg-stitched MP4 with optional burned-in captions.

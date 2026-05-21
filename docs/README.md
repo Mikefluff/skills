@@ -34,6 +34,7 @@ For the project overview + install + the skills table, go back to the top-level 
 | [FAQ.md](FAQ.md) | Short Q&A for the questions people ask first | ~190 lines |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Known failure modes + fixes (install, runtime, key issues, ffmpeg, …) | ~335 lines |
 | [VERSIONING.md](VERSIONING.md) | Semver policy + manual release flow (auto-bump was removed in v2.1) | ~75 lines |
+| [ROADMAP.md](ROADMAP.md) | Identified gaps + planned skills (cover-maker, avatar-maker, voiceover-maker, …) + non-goals | ~200 lines |
 | [LAUNCH-POST.md](LAUNCH-POST.md) | Frozen launch copy from v1.9 — kept for posterity, not maintained | ~55 lines |
 
 ---

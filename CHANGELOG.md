@@ -9,6 +9,21 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.5.0] — 2026-05-21
+
+### Added
+
+- **`flyer-maker` orchestrator skill** — single-image batch generator for event posters / flyers / social event graphics. Takes structured event details (`--title / --date / --location / --cta`) + optional `--photo <path>` reference + optional `--style <library-id>`. Picks a text-friendly + multi-ref-capable model automatically (gpt-image-2 / ideogram-3-quality / nano-banana-pro). Outputs multi-aspect renders (default: portrait 1080×1350 + square 1080×1080 + story 1080×1920; also supports landscape, a4, tabloid). Reuses the carousel style library (24 visual styles) + the runner's batch executor.
+- **`common/runners/cli/flyer.py`** — plan-driven CLI (schema `skills.flyer.plan.v1`). Same shape as carousel/reel: skill assembles the plan with per-aspect prompts incl. composition zones; CLI runs batch + manifest + `--resume`.
+- **`docs/ROADMAP.md`** — enumerates identified gaps (other single-image use cases like cover-maker / avatar-maker / thumbnail-maker / banner-maker; audio gaps like voiceover-maker / subtitle-burner; utility gaps like upscaler / bg-remover / style-transfer). Marks priorities + non-goals.
+
+### Notes
+
+- 24 skills total (was 23). New skill is layer=orchestrator, sibling to `carousel-builder` and `reel-builder`.
+- No breaking changes — additive. Style library / runners unchanged.
+- Composition zones (headline / visual / details) are encoded in the per-aspect prompt template, not in code. To customize a layout, edit the prompt-assembly logic in the skill's SKILL.md pipeline.
+- v1 limitations (documented): no QR codes, no print-ready CMYK / 300DPI output, no auto-translation for bilingual variants (run twice with different `--lang`), single composition mode per aspect (`--composition` flag is reserved but only `top-headline` / `side-headline` for landscape are implemented).
+
 ## [2.4.0] — 2026-05-21
 
 ### Added
