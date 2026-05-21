@@ -103,10 +103,11 @@ Skills compose: wrappers call `writer` internally; linters reference the same ru
 
 The `image-prompt`, `video-prompt`, and `music-prompt` skills can call vendor APIs and save real PNG / MP4 / MP3 assets when API keys are set in env. Without keys, the skills stay prompt-only — the v2.1 behaviour.
 
+`install.sh` auto-creates `~/.claude/skills/.runners-venv` and installs the Python deps (requires Python ≥ 3.10) — **no separate `pip install` step**. Per-skill `scripts/run.py` re-execs through that venv automatically. Override with `SKILLS_SKIP_VENV=1 bash install.sh ...` to skip auto-venv (or if Python is missing).
+
 Setup (one-time):
 
 ```bash
-pip install -r ~/.claude/skills/common/runners/requirements.txt
 cp .env.example ~/.skills.env
 ${EDITOR:-vi} ~/.skills.env                    # fill in keys you have
 set -a; source ~/.skills.env; set +a

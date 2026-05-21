@@ -234,7 +234,80 @@ install_runners() {
   run mkdir -p "$PREFIX/common"
   [ -d "$dst" ] && run rm -rf "$dst"
   run cp -R "$src" "$dst"
-  ok "installed runners → $dst (install deps: pip install -r $dst/requirements.txt)"
+  ok "installed runners → $dst"
+
+  # Auto-create venv + install deps so --execute works without a separate
+  # pip-install step. Failure is non-fatal — skills still ship prompt-only,
+  # user can do it manually later.
+  install_runners_venv "$dst"
+}
+
+install_runners_venv() {
+  local runners_dir="$1"
+  local venv="$PREFIX/.runners-venv"
+
+  # Honour env override: SKILLS_SKIP_VENV=1 skips auto-venv.
+  if [ "${SKILLS_SKIP_VENV:-}" = "1" ]; then
+    note "  · SKILLS_SKIP_VENV=1 — skipping runners venv setup"
+    note "    manual: python3 -m venv $venv && $venv/bin/pip install -r $runners_dir/requirements.txt"
+    return
+  fi
+
+  # Find a usable python3
+  local py=""
+  local candidate
+  for candidate in python3.13 python3.12 python3.11 python3.10 python3 python; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+      py="$candidate"
+      break
+    fi
+  done
+  if [ -z "$py" ]; then
+    warn "  · python3 not found — runners venv skipped. To enable --execute later:"
+    warn "    install python3 + run: python3 -m venv $venv && $venv/bin/pip install -r $runners_dir/requirements.txt"
+    return
+  fi
+
+  # Verify version >= 3.10 (some SDKs need this)
+  local ver_major ver_minor
+  ver_major="$("$py" -c 'import sys; print(sys.version_info.major)' 2>/dev/null || echo 0)"
+  ver_minor="$("$py" -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo 0)"
+  if [ "$ver_major" -lt 3 ] || { [ "$ver_major" -eq 3 ] && [ "$ver_minor" -lt 10 ]; }; then
+    warn "  · $py is $ver_major.$ver_minor; runners need >=3.10. Skipped venv setup."
+    return
+  fi
+
+  if [ -d "$venv" ] && [ "$FORCE_UPDATE" != "true" ]; then
+    note "  · runners venv already present at $venv (use --update to reinstall)"
+    return
+  fi
+
+  if [ "$DRY_RUN" = "true" ]; then
+    note "[dry-run] would create venv at $venv using $py"
+    note "[dry-run] would: $venv/bin/pip install -r $runners_dir/requirements.txt"
+    return
+  fi
+
+  [ -d "$venv" ] && rm -rf "$venv"
+
+  log "  · creating venv (python $ver_major.$ver_minor) at $venv ..."
+  if ! "$py" -m venv "$venv" >/dev/null 2>&1; then
+    warn "  ✗ venv creation failed. The 'python3-venv' package may not be installed."
+    warn "    manual: $py -m pip install --user -r $runners_dir/requirements.txt   (or fix venv first)"
+    return
+  fi
+
+  log "  · upgrading pip ..."
+  "$venv/bin/pip" install --quiet --upgrade pip >/dev/null 2>&1 || true
+
+  log "  · installing runner deps (this takes ~30s; one-time) ..."
+  if ! "$venv/bin/pip" install --quiet -r "$runners_dir/requirements.txt"; then
+    warn "  ✗ pip install failed. --execute will fall back to prompt-only."
+    warn "    manual: $venv/bin/pip install -r $runners_dir/requirements.txt"
+    return
+  fi
+
+  ok "  runner deps installed → $venv (python $ver_major.$ver_minor)"
 }
 
 write_install_marker() {

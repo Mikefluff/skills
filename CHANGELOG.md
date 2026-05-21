@@ -9,6 +9,23 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.2.1] — 2026-05-21
+
+### Changed
+
+- **`install.sh` auto-installs runner deps.** Removes the separate `pip install -r common/runners/requirements.txt` step that v2.2.0 required. The installer now creates a dedicated venv at `$PREFIX/.runners-venv`, upgrades pip, and installs `requests` + `openai` + `google-genai` + `boto3` automatically. Per-skill `scripts/run.py` re-execs through that venv interpreter, so the user gets `--execute` working out of the box.
+- Honours `SKILLS_SKIP_VENV=1` env flag to opt out of the auto-venv (useful for CI / minimal installs).
+- Honours `--update` to refresh the venv from scratch on subsequent runs.
+- Graceful fallback: if python3 is missing, < 3.10, venv module unavailable, or pip install fails, the installer prints a warning + manual instructions instead of failing. Skills still ship; only `--execute` degrades to prompt-only with an actionable error.
+
+### Updated docs
+
+- README "Optional API execution" section drops the manual `pip install` step.
+- `image-prompt/references/execute.md`, `video-prompt/references/execute.md`, `music-prompt/references/execute.md` updated.
+- `docs/walkthroughs/execute-end-to-end.md` updated.
+- `common/runners/README.md` updated.
+- `.env.example` mentions auto-install.
+
 ## [2.2.0] — 2026-05-21
 
 ### Added — optional execution layer for image-prompt / video-prompt / music-prompt
@@ -785,10 +802,11 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v2.2.1...HEAD
 [2.0.0]: https://github.com/Mikefluff/skills/releases/tag/v2.0.0
 [2.1.0]: https://github.com/Mikefluff/skills/releases/tag/v2.1.0
 [2.2.0]: https://github.com/Mikefluff/skills/releases/tag/v2.2.0
+[2.2.1]: https://github.com/Mikefluff/skills/releases/tag/v2.2.1
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0

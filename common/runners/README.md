@@ -4,11 +4,18 @@ Lets the `image-prompt`, `video-prompt`, and `music-prompt` skills go beyond pro
 
 ## Install
 
+`install.sh` creates a dedicated venv at `~/.claude/skills/.runners-venv` and installs deps for you (Python ≥ 3.10 required). No separate step needed.
+
+To install / refresh manually:
+
 ```bash
-pip install -r common/runners/requirements.txt
+python3 -m venv ~/.claude/skills/.runners-venv
+~/.claude/skills/.runners-venv/bin/pip install -r ~/.claude/skills/common/runners/requirements.txt
 ```
 
 The `requests` dep is required for everything; `openai` and `google-genai` are recommended for the most-used vendors; `boto3` is needed only if you opt into S3 upload.
+
+To skip auto-venv during `install.sh`: `SKILLS_SKIP_VENV=1 bash install.sh ...`.
 
 ## Configure
 

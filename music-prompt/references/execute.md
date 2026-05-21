@@ -14,11 +14,7 @@ Music generations are async (~30s-3min). The runner polls vendor APIs and prints
 
 ## Setup
 
-1. Install runner deps:
-
-```
-pip install -r ~/.claude/skills/common/runners/requirements.txt
-```
+1. Runner deps are installed automatically by `install.sh` into `~/.claude/skills/.runners-venv` (Python ≥ 3.10). To skip auto-venv: `SKILLS_SKIP_VENV=1 bash install.sh ...`. Manual reinstall: `~/.claude/skills/.runners-venv/bin/pip install -r ~/.claude/skills/common/runners/requirements.txt`.
 
 2. Export keys for the providers you have:
 

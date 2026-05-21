@@ -13,11 +13,19 @@ Three worked examples that take the prompt the skill produces and run it through
 
 ## Setup (one-time)
 
+`install.sh` already created `~/.claude/skills/.runners-venv` and installed the runner deps for you. Just configure keys:
+
 ```bash
-pip install -r ~/.claude/skills/common/runners/requirements.txt
 cp .env.example ~/.skills.env
 ${EDITOR:-vi} ~/.skills.env       # add the keys you have
 set -a; source ~/.skills.env; set +a
+```
+
+If you used `SKILLS_SKIP_VENV=1` or want to reinstall deps manually:
+
+```bash
+python3 -m venv ~/.claude/skills/.runners-venv
+~/.claude/skills/.runners-venv/bin/pip install -r ~/.claude/skills/common/runners/requirements.txt
 ```
 
 Check what's reachable:
