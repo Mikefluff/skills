@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Mikefluff/skills/main/docs/skills.schema.json",
   "collection": "Mikefluff/skills",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "repo": "https://github.com/Mikefluff/skills",
   "license": "MIT",
   "skills": [
@@ -298,6 +298,64 @@
       ],
       "deps": [
         "writer"
+      ]
+    },
+    {
+      "name": "research-brief",
+      "dir": "research-brief",
+      "layer": "orchestrator",
+      "description": "Produce a structured research brief on any topic — TL;DR, key facts with citations, notable quotes, suggested angles, open questions. 3-15 queries by depth, multi-source (WebSearch + WebFetch + optional Firecrawl/Exa MCP). Output is a markdown file ready for downstream consumption by carousel-builder, reel-builder, viral-text, essay-write, landing-copy.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "research",
+        "generation"
+      ],
+      "deps": []
+    },
+    {
+      "name": "carousel-builder",
+      "dir": "carousel-builder",
+      "layer": "orchestrator",
+      "description": "Turn a topic or research brief into an N-slide Instagram / LinkedIn / TikTok carousel with consistent visual style and ready-to-post captions. Wraps essay-write + viral-text + image-prompt --execute + common style library (24 visual styles). Outputs PNG slides + captions.md + manifest. Modes: --topic / --research; --style auto|<library-id>|--style-ref <image>; --slides 3-12; --platform instagram|linkedin|tiktok; --text-mode embedded|overlay|none; --execute; --resume.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
+      "deps": [
+        "image-prompt",
+        "viral-text",
+        "essay-write"
+      ]
+    },
+    {
+      "name": "reel-builder",
+      "dir": "reel-builder",
+      "layer": "orchestrator",
+      "description": "Turn a topic / research brief / script into a vertical reel: 1-4 video shots + matched background music + ffmpeg-stitched final.mp4 with optional burned-in captions. Wraps viral-text + video-prompt --execute + music-prompt --execute + common video/music style library + ffmpeg. Outputs final.mp4 + shots/ + music.mp3 + script.md + manifest. Modes: --topic / --research / --script-file; --shots 1-5; --style auto|<library-id>; --music-style auto|<library-id>; --captions on|off; --execute; --resume.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "audio",
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
+      "deps": [
+        "video-prompt",
+        "music-prompt",
+        "viral-text"
       ]
     }
   ]

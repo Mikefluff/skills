@@ -7,7 +7,7 @@
 
 A small, opinionated collection of [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) skills for editing prose without producing text that reads like LLM output. Russian-first, English-capable.
 
-**Eighteen skills**, one base linter + thirteen wrappers + three linters + one meta-skill. Plain markdown, MIT-licensed, no required external deps.
+**Twenty-one skills**, one base linter + thirteen wrappers + three linters + three orchestrators + one meta-skill. Plain markdown, MIT-licensed, no required external deps (ffmpeg optional for reel stitching).
 
 ---
 
@@ -38,7 +38,7 @@ For all install options + troubleshooting, see [`docs/INSTALL.md`](docs/INSTALL.
 
 **→ [User Guide](docs/USER-GUIDE.md)** — pick your scenario, walk through it end-to-end.
 
-**→ [Skill Index](docs/SKILL-INDEX.md)** — all 18 skills indexed by layer, domain, and language.
+**→ [Skill Index](docs/SKILL-INDEX.md)** — all 21 skills indexed by layer, domain, and language.
 
 **→ [Composing recipes](docs/COMPOSING.md)** — 14 named workflows showing how to chain skills.
 
@@ -63,6 +63,9 @@ Quick scenario picker:
 | Write release notes / changelogs | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-release-notes) |
 | Write an RFC / ADR / design doc | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-rfc--design-doc) |
 | Write marketing copy (landing / SEO / ads) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-marketing-copy) |
+| Research a topic with cited sources (WebSearch + WebFetch + optional Firecrawl / Exa MCP) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
+| Build an Instagram / LinkedIn / TikTok carousel end-to-end (24 visual styles + batch execute) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
+| Build a vertical reel end-to-end (12 directorial styles + 12 music genres + ffmpeg stitch) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
 
 If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESHOOTING.md).
 
@@ -92,6 +95,9 @@ If something looks wrong: [FAQ](docs/FAQ.md) · [Troubleshooting](docs/TROUBLESH
 | [`release-notes`](release-notes/) | wrapper | en/ru | Write user-facing release notes + changelogs. Keep-a-Changelog format, sections Added/Changed/Fixed/Deprecated/Removed/Security. Per-audience tone (user/dev/ops). Anti-marketing-fluff bans. Wraps writer. |
 | [`rfc-writer`](rfc-writer/) | wrapper | en/ru | Write engineer-facing design docs — RFCs, ADRs, Tech Specs, Design Docs. Structure: context/problem/proposal/alternatives/consequences/decision. RFC 2119 (MUST/SHOULD/MAY). Review checklist for spotting weak alternatives sections. |
 | [`landing-copy`](landing-copy/) | wrapper | en/ru | Write marketing copy — landing page sections (hero/features/pricing/FAQ), SEO meta (title+description+OG+Twitter), ad copy (Google/Facebook/LinkedIn/X). Julian Shapiro hero formula, char limits per platform. Wraps writer. |
+| [`research-brief`](research-brief/) | orchestrator | en/ru | Produce a structured research brief on any topic — TL;DR, key facts with citations, notable quotes, suggested angles, open questions. 3-15 queries by depth, multi-source (WebSearch + WebFetch + optional Firecrawl/Exa MCP). Output is a markdown file ready for downstream consumption by carousel-builder, reel-builder, viral-text, essay-write, landing-copy. |
+| [`carousel-builder`](carousel-builder/) | orchestrator | en/ru | Turn a topic or research brief into an N-slide Instagram / LinkedIn / TikTok carousel with consistent visual style and ready-to-post captions. Wraps essay-write + viral-text + image-prompt --execute + common style library (24 visual styles). Outputs PNG slides + captions.md + manifest. Modes: --topic / --research; --style auto\|<library-id>\|--style-ref <image>; --slides 3-12; --platform instagram\|linkedin\|tiktok; --text-mode embedded\|overlay\|none; --execute; --resume. |
+| [`reel-builder`](reel-builder/) | orchestrator | en/ru | Turn a topic / research brief / script into a vertical reel: 1-4 video shots + matched background music + ffmpeg-stitched final.mp4 with optional burned-in captions. Wraps viral-text + video-prompt --execute + music-prompt --execute + common video/music style library + ffmpeg. Outputs final.mp4 + shots/ + music.mp3 + script.md + manifest. Modes: --topic / --research / --script-file; --shots 1-5; --style auto\|<library-id>; --music-style auto\|<library-id>; --captions on\|off; --execute; --resume. |
 
 <!-- END skills-table -->
 

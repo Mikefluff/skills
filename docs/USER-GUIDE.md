@@ -276,6 +276,81 @@ Julian Shapiro hero formula, char limits per platform, i18n expansion factor, ba
 
 ---
 
+### "I want to research a topic with cited sources" {#i-want-to-research-a-topic}
+
+`/research-brief <topic>` produces a structured markdown brief — TL;DR, key facts with citations, notable quotes, suggested narrative angles, open questions, out-of-reach flags. Multi-source via WebSearch + WebFetch (always) + optional Firecrawl / Exa MCP (probed at runtime).
+
+```
+/research-brief "AI productivity tools for solo founders in 2026"
+/research-brief "<topic>" --depth quick|standard|deep
+/research-brief "<topic>" --format brief|outline|article-ready
+/research-brief "<topic>" --for carousel|reel|post|essay|landing   # bias angles
+/research-brief "<topic>" --lang en|ru|mixed
+/research-brief "<topic>" --sources websearch,webfetch,firecrawl,exa
+```
+
+Output: `./generated/research/<topic-slug>-<YYYYMMDD>.md` with the brief + cited sources. The path is printed on the last line of stdout so downstream skills can ingest via `--research <path>`.
+
+`research-brief` is the upstream feeder for `carousel-builder` and `reel-builder`. Chain: research → carousel + reel from the SAME brief = consistent angle across formats.
+
+For full walkthrough: [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
+
+---
+
+### "I want to build a carousel" {#i-want-to-build-a-carousel}
+
+`/carousel-builder --topic "<text>" | --research <path>` orchestrates: split content into N slides → resolve visual style from the bundled 24-style library → pick image provider → generate slides in parallel → write captions + manifest.
+
+```
+/carousel-builder --topic "5 mistakes new copywriters make" --platform instagram --slides 6 --style swiss-grid-poster --text-mode embedded --execute
+/carousel-builder --research ./generated/research/<brief>.md --platform linkedin --slides 8 --style auto --execute
+/carousel-builder --topic "Bauhaus fundamentals" --platform tiktok --slides 10 --style bauhaus-primary --style-ref ./my-mood-board.jpg --model nano-banana-pro --execute
+/carousel-builder --topic "<text>" --prompts-only       # dry run: print prompts, don't generate
+/carousel-builder --resume                              # re-run failed slides from manifest
+```
+
+Style library: 24 visual presets (kinfolk-minimal, swiss-grid-poster, art-deco-gold, neon-cyberpunk, gradient-mesh-modern, dark-academia, …). Browse `common/style-library/carousel/_index.md`. Add custom styles at `~/.claude/style-library/carousel/<id>.md`.
+
+Outputs `./generated/carousel/<slug>/`:
+- `slide-1.png ... slide-N.png` (sized per platform)
+- `captions.md` (paste-ready post copy + per-slide alt-text)
+- `manifest.json` (for --resume)
+- `style-used.md` + `prompts.md` (reproducibility + fallback)
+
+Default cost: $0.32-0.80 per 8-slide carousel depending on model. Budget cap: `SKILLS_CAROUSEL_BUDGET=1.50` (override).
+
+For details: [carousel-builder/SKILL.md](../carousel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
+
+---
+
+### "I want to build a reel" {#i-want-to-build-a-reel}
+
+`/reel-builder --topic "<text>" | --research <path>` orchestrates the most-expensive workflow: script → 1-4 video shots + matched music + ffmpeg-stitched MP4 with optional burned-in captions.
+
+```
+/reel-builder --topic "fastest way to write a newsletter" --shots 3 --shot-duration 5 --style chazelle-musical-glow --music-style cinematic-orchestral --captions on --execute
+/reel-builder --research ./generated/research/<brief>.md --shots 4 --aspect vertical --execute
+/reel-builder --topic "<text>" --prompts-only           # dry run: print script + per-shot prompts
+/reel-builder --resume                                  # re-run failed components from manifest
+```
+
+Style library: 12 directorial styles (wes-anderson-symmetric, fincher-cold-lowkey, nolan-imax-handheld, refn-neon-static, …) + 12 music genres (cinematic-orchestral, ambient-drone, synthwave, lofi-hiphop-chill, …). The directorial style FILE stores the director's name; the prompt sent to the model does NOT.
+
+Outputs `./generated/reel/<slug>/`:
+- `final.mp4` (9:16 vertical, 15s default)
+- `shots/shot-{1..N}.mp4` (individual shots — kept for re-use)
+- `music.mp3`
+- `script.md` (screenplay + per-shot prompts + music prompt — paste fallback)
+- `manifest.json`, `style-used.md`
+
+Cost: $2-6 per 15s reel depending on video provider. Default budget cap: `SKILLS_REEL_BUDGET=4.00` — exceeding it triggers a confirmation prompt.
+
+ffmpeg required for final stitch. install.sh offers to `brew install ffmpeg` / `apt-get install -y ffmpeg` automatically. Without ffmpeg, shots + music save separately and the skill prints the manual stitch command.
+
+For details: [reel-builder/SKILL.md](../reel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
+
+---
+
 ### "I want auto-lint on every commit"
 
 There's no built-in git-hook installer (we don't want to silently touch your `.git/` directory). The [pre-commit hook walkthrough](walkthroughs/pre-commit-hook.md) gives you a ready-to-paste `.git/hooks/pre-commit` script with two variants:

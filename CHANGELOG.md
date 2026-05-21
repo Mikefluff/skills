@@ -9,6 +9,43 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-05-21
+
+### Added
+
+- **`research-brief` skill** — produces a structured research brief on any topic: TL;DR, key facts with citations, notable quotes, suggested narrative angles, open questions, out-of-reach flags. Supports `--depth quick|standard|deep` (3 / 7 / 15 queries), multi-source (WebSearch + WebFetch + optional Firecrawl / Exa MCP), per-format output (`--format brief|outline|article-ready`), per-language output (`--lang en|ru|mixed`), and angle bias (`--for carousel|reel|post|essay|landing`). Saves to `./generated/research/<topic-slug>-<date>.md` for downstream `--research <path>` ingestion.
+
+- **`carousel-builder` skill** — orchestrator that turns a topic or research brief into an N-slide carousel (3-12 slides; default 8) with consistent visual style. Picks a style from the bundled library (24 carousel styles) OR matches a user-provided reference image. Wraps `essay-write` / `viral-text` (content) + `image-prompt --execute` (slides) + new `common/runners/batch.py` (parallel execution). Outputs `./generated/carousel/<slug>/slide-{1..N}.png` + `captions.md` + `manifest.json` + `style-used.md` + `prompts.md`. Supports `--platform instagram|linkedin|tiktok`, `--text-mode embedded|overlay|none`, `--style auto|<library-id>|--style-ref <image>`, `--resume`, `--prompts-only` (safe dry-run).
+
+- **`reel-builder` skill** — orchestrator that produces a vertical reel (1-4 shots × 5-8s each + matched music + optional burned-in captions). Wraps `viral-text` (script) + `video-prompt --execute` (shots) + `music-prompt --execute` (track) + `common/runners/ffmpeg.py` (concat + audio mix + caption burn). Picks from 12 directorial video styles + 12 music genre presets. Outputs `./generated/reel/<slug>/final.mp4` + `shots/` + `music.mp3` + `script.md` + `manifest.json`. Supports `--shots 1-5`, `--shot-duration <s>`, `--aspect vertical|square|horizontal`, `--captions on|off`, `--style auto|<id>`, `--music-style auto|<id>`, video provider auto-pick across Veo 3.1 / Sora 2 / Kling 3.0 / Runway Gen-4, music provider auto-pick across Suno v5.5 / Lyria 3 Pro / ElevenLabs Music / Stable Audio 2.5.
+
+- **Style library at `common/style-library/`** — 50 bundled styles + user-override path at `~/.claude/style-library/<modality>/<id>.md`. Three subdirs:
+  - `carousel/` — 24 visual styles (kinfolk-minimal, swiss-grid-poster, art-deco-gold, memphis-90s, neon-cyberpunk, brutalist-poster, gradient-mesh-modern, dark-academia, y2k-chrome, holographic-iridescent, polaroid-faded, risograph-2color, voxel-3d-cube, bauhaus-primary, sketch-bw-line, sticker-mascot, flat-vector-illustration, photo-editorial-bw, paper-cutout-craft, retro-magazine-70s, isometric-3d-soft, watercolor-soft, hand-drawn-pastel, low-poly-3d).
+  - `video/` — 12 directorial styles (wes-anderson-symmetric, fincher-cold-lowkey, wong-kar-wai-neon-dream, nolan-imax-handheld, chazelle-musical-glow, refn-neon-static, tarkovsky-slow-meditative, villeneuve-monumental, soderbergh-natural-light, edgar-wright-snap-cuts, david-lynch-dream-static, inarritu-long-take-handheld). Director names appear ONLY in display/metadata; never reach the model.
+  - `music/` — 12 genre recipes ported from `music-prompt/references/genre-recipes.md` (afrobeats, ambient-drone, cinematic-orchestral, country-modern, drill-uk, gospel-modern, hardcore-punk, hyperpop, jazz-fusion, k-pop, lofi-hiphop-chill, synthwave). Includes paste-ready Suno Style box + meta-tag stacks + Udio prompt + Lyria field-driven block + ElevenLabs prompt per genre.
+
+  Each style file has a `_index.md` (table view) and a per-modality `README.md`.
+
+- **`common/runners/styles.py`** — style loader (frontmatter parser, anchor extraction, user-override priority, find-by-tags).
+
+- **`common/runners/batch.py`** — batch executor with parallelism (ThreadPoolExecutor), manifest.json after every state change, `--resume` semantics, single aggregate cost confirm before first call.
+
+- **`common/runners/ffmpeg.py`** — pure-subprocess wrappers for concat / audio-mix / caption-burn-in. `detect_ffmpeg()` probe. Graceful fallback when ffmpeg is absent.
+
+- **`common/runners/cost.py` extended** — `confirm_batch()` and `batch_budget()`. Per-modality defaults: `carousel: $1.50`, `reel: $4.00`, `research: $0.00`. Env overrides: `SKILLS_CAROUSEL_BUDGET`, `SKILLS_REEL_BUDGET`, `SKILLS_RESEARCH_BUDGET`.
+
+- **`common/runners/cli/carousel.py`** + **`common/runners/cli/reel.py`** — new CLI entries for plan-driven batch execution. Per-skill `scripts/run.py` thin entries follow the same auto-venv re-exec pattern as image/video/music.
+
+- **`install.sh` enhancements** — `install_style_library()` copies the bundled library to the install prefix. `install_ffmpeg()` detects ffmpeg, offers to `brew install ffmpeg` (Mac) / `apt-get install -y ffmpeg` (Linux), with `SKILLS_SKIP_FFMPEG=1` opt-out.
+
+### Notes
+
+- The 3 new skills are LAYER `orchestrator` — they coordinate other skills + the execute runner. `research-brief` is the upstream feeder for both `carousel-builder` and `reel-builder` via `--research <path>`.
+- `reel-builder` is the most expensive skill in the collection (default ~$2-5 per reel). Always run `--prompts-only` first to inspect script + per-shot prompts.
+- ffmpeg dependency is OPTIONAL — without it, `reel-builder` still generates shots + music separately and prints the manual stitch command.
+- User-overridable style library: drop a `<id>.md` file under `~/.claude/style-library/<modality>/` to override or extend the bundled library.
+- No breaking changes — additive release. `image-prompt`, `video-prompt`, `music-prompt` unchanged.
+
 ## [2.2.1] — 2026-05-21
 
 ### Changed

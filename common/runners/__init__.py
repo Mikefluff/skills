@@ -4,4 +4,4 @@ Provider adapters call vendor APIs only when the corresponding env vars are set.
 If keys are unset, skills fall back to prompt-only output.
 """
 
-__version__ = "2.2.0"
+__version__ = "2.3.0"

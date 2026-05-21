@@ -40,14 +40,15 @@ LAYER_HEADINGS = {
     "base": "Base",
     "wrapper": "Wrappers",
     "linter": "Linters (read-only)",
+    "orchestrator": "Orchestrators",
     "meta": "Meta",
 }
 
 DOMAIN_TAGS = {
     "fiction", "non-fiction", "marketing", "social", "product",
-    "tech-docs", "ux-copy", "visual", "audio", "outreach",
+    "tech-docs", "ux-copy", "visual", "audio", "outreach", "research",
 }
-FUNCTION_TAGS = {"editing", "generation", "audit", "translation", "ops"}
+FUNCTION_TAGS = {"editing", "generation", "audit", "translation", "ops", "orchestration"}
 ALLOWED_TAGS = DOMAIN_TAGS | FUNCTION_TAGS
 
 

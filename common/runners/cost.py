@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from decimal import Decimal
 from typing import Any
@@ -103,3 +104,66 @@ def format_cost(estimated_usd: Decimal | None) -> str:
     if estimated_usd is None:
         return "unknown"
     return f"${estimated_usd:.4f}"
+
+
+# ---------------------------------------------------------------------------
+# Batch-aware confirmation (carousel-builder, reel-builder)
+# ---------------------------------------------------------------------------
+
+_DEFAULT_BUDGETS: dict[str, Decimal] = {
+    "carousel": Decimal("1.50"),    # 8 slides × ~$0.18 typical
+    "reel": Decimal("4.00"),         # 3 shots × ~$1.20 + music ~$0.30
+    "research": Decimal("0.00"),     # WebSearch/WebFetch — usually free
+}
+
+_BUDGET_ENV_OVERRIDE = {
+    "carousel": "SKILLS_CAROUSEL_BUDGET",
+    "reel": "SKILLS_REEL_BUDGET",
+    "research": "SKILLS_RESEARCH_BUDGET",
+}
+
+
+def batch_budget(modality: str) -> Decimal | None:
+    """Read a per-modality budget cap from env override or default table."""
+    env_key = _BUDGET_ENV_OVERRIDE.get(modality)
+    if env_key:
+        raw = os.environ.get(env_key)
+        if raw:
+            try:
+                return Decimal(raw)
+            except Exception:  # noqa: BLE001
+                pass
+    return _DEFAULT_BUDGETS.get(modality)
+
+
+def confirm_batch(
+    estimated_total: Decimal | None,
+    *,
+    n_items: int,
+    modality: str,
+    yes: bool = False,
+) -> None:
+    """Confirm the AGGREGATE cost for a batch of N items.
+
+    Threshold: max(per-call CONFIRMATION_THRESHOLD, batch budget).
+    Asks once before the batch starts — not per item.
+    """
+    if estimated_total is None or yes:
+        return
+    if estimated_total < CONFIRMATION_THRESHOLD:
+        return
+    budget = batch_budget(modality)
+    over_budget = budget is not None and estimated_total > budget
+    sys.stderr.write(
+        f"\nBatch: {n_items} {modality} items, total estimated cost ${estimated_total:.4f} USD"
+    )
+    if over_budget and budget is not None:
+        sys.stderr.write(
+            f"\n  WARNING: exceeds default {modality} budget (${budget:.2f}). "
+            f"Override via {_BUDGET_ENV_OVERRIDE[modality]}=X."
+        )
+    sys.stderr.write(". Proceed? [y/N] ")
+    sys.stderr.flush()
+    answer = sys.stdin.readline().strip().lower()
+    if answer not in {"y", "yes"}:
+        raise CostConfirmationDeclined(float(estimated_total))

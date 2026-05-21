@@ -242,6 +242,77 @@ install_runners() {
   install_runners_venv "$dst"
 }
 
+install_style_library() {
+  # Bundled visual + sonic style presets used by carousel-builder, reel-builder,
+  # and music-prompt. User overrides live in ~/.claude/style-library/.
+  local src="$SRC_DIR/common/style-library"
+  local dst="$PREFIX/common/style-library"
+  if [ ! -d "$src" ]; then
+    note "no common/style-library/ in source — skipping"
+    return
+  fi
+  if [ -d "$dst" ] && [ "$FORCE_UPDATE" != "true" ]; then
+    note "common/style-library/ already present (use --update to overwrite)"
+    return
+  fi
+  run mkdir -p "$PREFIX/common"
+  [ -d "$dst" ] && run rm -rf "$dst"
+  run cp -R "$src" "$dst"
+  ok "installed style library → $dst"
+}
+
+install_ffmpeg() {
+  # ffmpeg is OPTIONAL — only used by reel-builder for shot concat + audio mix.
+  # If absent, reel-builder generates shots + music separately and prints the
+  # ffmpeg command for manual stitching.
+  if [ "${SKILLS_SKIP_FFMPEG:-}" = "1" ]; then
+    note "  · SKILLS_SKIP_FFMPEG=1 — skipping ffmpeg detection/install"
+    return
+  fi
+  if have_cmd ffmpeg; then
+    local ver
+    ver="$(ffmpeg -version 2>/dev/null | head -n1 || true)"
+    ok "  ffmpeg present: ${ver:-installed}"
+    return
+  fi
+  note "  · ffmpeg not found (only needed for reel-builder stitch)"
+  case "$(uname -s)" in
+    Darwin)
+      if have_cmd brew; then
+        if confirm "  install ffmpeg via brew now? (~30s, ~30MB)"; then
+          if run brew install ffmpeg; then
+            ok "  ffmpeg installed via brew"
+          else
+            warn "  brew install ffmpeg failed — reel-builder stitch will be disabled"
+          fi
+        else
+          note "  skipped — reel-builder will print manual stitch command"
+        fi
+      else
+        warn "  brew not found — install brew first, then 'brew install ffmpeg'"
+      fi
+      ;;
+    Linux)
+      if have_cmd apt-get; then
+        if confirm "  install ffmpeg via apt-get now? (requires sudo)"; then
+          if run sudo apt-get install -y ffmpeg; then
+            ok "  ffmpeg installed via apt-get"
+          else
+            warn "  apt-get install ffmpeg failed — reel-builder stitch will be disabled"
+          fi
+        else
+          note "  skipped — reel-builder will print manual stitch command"
+        fi
+      else
+        warn "  apt-get not found — install ffmpeg via your package manager"
+      fi
+      ;;
+    *)
+      note "  unrecognized OS; install ffmpeg manually if you plan to use reel-builder"
+      ;;
+  esac
+}
+
 install_runners_venv() {
   local runners_dir="$1"
   local venv="$PREFIX/.runners-venv"
@@ -472,7 +543,11 @@ cmd_uninstall() {
   done
   if [ -d "$PREFIX/common" ]; then
     run rm -rf "$PREFIX/common"
-    ok "removed common/ (shared references)"
+    ok "removed common/ (shared references + runners + style library)"
+  fi
+  if [ -d "$PREFIX/.runners-venv" ]; then
+    run rm -rf "$PREFIX/.runners-venv"
+    ok "removed .runners-venv"
   fi
   run rm -f "$PREFIX/.skills-collection.json"
   ok "uninstalled"
@@ -540,6 +615,8 @@ main() {
 
       install_shared_refs
       install_runners
+      install_style_library
+      install_ffmpeg
 
       if [ "$FORCE_UPDATE" = "true" ] && [ "$PRUNE" = "true" ]; then
         prune_removed
