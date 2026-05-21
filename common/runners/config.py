@@ -76,6 +76,7 @@ def load_all_providers() -> None:
         kling,
         openai_audio,
         openai_image,
+        openai_transcribe,
         openai_video,
         replicate,
         runway,

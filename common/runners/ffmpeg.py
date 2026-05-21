@@ -101,6 +101,90 @@ def mix_audio_over_video(
     return cmd
 
 
+def mix_audio_with_modes(
+    video: Path,
+    audio: Path,
+    output: Path,
+    *,
+    mode: str = "replace",
+    audio_volume: float = 0.8,
+    fade_in: float = 0.0,
+    fade_out: float = 0.5,
+    duck_amount: float = 0.6,
+    ffmpeg_bin: str = "ffmpeg",
+) -> list[str]:
+    """Mix a music track onto a video with one of three modes:
+
+    - replace: drop original audio, use music as the only audio track
+    - overlay: mix music ON TOP of original audio (both audible)
+    - duck: like overlay but music is sidechain-ducked when original audio is present
+            (auto-lowers music volume when speech is detected)
+
+    fade_in / fade_out: fade duration in seconds.
+    duck_amount: how much to attenuate music when ducking (0.0 = full mute, 1.0 = no ducking).
+    """
+    if mode not in ("replace", "overlay", "duck"):
+        raise ValueError(f"mode must be replace/overlay/duck, got {mode}")
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    fade_chain_parts = [f"volume={audio_volume}"]
+    if fade_in > 0:
+        fade_chain_parts.append(f"afade=t=in:st=0:d={fade_in}")
+    if fade_out > 0:
+        fade_chain_parts.append(f"afade=t=out:st=0:d={fade_out}")
+    music_filter = ",".join(fade_chain_parts)
+
+    if mode == "replace":
+        cmd = [
+            ffmpeg_bin, "-y", "-loglevel", "error",
+            "-i", str(video),
+            "-i", str(audio),
+            "-map", "0:v",
+            "-map", "1:a",
+            "-c:v", "copy",
+            "-c:a", "aac", "-b:a", "192k",
+            "-af", music_filter,
+            "-shortest",
+            str(output),
+        ]
+    elif mode == "overlay":
+        cmd = [
+            ffmpeg_bin, "-y", "-loglevel", "error",
+            "-i", str(video),
+            "-i", str(audio),
+            "-filter_complex",
+            f"[1:a]{music_filter}[music];[0:a][music]amix=inputs=2:duration=first:dropout_transition=2[mix]",
+            "-map", "0:v",
+            "-map", "[mix]",
+            "-c:v", "copy",
+            "-c:a", "aac", "-b:a", "192k",
+            "-shortest",
+            str(output),
+        ]
+    else:  # duck
+        # Sidechain compressor: original audio (0:a) ducks music (1:a).
+        cmd = [
+            ffmpeg_bin, "-y", "-loglevel", "error",
+            "-i", str(video),
+            "-i", str(audio),
+            "-filter_complex",
+            (
+                f"[1:a]{music_filter}[music];"
+                f"[music][0:a]sidechaincompress=threshold=0.05:ratio=8:attack=20:release=300:makeup=1[ducked];"
+                f"[0:a][ducked]amix=inputs=2:duration=first:weights={1.0} {duck_amount}[mix]"
+            ),
+            "-map", "0:v",
+            "-map", "[mix]",
+            "-c:v", "copy",
+            "-c:a", "aac", "-b:a", "192k",
+            "-shortest",
+            str(output),
+        ]
+
+    subprocess.run(cmd, check=True, capture_output=True, text=True)
+    return cmd
+
+
 def burn_captions(
     video: Path,
     captions: list[tuple[float, float, str]],

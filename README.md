@@ -6,7 +6,7 @@
 
 AI content toolkit for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) — prose editing without LLM-shaped output, AI media generation (image / video / music) with optional in-line execution, and end-to-end content orchestrators (research → carousel / reel). Russian-first, English-capable.
 
-**Thirty-six skills** across five layers: one base + eighteen wrappers + three linters + eleven orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning + GIF conversion).
+**Thirty-nine skills** across five layers: one base + twenty-one wrappers + three linters + eleven orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning + GIF conversion + audio mixing).
 
 ---
 
@@ -138,6 +138,9 @@ The bundled style library used by the orchestrators: [carousel](common/style-lib
 | [`banner-maker`](banner-maker/) | orchestrator | en/ru | Banner-ad / display-creative generator with standard-size presets — Google Display (leaderboard, medium-rectangle, mobile-banner, wide-skyscraper), OG image, LinkedIn ad, Facebook ad, Twitter card. Headline + CTA + brand composition. Default model ideogram-3-quality for clean embedded text. Outputs: ./generated/banner/<slug>/<preset>.png + manifest.json. |
 | [`meme-card-maker`](meme-card-maker/) | orchestrator | en/ru | Meme-format graphic generator — top text + bottom text + optional centerpiece image. Wraps image-prompt --execute with Impact-style typography (bold white text + thick black stroke). Supports 5 template hints (drake / distracted-boyfriend / expanding-brain / two-buttons / change-my-mind) + custom mode. Optional --base-photo for user-image centerpiece. Default model gpt-image-2. Outputs: ./generated/meme/<slug>/meme-v<N>.png + manifest.json. |
 | [`upscaler`](upscaler/) | wrapper | en/ru | Image upscaling utility — single image in, upscaled image out (2× / 4× / 8×). Wraps Replicate-hosted upscalers (Real-ESRGAN default; alternatives: GFPGAN for faces, SwinIR, clarity-upscaler). Optional --face-enhance for portrait restoration. ~$0.005-0.02 per image. |
+| [`audio-mix-maker`](audio-mix-maker/) | wrapper | en/ru | Mix a music / audio track onto an existing video via ffmpeg. Three modes: replace (drop original audio), overlay (mix both audible), duck (sidechain compressor lowers music when speech detected). Volume + fade controls. No API calls — pure ffmpeg. |
+| [`style-transfer`](style-transfer/) | wrapper | en/ru | Apply an artistic style to an existing image. Default provider Flux Kontext. 12 style presets (watercolor / oil-painting / sketch / line-art / ink-wash / cyberpunk / studio-ghibli / pixar-3d / manga / art-deco / low-poly / vaporwave) + custom mode. ~$0.05 per image. |
+| [`transcribe-maker`](transcribe-maker/) | wrapper | en/ru | Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts ISO-639-1 hint. ~$0.006/min. Closes the loop with subtitle-burner — produce captions from video, then burn them in. 25 MB file limit. |
 
 <!-- END skills-table -->
 

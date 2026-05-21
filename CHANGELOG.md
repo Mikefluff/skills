@@ -9,6 +9,39 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.10.0] — 2026-05-21
+
+### Added
+
+- **`audio-mix-maker` wrapper skill** — mix a music / audio track onto an existing video via ffmpeg. Three modes: `replace` (drop original audio), `overlay` (mix both audible), `duck` (sidechain compressor lowers music when speech detected). Volume + fade-in + fade-out + duck-amount controls. No API calls — pure ffmpeg. Closes the "I have video + music separately, just need a final" workflow gap.
+
+- **`style-transfer` wrapper skill** — apply an artistic style to an existing image. Default provider Flux Kontext (best for natural-language style transfer). 12 curated style presets: `watercolor`, `oil-painting`, `sketch`, `line-art`, `ink-wash`, `cyberpunk`, `studio-ghibli`, `pixar-3d`, `manga`, `art-deco`, `low-poly`, `vaporwave`, plus `custom` mode with `--prompt-mod`. Single image in, stylized output. ~$0.05 per image.
+
+- **`transcribe-maker` wrapper skill** — speech-to-text via OpenAI Whisper. Audio / video → SRT, WebVTT, JSON, plain text, or verbose_json (word-level timestamps). Auto-detects language or accepts `--lang` hint (ISO-639-1). ~$0.006/min. Closes the loop with `subtitle-burner`: transcribe → burn captions. Whisper API limit 25 MB per call (see references/preprocessing.md for splitting).
+
+- **`common/runners/ffmpeg.py:mix_audio_with_modes()`** — extended ffmpeg helper covering replace / overlay / duck modes. Duck mode uses `sidechaincompress` filter (the original audio drives compression of the music — speech detected → music dims).
+
+- **`common/runners/providers/openai_transcribe.py`** — new Whisper provider. Multipart upload via `requests`, supports all Whisper response formats, enforces 25 MB API limit at the client side.
+
+- **`common/runners/cli/{mix,stylize,transcribe}.py`** — three new CLI modules. `mix` is argparse-driven (pure ffmpeg). `stylize` wraps Flux Kontext / Nano Banana Pro with style preset → prompt mapping. `transcribe` wraps the Whisper provider with format selection.
+
+### Changed
+
+- **`skills.json`** — 39 entries (was 36). Three new skills registered.
+- **`docs/USER-GUIDE.md`** — added "I want to mix music onto a video", "I want to style-transfer an image", "I want to transcribe audio / video to subtitles" sections.
+- **`docs/COMPOSING.md`** — added 3 new orchestrator recipes: auto-caption a tutorial (transcribe + burn), voiceover-driven explainer with music bed, style-transfer brand identity variants.
+- **`docs/ROADMAP.md`** — marks `audio-mix-maker`, `style-transfer`, `transcribe-maker` as SHIPPED. ACTIVE ROADMAP IS NOW EMPTY — only deferred-heavy items remain (`deck-maker`, `print-ready-export`).
+- **`common/runners/cost.py`** — added `whisper-1` to price table ($0.006/min).
+- **`common/runners/config.py`** — registers the new `openai_transcribe` provider on import.
+- **`VERSION` + `skills.json:version`** → `2.10.0`.
+
+### Notes
+
+- 39 skills total (was 36). All three new skills are additive — no breaking changes.
+- ACTIVE ROADMAP CLOSED. Single-image siblings of `flyer-maker` complete (cover / thumbnail / avatar / logo / quote-card / banner / meme). Image utilities complete (bg-remover / upscaler / style-transfer). Audio utilities complete (voiceover-maker / subtitle-burner / audio-mix-maker / transcribe-maker). Animation utility shipped (gif-maker).
+- The 4 deferred items remain: `deck-maker` (3-5 day effort), `print-ready-export` (DTP territory), `event-discovery` (TOS issues), `whisper-transcription` (NOW SHIPPED as `transcribe-maker`).
+- Skill counts by layer: 1 base + 21 wrappers + 3 linters + 11 orchestrators + 3 meta.
+
 ## [2.9.0] — 2026-05-21
 
 ### Added

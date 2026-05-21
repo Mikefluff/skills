@@ -15,6 +15,7 @@ PRICE_TABLE: dict[str, dict[str, Decimal]] = {
     # OpenAI
     "gpt-image-2": {"low": Decimal("0.02"), "medium": Decimal("0.05"), "high": Decimal("0.10")},
     "gpt-4o-mini-tts": {"per_minute": Decimal("0.015")},
+    "whisper-1": {"per_minute": Decimal("0.006")},
     "sora-2": {"per_second": Decimal("0.10")},
     "sora-2-pro": {"per_second": Decimal("0.30")},
     # Google

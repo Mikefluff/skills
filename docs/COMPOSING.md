@@ -293,6 +293,37 @@ cover-maker --title "<book>" --creator "<author>" --medium book --photo ./genera
 
 Old family photo → upscale + face-restore → use as book cover reference.
 
+#### Auto-caption a tutorial (transcribe + burn)
+
+```
+transcribe-maker --input ./tutorial.mp4 --format srt --lang en --output ./captions.srt --execute --yes
+subtitle-burner burn ./tutorial.mp4 --subtitle ./captions.srt --style modern --output ./tutorial-captioned.mp4
+```
+
+End-to-end auto-captioning. Whisper transcribes; ffmpeg burns. Cost: ~$0.006/min Whisper + $0 ffmpeg.
+
+#### Voiceover-driven explainer with music bed (TTS + mix)
+
+```
+voiceover-maker --prompt-file ./script.txt --model eleven-tts --voice-id <stable-id> --execute --yes
+music-prompt --execute --model suno-v5-5 --prompt "ambient instrumental, gentle progression, ~2 min" --instrumental --execute --yes
+# Manually replace silent video with voiceover (replace mode), then mix music under voice (duck mode):
+audio-mix-maker --video ./screen-recording.mp4 --audio ./generated/audio/voiceover.mp3 --mode replace --output ./step1.mp4
+audio-mix-maker --video ./step1.mp4 --audio ./generated/music/bed.mp3 --mode duck --volume 0.4 --duck-amount 0.5 --output ./final.mp4
+```
+
+Three skills, one explainer video with TTS narration + ducked music bed. Cost: ~$0.30-1.00 (depending on TTS provider + music length).
+
+#### Style-transfer brand identity (logo → stylized variants)
+
+```
+logo-maker --brand "Lunar Vault" --style wordmark --variants 4 --execute
+style-transfer --image ./generated/logo/lunar-vault/logo-v1.png --style watercolor --execute      # watercolor brand variant
+style-transfer --image ./generated/logo/lunar-vault/logo-v1.png --style line-art --execute        # line-art brand variant
+```
+
+Generate a logo + produce stylized variations for different brand touchpoints (watercolor for editorial, line-art for icons, etc.).
+
 ### Meta recipes
 
 #### Add or rotate API keys

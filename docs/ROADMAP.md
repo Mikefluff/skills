@@ -4,12 +4,13 @@ Identified gaps where the collection is functional but UX-painful. Tracked here 
 
 Not all of these will be built. They're sorted by user-likely-to-want vs. effort, with notes on what could ship as a skill vs. what's better left as a one-liner in `image-prompt --execute` / `video-prompt --execute`.
 
-Last updated: 2026-05-21 (post v2.9.0).
+Last updated: 2026-05-21 (post v2.10.0).
 
 ---
 
 ## What landed in recent releases
 
+- v2.10.0 — `audio-mix-maker` + `style-transfer` + `transcribe-maker` (closes active ROADMAP — ffmpeg audio mixing, Flux-Kontext stylization, Whisper transcription)
 - v2.9.0 — `banner-maker` + `meme-card-maker` + `upscaler` (display ads / meme graphics / image super-resolution)
 - v2.8.0 — `logo-maker` + `quote-card-maker` + `gif-maker` (brand mark / aphorism graphic / short looping animation)
 - v2.7.0 — `cover-maker` + `thumbnail-maker` + `bg-remover` (album/book/podcast covers, 16:9 thumbnails, transparent PNG utility)
@@ -117,7 +118,7 @@ These extend the runner's audio capabilities beyond music-prompt.
 
 **Effort**: 1-2 days (lightweight version is 1 day; with Whisper auto-timing it's 2-3 days).
 
-### `audio-mix-maker`
+### `audio-mix-maker` ✅ SHIPPED v2.10.0
 
 **For**: take a video + a music file → mix them. Sometimes the user has the video + the music already and just needs a final.
 
@@ -125,7 +126,7 @@ These extend the runner's audio capabilities beyond music-prompt.
 
 **What it adds**:
 - Volume + fade-in/fade-out
-- Mix mode: `replace` / `overlay` (overlay = keep diegetic) / `duck` (lower music when dialogue present — would need a VAD)
+- Mix mode: `replace` / `overlay` (overlay = keep diegetic) / `duck` (lower music when dialogue present — sidechain compressor)
 
 **Effort**: 0.5 day (basic) to 2 days (with VAD ducking).
 
@@ -168,7 +169,7 @@ These call existing third-party providers (Replicate / fal). Pattern: thin wrapp
 
 **Effort**: 0.5 day.
 
-### `style-transfer`
+### `style-transfer` ✅ SHIPPED v2.10.0
 
 **For**: "make this photo look like {sketch / oil painting / watercolor / cyberpunk}".
 
@@ -204,13 +205,13 @@ These call existing third-party providers (Replicate / fal). Pattern: thin wrapp
 
 **Why it's deferred**: scraping has legal/TOS complications. Better as a manual "paste the event details" workflow.
 
-### `whisper-transcription`
+### `transcribe-maker` ✅ SHIPPED v2.10.0 (was `whisper-transcription`)
 
-**For**: video → SRT subtitle file via OpenAI Whisper.
+**For**: video / audio → SRT / VTT / JSON / plain-text transcript via OpenAI Whisper.
 
-**Why it's deferred** (but would be useful for `subtitle-burner`): requires Whisper API integration; OpenAI has it but quality varies; running locally requires ffmpeg + whisper.cpp.
+**Why it's a gap**: closes the loop with `subtitle-burner` — produce captions, then burn them in.
 
-**Effort**: 1-2 days.
+**Effort**: 1-2 days. Shipped with full format support (SRT / VTT / text / JSON / verbose_json with word-level timestamps).
 
 ---
 

@@ -84,10 +84,10 @@ Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ## The collection in one paragraph
 
-Thirty-six skills layered on top of one base linter (`writer`):
+Thirty-nine skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 28 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill.
-- **Wrappers** (18): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`).
+- **Wrappers** (21): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`).
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
 - **Orchestrators** (11, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
 - **Meta** (3): `skills-update`, `skills-keys`, `skills-styles`.
@@ -657,6 +657,63 @@ For details: [meme-card-maker/SKILL.md](../meme-card-maker/SKILL.md) · [templat
 Cost: ~$0.005-0.02 per image. Output: `./generated/upscaled/<stem>-<scale>x.png` (or `--output`).
 
 For details: [upscaler/SKILL.md](../upscaler/SKILL.md) · [providers](../upscaler/references/providers.md) · [use-cases](../upscaler/references/use-cases.md).
+
+---
+
+### "I want to mix music onto a video" {#i-want-to-mix-audio}
+
+`/audio-mix-maker --video <path> --audio <path>` mixes a music track onto a video via ffmpeg. Three modes — `replace` (drop original audio), `overlay` (mix both audible), `duck` (sidechain compressor lowers music when speech detected).
+
+```
+/audio-mix-maker --video ./screen-recording.mp4 --audio ./music.mp3 --mode replace --fade-out 1.0                        # silent recording → music
+/audio-mix-maker --video ./tutorial.mp4 --audio ./ambient-bed.mp3 --mode duck --volume 0.6 --duck-amount 0.5              # voiceover with music ducked
+/audio-mix-maker --video ./broll.mp4 --audio ./cello.mp3 --mode overlay --volume 0.4 --fade-in 2 --fade-out 3            # keep ambient + add music bed
+```
+
+No API calls — pure ffmpeg. ffmpeg required.
+
+For details: [audio-mix-maker/SKILL.md](../audio-mix-maker/SKILL.md) · [modes](../audio-mix-maker/references/modes.md).
+
+---
+
+### "I want to style-transfer an image (turn photo into watercolor / cyberpunk / etc.)" {#i-want-style-transfer}
+
+`/style-transfer --image <path> --style <preset>` applies an artistic style to an existing image via Flux Kontext (best for natural-language style transfer). 12 style presets + custom mode.
+
+```
+/style-transfer --image ./me.jpg --style watercolor --execute
+/style-transfer --image ./street.jpg --style cyberpunk --execute
+/style-transfer --image ./me.jpg --style custom --prompt-mod "1920s Soviet constructivist propaganda poster style, bold red and black" --execute
+```
+
+Style presets: `watercolor` / `oil-painting` / `sketch` / `line-art` / `ink-wash` / `cyberpunk` / `studio-ghibli` / `pixar-3d` / `manga` / `art-deco` / `low-poly` / `vaporwave` / `custom`.
+
+Cost: ~$0.05 per image. Output: `./generated/stylized/<stem>-<style>.png`.
+
+For details: [style-transfer/SKILL.md](../style-transfer/SKILL.md) · [styles](../style-transfer/references/styles.md).
+
+---
+
+### "I want to transcribe audio / video to subtitles" {#i-want-to-transcribe}
+
+`/transcribe-maker --input <path>` transcribes audio or video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts `--lang ru` hint.
+
+```
+/transcribe-maker --input ./tutorial.mp4 --format srt --lang en --output ./tutorial.srt --execute               # captions for subtitle-burner
+/transcribe-maker --input ./podcast.mp3 --format text --lang ru --output ./podcast-transcript.txt --execute   # plain transcript
+/transcribe-maker --input ./interview.mp4 --format verbose_json --output ./interview.json --execute            # word-level timestamps
+```
+
+Cost: ~$0.006/min. File size limit: 25 MB (Whisper API constraint — see `preprocessing` reference for splitting).
+
+Chain with `subtitle-burner` for end-to-end auto-captioning:
+
+```
+/transcribe-maker --input ./video.mp4 --format srt --output ./captions.srt --execute
+/subtitle-burner burn ./video.mp4 --subtitle ./captions.srt --style modern --output ./video-captioned.mp4
+```
+
+For details: [transcribe-maker/SKILL.md](../transcribe-maker/SKILL.md) · [formats](../transcribe-maker/references/formats.md) · [preprocessing](../transcribe-maker/references/preprocessing.md).
 
 ---
 
