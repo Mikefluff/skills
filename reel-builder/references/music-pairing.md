@@ -188,7 +188,7 @@ Most-used pairings as of 2026:
 
 ## What gets saved to `script.md`'s music section
 
-```markdown
+````markdown
 ## Music
 
 **Style**: <music-style-id> · <BPM range> · <energy>
@@ -211,6 +211,6 @@ Most-used pairings as of 2026:
 ```
 <text or empty for instrumental>
 ```
-```
+````
 
 This means: even if API generation fails, the user has the music prompt to manually paste.

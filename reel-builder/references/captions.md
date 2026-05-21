@@ -69,7 +69,7 @@ Weak (avoid):
 ### Beat / development patterns
 
 Strong:
-- Setup + payoff: "First: <thing>." then "But then..." 
+- Setup + payoff: "First: <thing>." then "But then..."
 - Contrast: "Old way." vs "New way."
 - Question: "Why does this work?"
 - Stat: "73% saved 8 hours/week."
