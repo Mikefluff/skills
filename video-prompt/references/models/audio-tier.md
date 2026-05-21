@@ -9,7 +9,7 @@ Models with native synchronized audio (dialogue + SFX + ambient) generated in on
 **Strengths**: native synchronized audio (dialogue + SFX + ambience) in a single pass, 4K, ~120ms lip-sync accuracy, scene-extend, reference-image conditioning, T2V + I2V.
 **Weaknesses**: shorter base clip than open-source rivals; premium pricing on full tier.
 
-Released Oct 2025. 4K rolled out Jan 2026. Fast tier ~$0.15/sec. <!-- TODO: confirm Veo 3.1 full-tier price/sec -->
+Released Oct 2025. 4K rolled out Jan 2026. Pricing (May 2026, Vertex / Gemini API): Veo 3.1 Standard ~$0.40/sec, Veo 3.1 Fast ~$0.15/sec, Veo 3.1 Light ~$0.05/sec. Max native clip = **8s** (4s / 6s / 8s options); Scene Extend chains in 7-second hops, up to 20 hops, total ≤148s. Sources: [veo3gen pricing](https://www.veo3gen.app/blog/veo-3-1-pricing-plans), [aifreeapi extend guide](https://www.aifreeapi.com/en/posts/veo-3-extend-video-length).
 
 ## Format rules (mandatory)
 
@@ -57,7 +57,11 @@ Camera: slow dolly push-in across the table, focus locked on her hand on the ste
 - Veo 3.1 Fast: same parser, less detail, ~$0.15/sec — use for iteration, switch to full tier for final.
 - Dialogue lines longer than ~6 seconds drift in lip-sync; split across Beat 2 + Beat 3.
 - Reference images: attach as `subject_reference` for identity, `style_reference` for look.
-- Scene-extend chains to ~24s by concatenating three 8s prompts referencing the prior frame.
+- Scene-extend chains in 7-second hops up to 20 times — total ≤148s, all from a Veo-generated source, 720p only, 9:16 or 16:9.
+- **Timestamp prompting** (official Veo 3.1 recipe for multi-shot inside one 8s clip): assign actions to `[00:00-00:02]`, `[00:02-00:04]`, `[00:04-00:06]`, `[00:06-00:08]` blocks. Each block can carry its own framing + SFX + emotion line. Source: [Google Cloud Veo 3.1 prompting guide](https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-veo-3-1).
+- **First-and-Last-Frame workflow**: generate both frames with Gemini 2.5 Flash Image, then describe the transition in the Veo prompt. Better than asking Veo to invent endpoints.
+- **Ingredients-to-Video**: attach character + setting reference images, then write the prompt as a director's note referring to them ("Using the provided images for the detective...").
+- **Negative-prompt anti-pattern (official)**: avoid blanket negations like "no man-made structures". Restate positively — "a desolate landscape with no buildings or roads" works better.
 
 ---
 
@@ -66,7 +70,7 @@ Camera: slow dolly push-in across the table, focus locked on her hand on the ste
 **Strengths**: synchronized audio + dialogue, multi-shot inside one prompt, Cameos (consented identity insertion), strong physics.
 **Weaknesses**: less granular camera control than Kling; default toward "cinematic" unless specified.
 
-Sora 2 Pro ~$0.75/sec. <!-- TODO: confirm Sora 2 base-tier price/sec --> <!-- TODO: confirm Sora 2 max clip length -->
+Pricing (May 2026): **Sora 2 base ~$0.10/sec @ 720p**; **Sora 2 Pro ~$0.30/sec @ 720p, ~$0.50/sec @ 1024p** (note: earlier ~$0.75/sec figure was a launch ceiling that has dropped). Max native clip: **Sora 2 base = 4s / 8s / 12s** options; **Sora 2 Pro = 10s / 15s / 25s** options (25s is the current ceiling). Resolution caps at **1080p** — no native 4K. Sources: [aifreeapi Sora 2 pricing](https://www.aifreeapi.com/en/posts/sora-2-api-pricing-quotas), [yingtu 4K guide](https://yingtu.ai/en/blog/can-sora-2-generate-4k-videos), [help.apiyi.com Pro vs standard](https://help.apiyi.com/en/sora-2-pro-vs-standard-comparison-en.html).
 
 ## Format rules
 
@@ -113,12 +117,34 @@ Camera: slow dolly push-in across the table, subtle handheld vibration, sharp fo
 - Cameos require pre-registered consent; do not invoke unregistered identities.
 - For best physics: name the contact (`glass meets table`, `napkin compresses under fingers`) — Sora 2 picks up tactile prose.
 - Sora 2 Pro: same parser, higher resolution + longer attention.
+- **Stitch two 4s shots, don't generate one 8s** — official cookbook advice. Shorter clips have measurably higher physics + identity fidelity.
+- **One camera move + one subject action per shot.** Stacking ("she walks AND turns AND speaks") is the #1 failure mode per the cookbook.
+- **Treat prompts as a wish list, not a contract** — identical prompts intentionally yield different results across runs; iterate, don't fight the seed.
+- **Official structured template** (from the OpenAI Cookbook): split prose, cinematography, actions, dialogue:
+  ```
+  [Prose scene description]
+
+  Cinematography:
+    Camera shot: {framing + angle}
+    Mood: {tone}
+
+  Actions:
+    - {action 1: specific beat}
+    - {action 2: distinct beat}
+
+  Dialogue:
+    {brief natural lines}
+  ```
+- **Character API**: upload 2-4s reference videos (720p-1080p, 16:9 or 9:16) to register a character. Reference by name in the prompt; ≤2 characters per generation.
+- **API params are NOT in prose** — set `model` (`sora-2` / `sora-2-pro`), `size`, `seconds` ("4" / "8" / "12" / "16" / "20"), `characters` explicitly via API. Don't ask for them in the prompt body.
+- **Style anchoring early** ("1970s film, 16mm black-and-white") frames all downstream choices — put aesthetic in the first sentence.
+- Source: [OpenAI Cookbook — Sora 2 prompting guide](https://developers.openai.com/cookbook/examples/sora/sora2_prompting_guide).
 
 ---
 
 # LTX-2 / LTX-2 Distilled (Lightricks — open-source)
 
-**Strengths**: first open-weights model with native 4K + synchronized audio, 20s clips at 50fps. Distilled variant runs on consumer GPU (~24GB VRAM). <!-- TODO: confirm LTX-2 Distilled exact VRAM floor -->
+**Strengths**: first open-weights model with native 4K + synchronized audio, 20s clips at 50fps. Distilled variant: **practical floor ~12GB VRAM** (RTX 3060 12GB / 4070 — short clips at 512-640px), **24GB sweet spot** (RTX 3090 / 4090 — 720p comfortable, ~90s render per clip on a 4090), **8GB absolute minimum** with reduced resolution + frame count. Sources: [crepal.ai VRAM guide](https://crepal.ai/blog/aivideo/blog-ltx-2-vram-requirements/), [wavespeed VRAM reality check](https://wavespeed.ai/blog/posts/blog-ltx-2-vram-requirements/).
 **Weaknesses**: newer ecosystem, fewer tutorials; identity drift on longer clips.
 
 ## Format rules
@@ -167,6 +193,99 @@ Camera: slow dolly push-in across the table, focus locked on her hand on the ste
 - Open-weights — safe for on-prem / regulated workflows.
 - 50fps output: native slow-motion conform without retiming.
 - For identity stability past 20s: chain two clips and use a still from the last frame as reference.
+
+---
+
+# Kling 3.0 Omni (Kuaishou)
+
+**Strengths**: native synchronized audio (added in 3.0 Omni), 4K @ 60fps, up to 15s clips, AI Director multi-shot (up to 6 shots in one 15s generation), multi-speaker dialogue via `<<<voice_1>>>` syntax, EN / CN / JP / KR / ES dialogue, cheapest premium tier (~$0.10/sec).
+**Weaknesses**: temporal flow REQUIRED (no flexibility on time markers); rejects vague camera direction. See full I2V grammar in [`i2v-tier.md`](i2v-tier.md) — this section covers ONLY the audio + multi-shot additions.
+
+## Format rules (audio)
+
+- Temporal flow: `First [0-2s]: ... Then [2-5s]: ... Finally [5-Xs]: ...` — see [`i2v-tier.md`](i2v-tier.md).
+- Multi-speaker dialogue uses `<<<voice_1>>>` / `<<<voice_2>>>` tags: `Character <<<voice_1>>> said, "{line}"`.
+- Single-speaker dialogue: same `Character: "{line}"` form as Veo / Sora.
+- SFX + Ambient blocks accepted same as Veo / Sora.
+- Director mode (Auto vs Custom) — Auto plans shots, Custom takes per-shot duration + framing + content blocks.
+
+## Kling 3.0 Omni audio template
+
+```
+First [0-2s]: {character physical setup — body, breath, gaze}
+Then [2-5s]: {character delivers line}
+  Character <<<voice_1>>>: "{line}"
+  Ambient: {one bed, low}
+Finally [5-Xs]: {reaction or second speaker}
+  Character <<<voice_2>>>: "{reaction line}"
+  SFX: {one cue}
+
+Lighting: {named sources}
+Camera: {one named term}
+```
+
+## Example (Kling 3.0 Omni — two-speaker)
+
+```
+First [0-2s]: She raises a wine glass slowly across the candle-lit table, fingers tightening around the stem, gaze locking on him; her shoulders settle, breath in.
+Then [2-6s]: She delivers the line, jaw moving evenly, no hesitation.
+  Character <<<voice_1>>>: "I'm not coming home tonight. Or any night after."
+  Ambient: low restaurant murmur, distant clink of cutlery.
+Finally [6-10s]: He freezes for one beat, lips parting; throat works in one swallow; his hand reaches halfway across the table and stops.
+  Character <<<voice_2>>>: "You don't mean that."
+  SFX: muted glass clink from a neighboring table at the end.
+
+Lighting: warm tungsten candle from below, dim ambient pendant overhead, condensation glinting on the wine glass.
+Camera: static medium two-shot held throughout, subtle handheld vibration, focus on the gap between their faces.
+```
+
+## Notes / Pitfalls
+
+- `<<<voice_1>>>` and `<<<voice_2>>>` map to whichever speakers Kling detects on the visible face track — order matters; first detected face = voice_1.
+- Director Custom-mode multi-shot: each shot block can carry its own Dialogue + SFX + Ambient. Combined shot total stays ≤15s.
+- Source: [kling.ai blog — Omni native lip-sync + audio guide](https://kling.ai/blog/kling-video-3-omni-native-lip-sync-audio-guide).
+
+---
+
+# Seedance 2.0 (ByteDance)
+
+**Strengths**: multi-shot narrative in a single prompt (up to 6 shots, 30s total); 1080p in ~41s on hosted endpoints; real-time interactive variant (Seaweed APT2); strong character consistency across shots in one generation; available via Higgsfield Cinema Studio as a backend.
+**Weaknesses**: <!-- TODO: confirm Seedance 2.0 native audio status — community reports unclear --> audio support beyond ambient is inconsistent; English documentation thinner than Sora 2 / Kling.
+
+## Format rules
+
+- Multi-shot block format: `Shot 1 (Xs, <framing>): <action> / Shot 2 (Ys, <framing>): <action>` — see [`multi-shot.md`](multi-shot.md).
+- Style anchor sentence at the END applies across all shots — lighting, grade, identity.
+- Identity labels (`[ref:Name]`) for consistent characters across shots.
+- Audio: where supported, follow Veo / Sora syntax — `Character: "{line}"`, `SFX:`, `Ambient:`.
+
+## Seedance 2.0 template
+
+```
+Shot 1 ({duration}, {framing}): {action beat, body specific}
+Shot 2 ({duration}, {framing}): {action beat}
+Shot 3 ({duration}, {framing}): {resolution}
+
+Style anchor: {one shared sentence — lighting, grade, identity binding}
+Camera: {one named term applied across}
+```
+
+## Example (Seedance 2.0 — three-shot scene)
+
+```
+Shot 1 (4s, wide establishing): A candle-lit dinner table seen from across the room; the warm pendant lamp above casting a pool of light on the scene; both figures visible — [ref:Sarah] sits camera-left, [ref:Marcus] camera-right; the room around them in soft darkness.
+Shot 2 (5s, extreme close-up on hands): [ref:Sarah]'s right hand wraps slowly around the stem of a wine glass; her thumb traces the curve once; [ref:Marcus]'s hand enters frame from the right, fingers tightening on his napkin.
+Shot 3 (4s, medium two-shot): [ref:Sarah] lifts the wine glass to chest height, gaze locking on [ref:Marcus]; [ref:Marcus] holds eye contact, throat working in one slow swallow, jaw clenching once.
+
+Style anchor: warm tungsten candle from below, dim ambient pendant overhead, editorial cinematic grade with shallow depth of field across all three shots.
+Camera: locked compositions per shot, subtle handheld vibration only.
+```
+
+## Notes / Pitfalls
+
+- Multi-shot total stays ≤30s in one generation; longer scenes via chained generations with style-anchor continuity.
+- Style anchor is mandatory for cross-shot lighting / grade / identity consistency — without it, every shot reads as a separate scene.
+- For audio-led scenes, prefer Sora 2 or Veo 3.1 until Seedance 2.0 audio support is confirmed; use Seedance 2.0 when visual multi-shot continuity is the priority.
 
 ---
 

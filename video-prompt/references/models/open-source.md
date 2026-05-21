@@ -11,8 +11,8 @@ Models you can run on your own hardware. Trade quality and convenience for contr
 
 ## Hardware
 
-- LTX-2 full: <!-- TODO: confirm LTX-2 full VRAM floor --> data-center GPU (A100 / H100 class).
-- LTX-2 Distilled: ~24GB VRAM, runs on a single consumer GPU. <!-- TODO: confirm exact floor (3090 / 4090 / 5090) -->
+- LTX-2 full: data-center GPU (A100 / H100 80GB class). Direct 4K@50fps is only feasible in short bursts on consumer-class cards even at 24GB — OOM and time costs spike fast.
+- LTX-2 Distilled: **practical floor ~12GB VRAM** (RTX 3060 12GB / 4070 — short 512-640px clips), **24GB sweet spot** (RTX 3090 / 4090 / 5090 — 720p comfortable, ~90s for a short clip on a 4090, ~7 min on a 3060 12GB). Distilled saves ~30-40% VRAM vs full at same resolution/frame count. Use fp16/bf16 half precision + attention tiling for sub-24GB cards. Sources: [docs.ltx.video system requirements](https://docs.ltx.video/open-source-model/getting-started/system-requirements), [crepal.ai VRAM guide](https://crepal.ai/blog/aivideo/blog-ltx-2-vram-requirements/), [wavespeed reality check](https://wavespeed.ai/blog/posts/blog-ltx-2-vram-requirements/).
 
 ## Format
 
@@ -60,7 +60,7 @@ Camera: slow dolly push-in across the table, focus on her hand.
 
 ## Hardware
 
-<!-- TODO: confirm HunyuanVideo 1.5 VRAM floor -->. Typical comfortable run on A100 80GB; community quantized builds available for 24GB consumer GPUs.
+**HunyuanVideo 1.5 VRAM floor: 16GB minimum with FP8 quantization (24GB recommended)**. With model offloading, can squeeze down to ~13.6GB for 720p / 121-frame output. Step-distilled 480p model runs end-to-end in ~75s on a single RTX 4090. Optimal run on A100/H100 80GB. Source: [Tencent-Hunyuan/HunyuanVideo-1.5 GitHub](https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5), [spheron VRAM guide](https://www.spheron.network/blog/gpu-cloud-video-ai-2026/).
 
 ## Format
 
@@ -87,7 +87,7 @@ Camera: slow dolly push-in across the table, focus on her hand.
 ## Notes
 
 - Strong LoRA ecosystem — style and identity LoRAs slot cleanly.
-- For audio: render silent, post-sync separately. <!-- TODO: confirm any audio-extension fork status -->
+- For audio: render silent, post-sync separately. No first-party audio extension as of May 2026; community Hunyuan-Audio forks exist but are experimental — for native audio + open weights use LTX-2 instead.
 
 ---
 
@@ -98,7 +98,7 @@ Camera: slow dolly push-in across the table, focus on her hand.
 
 ## Hardware
 
-<!-- TODO: confirm HunyuanCustom VRAM floor -->. Inherits HunyuanVideo's footprint.
+Inherits HunyuanVideo's footprint — **24GB VRAM minimum for the full model**, FP8 quantized builds run on 16GB; same 8GB floor as base Hunyuan exists with temporal tiling (ComfyUI ≥v0.3.10). Official VRAM table for HunyuanCustom specifically is not yet published — figures inferred from HunyuanVideo base. Source: [Tencent-Hunyuan/HunyuanCustom GitHub](https://github.com/Tencent-Hunyuan/HunyuanCustom), [spheron VRAM guide](https://www.spheron.network/blog/gpu-cloud-video-ai-2026/).
 
 ## Format
 
@@ -142,11 +142,11 @@ Camera: slow dolly push-in, focus on her hand.
 # Wan 2.2 / Wan 2.7 (Alibaba)
 
 **Strengths**: Mixture-of-Experts architecture, first-frame control, 15s clips. Wan 2.7 adds partial multi-shot.
-**Weaknesses**: <!-- TODO: confirm Wan 2.2/2.7 4K status -->; ecosystem narrower than Hunyuan.
+**Weaknesses**: **no native 4K** — Wan 2.2 ceiling is 720p (480p + 720p T2V/I2V); 1080p / 4K only via upscaler (Real-ESRGAN etc.). Wan 2.7 (Apr 2026) lifts the ceiling slightly with sharper controls and adds "Thinking Mode", but native generation still tops out at 1080p — true 4K is an upscaler step. Ecosystem narrower than Hunyuan.
 
 ## Hardware
 
-<!-- TODO: confirm Wan 2.2 / 2.7 VRAM floors -->. MoE routing means a single forward pass touches a subset of experts — VRAM peak lower than parameter count suggests.
+**Wan 2.2 VRAM floor: ~80GB recommended for the full A14B model** at 720p; **5B distilled variant runs 720p on as little as 8GB**. RTX 4090 (24GB) renders 81 frames @ 640×480 in ~7s/frame; 720p ~18s/frame. Wan 2.7 VRAM footprint is comparable — Alibaba has not published a dedicated table; community ComfyUI builds report similar bands. MoE routing means a single forward pass touches a subset of experts — VRAM peak is lower than parameter count suggests. Sources: [Wan-Video/Wan2.2 GitHub](https://github.com/Wan-Video/Wan2.2), [novita Wan 2.2 VRAM guide](https://blogs.novita.ai/wan-2-2-vram-find-the-best-gpu-setup-for-deployment/).
 
 ## Format
 

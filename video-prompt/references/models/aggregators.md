@@ -15,7 +15,9 @@ Single interface, multiple backend models. Useful when the killer feature is a w
 - Veo 3.1
 - Kling 3.0
 - Seedance 2.0
-- Wan 2.7
+- Wan 2.6 / 2.7
+- MiniMax Hailuo 02 / Hailuo 2.3
+- Higgsfield proprietary: Soul 2.0, Soul Cinema, DOP
 
 Pick a backend per shot, or let Higgsfield route automatically based on the preset.
 
@@ -31,7 +33,7 @@ Pick a backend per shot, or let Higgsfield route automatically based on the pres
 - Select preset(s) by exact name from the Higgsfield catalogue.
 - Describe character action in Beat 1/2/3.
 - Use Soul ID labels for identity instead of re-describing the character per shot.
-- Backend selection (optional) — Higgsfield routes by default; override only when a backend's strengths matter (Sora 2 for audio, Hailuo via wrapper for physics, etc.). <!-- TODO: confirm Hailuo presence in Higgsfield backend list -->
+- Backend selection (optional) — Higgsfield routes by default; override only when a backend's strengths matter (Sora 2 for audio, Hailuo for physics, etc.). **Confirmed backend list (May 2026)**: Sora 2, Veo 3 / Veo 3.1, Kling 3.0, Seedance 2.0, WAN 2.6 / 2.7, **MiniMax Hailuo 02 / Hailuo 2.3**, plus Higgsfield's proprietary Soul 2.0, Soul Cinema, and DOP. Sources: [higgsfield.ai/minimax](https://higgsfield.ai/minimax), [higgsfield.ai/hailuo2.3](https://higgsfield.ai/hailuo2.3).
 
 ## Higgsfield template
 

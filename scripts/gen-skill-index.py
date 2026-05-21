@@ -45,7 +45,7 @@ LAYER_HEADINGS = {
 
 DOMAIN_TAGS = {
     "fiction", "non-fiction", "marketing", "social", "product",
-    "tech-docs", "ux-copy", "visual", "outreach",
+    "tech-docs", "ux-copy", "visual", "audio", "outreach",
 }
 FUNCTION_TAGS = {"editing", "generation", "audit", "translation", "ops"}
 ALLOWED_TAGS = DOMAIN_TAGS | FUNCTION_TAGS

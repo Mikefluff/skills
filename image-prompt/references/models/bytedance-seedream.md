@@ -28,7 +28,7 @@ references: [
 ]
 ```
 
-<!-- TODO: confirm whether 4.5 exposes an in-prompt `[ref:character@1.0]` notation or only the API-side field; magichour.ai docs describe weight roles for 4.0 but not the wire format for 4.5 -->
+**Wire format (May 2026)**: 4.5 exposes per-reference roles through the **API-side `references[]` array only** — there is no canonical in-prompt `[ref:character@1.0]` notation. Hosts (fal, Wavespeed, Freepik, Novita, CometAPI) all accept up to ~10 image URLs / base64 and route them via API fields. Inside the text prompt, you can still nudge any token with the SD-style `(word:1.2)` weighting (e.g. "(character:1.2)" — but only as a soft hint, not a structured role assignment). Sources: [fal.ai Seedream 4.5 guide](https://fal.ai/learn/devs/seedream-v4-5-prompt-guide), [evolink.ai prompt guide](https://evolink.ai/blog/seedream-prompt-guide-best-practices-2026).
 
 ### Prompt template
 
@@ -62,7 +62,7 @@ References: character=founder-headshot.jpg (1.0), style=editorial-moodboard.jpg 
 
 Same role + weight model as 4.5, up to 10 references.
 
-<!-- TODO: confirm 5.0 default-weight changes and exact reasoning-mode toggle name once stable docs land -->
+**Reasoning + grounding (May 2026)**: Seedream 5.0 (and 5.0 Lite) ship with **"Deep Thinking"** (intent-aware composition planning) and **real-time web search** baked into the base model — there is NO documented user-facing toggle name as of the 5.0 Lite release post. Behaviour is automatic on supported hosts (Runware, Replicate `bytedance/seedream-5-lite`, ByteDance Seed Studio). Default role weights inherit from 4.5; ByteDance has not published a separate 5.0 default-weight table. Sources: [Seedream 5.0 Lite blog (seed.bytedance.com)](https://seed.bytedance.com/en/blog/deeper-thinking-more-accurate-generation-introducing-seedream-5-0-lite), [genaintel 5.0 release guide](https://www.genaintel.com/guides/seedream-5-0-bytedance-release-guide).
 
 ### Prompt template
 

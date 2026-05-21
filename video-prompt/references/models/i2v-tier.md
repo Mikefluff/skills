@@ -6,8 +6,10 @@ Image-to-video: you provide a still, the model animates it. CRITICAL — the sou
 
 # Kling 3.0
 
-**Strengths**: cheap premium tier (~$0.10/sec), best-in-class motion physics (cloth, hair, water), reliable 5-10s clips.
+**Strengths**: cheap premium tier (~$0.10/sec), top-tier motion physics (cloth, hair, water), **native 4K @ 60fps**, **up to 15s** clips, **native synchronized audio** (Omni variant), **AI Director multi-shot** (up to 6 shots in one 15s generation), **multi-speaker dialogue** via `<<<voice_1>>>` syntax. Supports EN / CN / JP / KR / ES dialogue.
 **Weaknesses**: rejects vague camera direction; demands explicit temporal flow.
+
+**Multi-shot Director note**: Kling 3.0 has Auto mode (model plans shots) and Custom mode (you specify per-shot duration + framing + content). Multi-speaker dialogue uses `Character <<<voice_1>>> said, "line"` syntax. See [kling.ai blog — Omni native lip-sync guide](https://kling.ai/blog/kling-video-3-omni-native-lip-sync-audio-guide).
 
 ## Format rules (mandatory)
 
@@ -148,7 +150,7 @@ Texture: linen shifts as the glass meets it.
 
 # Hailuo 02 / Hailuo 02 Pro (MiniMax)
 
-**Strengths**: best-in-class physics for gymnastics, cloth, water, hair; 1080p; ~$0.28/clip on base tier.
+**Strengths**: strongest physics for gymnastics, cloth, water, hair; 1080p; ~$0.28/clip on base tier.
 **Weaknesses**: shorter attention than Kling/Veo; dialogue scenes weaker than physics-driven scenes.
 
 ## Format rules
@@ -182,7 +184,7 @@ Camera: slow dolly push-in across the table, focus on her hand.
 
 ## Notes
 
-- Hailuo 02 Pro: same parser, higher fidelity, supports longer clips. <!-- TODO: confirm Hailuo 02 Pro max duration -->
+- Hailuo 02 Pro: same parser, higher fidelity, 1080p @ 24-30fps. **Max duration: 10s** (6s or 10s options). Sources: [hailuo-02.com](https://hailuo-02.com/), [fal.ai Hailuo-02 pro](https://fal.ai/models/fal-ai/minimax/hailuo-02/pro/text-to-video).
 - Best returns on prompts that name the physics (liquid sloshing, fabric compressing, hair catching the air).
 
 ---

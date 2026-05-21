@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Mikefluff/skills/main/docs/skills.schema.json",
   "collection": "Mikefluff/skills",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "repo": "https://github.com/Mikefluff/skills",
   "license": "MIT",
   "skills": [
@@ -211,6 +211,21 @@
       ],
       "tags": [
         "visual",
+        "generation"
+      ],
+      "deps": []
+    },
+    {
+      "name": "music-prompt",
+      "dir": "music-prompt",
+      "layer": "wrapper",
+      "description": "Write prompts for 10+ frontier AI music generators (Suno v5.5, Udio v4, Google Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen, Tencent SongGeneration, Sonauto v2, Riffusion, Mubert). 2026 canonical 8-category meta-tag taxonomy, `|` stacking, two-box Style+Lyrics workflow (Suno), exclude-styles (Eleven), field-driven (Lyria). 12 genre recipes.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "audio",
         "generation"
       ],
       "deps": []

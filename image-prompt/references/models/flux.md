@@ -33,7 +33,10 @@ A confident business person leaning on a marble countertop, sunlit Brooklyn loft
 
 - Use the long context — pack the full 6-part formula (subject, style, light, camera, texture, ratio) without compressing.
 - Multi-ref is the killer feature for consistent character + product + interior across a set.
-- Negative prompt field works on most hosts; mirror the universal negative set.
+- **Flux 2 does NOT support negative prompts** (BFL official). Describe what you want positively — "sharp focus throughout" beats "no blur". This is the opposite of Flux 1.x / SDXL. Source: [docs.bfl.ml — FLUX.2 prompting guide](https://docs.bfl.ml/guides/prompting_guide_flux2).
+- **Hex color anchoring** (Flux 2 specialty): say "vase in color #02EB3C" or "gradient from #02EB3C to #EDFA3C" — but always tie hex to a specific object. Loose hex codes drift.
+- **Multi-ref input/output budget**: [pro] caps total input+output at 9 megapixels — at 1MP output you can attach up to 8 refs; at 2MP output, up to 7.
+- **JSON-structured prompts** are supported on [pro] / [max] for production workflows (scene, subjects[], style, color_palette[], lighting, mood, camera{}).
 
 ---
 

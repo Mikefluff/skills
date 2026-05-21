@@ -52,6 +52,8 @@ Scope: full duration, snowfall begins at second 0 and continues uninterrupted.
 - One verb per call is law. Need to Relight AND Add? Two calls, chained.
 - Aleph does not regenerate identity — character stays the source character. Use Act-One if you need a different performance.
 - Reference images carry style/identity weight; the prompt carries the action.
+- **Official Aleph verb canon**: `add`, `remove`, `change`, `replace`, `re-light`, `re-style` (hyphenated form preferred in Runway docs). The skill's broader set (`Re-angle`, `Extend`) is supported but the docs lead with the six above. Source: [help.runwayml.com — Aleph Prompting Guide](https://help.runwayml.com/hc/en-us/articles/43277392678803-Aleph-Prompting-Guide).
+- **Trimming**: Aleph defaults to the first 5s of your input. For longer source footage, trim to the relevant segment in the UI before submitting — Aleph won't pick the right window automatically.
 
 ---
 
@@ -93,7 +95,7 @@ Target environment: warm tungsten candle from below, dim pendant overhead, conde
 # Luma Ray 3 Modify
 
 **Strengths**: V2V with Start + End keyframe control, Character Reference swap on existing footage, available inside Dream Machine.
-**Weaknesses**: shorter durations than Aleph; single transformation per call. <!-- TODO: confirm Ray 3 Modify max duration -->
+**Weaknesses**: shorter durations than Aleph; single transformation per call. **Max input/output duration: 10s** (5s or 10s options) at 540p / 720p / 1080p tiers (Dream Machine). Ray 3.14 Modify (Jan 2026 update) adds native 1080p, 4× speed-up, improved motion consistency. Sources: [Luma Ray3 Modify user guide](https://lumalabs.ai/learning-hub/ray3-modify-user-guide), [Modify Video help](https://lumaai-help.freshdesk.com/support/solutions/articles/151000220119-how-do-i-use-modify-video-to-transform-footage-while-preserving-motion-).
 
 ## Format rules
 

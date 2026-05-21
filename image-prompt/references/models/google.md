@@ -58,7 +58,7 @@ Same as Imagen 4.
 ### Notes
 
 - Reserve for hero shots, not iteration.
-- <!-- TODO: confirm current per-image pricing -->
+- Pricing (Vertex AI / Gemini API, May 2026): Imagen 4 Fast ~$0.02 / image, Imagen 4 (Standard) ~$0.04 / image, **Imagen 4 Ultra ~$0.06 / image** at 1024×1024 (sources disagree on a $0.08 figure on some 3rd-party resellers). See [intuitionlabs.ai pricing roundup](https://intuitionlabs.ai/articles/ai-image-generation-pricing-google-openai) and [cloudprice.net Imagen 4 Ultra](https://cloudprice.net/models/google-imagen-4-ultra).
 
 ---
 
@@ -91,7 +91,7 @@ A confident business person leaning on marble countertop, sunlit Brooklyn loft k
 
 ## Nano Banana Pro (Gemini 3 Pro Image)
 
-**Strengths**: 4K output; multi-person consistency up to 5 faces; up to 14 input reference images; "thinking mode" that plans the composition; web-grounded (can pull facts into infographics); best-in-class for slides, diagrams, infographics; respects verbatim camera / lighting / DOF / color-grading vocabulary.
+**Strengths**: 4K output; multi-person consistency up to 5 faces; up to 14 input reference images; "thinking mode" that plans the composition; web-grounded (can pull facts into infographics); strongest for slides, diagrams, infographics; respects verbatim camera / lighting / DOF / color-grading vocabulary.
 **Weaknesses**: lives inside Gemini chat — automation needs the Gemini API, not a one-shot endpoint.
 
 ### Syntax

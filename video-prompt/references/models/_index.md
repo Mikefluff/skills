@@ -26,25 +26,25 @@ Quick router from intent → capability cluster → file. The CHARACTER FIRST la
 |---|---|---|---|---|---|---|---|---|---|---|
 | Veo 3.1 | yes | yes | partial (extend) | yes | partial | yes (ref images) | 8s (scene-extend ladders) | yes | no | premium |
 | Veo 3.1 Fast | yes | yes | partial | yes | partial | yes | 8s | yes | no | mid (~$0.15/sec) |
-| Sora 2 | yes | yes | partial | yes | yes (in-prompt) | yes (Cameos) | <!-- TODO: confirm Sora 2 max duration --> | <!-- TODO: confirm Sora 2 4K --> | no | premium |
-| Sora 2 Pro | yes | yes | partial | yes | yes | yes | <!-- TODO: confirm Sora 2 Pro max --> | yes | no | premium (~$0.75/sec) |
+| Sora 2 | yes | yes | partial | yes | yes (in-prompt) | yes (Cameos) | 12s (4/8/12) | no (1080p ceiling) | no | premium (~$0.10/sec @ 720p) |
+| Sora 2 Pro | yes | yes | partial | yes | yes | yes | 25s (10/15/25) | no (1080p ceiling) | no | premium (~$0.30/sec 720p, ~$0.50/sec 1024p) |
 | LTX-2 | yes | yes | no | yes | no | partial | 20s @ 50fps | yes | yes | self-host |
 | LTX-2 Distilled | yes | yes | no | yes | no | partial | 20s | yes | yes | self-host (consumer GPU) |
-| Kling 3.0 | yes | yes | no | no | no | no | 10s | <!-- TODO: confirm Kling 3.0 4K --> | no | cheap (~$0.10/sec) |
+| Kling 3.0 | yes | yes | no | yes (native audio added in 3.0) | yes (Director, up to 6 shots) | yes (refs) | 15s | yes (native 4K @ 60fps) | no | cheap (~$0.10/sec) |
 | Kling 2.6 Elements | yes | yes | no | no | no | yes (4 refs) | 10s | no | no | mid |
 | Kling Master | yes | yes | no | no | no | no | 10s | no | no | mid |
 | Hailuo 02 | yes | yes | no | no | no | no | 6-10s | 1080p | no | cheap (~$0.28/clip) |
 | Hailuo 02 Pro | yes | yes | no | no | no | no | 6-10s | 1080p | no | mid |
-| Runway Gen-4 | yes | yes | no | no | no | yes (refs) | 10s | <!-- TODO: confirm Gen-4 4K --> | no | mid |
+| Runway Gen-4 | yes | yes | no | no | no | yes (refs) | 10s native (up to 60s w/ extend on Gen-4.5) | upscale only (4K export on Pro plan) | no | mid |
 | Runway Gen-4 Turbo | yes | yes | no | no | no | yes | 10s | 1080p | no | cheap |
 | Runway Aleph | no | no | yes | no | no | yes (refs) | 5s | 1080p | no | mid (~$0.18/sec) |
 | Runway Act-One | no | partial | yes | no | no | yes (perf source) | 10s | 1080p | no | mid |
-| Luma Ray 3 | yes | yes | no | no | no | yes | <!-- TODO: confirm Ray 3 max --> | <!-- TODO: confirm Ray 3 4K --> | no | mid |
-| Luma Ray 3 Modify | no | no | yes | no | no | yes | <!-- TODO: confirm Ray 3 Modify max --> | no | mid |
+| Luma Ray 3 | yes | yes | no | no | no | yes | 10s native (up to 30s degrading); 5s @ 4K in Firefly | upscale to 4K HDR (Hi-Fi Diffusion) | no | mid |
+| Luma Ray 3 Modify | no | no | yes | no | no | yes | 10s (5s / 10s) | no (1080p native) | no | mid |
 | Pika 2.2 | yes | yes | yes (Pikaswaps/additions/frames) | no | no | partial | 10s | 1080p | no | cheap |
-| HunyuanVideo 1.5 | yes | yes | no | no | no | partial | <!-- TODO: confirm Hunyuan 1.5 max --> | <!-- TODO: confirm 4K --> | yes | self-host |
-| HunyuanCustom | yes | yes | partial | partial (audio-driven) | no | yes (image/audio/video/text) | <!-- TODO: confirm --> | no | yes | self-host |
-| Wan 2.2 | yes | yes | no | no | no | yes (first-frame) | 15s | <!-- TODO: confirm --> | yes | self-host |
+| HunyuanVideo 1.5 | yes | yes | no | no | no | partial | ~5s typical, distilled 480p in ~75s on 4090 | no (480p base, upscales to 1080p via DiT) | yes | self-host |
+| HunyuanCustom | yes | yes | partial | partial (audio-driven) | no | yes (image/audio/video/text) | inherits Hunyuan base (~5s typical) | no | yes | self-host |
+| Wan 2.2 | yes | yes | no | no | no | yes (first-frame) | 15s | no (480p / 720p native, upscale to 1080p / 4K) | yes | self-host |
 | Wan 2.7 | yes | yes | no | no | partial | yes | 15s | yes | yes | self-host |
 | Mochi 1 | yes | partial | no | no | no | no | 5.4s @ 30fps | 480p | yes | self-host (legacy) |
 | Higgsfield (aggregator) | yes | yes | yes | passthrough | passthrough | yes (Soul ID) | depends on backend | depends | no | mid |

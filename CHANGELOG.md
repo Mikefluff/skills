@@ -5,19 +5,87 @@ All notable changes to this skill collection are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Commit format follows [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) — CI parses messages to decide the next bump:
-
-- `feat:` / `feat(scope):` → minor bump
-- `fix:` / `perf:` / `refactor:` → patch bump
-- `BREAKING CHANGE:` in body OR `!` after type → major bump
-- `docs:` / `chore:` / `style:` / `ci:` / `test:` → no release
+Releases are cut manually. Commit messages use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for clarity but no longer drive an automatic version bump — the previous `release.yml` GitHub Actions workflow was removed (was auto-tagging the wrong major bumps on additive commits).
 
 ## [Unreleased]
 
-## [3.0.0] — 2026-05-21
+## [3.1.0] — 2026-05-21
+
+### Removed — release.yml CI auto-bump workflow
+
+- `.github/workflows/release.yml` deleted along with `scripts/decide-bump.sh`
+  and `scripts/bump.sh` — the conventional-commit-driven auto-bumper was
+  misfiring on additive commits (e.g. bumping v2.0.0 → v3.0.0 from a `feat!`
+  that was breaking but the next `feat!` for a new skill also major-bumped
+  to v4 unnecessarily). Releases are now manual.
+
+### Added — new `music-prompt` skill
+
+Parallel to `image-prompt` and `video-prompt`, completing the visual+audio
+prompt-skill trio for AI generation.
+
+- **10+ frontier music models** covered: Suno v5.5 (chirp-crow, March 2026 GA;
+  Voices clone, Custom Models, Studio DAW, 12-stem export, Replace Section,
+  Remaster, Cover); Udio v4 (~10-min coherent songs, Stem Separation 2.0,
+  Developer Platform API); Google Lyria 3 Pro (March 25 2026; 3 min, 48 kHz,
+  watermarked, EN/ES/FR/JP); ElevenLabs Music (August 2025; exclude-styles +
+  cleanest licensing); Stable Audio 2.5 (September 2025; ARC 8-step + sound
+  design + audio-to-audio); Meta MusicGen / AudioCraft (open-source, melody
+  conditioning); Tencent SongGeneration / LeVo (open-source 3B, EN+ZH);
+  Sonauto v2 Beta (stems + word-level alignment); Riffusion v5 (free webapp);
+  Mubert API 3.0 (parameter-driven background music).
+- **2026 canonical 8-category meta-tag taxonomy** in `references/meta-tags.md`
+  — Structure / Vocal delivery / Vocal effects / Instrumental /
+  Mix-production / Energy-dynamics / Era-genre / FX cues. 200+ community-
+  validated tags. Stacking rules with `|` separator inside one bracket, max
+  4-8 tags, ordering: core genre → era → mood → instrument → mix/FX → vocal
+  direction.
+- **Deep-dive references**: `vocal-tags.md` (voice character / register /
+  style / effects + mini-recipes); `instrumental-tags.md` (drums / bass /
+  guitars / keys / strings / brass / world + per-genre quick-picks);
+  `mix-production-tags.md` (era / stereo width / reverb / delay / compression
+  / mastering); `song-structure.md` (5-block universal structure, length
+  budgets per model, genre templates); `lyrics-conventions.md` (lyrics-box
+  vs style-box rule on Suno, ad-libs in parens, repetition by duplication,
+  language switch at section boundary).
+- **12 paste-ready genre recipes** in `references/genre-recipes.md`:
+  hyperpop, UK drill, modern country, lo-fi hip-hop, ambient cinematic,
+  orchestral film score, K-Pop 4th gen, Afrobeats 2024, jazz fusion,
+  hardcore punk, 80s synthwave, contemporary gospel. Each with target
+  models, BPM, key signal, Style box + Lyrics box, variations.
+- **Decision tree** in `references/model-picker.md` — intent → model
+  mapping + capability matrix (rows: models; columns: Vocals / Stems /
+  Max length / Brackets / Stacking / Voice clone / Cover/Remix / API /
+  Open weights / Languages).
+- **SKILL.md modes**: `--model` (14 model keys), `--genre` (12 recipe
+  keys + free-form), `--instrumental`, `--lyrics file:<path>`, `--exclude`
+  (exclude-styles), `--cover`, `--extend`, `--variants N`, `--improve`.
+- **6 before-after calibration pairs** in `examples/before-after.md`:
+  anthemic modern pop (Suno), drill verse (Suno), long-form jazz fusion
+  (Udio), label-safe orchestral cue (Lyria 3 Pro), indie folk with
+  exclude-styles (ElevenLabs), RU pop ballad with language switch at
+  section boundary (Suno).
 
 ### Changed
-- (no notable changes captured in Unreleased — see commit log for v3.0.0)
+
+- `skills.json` — 17 → 18 skills.
+- `README.md` — added music-prompt scenario row and skills-table entry.
+
+### Notes
+
+- `music-prompt` reuses the same skill philosophy as image-prompt /
+  video-prompt: declarative SKILL.md, load-on-demand references, EN+RU
+  parity (lyrics support multilingual on Suno + ElevenLabs; Lyria limited
+  to EN/ES/FR/JP), MIT, zero external deps.
+- Some agent-flagged TODO markers remain in a few model files (Riffusion
+  API GA status, etc.) — they're explicit placeholders for next-pass
+  verification, not blockers.
+
+## [3.0.0] — 2026-05-21
+
+CI-tagged from the v2.0.0 commit (its `feat!` breaking-change marker triggered
+the auto-bumper). Content matches the v2.0.0 section below. Was the trigger
+for removing `release.yml` in v3.1.0.
 
 ## [2.0.0] — 2026-05-20
 
@@ -635,7 +703,9 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v3.1.0...HEAD
+[3.0.0]: https://github.com/Mikefluff/skills/releases/tag/v3.0.0
+[3.1.0]: https://github.com/Mikefluff/skills/releases/tag/v3.1.0
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0
@@ -655,4 +725,3 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 [1.8.1]: https://github.com/Mikefluff/skills/releases/tag/v1.8.1
 [1.9.0]: https://github.com/Mikefluff/skills/releases/tag/v1.9.0
 [1.9.1]: https://github.com/Mikefluff/skills/releases/tag/v1.9.1
-[3.0.0]: https://github.com/Mikefluff/skills/releases/tag/v3.0.0
