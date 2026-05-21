@@ -9,15 +9,14 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
-## [3.1.0] — 2026-05-21
+## [2.1.0] — 2026-05-21
 
 ### Removed — release.yml CI auto-bump workflow
 
 - `.github/workflows/release.yml` deleted along with `scripts/decide-bump.sh`
   and `scripts/bump.sh` — the conventional-commit-driven auto-bumper was
-  misfiring on additive commits (e.g. bumping v2.0.0 → v3.0.0 from a `feat!`
-  that was breaking but the next `feat!` for a new skill also major-bumped
-  to v4 unnecessarily). Releases are now manual.
+  misfiring (cut a phantom v3.0.0 off the v2.0.0 commit). Releases are now
+  manual; this entry is the proper semver-minor follow-up to v2.0.0.
 
 ### Added — new `music-prompt` skill
 
@@ -80,12 +79,6 @@ prompt-skill trio for AI generation.
 - Some agent-flagged TODO markers remain in a few model files (Riffusion
   API GA status, etc.) — they're explicit placeholders for next-pass
   verification, not blockers.
-
-## [3.0.0] — 2026-05-21
-
-CI-tagged from the v2.0.0 commit (its `feat!` breaking-change marker triggered
-the auto-bumper). Content matches the v2.0.0 section below. Was the trigger
-for removing `release.yml` in v3.1.0.
 
 ## [2.0.0] — 2026-05-20
 
@@ -703,9 +696,9 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v3.1.0...HEAD
-[3.0.0]: https://github.com/Mikefluff/skills/releases/tag/v3.0.0
-[3.1.0]: https://github.com/Mikefluff/skills/releases/tag/v3.1.0
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v2.1.0...HEAD
+[2.0.0]: https://github.com/Mikefluff/skills/releases/tag/v2.0.0
+[2.1.0]: https://github.com/Mikefluff/skills/releases/tag/v2.1.0
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0
