@@ -8,6 +8,7 @@ Background music + parameter-driven generators. Different niche from Suno/Udio �
 
 **Strengths**: free unlimited via webapp (Jan 2025 release), cover-song workflow, simple UI.
 **Weaknesses**: quality below Suno/Udio; official API on waitlist; no formal brackets or section taxonomy. <!-- TODO: confirm Riffusion API GA status -->
+**Execute via**: prompt-only — official API on waitlist.
 
 ### Syntax / Format rules
 
@@ -44,6 +45,7 @@ Lo-fi hip-hop beat, mellow and nostalgic, 80 BPM, mellow Rhodes electric piano w
 
 **Strengths**: 12K+ track library, WebRTC streaming, licensing-safe by design (Mubert owns/licenses the source content), parameter-driven generation (mood / genre / BPM / duration).
 **Weaknesses**: no vocals, no song-form output, not creative-prompt-driven — fully parameter-based.
+**Execute via**: prompt-only — parameter-driven API not yet covered in v2.2.
 
 ### Syntax / Format rules
 

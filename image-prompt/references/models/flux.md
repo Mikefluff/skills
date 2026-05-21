@@ -8,6 +8,7 @@ Photoreal-first generator family. Strong at text-in-image, hands, instruction-ba
 
 **Strengths**: 32K-token prompt context, native 4MP output, up to 10 reference images per generation; best-in-Flux character + product consistency across a multi-shot set.
 **Weaknesses**: slower per generation than Schnell or Krea; cost per image is the highest in the family.
+**Execute via**: `--execute --model flux-2-pro` (env: `BFL_API_KEY`) — direct BFL API.
 
 ### Syntax
 
@@ -44,6 +45,7 @@ A confident business person leaning on a marble countertop, sunlit Brooklyn loft
 
 **Strengths**: open weights, runs locally, same prompt grammar as Flux 2 [pro] at a lower quality ceiling.
 **Weaknesses**: noticeably softer than [pro] at 4MP; needs more guidance on lighting.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model flux-2-pro` (env: `BFL_API_KEY`) for the closed [pro] tier.
 
 ### Syntax
 
@@ -72,6 +74,7 @@ A confident business person leaning on marble countertop, sunlit Brooklyn loft k
 
 **Strengths**: "Raw mode" delivers a candid, less-AI aesthetic — grainier, more documentary; 4MP output; sharpest still-life and hand rendering at this tier.
 **Weaknesses**: less stylized than v7 Midjourney; needs explicit style tags to avoid neutral look.
+**Execute via**: `--execute --model flux-1-1-pro` (env: `BFL_API_KEY`) — direct BFL API.
 
 ### Syntax
 
@@ -101,6 +104,7 @@ A confident business person leaning on marble countertop, sunlit Brooklyn loft k
 
 **Strengths**: instruction-based edit on an input image — change ONLY what you describe, preserve the rest. Best-in-class for "swap shirt color, keep face and pose."
 **Weaknesses**: not a from-scratch generator — needs an input image.
+**Execute via**: `--execute --model flux-kontext` (env: `BFL_API_KEY`) — direct BFL API for [pro] / [max]; [dev] is open-weights self-host.
 
 ### Syntax
 
@@ -134,6 +138,7 @@ Change the linen shirt from white to deep navy. Keep face, pose, lighting, and m
 
 **Strengths**: fastest in the family (~1 sec on a host GPU); free tier on most platforms; great for iteration.
 **Weaknesses**: lower fidelity than [pro] / Ultra; weaker at fine detail and text.
+**Execute via**: `--execute --model flux-schnell` (env: `BFL_API_KEY`) — direct BFL API.
 
 ### Syntax
 
@@ -162,6 +167,7 @@ A confident business person leaning on marble countertop, sunlit Brooklyn loft k
 
 **Strengths**: tuned for the "no AI look" aesthetic — film grain, lens bloom, imperfect skin, slight color cast; the most photoreal-looking Flux for portraits and lifestyle.
 **Weaknesses**: leans documentary — bad fit for clean product / studio renders.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model flux-1-1-pro` (env: `BFL_API_KEY`) for closed BFL tier.
 
 ### Syntax
 

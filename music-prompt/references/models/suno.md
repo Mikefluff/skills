@@ -8,6 +8,7 @@ The headline music model. v5.5 is GA, v4.5 is the free-tier fallback.
 
 **Strengths**: deepest tag taxonomy + community corpus, 12-stem WAV export (Pro+), Voices (clone your singing voice into Personas), Custom Models (fine-tune on your catalog, Pro/Premier, up to 3), Suno Studio DAW, Replace Section inpainting, Remaster, Cover.
 **Weaknesses**: free tier locked to v4.5; credit-based pricing; >8 stacked tags dilute; artist-name prompts get scrubbed.
+**Execute via**: `--execute --model suno-v5-5` (env: `SUNO_API_KEY` + `SUNO_API_ENABLED=1`) — Suno API.
 
 GA March 27 2026. Lineage: chirp-crow.
 

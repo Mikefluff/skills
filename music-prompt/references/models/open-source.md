@@ -8,6 +8,7 @@ Self-hostable + free-tier options. MusicGen for melody-conditioned instrumental,
 
 **Strengths**: open weights (Apache 2.0), runs locally, melody conditioning via chromagram, 50 kHz output (2025 update), multilingual melody input.
 **Weaknesses**: ~30s native (extendable but coherence drops), no singing vocals.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model replicate-music --replicate-model meta/musicgen` (env: `REPLICATE_API_TOKEN`) — default model in the replicate-music adapter.
 
 ### Syntax / Format rules
 
@@ -52,6 +53,7 @@ duration: 30
 
 **Strengths**: open weights (~3B params, released 2025), strong on Chinese vocals + multilingual EN/ZH, fast inference.
 **Weaknesses**: smaller English community, documentation mostly in Chinese, limited structure-tag taxonomy.
+**Execute via**: prompt-only — open weights, self-host. No hosted mirror in v2.2.
 
 ### Syntax / Format rules
 
@@ -118,6 +120,7 @@ or if I dreamt it all alone
 
 **Strengths**: stems output (Vocals / Drums / Bass / Instrumental), word-level lyric alignment, melody conditioning, multilingual (EN / ES / FR / DE).
 **Weaknesses**: 60-80s extensions per call (multi-call chaining needed for full songs), smaller tag corpus, closed model (paid but generous free tier).
+**Execute via**: prompt-only — set `SONAUTO_API_KEY` and call direct HTTP for now; no native adapter in v2.2.
 
 ### Syntax / Format rules
 

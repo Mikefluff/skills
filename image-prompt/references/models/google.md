@@ -8,6 +8,7 @@ Imagen 4 family for strict-adherence stills; Nano Banana Pro (= Gemini 3 Pro Ima
 
 **Strengths**: strict prompt adherence; 2K native output; top-class in-image text rendering (signs, posters, packaging copy); clean photoreal default.
 **Weaknesses**: less "artistic" than Midjourney by default; no parameter flags — natural language only.
+**Execute via**: `--execute --model imagen-4` (env: `GEMINI_API_KEY`) — Gemini / Vertex AI API.
 
 ### Syntax
 
@@ -38,6 +39,7 @@ A confident business person leaning on a marble countertop in a sunlit Brooklyn 
 
 **Strengths**: same grammar as Imagen 4 at higher fidelity, better detail in faces and fabric.
 **Weaknesses**: highest cost in the family.
+**Execute via**: `--execute --model imagen-4-ultra` (env: `GEMINI_API_KEY`) — Gemini / Vertex AI API.
 
 ### Syntax
 
@@ -66,6 +68,7 @@ Same as Imagen 4.
 
 **Strengths**: fastest in the family; cheap; good enough for moodboarding.
 **Weaknesses**: visibly softer than Imagen 4 / Ultra; weaker text rendering.
+**Execute via**: `--execute --model imagen-4-fast` (env: `GEMINI_API_KEY`) — Gemini / Vertex AI API.
 
 ### Syntax
 
@@ -93,6 +96,7 @@ A confident business person leaning on marble countertop, sunlit Brooklyn loft k
 
 **Strengths**: 4K output; multi-person consistency up to 5 faces; up to 14 input reference images; "thinking mode" that plans the composition; web-grounded (can pull facts into infographics); strongest for slides, diagrams, infographics; respects verbatim camera / lighting / DOF / color-grading vocabulary.
 **Weaknesses**: lives inside Gemini chat — automation needs the Gemini API, not a one-shot endpoint.
+**Execute via**: `--execute --model nano-banana-pro` (env: `GEMINI_API_KEY`) — Gemini API.
 
 ### Syntax
 

@@ -151,6 +151,15 @@ Modes: `first-touch`, `follow-up`, `intro-request` (produces both the email to t
 
 Targets supported: `midjourney-v6`, `dalle-3`, `flux-pro`, `nano-banana`, `sdxl`. Default style is photorealistic; `--style illustration` / `editorial` / `cinematic` overrides. Lighting and camera vocabulary live in `image-prompt/references/`.
 
+**Execute via API** (v2.2+, optional). When an API key is set in env, add `--execute` to actually generate the image and save it:
+
+```
+/image-prompt a confident founder leaning on marble countertop --model gpt-image-2 --execute
+/image-prompt minimalist product shot --model imagen-4-ultra --execute --yes
+```
+
+Asset lands in `./generated/image/`. Cost confirmation prompts for anything above $0.10 unless `--yes`. Missing key → falls back to prompt-only. Setup: `pip install -r common/runners/requirements.txt` + export `OPENAI_API_KEY` / `GEMINI_API_KEY` / `BFL_API_KEY` / `FAL_KEY` / `REPLICATE_API_TOKEN` / `IDEOGRAM_API_KEY`. Full provider matrix in `image-prompt/references/execute.md`.
+
 ---
 
 ### "I want to write an AI video prompt" {#i-want-to-write-an-ai-video-prompt}
@@ -164,6 +173,16 @@ Targets supported: `midjourney-v6`, `dalle-3`, `flux-pro`, `nano-banana`, `sdxl`
 ```
 
 Targets: `kling`, `veo`, `sora`, `runway`, `pika`, `hailuo`, `luma`. Each parses prompts differently — Kling needs explicit temporal markers `First [0-2s]: ... Then [2-5s]: ...`; Sora handles narrative prose; Runway prefers shorter prompts. Pacing modes (`narrative`, `action`, `comedy`, `documentary`, `timelapse`) adjust camera energy rules.
+
+**Execute via API** (v2.2+, optional). Add `--execute` to call the video API and save an MP4. Video gens are long-running — the runner polls and prints progress. ALWAYS confirms cost unless `--yes`:
+
+```
+/video-prompt POV first-person kiteboarder --model veo-3-1-fast --duration 8 --execute
+/video-prompt animate this still --model kling-3 --image-url ./still.jpg --execute --yes
+/video-prompt add snowfall to dusk --model aleph --video-url ./clip.mp4 --execute
+```
+
+Setup adds `RUNWAY_API_KEY`, `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET`, `OPENAI_SORA_API_ENABLED=1` (once Sora API is available). Full matrix in `video-prompt/references/execute.md`.
 
 ---
 
@@ -180,6 +199,16 @@ Targets: `kling`, `veo`, `sora`, `runway`, `pika`, `hailuo`, `luma`. Each parses
 ```
 
 Targets: `suno-v5-5`, `udio-v4`, `lyria-3-pro`, `eleven-music`, `stable-audio-2-5`, `musicgen`, `tencent-song-generation`, `sonauto-v2`, `riffusion`, `mubert`. Genre recipes (`hyperpop`, `drill`, `country`, `lo-fi`, `ambient`, `orchestral`, `k-pop`, `afrobeats`, `jazz-fusion`, `hardcore-punk`, `synthwave`, `gospel`) live in `music-prompt/references/genre-recipes.md`. For Suno: brackets go in the Lyrics box ONLY; the Style of Music box accepts natural language only.
+
+**Execute via API** (v2.2+, optional). Suno's two-box workflow maps to `--prompt` (style box) + `--lyrics-file` (lyrics box):
+
+```
+/music-prompt anthemic modern pop chorus --model suno-v5-5 --execute
+/music-prompt label-safe orchestral cue --model lyria-3-pro --duration 1.5 --execute --yes
+/music-prompt indie folk ballad --model eleven-music --execute
+```
+
+Setup adds `SUNO_API_KEY` + `SUNO_API_ENABLED=1`, `ELEVENLABS_API_KEY`, `LYRIA_API_ENABLED=1`. Full matrix in `music-prompt/references/execute.md`.
 
 ---
 

@@ -8,6 +8,7 @@ Models with native synchronized audio (dialogue + SFX + ambient) generated in on
 
 **Strengths**: native synchronized audio (dialogue + SFX + ambience) in a single pass, 4K, ~120ms lip-sync accuracy, scene-extend, reference-image conditioning, T2V + I2V.
 **Weaknesses**: shorter base clip than open-source rivals; premium pricing on full tier.
+**Execute via**: `--execute --model veo-3-1` / `veo-3-1-fast` (env: `GEMINI_API_KEY`) — Gemini / Vertex AI API.
 
 Released Oct 2025. 4K rolled out Jan 2026. Pricing (May 2026, Vertex / Gemini API): Veo 3.1 Standard ~$0.40/sec, Veo 3.1 Fast ~$0.15/sec, Veo 3.1 Light ~$0.05/sec. Max native clip = **8s** (4s / 6s / 8s options); Scene Extend chains in 7-second hops, up to 20 hops, total ≤148s. Sources: [veo3gen pricing](https://www.veo3gen.app/blog/veo-3-1-pricing-plans), [aifreeapi extend guide](https://www.aifreeapi.com/en/posts/veo-3-extend-video-length).
 
@@ -69,6 +70,7 @@ Camera: slow dolly push-in across the table, focus locked on her hand on the ste
 
 **Strengths**: synchronized audio + dialogue, multi-shot inside one prompt, Cameos (consented identity insertion), strong physics.
 **Weaknesses**: less granular camera control than Kling; default toward "cinematic" unless specified.
+**Execute via**: `--execute --model sora-2` / `sora-2-pro` (env: `OPENAI_API_KEY` + `OPENAI_SORA_API_ENABLED=1`) — OpenAI Sora API.
 
 Pricing (May 2026): **Sora 2 base ~$0.10/sec @ 720p**; **Sora 2 Pro ~$0.30/sec @ 720p, ~$0.50/sec @ 1024p** (note: earlier ~$0.75/sec figure was a launch ceiling that has dropped). Max native clip: **Sora 2 base = 4s / 8s / 12s** options; **Sora 2 Pro = 10s / 15s / 25s** options (25s is the current ceiling). Resolution caps at **1080p** — no native 4K. Sources: [aifreeapi Sora 2 pricing](https://www.aifreeapi.com/en/posts/sora-2-api-pricing-quotas), [yingtu 4K guide](https://yingtu.ai/en/blog/can-sora-2-generate-4k-videos), [help.apiyi.com Pro vs standard](https://help.apiyi.com/en/sora-2-pro-vs-standard-comparison-en.html).
 
@@ -146,6 +148,7 @@ Camera: slow dolly push-in across the table, subtle handheld vibration, sharp fo
 
 **Strengths**: first open-weights model with native 4K + synchronized audio, 20s clips at 50fps. Distilled variant: **practical floor ~12GB VRAM** (RTX 3060 12GB / 4070 — short clips at 512-640px), **24GB sweet spot** (RTX 3090 / 4090 — 720p comfortable, ~90s render per clip on a 4090), **8GB absolute minimum** with reduced resolution + frame count. Sources: [crepal.ai VRAM guide](https://crepal.ai/blog/aivideo/blog-ltx-2-vram-requirements/), [wavespeed VRAM reality check](https://wavespeed.ai/blog/posts/blog-ltx-2-vram-requirements/).
 **Weaknesses**: newer ecosystem, fewer tutorials; identity drift on longer clips.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model fal-video --fal-model fal-ai/ltx-2` (env: `FAL_KEY`).
 
 ## Format rules
 
@@ -200,6 +203,7 @@ Camera: slow dolly push-in across the table, focus locked on her hand on the ste
 
 **Strengths**: native synchronized audio (added in 3.0 Omni), 4K @ 60fps, up to 15s clips, AI Director multi-shot (up to 6 shots in one 15s generation), multi-speaker dialogue via `<<<voice_1>>>` syntax, EN / CN / JP / KR / ES dialogue, cheapest premium tier (~$0.10/sec).
 **Weaknesses**: temporal flow REQUIRED (no flexibility on time markers); rejects vague camera direction. See full I2V grammar in [`i2v-tier.md`](i2v-tier.md) — this section covers ONLY the audio + multi-shot additions.
+**Execute via**: `--execute --model kling-3` (env: `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET`) — Kuaishou Kling API.
 
 ## Format rules (audio)
 
@@ -251,6 +255,7 @@ Camera: static medium two-shot held throughout, subtle handheld vibration, focus
 
 **Strengths**: multi-shot narrative in a single prompt (up to 6 shots, 30s total); 1080p in ~41s on hosted endpoints; real-time interactive variant (Seaweed APT2); strong character consistency across shots in one generation; available via Higgsfield Cinema Studio as a backend.
 **Weaknesses**: <!-- TODO: confirm Seedance 2.0 native audio status — community reports unclear --> audio support beyond ambient is inconsistent; English documentation thinner than Sora 2 / Kling.
+**Execute via**: prompt-only — no native ByteDance video adapter in v2.2. Workaround: `--execute --model fal-video --fal-model fal-ai/bytedance/seedance-1-0-pro` (env: `FAL_KEY`) if mirror available.
 
 ## Format rules
 

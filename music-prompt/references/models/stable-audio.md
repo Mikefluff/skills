@@ -8,6 +8,7 @@ Stability AI's audio family. Strong on sound design and instrumental, weak on vo
 
 **Strengths**: enterprise-grade sound design + instrumental music, ARC post-training (only 8 inference steps — very fast), audio-to-audio supported, multi-part composition (intro / development / outro).
 **Weaknesses**: 3 min hard cap; weak at vocals (treat as composition/production tool, not a song generator); not open-weights (the Open / Open Small variants are).
+**Execute via**: prompt-only — no native Stable Audio adapter in v2.2. Workaround: `--execute --model replicate-music --replicate-model stability-ai/stable-audio-2-5` (env: `REPLICATE_API_TOKEN`).
 
 Released September 2025.
 
@@ -54,6 +55,8 @@ Structure: 12-second intro with bass and pad only, development at 0:12 introduce
 ---
 
 ## Stable Audio Open / Open Small
+
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model replicate-music --replicate-model stability-ai/stable-audio-2-5` (env: `REPLICATE_API_TOKEN`) for the closed 2.5 tier.
 
 Open-weights variants (released 2024-2025).
 

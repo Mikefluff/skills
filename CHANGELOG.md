@@ -9,6 +9,95 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-05-21
+
+### Added — optional execution layer for image-prompt / video-prompt / music-prompt
+
+If the relevant API key is set in env, the three prompt skills can now actually
+call the vendor and save a real PNG / MP4 / MP3 — not just produce prompt text.
+If keys are missing the skills stay PROMPT-ONLY, exactly as in v2.1.
+
+- **`common/runners/`** — new Python package shipped alongside the skills.
+  Provider abstraction (ABC) + 31 registered providers across 14 modules
+  covering 10 vendors: OpenAI (gpt-image-2, Sora 2 / Sora 2 Pro, gpt-4o-mini-tts),
+  Google (Imagen 4 / Ultra / Fast, Nano Banana Pro, Veo 3.1 / Fast, Lyria 3 Pro),
+  Black Forest Labs (Flux 1.1 Pro, Flux 2 Pro, Flux Kontext, Flux Schnell),
+  Runway (Gen-4, Gen-4 Turbo, Aleph), Kuaishou (Kling 3.0 with HS256 JWT signing),
+  Ideogram (3 Turbo / Default / Quality), ElevenLabs (Music + TTS), Suno (v5.5),
+  fal.ai router (image + video + music — covers Flux/Recraft/Seedream/Kling
+  mirrors/Hunyuan/LTX-2/Wan), Replicate router (image + video + music — covers
+  SD 3.5/MusicGen/Stable Audio/many open-source models). Architecture ported
+  (and trimmed) from `/Users/mikefluff/Documents/figma/` — provider abstraction
+  + poll-with-timeout + S3-compatible object_storage_adapter — without the
+  Temporal / SurrealDB / multi-tenancy weight.
+- **`common/runners/cli/`** — three modality CLIs (`image`, `video`, `music`)
+  with consistent flags: `--model`, `--prompt` / `--prompt-file`, `--output`,
+  `--variants`, `--yes`, `--check`, `--list-providers`, `--cost-only`,
+  `--timeout`, plus modality-specific `--duration`, `--lyrics-file`,
+  `--instrumental`, `--image-url`, `--video-url`, `--size`, `--quality`,
+  `--voice`, `--fal-model`, `--replicate-model`.
+- **Per-skill entry scripts**: `image-prompt/scripts/run.py`,
+  `video-prompt/scripts/run.py`, `music-prompt/scripts/run.py` — thin
+  delegates to the shared CLI; auto-discover `common/runners/` regardless of
+  install location.
+- **Storage**: local FS (`./generated/<modality>/<timestamp>-<slug>.<ext>`)
+  always; optional S3 / DigitalOcean Spaces / Cloudflare R2 / MinIO upload
+  when `S3_BUCKET / S3_ACCESS_KEY / S3_SECRET_KEY` (and optional `S3_ENDPOINT
+  / S3_REGION / S3_PATH_PREFIX`) are set. URL printed alongside local path.
+- **Cost preview + confirmation**: static price table per provider; estimates
+  >$0.10 USD prompt for Y/N on stdin (bypass with `--yes`). Cost-only
+  inspection via `--cost-only`.
+- **Fall-back behaviour**: missing key / API failure / timeout always saves
+  the prompt to `./generated/<modality>/<timestamp>-prompt-only.txt` with a
+  one-line reason. Skill stays useful end-to-end.
+- **Gated providers**: Sora 2 / Sora 2 Pro behind `OPENAI_SORA_API_ENABLED=1`,
+  Lyria 3 Pro behind `LYRIA_API_ENABLED=1`, Suno v5.5 behind
+  `SUNO_API_ENABLED=1` — protects against accidental spend until the user
+  confirms account access.
+- **New reference files**: `image-prompt/references/execute.md`,
+  `video-prompt/references/execute.md`, `music-prompt/references/execute.md`
+  — full provider matrix + env vars + cost preview + troubleshooting + fall-
+  back behaviour per skill.
+- **Walkthrough**: `docs/walkthroughs/execute-end-to-end.md` — three worked
+  examples (gpt-image-2 image / Veo 3.1 Fast video / Suno v5.5 music) plus
+  multi-cloud output, pre-flight check, and troubleshooting.
+- **`.env.example`** at repo root — full env-var matrix with per-provider
+  comments and storage options.
+- **SKILL.md updates** in all three prompt skills: new `--execute` /
+  `--check` / `--list-providers` / `--yes` / `--output` / `--timeout` modes;
+  pipeline step "Optional Execute"; new constraints (never print keys,
+  confirm cost, fall back gracefully, default output dir); EN+RU invocation
+  hints (`execute the prompt`, «выполни промпт», «вызови модель»).
+- **Model matrix updates** — 55 new `**Execute via**:` lines across 19 model
+  files mark which models execute via a native API, which route through fal/
+  Replicate, and which stay prompt-only (no public API).
+- **install.sh** — new `install_runners()` step copies `common/runners/`
+  alongside the skills.
+- **smoke gate** — new step imports every provider module and asserts the
+  registry has ≥25 providers.
+- **CI** — `pip install -r common/runners/requirements.txt` step added so
+  the smoke import works on a fresh runner.
+
+### Changed
+
+- `skills.json` `version` → `2.2.0`. (`VERSION` likewise.)
+- README adds an "Optional API execution" section listing setup + provider
+  coverage + output behaviour.
+- `docs/USER-GUIDE.md` extends the three prompt-skill sections with
+  `--execute` examples.
+
+### Notes
+
+- Skills stay 100% backward-compatible. v2.1 prompt-only workflow is the
+  default; `--execute` is opt-in.
+- Runtime deps: `requests` always; `openai` + `google-genai` recommended for
+  the most-used vendors; `boto3` only if you opt into S3 upload. Other
+  vendors are reached via plain `requests` so no provider requires its own
+  SDK.
+- The runner does NOT implement Temporal / queues / multi-tenancy / a UI —
+  it's a single-user CLI with simple sync polling. For production multi-
+  tenant gen infrastructure, see the figma project this design borrows from.
+
 ## [2.1.0] — 2026-05-21
 
 ### Removed — release.yml CI auto-bump workflow
@@ -696,9 +785,10 @@ Historical CHANGELOG entries below (v0.3.0 — v0.4.1) are preserved as-is — t
 - `writer` ships with an offline regex linter (`writer/scripts/lint.py`) — 23 neuroslop categories, exit-code verdict.
 - Cross-skill dependency: `viral-text`, `prose-edit`, `essay-write` invoke `writer` as their final pipeline step; `style-check` routes by file path to the right rule set.
 
-[Unreleased]: https://github.com/Mikefluff/skills/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/Mikefluff/skills/compare/v2.2.0...HEAD
 [2.0.0]: https://github.com/Mikefluff/skills/releases/tag/v2.0.0
 [2.1.0]: https://github.com/Mikefluff/skills/releases/tag/v2.1.0
+[2.2.0]: https://github.com/Mikefluff/skills/releases/tag/v2.2.0
 [0.2.0]: https://github.com/Mikefluff/skills/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Mikefluff/skills/releases/tag/v0.1.0
 [0.3.0]: https://github.com/Mikefluff/skills/releases/tag/v0.3.0

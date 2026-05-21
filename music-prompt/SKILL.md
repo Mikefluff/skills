@@ -72,6 +72,8 @@ Read the request → identify subject + genre + intent (full song / instrumental
    - 1-line note: which model + recipe + key conventions applied.
    - If `--variants N` requested — N alternatives with different tag stacks or genre lean.
 
+8. **(Optional) Execute via API.** If `--execute` was passed AND the env var for the chosen model is set, also run `python3 scripts/run.py --model <model> --prompt <style-box-text> --lyrics-file <lyrics.txt>`. The runner polls the vendor and saves an MP3 to `./generated/music/`. Cost confirmation prompts (Suno / Lyria / Eleven are near or above $0.10) unless `--yes`. On any failure, fall back to prompt-only — the Style box + Lyrics box stay paste-ready. See `references/execute.md`.
+
 ## MODES
 
 - `music-prompt <topic-or-brief>` — generate default prompt (intent-routed model)
@@ -84,6 +86,11 @@ Read the request → identify subject + genre + intent (full song / instrumental
 - `music-prompt <brief> --extend` — Suno Extend or Udio extension mode; prompt continues an existing track
 - `music-prompt <brief> --variants 3` — 3 alternatives with different tag stacks
 - `music-prompt <brief> --improve` — user gives a weak prompt + describes the bad output; skill rewrites
+- `music-prompt <brief> --execute` — also call the API if env var for `--model` is set; save MP3 to `./generated/music/`
+- `music-prompt <brief> --execute --output <dir>` — custom output dir
+- `music-prompt <brief> --execute --yes` — skip cost confirmation
+- `music-prompt --check --model <slug>` — verify env + connectivity, no generation
+- `music-prompt --list-providers` — list executable providers given current env (music modality)
 
 ## REFERENCES (load on demand)
 
@@ -104,6 +111,7 @@ Read the request → identify subject + genre + intent (full song / instrumental
 | [references/models/stable-audio.md](references/models/stable-audio.md) | Stable Audio 2.5 + Open / Open Small |
 | [references/models/open-source.md](references/models/open-source.md) | MusicGen / AudioCraft + Tencent SongGeneration + Sonauto v2 |
 | [references/models/api-tools.md](references/models/api-tools.md) | Riffusion + Mubert (API-first / background music) |
+| [references/execute.md](references/execute.md) | `--execute` mode — Suno/Lyria/Eleven env vars, cost preview, two-box → CLI mapping, troubleshooting, fall-back |
 
 ## EXAMPLES
 
@@ -127,6 +135,12 @@ See [examples/before-after.md](examples/before-after.md) — 6 calibration pairs
 - **Lyria 3 Pro refuses artist-mimicry prompts.** Don't write "in the style of Hans Zimmer". Use "modern epic film score, brass swell, taiko drums" instead.
 - **Stable Audio 2.5 is weak on vocals.** Treat as composition / sound design — don't expect singing.
 - **For two-box models (Suno, Udio)**: output MUST clearly separate Style and Lyrics blocks. Don't paste them as one prompt.
+- **`--execute` is opt-in.** Default flow stays prompt-only (two-box output for Suno/Udio, single prompt for others).
+- **Never print API keys.** Mask in errors. Refer to env var names, not values.
+- **Confirm cost.** Suno / Lyria / Eleven are near or above $0.10; user must answer Y unless `--yes`.
+- **Output dir is `./generated/music/` by default.** Don't write outside it without explicit `--output`.
+- **API failure → fall back gracefully.** Save the Style box + Lyrics box (or single prompt) to `./generated/music/<timestamp>-prompt-only.txt` with reason — the user can still paste manually.
+- **Suno two-box → CLI mapping** (for `--execute`): Style box → `--prompt`; Lyrics box → `--lyrics-file <path>` or `--lyrics "..."`. `--instrumental` empties the lyrics field.
 
 ## INVOCATION HINTS
 
@@ -139,6 +153,8 @@ When the user says any of:
 - "orchestral cue", "film score cue", "trailer music"
 - "hip-hop verse / drill verse / lo-fi loop / synthwave instrumental / gospel chorus"
 - "improve this music prompt"
+- "execute the music prompt", "actually render the song", "fire the gen on Suno / Eleven / Lyria"
+- "save the track", "render the song"
 
 RU triggers:
 - «промпт для Suno / Udio / Lyria / Eleven Music / Stable Audio / MusicGen»
@@ -149,6 +165,7 @@ RU triggers:
 - «оркестровая кю / трейлер-музыка»
 - «лофай-луп / синтвейв-инстру / госпел-припев»
 - «улучши промпт для музыки»
+- «выполни music-промпт», «отрендери трек», «вызови Suno / Eleven / Lyria», «сохрани песню»
 
 The Style box and Lyrics box are usually written in English (Suno / Udio / Eleven parse EN best). Lyrics can be RU / multilingual where the model supports it (Suno + Eleven handle multilingual; Lyria limited to EN/ES/FR/JP; Udio works but less stable). Switch language at SECTION boundary, never within a line.
 

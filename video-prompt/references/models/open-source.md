@@ -8,6 +8,7 @@ Models you can run on your own hardware. Trade quality and convenience for contr
 
 **Strengths**: first open-weights with native 4K + synchronized audio, 20s clips at 50fps.
 **Weaknesses**: heavyweight VRAM for full tier; Distilled trades fidelity for consumer GPU support.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model fal-video --fal-model fal-ai/ltx-2` (env: `FAL_KEY`).
 
 ## Hardware
 
@@ -57,6 +58,7 @@ Camera: slow dolly push-in across the table, focus on her hand.
 
 **Strengths**: high-quality open-weights T2V/I2V; community ecosystem (ComfyUI nodes, LoRA support).
 **Weaknesses**: no native audio; identity drift past ~5s without reference conditioning.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model replicate-video --replicate-model tencent/hunyuan-video` (env: `REPLICATE_API_TOKEN`).
 
 ## Hardware
 
@@ -95,6 +97,7 @@ Camera: slow dolly push-in across the table, focus on her hand.
 
 **Strengths**: subject-consistent generation conditioned on image / audio / video / text inputs — multi-modal identity lock.
 **Weaknesses**: complexity ceiling per call; conditioning conflict if inputs disagree.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model replicate-video --replicate-model tencent/hunyuan-video` (env: `REPLICATE_API_TOKEN`).
 
 ## Hardware
 
@@ -143,6 +146,7 @@ Camera: slow dolly push-in, focus on her hand.
 
 **Strengths**: Mixture-of-Experts architecture, first-frame control, 15s clips. Wan 2.7 adds partial multi-shot.
 **Weaknesses**: **no native 4K** — Wan 2.2 ceiling is 720p (480p + 720p T2V/I2V); 1080p / 4K only via upscaler (Real-ESRGAN etc.). Wan 2.7 (Apr 2026) lifts the ceiling slightly with sharper controls and adds "Thinking Mode", but native generation still tops out at 1080p — true 4K is an upscaler step. Ecosystem narrower than Hunyuan.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model replicate-video --replicate-model wan-ai/wan-2.2` (env: `REPLICATE_API_TOKEN`) if mirror available.
 
 ## Hardware
 
@@ -184,6 +188,7 @@ Camera: slow dolly push-in across the table, focus on her hand.
 
 **Strengths**: 10B params, fully open-weights, decent motion for an early model.
 **Weaknesses**: 5.4s @ 30fps, 480p ceiling, ageing — superseded by Hunyuan / Wan / LTX-2.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model replicate-video --replicate-model genmoai/mochi-1` (env: `REPLICATE_API_TOKEN`).
 
 ## Hardware
 

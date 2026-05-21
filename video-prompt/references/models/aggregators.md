@@ -8,6 +8,7 @@ Single interface, multiple backend models. Useful when the killer feature is a w
 
 **Strengths**: 70+ named camera presets, stackable up to 3 moves per shot, Soul ID character lock, Start + End frame keyframing, multi-backend routing.
 **Weaknesses**: per-backend pricing inherited from underlying model; preset behaviour shifts subtly depending on which backend executes the shot.
+**Execute via**: prompt-only — no public API; UI / web only.
 
 ## What it wraps
 

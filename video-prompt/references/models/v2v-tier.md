@@ -8,6 +8,7 @@ Video-to-video: you provide existing footage, the model transforms it. ONE actio
 
 **Strengths**: most flexible V2V transformation (Add / Remove / Replace / Relight / Re-angle / Restyle / Extend), reference-image control, ~$0.18/sec.
 **Weaknesses**: max 5s per call; verb-stacking degrades output sharply.
+**Execute via**: `--execute --model aleph` (env: `RUNWAY_API_KEY`) — Runway API.
 
 ## Format rules (mandatory)
 
@@ -61,6 +62,7 @@ Scope: full duration, snowfall begins at second 0 and continues uninterrupted.
 
 **Strengths**: performance transposition — capture facial performance from a source video, apply to a generated character.
 **Weaknesses**: faces only (no full-body performance transfer); needs clear source performance.
+**Execute via**: `--execute --model act-one` (env: `RUNWAY_API_KEY`) — Runway API.
 
 ## Format rules
 
@@ -96,6 +98,7 @@ Target environment: warm tungsten candle from below, dim pendant overhead, conde
 
 **Strengths**: V2V with Start + End keyframe control, Character Reference swap on existing footage, available inside Dream Machine.
 **Weaknesses**: shorter durations than Aleph; single transformation per call. **Max input/output duration: 10s** (5s or 10s options) at 540p / 720p / 1080p tiers (Dream Machine). Ray 3.14 Modify (Jan 2026 update) adds native 1080p, 4× speed-up, improved motion consistency. Sources: [Luma Ray3 Modify user guide](https://lumalabs.ai/learning-hub/ray3-modify-user-guide), [Modify Video help](https://lumaai-help.freshdesk.com/support/solutions/articles/151000220119-how-do-i-use-modify-video-to-transform-footage-while-preserving-motion-).
+**Execute via**: prompt-only — no native Luma adapter in v2.2. Workaround: `--execute --model fal-video` if Luma model is mirrored on fal.ai (env: `FAL_KEY`); else prompt-only.
 
 ## Format rules
 
@@ -144,6 +147,7 @@ Scope: full duration.
 
 **Strengths**: cheap, fast, one function per call, clear single-purpose tools.
 **Weaknesses**: 1080p ceiling; small object scale works best; large-object swaps drift.
+**Execute via**: prompt-only — no native Pika adapter in v2.2. Workaround: `--execute --model fal-video --fal-model fal-ai/pika-text-to-video` (env: `FAL_KEY`) if mirror available.
 
 ## Format rules
 

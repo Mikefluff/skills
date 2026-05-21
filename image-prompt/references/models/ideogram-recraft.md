@@ -8,6 +8,7 @@ Brand-design specialists. Ideogram for legible typography; Recraft for vector / 
 
 **Strengths**: best legible in-image text in the industry; clean brand-design output; multi-paragraph copy stays legible in the Quality tier; character consistency via the Ideogram Character feature.
 **Weaknesses**: photoreal portraits weaker than Flux / Imagen / gpt-image-2; aesthetic less editorial than Midjourney.
+**Execute via**: `--execute --model ideogram-3-turbo` / `ideogram-3` / `ideogram-3-quality` (env: `IDEOGRAM_API_KEY`) — Ideogram API.
 
 ### Syntax
 
@@ -41,6 +42,7 @@ A confident business person leaning on marble countertop in a sunlit Brooklyn lo
 
 **Strengths**: vector-native — true SVG output for logos, icons, flat illustrations; brand-system design (palette + style lock across a set); cleanest flat-illustration model on the market.
 **Weaknesses**: not for photoreal; not for complex scenes.
+**Execute via**: prompt-only — no native Recraft adapter in v2.2. Workaround: `--execute --model fal-image --fal-model fal-ai/recraft-v3` (fal.ai mirror).
 
 ### Syntax
 

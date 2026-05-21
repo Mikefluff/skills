@@ -24,10 +24,13 @@ jobs:
       - name: install jq
         run: sudo apt-get install -y jq
 
+      - name: install runners deps (optional execution layer — imports-only check)
+        run: pip install -r common/runners/requirements.txt
+
       - name: validate frontmatter + cross-links + description quality
         run: bash scripts/validate.sh
 
-      - name: writer linter regression + fixture snapshots
+      - name: writer linter regression + fixture snapshots + runners import
         run: bash scripts/smoke.sh
 
       - name: docs consistency (skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs)

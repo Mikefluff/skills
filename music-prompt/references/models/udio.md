@@ -8,6 +8,7 @@ Coherent-long-form rival to Suno. Smaller community, cleaner licensing, longer s
 
 **Strengths**: longest coherent songs (~10 min on v4), phase-coherent Stem Separation 2.0 (Vocals / Bass / Drums / Other), label-licensed catalog (cleaner licensing posture than Suno).
 **Weaknesses**: smaller community tag corpus; downloads/stems intermittently gated during the UMG licensing transition; no formal mood/emotion tag category.
+**Execute via**: prompt-only — Developer Platform key formats vary in v2.2; use direct HTTP. Workaround: `--execute --model replicate-music` (env: `REPLICATE_API_TOKEN`) if Udio mirror appears.
 
 ### Syntax / Format rules
 

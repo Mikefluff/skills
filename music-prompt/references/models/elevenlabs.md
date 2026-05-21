@@ -8,6 +8,7 @@ The clean-licensing option. Strong vocals, fine-grained style control, unique ex
 
 **Strengths**: cleanest licensing story in the industry (training data declared safe), strong vocal realism, fine-grained style descriptors, **exclude-styles** capability (unique), multilingual lyrics.
 **Weaknesses**: no formal `|` stacking; smaller community tag corpus; less structural granularity than Suno; no formal bracketed section headers.
+**Execute via**: `--execute --model eleven-music` (env: `ELEVENLABS_API_KEY`) — ElevenLabs Music API.
 
 Launched August 2025.
 

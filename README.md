@@ -99,6 +99,51 @@ Skills compose: wrappers call `writer` internally; linters reference the same ru
 
 ---
 
+## Optional API execution (v2.2+)
+
+The `image-prompt`, `video-prompt`, and `music-prompt` skills can call vendor APIs and save real PNG / MP4 / MP3 assets when API keys are set in env. Without keys, the skills stay prompt-only — the v2.1 behaviour.
+
+Setup (one-time):
+
+```bash
+pip install -r ~/.claude/skills/common/runners/requirements.txt
+cp .env.example ~/.skills.env
+${EDITOR:-vi} ~/.skills.env                    # fill in keys you have
+set -a; source ~/.skills.env; set +a
+```
+
+Usage:
+
+```bash
+# image
+python3 ~/.claude/skills/image-prompt/scripts/run.py --list-providers
+python3 ~/.claude/skills/image-prompt/scripts/run.py --model gpt-image-2 --prompt "..."
+
+# video (cost confirmation prompts; --yes to skip)
+python3 ~/.claude/skills/video-prompt/scripts/run.py --model veo-3-1-fast --prompt "..." --duration 8
+
+# music
+python3 ~/.claude/skills/music-prompt/scripts/run.py --model suno-v5-5 --prompt "..." --lyrics-file ./lyrics.txt
+```
+
+Provider coverage:
+
+- **OpenAI**: gpt-image-2 (image), Sora 2 / Sora 2 Pro (video — gated), gpt-4o-mini-tts (audio)
+- **Google**: Imagen 4 / 4 Ultra / 4 Fast, Nano Banana Pro (image); Veo 3.1 / Fast (video); Lyria 3 Pro (music — gated)
+- **Black Forest Labs**: Flux 1.1 Pro, Flux 2 Pro, Flux Kontext, Flux Schnell
+- **Runway**: Gen-4, Gen-4 Turbo, Aleph
+- **Kuaishou**: Kling 3.0
+- **Ideogram**: Ideogram 3 Turbo / Default / Quality
+- **ElevenLabs**: Eleven Music, Eleven TTS
+- **Suno**: Suno v5.5 (gated)
+- **fal.ai + Replicate routers**: cross-vendor — Flux, Seedream, Hunyuan, LTX-2, Wan, MusicGen, Stable Audio, many open-source models accessible through one of these two routers.
+
+Output: assets land at `./generated/<modality>/<timestamp>-<model>.<ext>`. If `S3_BUCKET / S3_ACCESS_KEY / S3_SECRET_KEY` are also set, they're uploaded to your bucket (AWS S3 / DigitalOcean Spaces / Cloudflare R2 / MinIO supported) and the URL is printed alongside.
+
+Full provider matrix + cost preview + troubleshooting: see `image-prompt/references/execute.md`, `video-prompt/references/execute.md`, `music-prompt/references/execute.md`.
+
+---
+
 ## Updates
 
 Three ways, increasing in eagerness:

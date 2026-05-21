@@ -1,0 +1,17 @@
+# common/runners — minimum dependencies for the optional execution layer.
+# Skills work prompt-only without these. Install only when --execute is wanted.
+#
+# Install with:
+#   pip install -r common/runners/requirements.txt
+#
+# Or pick a subset matching the providers you actually use.
+
+# Always-needed
+requests>=2.31,<3
+
+# Vendor SDKs (optional — runners fall back to plain HTTP via `requests` if missing)
+openai>=1.50,<3       # gpt-image-2, Sora 2, gpt-4o-mini-tts
+google-genai>=1.0     # Imagen 4 / Nano Banana Pro / Lyria 3 Pro / Veo 3.1
+
+# Storage (only needed if S3_* env vars set)
+boto3>=1.35,<2

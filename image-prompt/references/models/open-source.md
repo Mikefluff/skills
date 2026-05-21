@@ -8,6 +8,7 @@ Self-hosted / open-weights generators. SD 3.5 is the current workhorse; Qwen-Ima
 
 **Strengths**: open weights, strong style range, large community + LoRA ecosystem; runs locally; commercial-friendly license.
 **Weaknesses**: default outputs less polished than Flux / Imagen; tiers `Large` / `Large Turbo` / `Medium` differ in detail and speed.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model replicate-image --replicate-model stability-ai/stable-diffusion-3.5-large` (env: `REPLICATE_API_TOKEN`).
 
 ### Critical caveat
 
@@ -47,6 +48,8 @@ text, watermark, distorted anatomy, extra fingers, blurry, low resolution, plast
 
 ## SDXL + Lightning / Turbo (legacy)
 
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model replicate-image --replicate-model stability-ai/sdxl` (env: `REPLICATE_API_TOKEN`).
+
 - Still useful for LoRA-heavy and ControlNet workflows — the ecosystem is the deepest in open-source.
 - Weight syntax `(word:1.3)` and `[word]` DOES work here, unlike SD 3.5.
 - Lightning / Turbo variants are 1-4 step; great for real-time iteration.
@@ -59,6 +62,7 @@ text, watermark, distorted anatomy, extra fingers, blurry, low resolution, plast
 
 **Strengths**: Apache-2.0 license; native 2K output; paragraph-level multilingual typography — best in class for Chinese + English text in the same image; 1k-token instructions handled without truncation.
 **Weaknesses**: photoreal portraits weaker than Flux / Imagen / gpt-image-2; community LoRAs scarce.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model fal-image --fal-model fal-ai/qwen-image` (env: `FAL_KEY`) if mirror is available.
 
 ### Syntax
 
@@ -91,6 +95,7 @@ In-image text: top in bold serif reads "OPEN KITCHEN", below in Chinese reads "�
 
 **Strengths**: MIT license; pixel-native architecture (no VAE — sharper detail at high resolution); 2048×2048 native; unified gen + edit + personalization in one model; ranked #8 on Artificial Analysis Arena at release.
 **Weaknesses**: newest in the lineup — small community, few LoRAs, few host integrations.
+**Execute via**: prompt-only — open weights, self-host. Workaround: `--execute --model fal-image --fal-model fal-ai/hidream-o1-image/dev` (env: `FAL_KEY`).
 
 ### Syntax
 

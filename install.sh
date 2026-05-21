@@ -218,6 +218,25 @@ install_shared_refs() {
   ok "installed shared references → $dst"
 }
 
+install_runners() {
+  # Optional execution layer — Python package called from per-skill scripts/run.py
+  # when --execute is passed. No-op if the user never sets API keys.
+  local src="$SRC_DIR/common/runners"
+  local dst="$PREFIX/common/runners"
+  if [ ! -d "$src" ]; then
+    note "no common/runners/ in source — skipping runners install"
+    return
+  fi
+  if [ -d "$dst" ] && [ "$FORCE_UPDATE" != "true" ]; then
+    note "common/runners/ already present (use --update to overwrite)"
+    return
+  fi
+  run mkdir -p "$PREFIX/common"
+  [ -d "$dst" ] && run rm -rf "$dst"
+  run cp -R "$src" "$dst"
+  ok "installed runners → $dst (install deps: pip install -r $dst/requirements.txt)"
+}
+
 write_install_marker() {
   local marker="$PREFIX/.skills-collection.json"
   local payload
@@ -447,6 +466,7 @@ main() {
       done
 
       install_shared_refs
+      install_runners
 
       if [ "$FORCE_UPDATE" = "true" ] && [ "$PRUNE" = "true" ]; then
         prune_removed

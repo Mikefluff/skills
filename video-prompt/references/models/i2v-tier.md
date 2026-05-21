@@ -8,6 +8,7 @@ Image-to-video: you provide a still, the model animates it. CRITICAL — the sou
 
 **Strengths**: cheap premium tier (~$0.10/sec), top-tier motion physics (cloth, hair, water), **native 4K @ 60fps**, **up to 15s** clips, **native synchronized audio** (Omni variant), **AI Director multi-shot** (up to 6 shots in one 15s generation), **multi-speaker dialogue** via `<<<voice_1>>>` syntax. Supports EN / CN / JP / KR / ES dialogue.
 **Weaknesses**: rejects vague camera direction; demands explicit temporal flow.
+**Execute via**: `--execute --model kling-3` (env: `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET`) — Kuaishou Kling API.
 
 **Multi-shot Director note**: Kling 3.0 has Auto mode (model plans shots) and Custom mode (you specify per-shot duration + framing + content). Multi-speaker dialogue uses `Character <<<voice_1>>> said, "line"` syntax. See [kling.ai blog — Omni native lip-sync guide](https://kling.ai/blog/kling-video-3-omni-native-lip-sync-audio-guide).
 
@@ -58,6 +59,7 @@ Camera: slow dolly push-in across the table, subtle handheld vibration, focus lo
 
 **Strengths**: 4 reference images per scene for multi-element identity (character + outfit + prop + location).
 **Weaknesses**: same format demands as Kling 3.0; identity drift if labels collide.
+**Execute via**: `--execute --model kling-3` (env: `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET`) — Kuaishou Kling API (Elements via same endpoint).
 
 ## Format rules
 
@@ -109,6 +111,7 @@ Camera: slow dolly push-in across [REF_D], focus on her hand.
 
 **Strengths**: dedicated camera-control tier — pairs cleanly with named cinematic verbs.
 **Weaknesses**: more expensive than Kling 3.0; same temporal-flow demand.
+**Execute via**: `--execute --model kling-3` (env: `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET`) — Kuaishou Kling API (Master tier via same endpoint).
 
 ## Format rules
 
@@ -152,6 +155,7 @@ Texture: linen shifts as the glass meets it.
 
 **Strengths**: strongest physics for gymnastics, cloth, water, hair; 1080p; ~$0.28/clip on base tier.
 **Weaknesses**: shorter attention than Kling/Veo; dialogue scenes weaker than physics-driven scenes.
+**Execute via**: prompt-only — no native MiniMax adapter in v2.2. Workaround: `--execute --model fal-video --fal-model fal-ai/minimax/hailuo-02/pro/text-to-video` (env: `FAL_KEY`).
 
 ## Format rules
 
@@ -193,6 +197,7 @@ Camera: slow dolly push-in across the table, focus on her hand.
 
 **Strengths**: fast I2V, reliable for short action clips, reference-image support, good identity stability up to 10s.
 **Weaknesses**: less character-emotion depth than Kling/Veo; Turbo trades detail for speed.
+**Execute via**: `--execute --model gen-4` / `gen-4-turbo` (env: `RUNWAY_API_KEY`) — Runway API.
 
 ## Format rules
 
@@ -226,6 +231,7 @@ Camera: slow dolly push-in across the candle-lit table, focus on her hand.
 
 **Strengths**: cheap stylized output, 1080p, 10s clips. Bundles Pikaframes (keyframe interpolation), Pikadditions (insert objects), Pikaswaps (object replacement) — V2V details in `v2v-tier.md`.
 **Weaknesses**: weaker physics; character consistency drifts on longer clips.
+**Execute via**: prompt-only — no native Pika adapter in v2.2. Workaround: `--execute --model fal-video --fal-model fal-ai/pika-text-to-video` (env: `FAL_KEY`) if mirror available.
 
 ## Format rules
 

@@ -8,6 +8,7 @@ Aesthetic-first generator. v7 is GA, v8 in early access.
 
 **Strengths**: best aesthetic / editorial / "vibes" / brand-design output; strongest "wow" factor; refined coherence over v6.
 **Weaknesses**: text-in-image still poor; multi-subject compositions still drift; weaker at strict instruction-following than gpt-image-2 or Imagen 4.
+**Execute via**: prompt-only — no public API. Web / Discord only.
 
 ### Syntax
 
@@ -50,6 +51,8 @@ With character lock:
 ---
 
 ## Midjourney v8 (preview)
+
+**Execute via**: prompt-only — no public API. Web / Discord early-access only.
 
 - In early access at time of writing, not GA.
 - Mostly aesthetic refinement over v7; same flag system.

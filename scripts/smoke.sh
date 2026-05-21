@@ -39,8 +39,27 @@ else
 fi
 
 echo
-echo "─── 3/3 fixture snapshots ────────────────────────────────────"
+echo "─── 3/4 fixture snapshots ────────────────────────────────────"
 bash tests/run.sh
+
+echo
+echo "─── 4/4 runners import smoke ─────────────────────────────────"
+# common/runners is the optional execution layer. We don't require API keys —
+# just confirm every provider module imports cleanly and registers.
+if [ -d common/runners ]; then
+  python3 -c "
+import sys
+sys.path.insert(0, '.')
+from common.runners import config
+config.load_all_providers()
+provs = config.all_providers()
+assert len(provs) >= 25, f'expected >=25 providers, got {len(provs)}'
+print(f'  ✓ {len(provs)} providers registered ({len(config.all_providers(\"image\"))} image / {len(config.all_providers(\"video\"))} video / {len(config.all_providers(\"music\"))} music / {len(config.all_providers(\"audio\"))} audio)')
+" || { red "  ✗ runners import failed"; exit 3; }
+  green "  ✓ common/runners imports OK"
+else
+  dim "  · no common/runners — skipping (this check matters only after v2.2)"
+fi
 
 echo
 green "smoke: OK"

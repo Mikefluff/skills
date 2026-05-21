@@ -8,6 +8,7 @@ Google's label-safe music model. Field-driven, 48 kHz stereo, watermarked.
 
 **Strengths**: 48 kHz stereo, SynthID-watermarked (label-safe), longest individual sections, available across Vertex AI / Gemini API / AI Studio / Google Vids / Gemini app / ProducerAI.
 **Weaknesses**: 3 min max hard cap; lyric languages limited to EN/ES/FR/JP; no formal bracket taxonomy; refuses artist-mimicry prompts.
+**Execute via**: `--execute --model lyria-3-pro` (env: `GEMINI_API_KEY` + `LYRIA_API_ENABLED=1`) — Gemini / Vertex AI API.
 
 Released March 25 2026.
 
@@ -62,6 +63,8 @@ bpm: 78
 ---
 
 ## Music AI Sandbox / MusicFX DJ
+
+**Execute via**: prompt-only — no public API; AI Studio / labs UI only.
 
 Lyria-family DJ-style real-time tool. Mention for completeness only; not a song-writing surface.
 

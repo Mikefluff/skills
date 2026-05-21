@@ -8,6 +8,7 @@ gpt-image-2 is the active model. DALL-E 3 is retired.
 
 **Strengths**: agentic reasoning over the prompt (plans the composition before drawing); ~99% character-level text accuracy across Latin, CJK, Hindi, Bengali; up to 16 reference images; multi-turn edits with strong identity preservation.
 **Weaknesses**: slowest of the top tier; "high" quality is expensive; over-specifying visuals can fight the planner.
+**Execute via**: `--execute --model gpt-image-2` (env: `OPENAI_API_KEY`) — OpenAI Images API.
 
 ### Syntax
 
@@ -50,6 +51,8 @@ Constraints: no text, no watermarks, anatomically correct hands, portrait 4:5.
 ---
 
 ## DALL-E 3 (retired 2026-05-12)
+
+**Execute via**: prompt-only — endpoint retired. Workaround: `--execute --model gpt-image-2` (env: `OPENAI_API_KEY`).
 
 - Retired. The endpoint no longer accepts prompts.
 - Use gpt-image-2 instead — superset of DALL-E 3's capabilities.

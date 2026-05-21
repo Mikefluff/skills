@@ -80,6 +80,8 @@ Read request → identify subject + action + emotional beat → pick mode (T2V /
     - For V2V: just the single-verb instruction
     - 1-line note: model + mode + key conventions + pacing mode
 
+12. **(Optional) Execute via API.** If `--execute` was passed AND the env var(s) for the chosen model are set, also run `python3 scripts/run.py --model <model> --prompt-file <generated.txt>`. Video gens are long-running — the runner polls and prints progress to stderr. ALWAYS confirms cost (any video is over the $0.10 threshold) unless `--yes`. Result lands in `./generated/video/`. On any failure, fall back to prompt-only. See `references/execute.md`.
+
 ## MODES
 
 - `video-prompt <action> --model <name>` — generate model-specific prompt. Valid: `veo-3-1`, `veo-3-1-fast`, `sora-2`, `sora-2-pro`, `kling-3`, `kling-master`, `kling-elements`, `runway-gen-4`, `runway-gen-4-turbo`, `runway-aleph`, `runway-act-one`, `hailuo-02`, `hailuo-02-pro`, `pika-2-2`, `ray-3`, `ray-3-modify`, `ltx-2`, `hunyuan-1-5`, `hunyuan-custom`, `wan-2-2`, `seedance-1-pro`, `higgsfield`
@@ -94,6 +96,12 @@ Read request → identify subject + action + emotional beat → pick mode (T2V /
 - `video-prompt <action> --beat hook|tension|climax|breathing|resolution|setup`
 - `video-prompt <action> --pov` — first-person POV variant
 - `video-prompt <action> --variants 3` — 3 alternatives with different camera moves or pacing
+- `video-prompt <action> --execute` — also call the API if env var(s) for `--model` are set; save MP4 to `./generated/video/`
+- `video-prompt <action> --execute --output <dir>` — custom output dir
+- `video-prompt <action> --execute --yes` — skip cost confirmation
+- `video-prompt <action> --execute --timeout <seconds>` — override poll timeout (default 600s)
+- `video-prompt --check --model <slug>` — verify env + connectivity, no generation
+- `video-prompt --list-providers` — list executable providers given current env (video modality)
 
 Deprecated aliases (accepted with warning): `kling-1-6`, `kling-2`, `pika-1-5`, `pika-2-0`, `gen-3`, `gen-3-turbo`, `veo-3`, `sora`, `luma-dream`.
 
@@ -115,6 +123,7 @@ Deprecated aliases (accepted with warning): `kling-1-6`, `kling-2`, `pika-1-5`, 
 | [references/models/v2v-tier.md](references/models/v2v-tier.md) | Aleph / Act-One / Ray 3 Modify / Pika swaps-additions-frames |
 | [references/models/open-source.md](references/models/open-source.md) | LTX-2 / Hunyuan 1.5 + Custom / Wan 2.2 / Mochi 1 |
 | [references/models/aggregators.md](references/models/aggregators.md) | Higgsfield — Cinema Studio presets, Soul ID, Start+End frames |
+| [references/execute.md](references/execute.md) | `--execute` mode — provider matrix, env vars, cost preview, long-poll behaviour, troubleshooting, fall-back |
 
 ## EXAMPLES
 
@@ -136,6 +145,11 @@ See [examples/before-after.md](examples/before-after.md) — calibration pairs c
 - **Identity refs: don't re-describe locked traits.** Wardrobe / action / expression / environment change; hair / face / body type are locked by the ref.
 - **Physical realism.** A kiteboard → describe kite-line tension and edge angles, not generic "rides the wave".
 - **Props stay.** Objects in frame don't teleport. Specify "cup stays in hand", "laptop screen glow continuous".
+- **`--execute` is opt-in.** Default flow stays prompt-only.
+- **Never print API keys.** Mask in errors. Refer to env var names, not values.
+- **Confirm cost always for video.** Any video is above $0.10 threshold; user must answer Y unless `--yes`.
+- **Output dir is `./generated/video/` by default.** Don't write outside it without explicit `--output`.
+- **API failure / timeout → fall back gracefully.** Save prompt to `./generated/video/<timestamp>-prompt-only.txt` with reason. Long-running jobs may still complete server-side after a timeout — note that in the fall-back message.
 
 ## INVOCATION HINTS
 
@@ -149,6 +163,7 @@ When the user says any of:
 - "4-15 second clip of {action}"
 - "shot for TikTok / Reels / Shorts"
 - "music video shot", "beat-synced"
+- "execute the video prompt", "actually render the clip", "fire the gen", "use my Veo / Sora / Kling / Runway key"
 
 RU triggers:
 - «промпт для Veo / Sora / Kling / Runway / Pika / Hailuo / Luma / LTX / Hunyuan / Wan / Seedance / Higgsfield»
@@ -160,6 +175,7 @@ RU triggers:
 - «motion-промпт для Reels / Shorts / TikTok»
 - «4 секунды клипа с {действие}»
 - «клип под музыку», «beat-synced»
+- «выполни видео-промпт», «отрендери клип», «вызови Veo / Sora / Kling / Runway»
 
 Prompt body is usually written in English (video models parse EN much better than RU). RU dialogue lines can pass verbatim inside `Character: "..."` quotes (Veo 3.1 handles multilingual speech). RU → EN camera-vocabulary mapping lives in [`references/camera-vocabulary.md`](references/camera-vocabulary.md) (section `RU термины`).
 

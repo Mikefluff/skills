@@ -62,6 +62,8 @@ Read the request → identify subject + intent (generate / edit / multi-ref / te
    - 1-line note: which model + mode + key conventions applied
    - If `--variants N` requested — N alternatives with different style / lighting / camera
 
+8. **(Optional) Execute via API.** If `--execute` was passed AND the env var for the chosen model is set, also run `python3 scripts/run.py --model <model> --prompt-file <generated.txt>`. This calls the vendor API and saves a real PNG to `./generated/image/`. On any failure, fall back to prompt-only and print the reason. See `references/execute.md`.
+
 ## MODES
 
 - `image-prompt <topic-or-scene>` — generate default prompt (intent-routed model)
@@ -71,6 +73,11 @@ Read the request → identify subject + intent (generate / edit / multi-ref / te
 - `image-prompt <scene> --reference <path-or-url>[@<role>:<weight>]` — attach a reference. Repeatable. Roles: `character`, `style`, `palette`, `layout`. Weights 0-1. Triggers multi-ref mode.
 - `image-prompt <scene> --variants 3` — 3 alternatives with different style or lighting
 - `image-prompt <scene> --improve` — user provides a weak prompt + the bad output description; skill rewrites
+- `image-prompt <scene> --execute` — also call the API if the env var for `--model` is set; save PNG to `./generated/image/`
+- `image-prompt <scene> --execute --output <dir>` — custom output dir
+- `image-prompt <scene> --execute --yes` — skip cost confirmation
+- `image-prompt --check --model <slug>` — verify env + connectivity, no generation
+- `image-prompt --list-providers` — list executable providers given current env (image modality)
 
 ## REFERENCES (load on demand)
 
@@ -89,6 +96,7 @@ Read the request → identify subject + intent (generate / edit / multi-ref / te
 | [references/models/ideogram-recraft.md](references/models/ideogram-recraft.md) | Ideogram 3 Turbo/Default/Quality + Recraft V3 (SVG) |
 | [references/models/bytedance-seedream.md](references/models/bytedance-seedream.md) | Seedream 4.5 / 5.0 (weighted multi-ref) |
 | [references/models/open-source.md](references/models/open-source.md) | SD 3.5 + SDXL legacy + Qwen-Image 2.0 + HiDream-O1 |
+| [references/execute.md](references/execute.md) | `--execute` mode — env var matrix, provider availability check, cost preview, troubleshooting, fall-back behaviour |
 
 ## EXAMPLES
 
@@ -106,6 +114,11 @@ See [examples/before-after.md](examples/before-after.md) — calibration pairs c
 - **Specific lighting beats abstract.** "Soft directional key light from upper left" > "good lighting".
 - **Don't bury the subject.** First 12-15 words anchor the model.
 - **Kontext deviation**: in edit mode with Flux Kontext / Nano Banana Pro / gpt-image-2, the prompt is JUST the change instruction — don't restate subject / setting / style from the source image.
+- **`--execute` is opt-in.** Default flow stays prompt-only. Only run the API when the user passes `--execute`.
+- **Never print API keys.** Not in output, not in errors, not in fall-back text. Mask if you must reference them ("set $OPENAI_API_KEY", not "key starts with sk-...").
+- **Confirm cost.** Anything above $0.10 estimated must hit interactive Y/N (handled by `common/runners/cost.py`). Bypass only when user passes `--yes`.
+- **Output dir is `./generated/image/` by default.** Don't write outside it without explicit `--output`.
+- **API failure → fall back gracefully.** Save prompt to `./generated/image/<timestamp>-prompt-only.txt` with a one-line reason. Skill stays useful.
 
 ## INVOCATION HINTS
 
@@ -119,6 +132,8 @@ When the user says any of:
 - "cover image / hero image / thumbnail / illustration prompt"
 - "product shot / portrait / scene prompt"
 - "improve this image prompt"
+- "execute the prompt", "actually generate", "fire the gen", "use my OpenAI / Flux / Imagen key"
+- "save the image", "render the asset"
 
 RU triggers (use the skill when the user writes any of):
 - «промпт для Midjourney / Flux / Imagen / Nano Banana / gpt-image-2 / Ideogram / Seedream / Recraft / Qwen / HiDream / SD»
@@ -129,6 +144,8 @@ RU triggers (use the skill when the user writes any of):
 - «hero-картинка для лендинга»
 - «улучшить промпт для изображения»
 - «multi-reference композит», «комбинация рефов»
+- «выполни промпт», «сгенерируй через API», «вызови модель», «сделай реально»
+- «используй мой OpenAI / Imagen / Flux ключ», «сохрани картинку»
 
 The prompt itself is usually written in English (most models parse EN best). Only when the user explicitly asks for an RU-language prompt should the body be RU. RU terminology mapping for lighting + camera vocabulary lives in [`references/lighting-vocabulary.md`](references/lighting-vocabulary.md) (section `RU терминология`).
 

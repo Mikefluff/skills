@@ -8,6 +8,7 @@ Unified gen + edit family with weighted multi-reference support. 4K output.
 
 **Strengths**: unified gen + edit in one model; 4K output; up to 6 reference images with weighted role assignment (Character / Style / Palette / Layout); ~10× speed-up vs the original Seedream release; strong on Chinese + English typography.
 **Weaknesses**: smaller English-language community than Flux / SDXL; prompt grammar varies by host (Freepik / Wavespeed / fal expose slightly different fields).
+**Execute via**: prompt-only — no native ByteDance adapter in v2.2. Workaround: `--execute --model fal-image --fal-model fal-ai/bytedance/seedream-v4/sequential-image` (fal.ai mirror, env: `FAL_KEY`).
 
 ### Syntax
 
@@ -57,6 +58,7 @@ References: character=founder-headshot.jpg (1.0), style=editorial-moodboard.jpg 
 
 **Strengths**: extends 4.5 with up to 10 reference slots; adds web-search-grounded generation and a reasoning pre-pass (composition planning before render); same weighted-role system.
 **Weaknesses**: newer, less battle-tested; reasoning pre-pass adds latency.
+**Execute via**: prompt-only — no native ByteDance adapter in v2.2. Workaround: `--execute --model fal-image --fal-model fal-ai/bytedance/seedream-v4/sequential-image` (fal.ai mirror, env: `FAL_KEY`).
 
 ### Syntax
 
