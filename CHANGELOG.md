@@ -27,8 +27,8 @@ If keys are missing the skills stay PROMPT-ONLY, exactly as in v2.1.
   fal.ai router (image + video + music — covers Flux/Recraft/Seedream/Kling
   mirrors/Hunyuan/LTX-2/Wan), Replicate router (image + video + music — covers
   SD 3.5/MusicGen/Stable Audio/many open-source models). Architecture ported
-  (and trimmed) from `/Users/mikefluff/Documents/figma/` — provider abstraction
-  + poll-with-timeout + S3-compatible object_storage_adapter — without the
+  (and trimmed) from `/Users/mikefluff/Documents/figma/` — provider abstraction,
+  poll-with-timeout, and S3-compatible object_storage_adapter — without the
   Temporal / SurrealDB / multi-tenancy weight.
 - **`common/runners/cli/`** — three modality CLIs (`image`, `video`, `music`)
   with consistent flags: `--model`, `--prompt` / `--prompt-file`, `--output`,
