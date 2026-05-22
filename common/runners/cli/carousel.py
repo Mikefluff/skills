@@ -33,10 +33,73 @@ from decimal import Decimal
 from pathlib import Path
 
 from .. import batch as batch_mod
+from .. import carousel_prompt_builder as cpb
 from .. import config
 from .. import cost as cost_mod
 from ..errors import CostConfirmationDeclined
 from ..providers.base import Modality
+
+
+# ─── structured content → builder bridge ──────────────────────────────────────
+
+
+_CONTENT_FACTORIES = {
+    "hook": lambda c: cpb.HookContent(**c),
+    "point": lambda c: cpb.PointContent(**c),
+    "framework": lambda c: cpb.FrameworkContent(
+        framework_name=c["framework_name"],
+        boxes=[cpb.Box(**b) for b in c["boxes"]],
+        box_layout=c.get("box_layout", "grid"),
+    ),
+    "data": lambda c: cpb.DataContent(
+        data_points=[cpb.DataPoint(**d) for d in c["data_points"]],
+        source=c.get("source"),
+    ),
+    "steps": lambda c: cpb.StepsContent(
+        process_name=c["process_name"],
+        steps=[cpb.Step(**s) for s in c["steps"]],
+        direction=c.get("direction", "horizontal"),
+    ),
+    "comparison": lambda c: cpb.ComparisonContent(
+        comparison_title=c["comparison_title"],
+        left=cpb.ComparisonSide(**c["left"]),
+        right=cpb.ComparisonSide(**c["right"]),
+        divider_style=c.get("divider_style", "vertical-rule"),
+    ),
+    "quote": lambda c: cpb.QuoteContent(
+        quote=c["quote"],
+        attribution=cpb.QuoteAttribution(**c["attribution"]),
+    ),
+    "myth-vs-truth": lambda c: cpb.MythTruthContent(**c),
+    "cta": lambda c: cpb.CtaContent(**c),
+}
+
+
+def _build_prompt_from_structured(
+    entry: dict,
+    plan: dict,
+    slide_number: int,
+    total: int,
+) -> str:
+    """When a plan item has `role` + `content` instead of `prompt`, run the figma-rigor builder."""
+    role = entry["role"]
+    if role not in _CONTENT_FACTORIES:
+        raise ValueError(f"unknown role '{role}'. Valid: {sorted(_CONTENT_FACTORIES)}")
+    style_anchor = entry.get("style_anchor") or plan.get("style_anchor")
+    if not style_anchor:
+        raise ValueError("structured item requires 'style_anchor' on the item or plan root")
+    content_obj = _CONTENT_FACTORIES[role](entry["content"])
+    return cpb.build_slide_prompt(
+        style_anchor=style_anchor,
+        role=role,
+        slide_number=slide_number,
+        total_slides=total,
+        content=content_obj,
+        lang=entry.get("lang") or plan.get("lang", "en"),
+        is_last=bool(entry.get("is_last", slide_number == total)),
+        slide_marker_style=entry.get("slide_marker_style")
+            or plan.get("slide_marker_style", "arabic"),
+    )
 
 
 def _print_progress(item: batch_mod.BatchItem) -> None:
@@ -60,11 +123,21 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if not args.plan_file.is_file():
-        print(f"plan-file not found: {args.plan_file}", file=sys.stderr)
-        return 2
-
-    plan = json.loads(args.plan_file.read_text(encoding="utf-8"))
+    # Support `--plan-file -` for stdin (no intermediate file needed):
+    #   cat <<EOF | carousel-builder --plan-file - --yes
+    #     {...}
+    #   EOF
+    if str(args.plan_file) == "-":
+        raw = sys.stdin.read()
+        if not raw.strip():
+            print("plan-file '-' (stdin) is empty", file=sys.stderr)
+            return 2
+        plan = json.loads(raw)
+    else:
+        if not args.plan_file.is_file():
+            print(f"plan-file not found: {args.plan_file}", file=sys.stderr)
+            return 2
+        plan = json.loads(args.plan_file.read_text(encoding="utf-8"))
     if plan.get("schema") != "skills.carousel.plan.v1":
         print(
             f"unexpected plan schema '{plan.get('schema')}'. Expected 'skills.carousel.plan.v1'.",
@@ -82,13 +155,27 @@ def main() -> int:
         print("plan has no items", file=sys.stderr)
         return 2
 
+    total = len(raw_items)
     items: list[batch_mod.BatchItem] = []
     for entry in raw_items:
+        idx = int(entry["index"])
+        if "prompt" in entry:
+            # Legacy: prompt assembled by caller
+            prompt = str(entry["prompt"])
+        elif "role" in entry and "content" in entry:
+            # Structured: builder assembles figma-rigor prompt at execution time
+            prompt = _build_prompt_from_structured(entry, plan, idx, total)
+        else:
+            print(
+                f"item {idx} has neither 'prompt' nor 'role'+'content' — skipping",
+                file=sys.stderr,
+            )
+            continue
         items.append(
             batch_mod.BatchItem(
-                index=int(entry["index"]),
-                label=str(entry.get("label") or f"slide-{int(entry['index']):02d}"),
-                prompt=str(entry["prompt"]),
+                index=idx,
+                label=str(entry.get("label") or f"slide-{idx:02d}"),
+                prompt=prompt,
                 kwargs=dict(entry.get("kwargs") or {}),
             )
         )

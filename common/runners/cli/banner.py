@@ -56,11 +56,18 @@ def main() -> int:
     parser.add_argument("--cost-only", action="store_true")
     args = parser.parse_args()
 
-    if not args.plan_file.is_file():
-        print(f"plan-file not found: {args.plan_file}", file=sys.stderr)
-        return 2
-
-    plan = json.loads(args.plan_file.read_text(encoding="utf-8"))
+    # `--plan-file -` reads from stdin (no intermediate file needed).
+    if str(args.plan_file) == "-":
+        raw = sys.stdin.read()
+        if not raw.strip():
+            print("plan-file '-' (stdin) is empty", file=sys.stderr)
+            return 2
+        plan = json.loads(raw)
+    else:
+        if not args.plan_file.is_file():
+            print(f"plan-file not found: {args.plan_file}", file=sys.stderr)
+            return 2
+        plan = json.loads(args.plan_file.read_text(encoding="utf-8"))
     if plan.get("schema") != "skills.banner.plan.v1":
         print(f"unexpected plan schema '{plan.get('schema')}'", file=sys.stderr)
         return 2
