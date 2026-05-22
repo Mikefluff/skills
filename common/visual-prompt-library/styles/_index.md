@@ -22,8 +22,9 @@ Auto-pick matrix: [`_auto-pick.md`](_auto-pick.md). System prompt loader: [`../s
 | [nordic-minimal](nordic-minimal.md) | NORDIC MINIMAL / QUIET-PREMIUM | Premium B2B, Scandinavian-brand content, mindful-tech communication, considered editorial, quiet luxury |
 | [deconstructed-luxury-expose](deconstructed-luxury-expose.md) | DECONSTRUCTED LUXURY / EXPOSÉ | Red-flag pattern recognition, debunking, exposés of fake gurus / lifestyle-as-credential, critical content about luxury-bait sales |
 | [clinical-debunk](clinical-debunk.md) | CLINICAL DEBUNK / MISDIAGNOSIS | Exposing manipulation tactics, debunking pseudo-therapy / coaching gaslighting, diagnostic takedowns of blame-shifting language |
+| [vip-massovka](vip-massovka.md) | VIP / МАССОВКА (EXCLUSIVITY DEFACED) | Exposing fake exclusivity marketing, "продали доступ к окружению" critiques, batch-as-VIP unmasking, mass-membership marketed as elite |
 
-16 styles — 13 ported from figma's SEEDREAM_SYSTEM_PROMPT (`/Users/mikefluff/Documents/figma/app/lib/carousel/slidePrompts/systemPrompt.js`). Extend by adding more.
+17 styles — 13 ported from figma's SEEDREAM_SYSTEM_PROMPT (`/Users/mikefluff/Documents/figma/app/lib/carousel/slidePrompts/systemPrompt.js`). Extend by adding more.
 
 ## Adding a new style — quick checklist
 

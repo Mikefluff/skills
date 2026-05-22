@@ -24,6 +24,7 @@ Run through rows in order. Pick the first row whose signal terms match the topic
 | Premium B2B / Scandinavian brand / mindful tech / considered editorial / quiet luxury / design-led communication | [nordic-minimal](nordic-minimal.md) |
 | Exposé / red-flag / debunking / scam-detection / cult-of-personality / lifestyle-vs-substance / fake-guru-critique / признаки X-cult | [deconstructed-luxury-expose](deconstructed-luxury-expose.md) |
 | Clinical exposé / debunking pseudo-therapy / manipulation tactics / blame-shifting / gaslighting in coaching / fake-diagnosis / MLM-debunk / "обесценивание сложности" | [clinical-debunk](clinical-debunk.md) |
+| Fake exclusivity / "продали доступ к окружению" / batch-as-VIP / MLM buyer-chat / mass-membership as elite / "сильное окружение" critique / Like Центр / БМ-style debunk | [vip-massovka](vip-massovka.md) |
 
 ## Default fallback
 
