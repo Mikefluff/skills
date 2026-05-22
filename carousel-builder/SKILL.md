@@ -41,12 +41,15 @@ Topic / research → split content into N slides → pick style + model → asse
      - `instagram` / `tiktok` → `viral-text`
      - `linkedin` → `essay-write`
 
-2. **Split into slides** — see `references/slide-split.md`:
-   - Default 8 slides: hook → 5 points → micro-conclusion → CTA.
-   - 6-slide: hook → 3 points → conclusion → CTA.
-   - 10-slide: hook → 7 points → conclusion → CTA.
-   - 3-slide (minimal): hook → main → CTA.
-   - Each slide has a `role` field: `hook` | `point` | `data` | `quote` | `framework` | `conclusion` | `cta`.
+2. **Split into slides** — see `references/slide-roles.md` (preferred) or `references/slide-split.md` (legacy):
+   - **9 supported roles** (v2.12.0+): `hook`, `point`, `framework`, `data`, `steps`, `comparison`, `quote`, `myth-vs-truth`, `cta`. Each role has its own composition template and info-density expectation (see `references/slide-roles.md`).
+   - Default deck shapes:
+     - 3 slides: hook → point → cta
+     - 5 slides: hook → point → framework-OR-data → point → cta
+     - 6 slides: hook → point → framework → data → quote → cta
+     - 7 slides: hook → point → framework → data → quote → comparison → cta
+     - 8 slides: hook → point → framework → data → comparison → quote → steps → cta
+   - **Information discipline**: middle slides MUST be informative — use `framework` / `data` / `steps` / `comparison` / `quote` / `myth-vs-truth` roles to force real content density. A deck of all-`hook`/`point` slides is hollow and reads as "atmospheric image dump with captions".
 
 3. **Resolve style** — see `references/style-resolution.md`:
    - `--style <id>`: load from `common/style-library/carousel/<id>.md`. Use the `Style anchor (carousel)` block; if `--text-mode embedded`, use the `Style anchor (text-in-image mode)` block instead.
@@ -59,7 +62,9 @@ Topic / research → split content into N slides → pick style + model → asse
    - `--model <slug>`: override. Validate that the model is registered + env var is set.
    - ONE model for all slides. Mixing models breaks consistency.
 
-5. **Build per-slide prompts** — see `references/slide-split.md` for the composition hint per role. Each prompt:
+5. **Build per-slide prompts** — STRONGLY PREFER `common.runners.carousel_prompt_builder.build_slide_prompt()` over hand-rolling. The builder produces figma-rigor prompts that combine: (a) the style's text-in-image anchor, (b) per-role composition template from `references/slide-roles.md`, (c) static carousel elements (page indicator + swipe arrow OR end marker + slide marker), (d) anti-AI-tells closing modifiers, (e) universal rules from `common/style-library/carousel/_universal-rules.md`. Skill side only provides STRUCTURED CONTENT via the role-specific dataclasses (HookContent, FrameworkContent, DataContent, StepsContent, ComparisonContent, QuoteContent, MythTruthContent, PointContent, CtaContent). Each non-hook slide MUST carry real information (framework boxes, data points, steps, comparison columns, quote with attribution) — not just atmospheric "hook + sentence". Avoid the magazine-with-text-overlay failure mode. Legacy manual prompt assembly is supported for back-compat but produces weaker carousels.
+
+   Legacy manual format (NOT recommended — use the builder):
    ```
    <style anchor (carousel)>
 
@@ -142,7 +147,9 @@ Topic / research → split content into N slides → pick style + model → asse
 
 | File | When to load |
 |---|---|
-| [references/slide-split.md](references/slide-split.md) | Step 2 — how to split content into N slides with roles + composition rules |
+| [references/slide-roles.md](references/slide-roles.md) | Step 2 — **PRIMARY**: 9-role taxonomy with composition templates and info-density expectations per role (hook / point / framework / data / steps / comparison / quote / myth-vs-truth / cta) |
+| [common/style-library/carousel/_universal-rules.md](../common/style-library/carousel/_universal-rules.md) | Universal carousel conventions injected into every prompt by the builder: page indicators, swipe arrows, infographic grammar patterns, forbidden patterns, anti-AI-tells |
+| [references/slide-split.md](references/slide-split.md) | Legacy slide-split rules (kept for back-compat; use slide-roles.md instead) |
 | [references/style-resolution.md](references/style-resolution.md) | Step 3 — auto-pick algorithm, ref-image rules, multi-ref provider compatibility |
 | [references/model-picker.md](references/model-picker.md) | Step 4 — model auto-pick decision tree, capability matrix |
 | [references/platform-presets.md](references/platform-presets.md) | Step 8 — caption rules per platform, hashtag policy, char limits |

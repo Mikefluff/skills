@@ -9,6 +9,33 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.12.0] — 2026-05-21
+
+### Added — figma-rigor prompt builder for carousel-builder
+
+Live-testing revealed that carousels produced "atmospheric image with floating text overlay", not actual informative carousels. Root cause: per-slide prompts were assembled ad-hoc by the skill side without infographic discipline, no static carousel UI elements (page indicators / swipe arrows / end markers), and no role-driven information density. Middle slides were just hooks-with-pretty-backgrounds — the user-facing complaint was "информативности слабовато".
+
+Imported the rigor from the upstream figma/carousel-new pipeline (`SEEDREAM_SYSTEM_PROMPT` pattern) and codified it as a reusable builder.
+
+- **`common/runners/carousel_prompt_builder.py`** — Python prompt builder that assembles figma-rigor image prompts. `build_slide_prompt(style_anchor, role, slide_number, total_slides, content, lang, is_last, slide_marker_style)` returns a single dense paragraph (~800-1500 chars) combining:
+  1. Style anchor (from the chosen style's text-in-image mode block)
+  2. Role-specific composition template (one of 9 roles)
+  3. Filled content slots (all text in double-quotes for image-model literal rendering)
+  4. Static carousel UI (page indicator, swipe arrow or end marker, slide marker)
+  5. Anti-AI-tells closing modifiers (sharp text, no melted glyphs, no extra elements)
+- **Per-role dataclasses**: `HookContent`, `PointContent`, `FrameworkContent` (with `Box`), `DataContent` (with `DataPoint`), `StepsContent` (with `Step`), `ComparisonContent` (with `ComparisonSide`), `QuoteContent` (with `QuoteAttribution`), `MythTruthContent`, `CtaContent`. Each enforces info-density expectations per role.
+- **`carousel-builder/references/slide-roles.md`** — 9-role taxonomy with composition templates, content-slot contracts, info-density targets, default deck shapes per slidesCount (3/5/6/7/8/10), per-domain bias recommendations, anti-patterns. Replaces the implicit hook/point/cta tripartite default.
+- **`common/style-library/carousel/_universal-rules.md`** — universal carousel conventions injected into every prompt by the builder: page indicators (RU `"N из total"` / EN `"N of total"`), swipe arrows (`листай →` / `swipe →`), end markers (`конец` / `end`), slide markers (arabic / roman / bracketed), infographic grammar patterns (numbered lists, comparison tables, data badges, quote blocks, steps sequences, myth-vs-truth contrasts, framework grids), forbidden patterns (HEADLINE/BODY literals, hex codes, aspect ratio mentions), anti-AI-tells closing modifiers. Applies uniformly across all 24 carousel styles — no per-style duplication.
+- **`carousel-builder/SKILL.md`** — updated pipeline to STRONGLY PREFER the builder over manual prompt assembly. Explicit info-density discipline guidance: middle slides MUST use `framework` / `data` / `steps` / `comparison` / `quote` / `myth-vs-truth` roles, not just `point`.
+
+### Notes
+
+- 39 skills total (unchanged). Additive infrastructure for `carousel-builder`.
+- Existing 24 carousel style files are unchanged. The builder reads their existing "Style anchor (text-in-image mode)" block and combines with universal rules + role template. Eventual per-style `infographic_grammar` blocks may be added later for style-specific deviations from the universal patterns.
+- The builder is also useful for `reel-builder`'s shot prompts (one frame = one slide for the role taxonomy) — future v2.13.0 wiring.
+- Pattern referenced from the figma project (`/Users/mikefluff/Documents/figma/app/lib/carousel/slidePrompts/systemPrompt.js`, `app/lib/carousel/contentGenerator/orchestrator.js`).
+- Validated end-to-end with a 5-slide book promo deck (hook + framework + myth-vs-truth + quote + cta) — Framework slide rendered as actual 2×2 box infographic with 4 distinct components, Myth-vs-Truth as proper vertical split with accent divider, Quote with attribution. This is the information density that was missing in the prior implementation.
+
 ## [2.11.0] — 2026-05-21
 
 ### Added — two-pass typography for book covers
