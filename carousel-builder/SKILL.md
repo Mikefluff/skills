@@ -162,6 +162,8 @@ See [examples/before-after.md](examples/before-after.md) — 3 calibration runs:
 
 ## CONSTRAINTS
 
+- **Style anchor = VOCABULARY, not SCENE (anti-pattern).** The anchor must describe palette + treatment + typography + element vocabulary — NEVER a fixed recurring scene. Anchor like "Library reading room at dusk with leather books, brass lamp, ink wells" will render every slide as another shot of the same library — framework slide becomes "4 cards in a library", quote becomes "page in a library", killing the carousel as information sequence. Anchor like "Dark academia treatment — palette oxblood/forest-green/brass/parchment, deep chiaroscuro, paper grain, old-style serif on hand-torn parchment plates, vocabulary: leather/brass/ink/manuscript/ivy used sparingly per slide" is correct. The builder's per-role scene policy (v2.12.2+) is a safety net that strips scene-y leakage from non-hook slides, but write anchors correctly from the start. See `common/style-library/carousel/_universal-rules.md` §0 and §11.
+
 - **One style anchor across all slides.** Use the SAME provider, SAME style anchor text, SAME aspect ratio for every slide. The only thing that varies per slide is the content prompt + the role-specific composition hint. Mixing breaks the carousel feel.
 
 - **One model for the whole carousel.** Don't mix Flux 2 Pro + Ideogram 3 across slides — even with the same anchor, the model's style fingerprint differs and the carousel loses cohesion.

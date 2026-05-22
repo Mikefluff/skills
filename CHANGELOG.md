@@ -9,6 +9,23 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.12.2] — 2026-05-21
+
+### Fixed — style anchor "same scene on every slide" anti-pattern
+
+Live testing revealed that a scene-y style anchor (e.g., "Library reading room at dusk with leather books, brass lamp, ink wells") caused EVERY slide to render the same library setting — framework became "4 cards in a library", quote became "single page in a library", killing the carousel as an information sequence. The fix had to happen at two layers:
+
+- **`common/runners/carousel_prompt_builder.py`** — added per-role `_SCENE_POLICY` directive injected between the style anchor and the role layout block. Hook slides keep literal scenes (the establishing shot is valid). `framework` / `data` / `steps` / `comparison` / `myth-vs-truth` / `point` get "clean style-appropriate textured field, no literal recurring scene — content dominates". `quote` and `cta` get "clean field with AT MOST ONE small decorative element". This works as a safety net even when the user passes a scene-y anchor — the policy strips scene leakage per role.
+- **`common/style-library/carousel/_universal-rules.md`** — added §0 (style anchor = vocabulary, not scene) at the top and §11 (per-role scene policy table) at the bottom, documenting both the principle and the builder's enforcement.
+- **`common/style-library/carousel/dark-academia.md`** — rewrote both anchors (carousel + text-in-image) as vocabulary + treatment + element-list, dropping the "private library reading room at dusk" scene baking. Now reads as the model example of vocabulary-style anchor.
+- **`carousel-builder/SKILL.md`** — explicit anti-pattern constraint added to CONSTRAINTS list referencing §0 and §11.
+
+### Notes
+
+- 39 skills total (unchanged). Pure architectural fix.
+- The remaining 23 carousel style files have NOT been swept for scene-y anchors yet — but the per-role scene policy in the builder is the safety net so they'll still produce informative decks even with imperfect anchors. Incremental cleanup is a future v2.13 task.
+- Verified end-to-end with the book promo 5-slide deck: hook gets the literal scene (book + lamp), framework renders as 4 distinct parchment cards on textured field (no library), myth-vs-truth as two plates with accent divider (no library), quote as single big aged-parchment plate (no library), cta as plate + minimal corner decoration (no library). Style consistency held via palette + typography + plate vocabulary.
+
 ## [2.12.1] — 2026-05-21
 
 ### Added — structured plans + stdin support across all 9 plan-driven CLIs

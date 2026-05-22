@@ -153,6 +153,66 @@ _ANTI_AI_TELLS = (
 )
 
 
+# ─── per-role scene policy ────────────────────────────────────────────────────
+#
+# Overrides scene-y style anchors so the same anchor doesn't render an identical
+# literal scene on every slide. Style anchor describes VOCABULARY + TREATMENT +
+# PALETTE + TYPOGRAPHY — never a fixed setting. The scene per slide is chosen
+# per role: hook = literal establishing shot OK; framework/data/steps/comparison/
+# myth-vs-truth/point = clean styled background, content dominates; quote/cta =
+# minimal single decorative element OK.
+
+_SCENE_POLICY: dict[str, str] = {
+    "hook": (
+        "BACKGROUND POLICY for this slide: this is the establishing shot of the deck — "
+        "a literal scene per the visual hint is OK and welcome. Use the full style "
+        "vocabulary as a scene."
+    ),
+    "point": (
+        "BACKGROUND POLICY for this slide: a clean style-appropriate textured field "
+        "(palette + paper / leather / fabric / gradient / paint grain — whichever fits "
+        "the style). NO literal recurring scene from earlier slides. Apply the style as "
+        "PALETTE + TYPOGRAPHY + TREATMENT vocabulary, not as a fixed setting. The text "
+        "block dominates."
+    ),
+    "framework": (
+        "BACKGROUND POLICY for this slide: a clean style-appropriate textured field "
+        "(palette + texture only). NO literal scene, no recurring environment from "
+        "earlier slides. The framework cards / boxes ARE the slide — they fill the "
+        "composition. Decorative scene elements would compete with the content."
+    ),
+    "data": (
+        "BACKGROUND POLICY for this slide: a clean style-appropriate textured field. "
+        "NO literal scene. The data badges / numbers dominate the composition. "
+        "Decorative scene elements would compete with the numbers."
+    ),
+    "steps": (
+        "BACKGROUND POLICY for this slide: a clean style-appropriate textured field. "
+        "NO literal scene. The numbered step sequence dominates the composition."
+    ),
+    "comparison": (
+        "BACKGROUND POLICY for this slide: a clean style-appropriate textured field. "
+        "NO literal scene. The two-column contrast IS the slide."
+    ),
+    "quote": (
+        "BACKGROUND POLICY for this slide: a clean style-appropriate textured field "
+        "with AT MOST ONE small decorative element from the style vocabulary (e.g., a "
+        "single inkwell silhouette, a corner ornament, a thin rule, a single ivy leaf). "
+        "NO full recurring scene. The quote text dominates."
+    ),
+    "myth-vs-truth": (
+        "BACKGROUND POLICY for this slide: a clean style-appropriate textured field. "
+        "NO literal scene. The myth/reality contrast IS the slide."
+    ),
+    "cta": (
+        "BACKGROUND POLICY for this slide: a clean style-appropriate textured field "
+        "with AT MOST ONE small decorative element from the style vocabulary "
+        "(e.g., a corner ornament, a thin gold rule, a single object silhouette). "
+        "NO full recurring scene. The CTA plate dominates."
+    ),
+}
+
+
 def _page_indicator(slide_number: int, total: int, lang: str) -> str:
     """Bottom-center page indicator phrasing."""
     if lang == "ru":
@@ -367,15 +427,18 @@ def build_slide_prompt(
     layout_block = _LAYOUT_BUILDERS[role](content)
 
     parts: list[str] = []
-    # 1. Style anchor
+    # 1. Style anchor (vocabulary + treatment + palette + typography)
     parts.append(style_anchor.strip())
-    # 2. Role-specific composition
+    # 2. Per-role scene policy — overrides scene-y style anchors so non-hook slides
+    #    do not repeat the same literal setting from the anchor
+    parts.append(_SCENE_POLICY[role])
+    # 3. Role-specific composition
     parts.append(layout_block)
-    # 3. Static carousel elements
+    # 4. Static carousel elements
     parts.append(_page_indicator(slide_number, total_slides, lang) + ".")
     parts.append(_navigation_glyph(is_last, lang) + ".")
     parts.append(_slide_marker(slide_number, slide_marker_style) + ".")
-    # 4. Anti-AI-tells
+    # 5. Anti-AI-tells
     parts.append(_ANTI_AI_TELLS)
 
     return " ".join(parts)

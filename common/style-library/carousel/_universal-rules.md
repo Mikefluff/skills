@@ -11,6 +11,29 @@ Every carousel slide prompt — regardless of chosen style — must obey these r
 
 ---
 
+## 0. Style anchor = VOCABULARY, not SCENE (critical)
+
+The style anchor describes:
+
+- **Palette** — exact colors / color family
+- **Treatment** — lighting, texture, grain, medium (photograph / illustration / vector / mesh)
+- **Typography** — font family, weight, hierarchy
+- **Element vocabulary** — what kinds of objects MAY appear from this style universe (e.g., dark-academia → "leather, brass, ink, manuscripts, ivy" as VOCABULARY, not "a library reading room at dusk" as a SCENE)
+
+The style anchor MUST NOT describe a specific recurring scene/setting. If it does, every slide will render the same setting — framework slide will be "4 cards in a library", quote slide will be "single page in a library", etc. That defeats the carousel as an information sequence.
+
+The builder enforces this via per-role **scene policy** (see §11) — non-hook roles override scene-y anchors with "clean style-appropriate textured field, no literal scene". But the safer fix is to keep the anchor itself vocabulary-only from the start.
+
+**Good anchor (vocabulary):**
+> "Dark academia aesthetic — palette of oxblood leather, forest green, oxidised brass, parchment cream, deep sepia. Single warm directional light implied by raking shadows and amber highlights. Deep chiaroscuro. Paper grain + film texture. Old-style serif typography (Garamond / Caslon / Lyon Text) on hand-torn parchment plates with deep sepia italic accents. Possible vocabulary elements (use sparingly per slide): leather, brass, ink, manuscript, ivy. NOT a fixed scene."
+
+**Bad anchor (scene):**
+> "Library reading room at dusk — leather-bound books with oxblood and forest-green spines, oxidised brass desk lamp glowing softly, ink wells, manuscripts, dust motes hanging in the light shaft." (everything renders as "library again")
+
+When a slide needs a specific literal scene (almost always: hook slide, sometimes: cta slide), put it in `HookContent.visual_hint` or `CtaContent.context` per-slide — NOT in the global anchor.
+
+---
+
 ## 1. Static carousel elements (in every slide)
 
 Each slide is one frame of a carousel — the user swipes through them. Three universal UI elements must appear on every slide so the viewer reads it as a carousel:
@@ -193,10 +216,33 @@ A style file MAY override any universal rule in its own `# Style-specific overri
 
 The Python prompt builder concatenates in this order:
 
-1. Style anchor (text-in-image mode block)
-2. Slide-role composition template (from `slide-roles.md`)
-3. Content slots filled in (title + body + list items + data points etc., all quoted)
-4. Static carousel elements (page indicator + swipe/end + slide marker, style-appropriate)
-5. Anti-AI-tells closing line
+1. Style anchor (text-in-image mode block — vocabulary + treatment, see §0)
+2. **Per-role scene policy** (see §11) — overrides any scene-y leakage from the anchor
+3. Slide-role composition template (from `slide-roles.md`)
+4. Content slots filled in (title + body + list items + data points etc., all quoted)
+5. Static carousel elements (page indicator + swipe/end + slide marker, style-appropriate)
+6. Anti-AI-tells closing line
 
 The output is a single dense paragraph ≤1500 chars, ready to send to the image provider.
+
+---
+
+## 11. Per-role scene policy
+
+The builder injects a SCENE POLICY directive per role to prevent scene-y anchors from rendering identical settings across every slide:
+
+| Role | Policy |
+|---|---|
+| `hook` | Literal establishing scene per `visual_hint` is OK and welcome. |
+| `point` | Clean style-appropriate textured field. No literal recurring scene. Text block dominates. |
+| `framework` | Clean textured field. **No literal scene.** The framework cards / boxes ARE the slide. |
+| `data` | Clean textured field. No literal scene. Data badges dominate. |
+| `steps` | Clean textured field. No literal scene. Numbered sequence dominates. |
+| `comparison` | Clean textured field. No literal scene. Two-column contrast IS the slide. |
+| `quote` | Clean textured field with AT MOST ONE small decorative element (inkwell silhouette, corner ornament, ivy leaf). Quote dominates. |
+| `myth-vs-truth` | Clean textured field. No literal scene. Contrast IS the slide. |
+| `cta` | Clean textured field with AT MOST ONE small decorative element. CTA plate dominates. |
+
+This means: an anchor that bakes in "library reading room at dusk" will still render correctly across the deck — hook gets the library, framework gets clean textured field with the cards, quote gets clean field with the parchment, etc. The policy overrides the anchor's scene leakage on a per-role basis.
+
+Better: write the anchor as vocabulary in the first place (see §0). The scene policy is a safety net, not the primary tool.
