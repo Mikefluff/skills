@@ -9,6 +9,46 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.12.1] — 2026-05-21
+
+### Added — structured plans + stdin support across all 9 plan-driven CLIs
+
+Live testing of v2.12.0 surfaced two UX problems:
+
+1. Per-test Python "build script" overhead — to use `carousel_prompt_builder`, the skill side had to write a Python script that imported the builder and dumped a plan.json. Bloat: intermediate disposable file per test.
+2. Disposable plan.json files — every iteration created `plan-v2.json` / `plan-v3.json` / `lattice-plan.json` etc., a graveyard of one-off artifacts.
+
+Both fixed by extending the carousel CLI's plan format AND adding stdin support across all plan-driven CLIs.
+
+### Structured-content items (carousel-builder)
+
+`skills.carousel.plan.v1` plan items now accept TWO shapes:
+
+- Legacy: `{"index": N, "label": "...", "prompt": "<full prompt>", "kwargs": {...}}` (back-compat)
+- New: `{"index": N, "label": "...", "role": "framework", "content": {framework_name: ..., boxes: [...]}, "kwargs": {...}}`
+
+When a plan item has `role` + `content`, the CLI internally invokes `carousel_prompt_builder.build_slide_prompt()` at execution time. The plan also accepts top-level `lang` and `slide_marker_style` fields applied uniformly across slides. No Python script needed in user-land — structured content goes straight in the JSON.
+
+Routing implemented for all 9 supported roles: `hook` / `point` / `framework` / `data` / `steps` / `comparison` / `quote` / `myth-vs-truth` / `cta`. Each role wires through to its matching dataclass via `_CONTENT_FACTORIES` in `cli/carousel.py`.
+
+### `--plan-file -` reads from stdin across all 9 plan-driven CLIs
+
+`carousel`, `cover`, `flyer`, `avatar`, `thumbnail`, `banner`, `meme`, `logo`, `quote`, `reel` now all support `--plan-file -` to read the plan from stdin. Pattern:
+
+```bash
+cat <<EOF | carousel-builder --plan-file - --yes
+{...}
+EOF
+```
+
+No intermediate file needed for one-off tests / iterations. Production workflows can still use file-based plans.
+
+### Notes
+
+- 39 skills total (unchanged). Pure UX patch.
+- Combined with v2.12.0's structured-content support in carousel-builder, the full skill workflow is now: Claude assembles structured plan in conversation → heredoc → stdin → CLI builder → batch generates. Zero disposable artifacts.
+- Other plan-driven skills (cover-maker, flyer-maker, avatar-maker, etc.) get stdin support but DON'T yet have structured-content mode — they still need full per-item prompts. Adding structured shape to them is a future enhancement.
+
 ## [2.12.0] — 2026-05-21
 
 ### Added — figma-rigor prompt builder for carousel-builder
