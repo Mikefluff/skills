@@ -65,6 +65,7 @@ class FrameworkContent:
     framework_name: str                 # ≤6 words
     boxes: list[Box]                    # 2-9 entries
     box_layout: Literal["grid", "2x2", "horizontal", "vertical", "circular"] = "grid"
+    visual_hint: str | None = None      # optional — when present, overrides scene policy (character-driven decks)
 
 
 @dataclass
@@ -132,6 +133,7 @@ class CtaContent:
     cta_text: str                       # ≤8 words — the action
     context: str | None = None          # ≤15 words — reasoning
     attribution: str | None = None      # brand / author
+    visual_hint: str | None = None      # optional — when present, overrides scene policy (character-driven decks)
 
 
 SlideContent = Union[
@@ -243,21 +245,39 @@ def _slide_marker(slide_number: int, style: Literal["arabic", "roman", "brackete
 
 
 def _hook_layout(content: HookContent) -> str:
+    """Figma-rigor hook composition with multi-level typographic hierarchy."""
     parts: list[str] = []
     parts.append(
-        f'COMPOSITION: large headline upper-center on a style-appropriate underlay/plate, '
-        f'main headline: "{content.title}".'
+        "COMPOSITION (designer-grade hierarchy, not a single plate of text):"
+    )
+    parts.append(
+        f'PRIMARY HEADLINE — upper area of the canvas (top ~25-35% of frame). '
+        f'BOLD, very large (~12-18% of frame height), wrap across 2-3 lines with '
+        f'balanced line lengths and clear scale contrast. Sentence case (not all caps unless '
+        f'style anchor dictates). On a style-appropriate plate / underlay with hand-torn or '
+        f'soft edges, OR floating directly on the textured field with strong contrast. '
+        f'Exact headline text: "{content.title}".'
     )
     if content.subtitle:
         parts.append(
-            f'Immediately beneath the headline, smaller subtitle on the same plate or area: '
-            f'"{content.subtitle}".'
+            f'SUBTITLE / TAGLINE — sits on a SEPARATE smaller secondary element directly '
+            f'below the primary headline plate: a slim pill / outlined chip / italic ribbon / '
+            f'thin underline-block. Visually distinct from the headline plate (different '
+            f'background tint, smaller padding, narrower width). Smaller scale (~3-5% of frame '
+            f'height), lighter weight or italic, may use the style accent color. '
+            f'Exact subtitle text: "{content.subtitle}".'
         )
     if content.visual_hint:
-        parts.append(f'Visual context: {content.visual_hint}')
+        parts.append(
+            f'MAIN SUBJECT — fills the lower 50-65% of the canvas and visually interacts with '
+            f'the type area above (subject looks at it, gestures toward it, or is framed by it — '
+            f'never just stacked beneath in disconnected layers). Visual: {content.visual_hint}'
+        )
     parts.append(
-        "Generous negative space; this slide must read as a HOOK — sparse, sharp, "
-        "earning the swipe to the next slide. No list, no bullets, no body paragraph."
+        "DESIGN DISCIPLINE: strong scale contrast between headline and subtitle (headline 3-5x "
+        "the subtitle height). Generous negative space around the headline. No additional body "
+        "paragraph, no list, no bullets — the hook earns the swipe by being sharp + designed, "
+        "not by being informative. Type and subject feel COMPOSED together, not stacked."
     )
     return " ".join(parts)
 
@@ -276,21 +296,44 @@ def _point_layout(content: PointContent) -> str:
 
 
 def _framework_layout(content: FrameworkContent) -> str:
+    """Figma-rigor framework composition with per-card typographic hierarchy."""
     parts: list[str] = []
+    parts.append("COMPOSITION (designer-grade framework, not a row of word-chips):")
     parts.append(
-        f'COMPOSITION: small title at top: "{content.framework_name}".'
+        f'SECTION LABEL at top of frame — small all-caps eyebrow text (~3% of frame height) '
+        f'with a thin accent underline rule beneath it: "{content.framework_name}".'
     )
     layout_desc = {
-        "grid": f"{len(content.boxes)}-box grid layout centered on the frame",
-        "2x2": "2x2 quadrant matrix centered on the frame",
-        "horizontal": f"{len(content.boxes)} boxes arranged in a horizontal row",
-        "vertical": f"{len(content.boxes)} boxes stacked vertically",
-        "circular": f"{len(content.boxes)} boxes arranged around a central circle",
+        "grid": f"{len(content.boxes)}-box grid layout filling the middle 65-75% of the frame",
+        "2x2": "2x2 quadrant matrix filling the middle 65-75% of the frame, equal-sized cells with consistent gutters",
+        "horizontal": f"{len(content.boxes)} cards arranged in a horizontal row filling the middle 50% of the frame",
+        "vertical": f"{len(content.boxes)} cards stacked vertically filling the middle 75% of the frame",
+        "circular": f"{len(content.boxes)} cards arranged around a central anchor",
     }
-    parts.append(f'Layout: {layout_desc[content.box_layout]}.')
+    parts.append(f'LAYOUT: {layout_desc[content.box_layout]}. Cards have generous internal padding, slight drop shadow for depth, soft rounded corners, low-opacity fill tinted from the style palette with a 1px stroke border in a secondary accent color.')
+    parts.append(
+        'EACH CARD has internal typographic hierarchy (NOT a single word floating in a box):'
+    )
     for i, box in enumerate(content.boxes, 1):
-        parts.append(f'Box {i}: header "{box.header}", body "{box.body}".')
-    parts.append("Each box has a thin border or background tint in style-appropriate color. Visual rhythm — the framework IS the slide.")
+        parts.append(
+            f'Card {i}: top of card — bold accent-colored eyebrow / number / category label '
+            f'"{box.header}" (~3-4% of frame height, all caps or numeric). Beneath it on the same '
+            f'card — body text in neutral color "{box.body}" (~2-3% of frame height, 2-3 lines max, '
+            f'regular weight, sentence case, clear line height).'
+        )
+    parts.append(
+        "DESIGN DISCIPLINE: cards have visual weight equality (no card visually dominates). "
+        "Eyebrow text uses the style's primary accent color; body text uses neutral/ink. "
+        "The framework IS the slide — cards fill the composition. Generous margins around the "
+        "outer perimeter of the grid so the cards breathe."
+    )
+    if content.visual_hint:
+        parts.append(
+            f'MAIN SUBJECT (overrides background policy) — co-exists with the framework cards: '
+            f'{content.visual_hint} The subject occupies one side / corner of the frame while the '
+            f'cards occupy the opposite side; subject and cards visually interact (subject gestures '
+            f'toward / looks at the cards). Subject is the constant unifier across the carousel.'
+        )
     return " ".join(parts)
 
 
@@ -377,6 +420,13 @@ def _cta_layout(content: CtaContent) -> str:
         parts.append(f'Secondary context line beneath the CTA, smaller: "{content.context}".')
     if content.attribution:
         parts.append(f'Attribution somewhere in frame, small: "{content.attribution}".')
+    if content.visual_hint:
+        parts.append(
+            f'MAIN SUBJECT (overrides background policy) — co-exists with the CTA plate: '
+            f'{content.visual_hint} Subject occupies the lower 60% of the frame and visually '
+            f'connects with the CTA (gesturing toward, looking at, beckoning from). Subject '
+            f'is the constant unifier across the carousel.'
+        )
     return " ".join(parts)
 
 

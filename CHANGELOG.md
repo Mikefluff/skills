@@ -9,6 +9,31 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.12.3] — 2026-05-21
+
+### Fixed — figma-rigor composition for hook + framework + cta layouts; optional character override
+
+Live testing of character-driven promo carousels (course invitation deck) showed two composition failures:
+
+1. **Generic typography hierarchy** — hook layout produced "title + subtitle on one plate" with no scale contrast, no separate subtitle pill, no decorative element. Output read as "text in a rectangle", not as designed promo poster.
+2. **Framework excluded character** — the per-role scene policy from v2.12.2 (correctly) said "no literal scene" on framework slides for info-density carousels, but this blocked character-driven decks where the character is the constant unifier across all slides.
+
+### Upgraded layout templates (carousel_prompt_builder.py)
+
+**`_hook_layout`** — rewrote with figma-style explicit hierarchy: PRIMARY HEADLINE (upper area, bold, 12-18% of frame height, 2-3 lines with balanced wrap, sentence case, on style-appropriate plate) → SUBTITLE / TAGLINE on a SEPARATE smaller secondary element (pill / chip / italic ribbon, visually distinct from headline plate, 3-5% of frame height, accent color) → MAIN SUBJECT fills lower 50-65% of canvas and visually interacts with the type (looks at / gestures toward / framed by). Explicit design discipline: 3-5× scale contrast headline-to-subtitle, generous negative space, "type and subject feel COMPOSED together not stacked".
+
+**`_framework_layout`** — rewrote with per-card internal hierarchy: SECTION LABEL at top (small all-caps eyebrow + thin accent underline) → LAYOUT spec with explicit fill region (cards fill middle 65-75% of frame, equal-sized cells, consistent gutters, drop shadow, rounded corners, low-opacity tinted fill, 1px stroke border in accent color) → EACH CARD has bold accent-colored eyebrow/number/label + neutral body text beneath with explicit sizing (3-4% / 2-3% of frame height respectively). Explicit design discipline: visual weight equality, eyebrow in style accent / body in neutral.
+
+### Optional `visual_hint` on FrameworkContent + CtaContent
+
+Both dataclasses gained an optional `visual_hint: str | None` field. When set, the layout template injects "MAIN SUBJECT (overrides background policy)" describing how the subject co-exists with the cards / CTA plate. Used for character-driven decks where one character is the constant unifier across all slides. Scene-policy "no literal scene" is correctly overridden via content (not via global config), so info-density carousels still get clean framework slides by default.
+
+### Notes
+
+- 39 skills total (unchanged).
+- Validated with the AI Media Workshop 3-slide course-invitation deck (hook → framework with character → cta with character). All 3 slides feature the same 3D-cartoon character identity (via nano-banana-pro photo-ref) and consistent typographic design language. Framework slide reads as a real designed infographic (4 cards with eyebrow + body each), not as 4 floating word-chips.
+- Other 6 layout templates (point / data / steps / comparison / quote / myth-vs-truth) NOT yet upgraded to this figma-rigor depth — incremental v2.13 task. They work but produce less designed output.
+
 ## [2.12.2] — 2026-05-21
 
 ### Fixed — style anchor "same scene on every slide" anti-pattern
