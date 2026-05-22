@@ -59,7 +59,7 @@ Read brand + style preset + palette → pick text-strong model → assemble vari
    - Fallback: `gpt-image-2` — better for illustrated + emblem styles with subtle text
    - Override: `--model <slug>`
 
-5. **Build variant prompts** — same brief, N stochastic takes. Each prompt cues isolation, no background clutter, vector look.
+5. **Compose ONE LLM call** — load [`common/visual-prompt-library/system-prompt.md`](../common/visual-prompt-library/system-prompt.md) (shared SYSTEM_PROMPT) and `buildUserMessage(opts)` with `Mode=logo`, `N=<variants>`, brand + tagline + style preset + palette. Spawn ONE Agent. Receives JSON `{"slides":[{"number":1,"prompt":"..."}]}` — 1–3 sentence prompts cueing isolated-on-white, no background clutter, vector look. Brand name in double quotes. The N prompts share the same content brief but allow stochastic variation in execution (different geometric interpretations, different palette emphasis within the constraint).
 
 6. **Estimate cost + confirm** — inherits `SKILLS_CAROUSEL_BUDGET=1.50`.
 

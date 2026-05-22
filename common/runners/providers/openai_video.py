@@ -49,12 +49,21 @@ class _SoraBase(Provider):
         duration_seconds = int(kwargs.get("duration_seconds", self.default_duration))
         resolution = kwargs.get("resolution", self.default_resolution)
 
-        body = {
+        body: dict[str, Any] = {
             "model": self.model_id,
             "prompt": prompt,
             "duration_seconds": duration_seconds,
             "resolution": resolution,
         }
+
+        # Image-to-video — accept cross-provider aliases. The Sora 2 API
+        # documents image input via `input_reference` (URL or data URI).
+        # If your account requires multipart/form-data upload, swap this
+        # branch for the multipart variant — the gate (OPENAI_SORA_API_ENABLED)
+        # already restricts who hits this code path.
+        image_ref = kwargs.get("image_url") or kwargs.get("input_image")
+        if image_ref:
+            body["input_reference"] = image_ref
 
         try:
             resp = requests.post(

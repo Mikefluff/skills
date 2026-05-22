@@ -1,6 +1,6 @@
 # Style presets — banner-maker
 
-Picks from the carousel style library biased toward text-strong + ad-friendly anchors. 5 recommended directions.
+Local skill-specific presets biased toward text-heavy ad compositions. For broader coverage, the shared 13-style library at [`common/visual-prompt-library/styles/_index.md`](../../common/visual-prompt-library/styles/_index.md) (v2.14.1+) provides Typography genre + Composition signature + Accent text color for each named style — the LLM step pulls those fields into prompts automatically. Use the local presets below for ad-specific shortcuts; for richer style variety, pick by name from the shared library. 5 recommended directions below.
 
 ---
 

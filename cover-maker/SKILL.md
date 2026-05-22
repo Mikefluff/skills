@@ -35,14 +35,14 @@ This skill does NOT:
 
 Read metadata + medium + optional photo + style → pick aspect from medium → pick text-friendly + (if photo) multi-ref-capable model → assemble per-variant prompts with composition zones → batch execute → save PNGs.
 
-## PIPELINE
+## PIPELINE (v2.14.0+ — shared visual-prompt chain, same as carousel-builder)
 
 1. **Resolve metadata**:
    - Required: `--title`
    - Strongly recommended: `--creator` (album artist / book author / podcast host / report org)
-   - Optional: `--subtitle`, `--photo <path-or-url>`
+   - Optional: `--subtitle`, `--photo <path-or-url>`, `--brand-colors "<list>"`
 
-2. **Resolve medium** — picks aspect:
+2. **Resolve medium** — picks aspect + composition convention:
    - `--medium album` → 3000×3000 square (Spotify / Apple Music album art)
    - `--medium book` → 1600×2400 (2:3 portrait — Amazon KDP standard)
    - `--medium podcast` → 3000×3000 square (Apple Podcasts spec)
@@ -52,26 +52,49 @@ Read metadata + medium + optional photo + style → pick aspect from medium → 
    - `--medium linkedin-doc` → 1080×1080 (1:1 — LinkedIn document)
    - Custom: `--aspect WxH`
 
-3. **Resolve style** — see `references/cover-types.md`:
-   - `--style auto`: picks based on medium + content tone
-   - `--style <library-id>`: explicit from carousel library
+3. **Resolve style** — see [`common/visual-prompt-library/styles/_index.md`](../common/visual-prompt-library/styles/_index.md) (shared 13-style library):
+   - `--style auto` (default): the LLM picks from the library based on title + creator + medium + tone.
+   - `--style <name>`: explicit from the 13-style library (BIOTECH / CYBER-NOIR / BRUTALIST / VAPORWAVE / MILITARY / SCIENTIFIC / STREETWEAR / ART-DECO / BLUEPRINT / GRUNGE / GLAMOUR / NATURE / ADVENTURE).
+   - `--style custom "<desc>"`: free-text override passed verbatim.
 
-4. **Pick model**:
-   - Heavy embedded text (covers always have text) → `ideogram-3-quality` (default) or `gpt-image-2`
-   - Photo reference + identity → `nano-banana-pro`
-   - Photo reference + brand palette → `flux-2-pro`
-   - Photoreal magazine-style cover → `imagen-4-ultra`
+4. **Pick model** — see `references/model-picker.md`:
+   - Heavy embedded text (covers always have text) → `ideogram-3-quality` (default) or `gpt-image-2`.
+   - Photo reference + identity → `nano-banana-pro`.
+   - Photo reference + brand palette → `flux-2-pro`.
+   - Photoreal magazine-style cover → `imagen-4-ultra`.
 
-5. **Build per-variant prompts** — see `references/composition-zones.md`:
-   - Different mediums = different composition templates
-   - Album: title + artist centered or stacked
-   - Book: title block + author at bottom OR top, dominant visual middle
-   - Podcast: title + host name on a single bold layout
-   - Magazine: masthead at top + cover line + image dominant
+5. **Compose ONE LLM call** — load [`common/visual-prompt-library/system-prompt.md`](../common/visual-prompt-library/system-prompt.md) (the shared SYSTEM_PROMPT) and `buildUserMessage(opts)` with:
+   ```
+   Mode: cover
+   Number of images to generate (N): <variants, default 2>
+   Aspect ratio: <medium aspect>
+   Topic / theme: <title + creator context>
+   Title: "<title verbatim>"
+   Creator: "<creator verbatim>"
+   Subtitle (optional): "<subtitle verbatim>"
+   Medium: <medium>
+   Visual style: <library entry full description OR customStyle text>
+   [Optional: brand colors, photo reference flag, character description]
 
-6. **Estimate cost + confirm** — inherits `SKILLS_CAROUSEL_BUDGET=1.50`.
+   Respond with a JSON object: { "slides": [...] }
+   ```
 
-7. **Batch execute** — `common.runners.batch.run_batch()`.
+   Spawn ONE Agent (subagent_type=`general-purpose`) with `system=SYSTEM_PROMPT` and `user=<built message>`. The agent returns JSON `{"slides":[{"number":1,"prompt":"..."},...]}` — N short (1–3 sentence) cover prompts, title + creator quoted, layout language, no carousel chrome (single-image mode).
+
+   **Discipline (all enforced in the SYSTEM_PROMPT)**:
+   - ONE LLM call, not per-variant subagents.
+   - Each prompt 1–3 sentences.
+   - Title + creator + subtitle in double quotes exactly.
+   - No meta-labels (no `TITLE:` / `AUTHOR:` literals).
+   - Title-dominant composition; creator in a consistent secondary zone.
+
+   **Retry on bad output**: if malformed JSON or wrong N, re-run once with stricter reminder.
+
+6. **Assemble plan.json** — items `[{index, label, prompt, kwargs:{size, image_url}}]`. `prompt` is LLM-returned text. `image_url` points to `--photo` when provided.
+
+7. **Estimate cost + confirm** — inherits `SKILLS_CAROUSEL_BUDGET=1.50`.
+
+8. **Batch execute** — `python3 -m common.runners.cli.cover --plan-file <plan.json> --yes` (or via `scripts/run.py`).
 
 8. **Output**:
    ```
@@ -108,11 +131,14 @@ Read metadata + medium + optional photo + style → pick aspect from medium → 
 - `--aspect WxH` — custom aspect (overrides medium default)
 - `--model auto|<slug>` — image provider
 
-### Two-pass typography (v2.11.0+, recommended for `--medium book`)
+### Two-pass typography (v2.11.0 fallback — opt-in only)
 
-- `--imprint nyrb-classics|penguin-marber-grid|mit-essential-knowledge|picador-modern|faber-modernist` — design-system preset. AI generates a TEXT-FREE background (per the imprint's prompt fragment); the typography composer then overlays title + author with bundled OFL fonts (EB Garamond / Cormorant / Playfair Display / Inter / Bebas Neue / Cinzel) at the imprint's proper layout fractions, palette, and tracking. Produces designed covers, not "image-with-floating-title".
-- `--genre literary-fiction|thriller|non-fiction|academic|memoir|poetry|...` — auto-picks an imprint when not specified explicitly. Mapping defined in `common/runners/cover_imprints.py:GENRE_DEFAULT_IMPRINT`.
-- `--typeset overlay|ai` — `overlay` runs the two-pass typography composer. `ai` lets the image model render text itself (legacy mode, default for non-book mediums). Auto-defaults to `overlay` when `--medium book` AND (`--imprint` or `--genre`) are set.
+The default v2.14.0 chain is LLM-prompt-then-image (text rendered by the image model, baked into the picture — same chain as carousel-builder). For book covers where text must be pixel-perfect (publisher imprint precision, multilingual layouts the model can't render), opt in with:
+
+- `--typeset overlay` — runs the legacy two-pass: AI generates a TEXT-FREE background (per the imprint's prompt fragment) + Pillow typography composer overlays title + creator with bundled OFL fonts at the imprint's proper layout fractions.
+- `--imprint nyrb-classics|penguin-marber-grid|mit-essential-knowledge|picador-modern|faber-modernist` — design-system preset for the typography composer (only with `--typeset overlay`).
+- `--genre literary-fiction|thriller|non-fiction|academic|memoir|poetry|...` — auto-picks imprint (only with `--typeset overlay`). Mapping in `common/runners/cover_imprints.py:GENRE_DEFAULT_IMPRINT`.
+- Default for all mediums: `--typeset ai` (single-pass, LLM writes the prompt, image model renders title + creator inside the image).
 
 ### Execution
 

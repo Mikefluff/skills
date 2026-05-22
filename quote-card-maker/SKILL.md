@@ -62,7 +62,7 @@ Read quote + attribution + style → pick text-strong + clean-typography-capable
    - Default: `ideogram-3-quality` (text leader)
    - Override: `--model gpt-image-2` (when style demands a textured visual element)
 
-5. **Build per-aspect prompts** — composition reserves 60-80% for the quote, ~10-15% for attribution, optional minimal visual element (texture, geometric shape, single illustration).
+5. **Compose ONE LLM call** — load [`common/visual-prompt-library/system-prompt.md`](../common/visual-prompt-library/system-prompt.md) (shared SYSTEM_PROMPT, same as carousel-builder / cover-maker) and `buildUserMessage(opts)` with `Mode=quote-card`, `N=<aspects count>`, quote + attribution + style + aspect ratios. Spawn ONE Agent with that system + user. Receives JSON `{"slides":[{"number":1,"prompt":"..."}]}` — 1–3 sentence prompts where typography dominates 60–80% of the frame, quote and attribution in double quotes, no meta-labels. Library styles via [`common/visual-prompt-library/styles/_index.md`](../common/visual-prompt-library/styles/_index.md).
 
 6. **Estimate cost + confirm** — inherits `SKILLS_CAROUSEL_BUDGET=1.50`.
 

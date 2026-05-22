@@ -1,8 +1,10 @@
-# Imprint presets — cover-maker (v2.11.0+)
+# Imprint presets — cover-maker (v2.11.0+, opt-in fallback path under v2.14.0+)
+
+**Scope note (v2.14.0+):** the default cover-maker chain is the shared LLM-prompt → image-with-baked-text pipeline (see [`common/visual-prompt-library/system-prompt.md`](../../common/visual-prompt-library/system-prompt.md)) — the image model renders title + creator inside the picture, using the typography genre + composition signature from the chosen style library entry. The imprint presets below are the **opt-in `--typeset overlay` fallback** for cases where text must be pixel-perfect (publisher-exact tracking, complex multilingual layouts, specific OFL-font reproduction). They use real publisher design systems with bundled OFL fonts via Pillow composition.
 
 A book cover is not "an image with a title on top" — it's a **designed layout**: title placed at exact fractions of cover height, in a specific font family, at a specific weight, with a specific palette and tracking. Real publishers (NYRB Classics, Penguin, MIT Press, Picador, Faber) have rigorous design systems.
 
-The `--imprint <name>` flag encodes a real publisher design system. The pipeline becomes **two-pass**:
+The `--imprint <name>` flag (under `--typeset overlay`) encodes a real publisher design system. The pipeline becomes **two-pass**:
 
 1. AI model generates a TEXT-FREE background image (per the imprint's prompt fragment)
 2. The typography composer overlays title + author with bundled OFL fonts at the imprint's exact layout

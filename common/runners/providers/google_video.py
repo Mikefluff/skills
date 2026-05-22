@@ -12,6 +12,7 @@ from ..cost import estimate
 from ..errors import ProviderError, QuotaError
 from ..poll import poll_until
 from .base import GenerationResult, JobHandle, Provider
+from .google_image import _read_image_bytes_and_mime
 
 _VEO_MODEL_IDS: dict[str, str] = {
     "veo-3-1": "veo-3.1-generate-preview",
@@ -54,9 +55,16 @@ class _VeoProvider(Provider):
         aspect_ratio = str(kwargs.get("aspect_ratio", "16:9"))
         variants = int(kwargs.get("variants", 1) or 1)
 
+        # Optional first-frame image (image-to-video) — accept cross-provider aliases
+        image_ref = kwargs.get("image_url") or kwargs.get("input_image")
+        image_part = None
+        if image_ref:
+            image_bytes, image_mime = _read_image_bytes_and_mime(image_ref)
+            image_part = types.Image(image_bytes=image_bytes, mime_type=image_mime)
+
         try:
             client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-            operation = client.models.generate_videos(
+            gen_kwargs: dict[str, Any] = dict(
                 model=self._model_id,
                 prompt=prompt,
                 config=types.GenerateVideosConfig(
@@ -65,6 +73,9 @@ class _VeoProvider(Provider):
                     duration_seconds=str(duration_seconds),
                 ),
             )
+            if image_part is not None:
+                gen_kwargs["image"] = image_part
+            operation = client.models.generate_videos(**gen_kwargs)
         except Exception as exc:  # noqa: BLE001
             raise _wrap_error(self.name, exc) from exc
 

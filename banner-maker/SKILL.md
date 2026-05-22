@@ -68,10 +68,7 @@ Read headline + CTA + brand + style + presets → pick text-strong model → ass
    - Alt: `gpt-image-2` (better for illustrated visual element)
    - With logo reference: `nano-banana-pro` (preserves brand mark)
 
-5. **Build per-preset prompts** — see `references/composition-zones.md`:
-   - Leaderboard / mobile-banner: extreme horizontal → headline LEFT + CTA RIGHT
-   - Medium rectangle / OG: balanced → headline TOP + visual MIDDLE + CTA BOTTOM
-   - Skyscraper: vertical → headline TOP, CTA BOTTOM, visual middle (small)
+5. **Compose ONE LLM call** — load [`common/visual-prompt-library/system-prompt.md`](../common/visual-prompt-library/system-prompt.md) (shared SYSTEM_PROMPT) and `buildUserMessage(opts)` with `Mode=banner`, `N=<presets count>`, headline + CTA + brand + subhead + style + per-preset aspect ratios. Spawn ONE Agent. Receives JSON `{"slides":[{"number":1,"prompt":"..."}]}` — 1–3 sentence prompts per preset following composition-zone hints (see `references/composition-zones.md`: leaderboard/mobile horizontal → headline LEFT + CTA RIGHT; medium-rectangle/OG balanced → headline TOP + visual MIDDLE + CTA BOTTOM; skyscraper vertical → headline TOP + CTA BOTTOM). Headline + CTA + brand in double quotes. Library styles via [`common/visual-prompt-library/styles/_index.md`](../common/visual-prompt-library/styles/_index.md).
 
 6. **Estimate cost + confirm** — inherits `SKILLS_CAROUSEL_BUDGET=1.50`.
 

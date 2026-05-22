@@ -33,51 +33,43 @@ This skill does NOT:
 
 Topic / research → split content into N slides → pick style + model → assemble 8 per-slide prompts (style anchor + slide content + composition hint) → batch execute via image provider (one provider for all slides for consistency) → write slides + captions + manifest → print final paths.
 
-## PIPELINE
+## PIPELINE (v2.14.0+ — promptCarousel chain, mirrors `figma/app/lib/carousel/promptCarousel/`)
 
-1. **Resolve input source**:
-   - `--research <path>`: read the brief. Use TL;DR as hero, Key facts as slide content, Suggested angles to inform tone.
-   - `--topic "<text>"`: invoke `essay-write` (long-form) or `viral-text` (hook-driven) to produce 200-400 word source content first. Choose based on `--platform`:
-     - `instagram` / `tiktok` → `viral-text`
-     - `linkedin` → `essay-write`
+1. **Resolve input** — topic OR research brief OR finished post text:
+   - `--research <path>`: read the brief, extract TL;DR / key facts / suggested angles as the topic.
+   - `--content-file <path>`: user-supplied finished post text. PRESERVE the author's voice — direct quotes + cuts only, no paraphrasing. If the text contains `==word==` accent markers, those words become accent-color callouts on the relevant slides.
+   - `--topic "<text>"`: short topic string. Optionally invoke `viral-text` (IG/TikTok) or `essay-write` (LinkedIn) first to produce ~150-220 word post text with `==accents==` if the topic is rich enough to benefit. For pure promo decks (course invitation / product launch), topic-only is sufficient.
 
-2. **Split into slides** — see `references/slide-roles.md` (preferred) or `references/slide-split.md` (legacy):
-   - **9 supported roles** (v2.12.0+): `hook`, `point`, `framework`, `data`, `steps`, `comparison`, `quote`, `myth-vs-truth`, `cta`. Each role has its own composition template and info-density expectation (see `references/slide-roles.md`).
-   - Default deck shapes:
-     - 3 slides: hook → point → cta
-     - 5 slides: hook → point → framework-OR-data → point → cta
-     - 6 slides: hook → point → framework → data → quote → cta
-     - 7 slides: hook → point → framework → data → quote → comparison → cta
-     - 8 slides: hook → point → framework → data → comparison → quote → steps → cta
-   - **Information discipline**: middle slides MUST be informative — use `framework` / `data` / `steps` / `comparison` / `quote` / `myth-vs-truth` roles to force real content density. A deck of all-`hook`/`point` slides is hollow and reads as "atmospheric image dump with captions".
+2. **Resolve style** — see [`common/visual-prompt-library/styles/_index.md`](../common/visual-prompt-library/styles/_index.md):
+   - `--style <name>`: explicit style from the 13-name library (`BIOTECH`, `CYBER-NOIR`, `BRUTALIST`, `VAPORWAVE`, `MILITARY`, `SCIENTIFIC`, `STREETWEAR`, `ART-DECO`, `BLUEPRINT`, `GRUNGE`, `GLAMOUR`, `NATURE`, `ADVENTURE`). The library entry's full description is passed verbatim into the LLM user message.
+   - `--style custom`: user provides a `customStyle` description as a free-text override. Passed verbatim.
+   - `--style auto` (default): LLM auto-picks based on topic / tone / audience / goal — see the matrix at the bottom of `style-library.md`.
+   - `--style-ref <image>`: optional style reference image. Image-side multi-ref + the text style instruction.
+   - `--character-ref <image>`: optional character reference photo. The LLM is instructed NOT to describe face/build (the image-side reference handles identity); it describes pose/action/position only.
+   - `--brand-colors "<list>"`: optional named colors that MUST be the dominant palette in every slide.
 
-3. **Resolve style** — see `references/style-resolution.md`:
-   - `--style <id>`: load from `common/style-library/carousel/<id>.md`. Use the `Style anchor (carousel)` block; if `--text-mode embedded`, use the `Style anchor (text-in-image mode)` block instead.
-   - `--style auto`: examine topic + tone → narrow candidates to 3-5 from library → pick first, log alternatives.
-   - `--style-ref <path>`: skip library; use the user's image as multi-ref. Requires a model that supports image-ref (Nano Banana Pro / Flux Kontext / Seedream / Ideogram ref-mode).
-   - `--style auto` + `--style-ref <path>`: BOTH — library style anchor TEXT + user reference IMAGE. Provider gets both.
+3. **Pick model** — see [`references/model-picker.md`](references/model-picker.md):
+   - `--model auto` (default): nano-banana-pro (text-in-image leader + multi-ref). Alternatives: gpt-image-2 (16 refs, top text rendering), Ideogram 3 Quality (text-heavy posters), Flux 2 Pro (photo-real).
+   - One model for all slides — mixing models breaks consistency.
 
-4. **Pick model** — see `references/model-picker.md`:
-   - `--model auto`: text-heavy slide AND `--text-mode embedded` → gpt-image-2 or Ideogram 3 Quality. Photo-realistic style → Flux 2 Pro / Imagen 4 Ultra. Illustration / 3D style → Nano Banana Pro / Flux 2 Pro. Multi-ref present → Nano Banana Pro.
-   - `--model <slug>`: override. Validate that the model is registered + env var is set.
-   - ONE model for all slides. Mixing models breaks consistency.
+4. **Compose ONE LLM call** — load [`common/visual-prompt-library/system-prompt.md`](../common/visual-prompt-library/system-prompt.md) (the SYSTEM_PROMPT) and `buildUserMessage(opts)` filled with the resolved inputs. Spawn ONE Agent (subagent_type=`general-purpose`) with `system=SYSTEM_PROMPT` and `user=<built message>`. The agent returns JSON `{"slides":[{"number":1,"prompt":"..."},...]}` — N short (1–3 sentence) image prompts, text-in-quotes, layout language, carousel chrome (page indicator + swipe/end marker) appended to each.
 
-5. **Build per-slide prompts** — STRONGLY PREFER `common.runners.carousel_prompt_builder.build_slide_prompt()` over hand-rolling. The builder produces figma-rigor prompts that combine: (a) the style's text-in-image anchor, (b) per-role composition template from `references/slide-roles.md`, (c) static carousel elements (page indicator + swipe arrow OR end marker + slide marker), (d) anti-AI-tells closing modifiers, (e) universal rules from `common/style-library/carousel/_universal-rules.md`. Skill side only provides STRUCTURED CONTENT via the role-specific dataclasses (HookContent, FrameworkContent, DataContent, StepsContent, ComparisonContent, QuoteContent, MythTruthContent, PointContent, CtaContent). Each non-hook slide MUST carry real information (framework boxes, data points, steps, comparison columns, quote with attribution) — not just atmospheric "hook + sentence". Avoid the magazine-with-text-overlay failure mode. Legacy manual prompt assembly is supported for back-compat but produces weaker carousels.
+   **Discipline (all enforced in the SYSTEM_PROMPT — do NOT bypass)**:
+   - ONE LLM call, not per-slide subagents (per-slide breaks visual consistency).
+   - Each prompt 1–3 sentences. No 250-word spec-dumps with "12% frame height" / "1px stroke" — those produce magazine-with-overlay slop.
+   - Text-to-render in double quotes exactly.
+   - No meta-labels in the prompt body (no literal `HEADLINE:` / `SUBTITLE:` / `FRAMEWORK:` — they render as visible text on the image).
+   - Infographic discipline for middle slides — real numbers / real names / real steps / real cards, never atmospheric vibes + a sentence.
+   - Slide 1 = hook, last slide = CTA (full CTA phrase verbatim, no condensing).
+   - Visual consistency across slides — same palette + treatment + character.
 
-   Legacy manual format (NOT recommended — use the builder):
-   ```
-   <style anchor (carousel)>
+   **Retry on bad output**: if the agent returns malformed JSON OR fewer than N slides OR any prompt is missing carousel chrome / has forbidden literals (HEADLINE / hex codes / "Instagram"), re-run the agent ONCE with a stricter reminder appended. After 2 attempts, ship the partial result and warn the user.
 
-   <slide content prompt, 30-80 words, includes the SPECIFIC subject for this slide>
-
-   Composition: <role-specific framing>. Aspect: <4:5 for portrait | 1:1 for square | 9:16 for story>.
-
-   <if embedded text mode> Embed headline text: "<EXACT TEXT TO RENDER>" in <typography hint from style anchor>.
-   ```
+5. **Assemble plan.json** — items `[{index, label, prompt, kwargs:{size, image_url}}]`. `prompt` is the LLM-returned text verbatim. `image_url` points to the character ref photo when provided (multi-ref capable provider locks identity). Single canonical path (e.g. `/tmp/plan.json` or `./generated/carousel/<slug>/plan.json`) — overwrite each run, don't proliferate `plan-v1.json` / `plan-v2.json`.
 
 6. **Estimate cost + confirm** — sum per-slide estimates × N slides. If total > $0.10 and not `--yes`, prompt for confirmation. See `common/runners/cost.confirm_batch()`.
 
-7. **Batch execute** — `common.runners.batch.run_batch()`:
+7. **Batch execute** — `python3 -m common.runners.cli.carousel --plan-file <plan.json> --yes`:
    - Parallelism: default 3 (rate-limit safe).
    - Manifest: `./generated/carousel/<slug>/manifest.json` updated after every slide.
    - `--resume` picks up succeeded slides from the manifest, only retries failures.
@@ -147,11 +139,13 @@ Topic / research → split content into N slides → pick style + model → asse
 
 | File | When to load |
 |---|---|
-| [references/slide-roles.md](references/slide-roles.md) | Step 2 — **PRIMARY**: 9-role taxonomy with composition templates and info-density expectations per role (hook / point / framework / data / steps / comparison / quote / myth-vs-truth / cta) |
-| [common/style-library/carousel/_universal-rules.md](../common/style-library/carousel/_universal-rules.md) | Universal carousel conventions injected into every prompt by the builder: page indicators, swipe arrows, infographic grammar patterns, forbidden patterns, anti-AI-tells |
-| [references/slide-split.md](references/slide-split.md) | Legacy slide-split rules (kept for back-compat; use slide-roles.md instead) |
-| [references/style-resolution.md](references/style-resolution.md) | Step 3 — auto-pick algorithm, ref-image rules, multi-ref provider compatibility |
-| [references/model-picker.md](references/model-picker.md) | Step 4 — model auto-pick decision tree, capability matrix |
+| [common/visual-prompt-library/system-prompt.md](../common/visual-prompt-library/system-prompt.md) | Step 4 — **PRIMARY**: the shared SYSTEM_PROMPT (verbatim) + buildUserMessage shape + retry policy + invocation pattern. Used by all visual-output skills (carousel / cover / flyer / quote / meme / banner / logo). |
+| [common/visual-prompt-library/styles/_index.md](../common/visual-prompt-library/styles/_index.md) | Step 2 — 13 named visual styles + auto-pick matrix. Shared library across all visual skills. |
+| [references/slide-roles.md](references/slide-roles.md) | Optional — when briefing the LLM with substantive content per slide (framework boxes / data points / quote attribution), this file documents the 9 role-content contracts. NOT required — the SYSTEM_PROMPT in `promptcarousel-system.md` already enforces infographic discipline. |
+| [common/style-library/carousel/_universal-rules.md](../common/style-library/carousel/_universal-rules.md) | Legacy — the rules are now embedded in `promptcarousel-system.md` SYSTEM_PROMPT. Keep this file for back-compat link checks but prefer the system-prompt reference. |
+| [references/slide-split.md](references/slide-split.md) | Legacy — replaced by the SYSTEM_PROMPT's infographic vocabulary section. |
+| [references/style-resolution.md](references/style-resolution.md) | Legacy — replaced by `style-library.md` (which includes auto-pick matrix). |
+| [references/model-picker.md](references/model-picker.md) | Step 3 — model auto-pick decision tree, capability matrix |
 | [references/platform-presets.md](references/platform-presets.md) | Step 8 — caption rules per platform, hashtag policy, char limits |
 | [references/batch-execute.md](references/batch-execute.md) | Step 6-7 — how batch runner works, manifest format, retry semantics, failure handling |
 | [references/troubleshoot.md](references/troubleshoot.md) | When generation fails or style drifts across slides |
@@ -160,9 +154,44 @@ Topic / research → split content into N slides → pick style + model → asse
 
 See [examples/before-after.md](examples/before-after.md) — 3 calibration runs: 8-slide LinkedIn carousel from a research brief (Flux 2 Pro), 6-slide Instagram with embedded text (Ideogram 3 Quality), 10-slide TikTok with user-provided reference image (Nano Banana Pro).
 
+## Optional: animate the slides (v2.15.1+)
+
+After generating the static deck via the chain above, each slide can be animated via image-to-video. Pass each slide PNG as the first frame to Veo 3.1 (or Kling 3 / Runway Gen-4 / Sora 2 — all support `image_url` kwarg in v2.15.1+) and write a per-shot prompt describing subtle character movement that respects the slide's static layout (keep headlines / plates / chrome frozen; animate only the character + atmospheric elements like scanlines / glow / pulses).
+
+Pipeline:
+
+1. **Build a reel plan** (schema `skills.reel.plan.v1`) with one shot per slide. Each shot's `kwargs.image_url` points to the corresponding slide PNG; `kwargs.aspect_ratio` is `"9:16"` (Veo's portrait aspect); `kwargs.duration_seconds` is 4–8.
+
+2. **Animation prompt discipline** (mirrors the SYSTEM_PROMPT discipline for static slides):
+   - 1–3 sentences per shot.
+   - Specify what MOVES (character action, atmospheric pulses, light ripples, drift) and what STAYS STILL (all text in double quotes, plates, chrome). E.g. "The character slowly turns his head toward the viewer and nods. The 'AI-МЕДИА' headline, the 'WARNING' plate, and the '1 из 3' indicator stay still and crisp."
+   - Subtle, designed motion — not a wholesale scene change. The slide must remain recognizable as the same slide.
+   - Consistent character behavior across slides (the same person, same energy).
+
+3. **Run with `--skip-stitch`** for 3 independent slide animations (best for IG carousel-as-reels):
+   ```
+   python3 -m common.runners.cli.reel --plan-file <plan.json> --yes --skip-stitch
+   ```
+
+4. **OR omit `--skip-stitch`** to ffmpeg-concat them into one continuous reel (best for one-shot promo video).
+
+Cost (Veo 3.1 fast, $0.15/s):
+- 3 slides × 4s = $1.80
+- 3 slides × 8s = $3.60
+- 5 slides × 4s = $3.00
+- 8 slides × 4s = $4.80
+
+Cost (Veo 3.1 standard, $0.40/s) is ~2.7× higher; use fast for promo content, standard if you need crisper motion / hand-detail fidelity.
+
+Cost (Kling 3 / Runway Gen-4 / Sora 2) — see `common/runners/cost.py` for per-provider pricing; all four accept `image_url` for image-to-video.
+
 ## CONSTRAINTS
 
-- **Style anchor = VOCABULARY, not SCENE (anti-pattern).** The anchor must describe palette + treatment + typography + element vocabulary — NEVER a fixed recurring scene. Anchor like "Library reading room at dusk with leather books, brass lamp, ink wells" will render every slide as another shot of the same library — framework slide becomes "4 cards in a library", quote becomes "page in a library", killing the carousel as information sequence. Anchor like "Dark academia treatment — palette oxblood/forest-green/brass/parchment, deep chiaroscuro, paper grain, old-style serif on hand-torn parchment plates, vocabulary: leather/brass/ink/manuscript/ivy used sparingly per slide" is correct. The builder's per-role scene policy (v2.12.2+) is a safety net that strips scene-y leakage from non-hook slides, but write anchors correctly from the start. See `common/style-library/carousel/_universal-rules.md` §0 and §11.
+- **ONE LLM call, not per-slide.** The carousel-builder SYSTEM_PROMPT is designed to receive all N prompts in a single response. Per-slide subagent calls break visual consistency and miss the "deck as cohesive sequence" framing. Tried and rejected in earlier versions.
+
+- **1–3 sentence prompts only.** Image models perform best with concise prompts. 250+ word spec-dumps with "12% frame height" / "1px stroke" / percentages produce magazine-with-overlay output. The SYSTEM_PROMPT enforces this.
+
+- **Style description = VOCABULARY + treatment, not a fixed recurring scene.** A style entry like "BIOTECH / ORGANIC — deep teal background, neural pathways, cyan glow" describes the visual language. Avoid baking literal scenes like "library reading room at dusk" into the style — every slide will render the same setting.
 
 - **One style anchor across all slides.** Use the SAME provider, SAME style anchor text, SAME aspect ratio for every slide. The only thing that varies per slide is the content prompt + the role-specific composition hint. Mixing breaks the carousel feel.
 

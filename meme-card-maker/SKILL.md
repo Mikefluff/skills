@@ -63,10 +63,7 @@ Read top text + bottom text + optional template hint + optional base photo → p
    - Template-based: `gpt-image-2` (best at illustration + text rendering)
    - Override: `--model <slug>`
 
-5. **Build prompt** — see `references/templates.md`:
-   - Template-specific composition cues
-   - Impact-style typography: "white text with thick black stroke outline, all caps, Impact font feel, classic internet meme typography"
-   - Aesthetic: "meme template aesthetic, low-fidelity, slight JPEG compression artifacts for authenticity, not polished editorial"
+5. **Compose ONE LLM call** — load [`common/visual-prompt-library/system-prompt.md`](../common/visual-prompt-library/system-prompt.md) (shared SYSTEM_PROMPT) and `buildUserMessage(opts)` with `Mode=meme-card`, `N=<variants>`, top + bottom captions + template + optional base photo. Spawn ONE Agent. Receives JSON `{"slides":[{"number":1,"prompt":"..."}]}` — 1–3 sentence prompts with template-specific composition + Impact-style typography cues + meme aesthetic ("white text with thick black stroke, all caps, low-fidelity, slight JPEG artifacts"). Captions in double quotes. See `references/templates.md` for template composition. Library styles via [`common/visual-prompt-library/styles/_index.md`](../common/visual-prompt-library/styles/_index.md).
 
 6. **Estimate cost + confirm** — inherits `SKILLS_CAROUSEL_BUDGET=1.50`.
 

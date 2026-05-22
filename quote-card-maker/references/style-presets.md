@@ -1,6 +1,6 @@
 # Style presets — quote-card-maker
 
-Picks from the carousel style library biased toward text-friendly anchors. 6 recommended directions.
+Local skill-specific presets biased toward text-dominant compositions. For broader coverage, the shared 13-style library at [`common/visual-prompt-library/styles/_index.md`](../../common/visual-prompt-library/styles/_index.md) (v2.14.1+) provides Typography genre + Composition signature + Accent text color for each named style — the LLM step pulls those fields into prompts automatically. Use the local presets below for quote-card-specific shortcuts; for richer style variety, pick from the shared library by name (`--style SCIENTIFIC` / `--style ART-DECO` / etc.). 6 recommended directions below.
 
 ---
 

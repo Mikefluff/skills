@@ -7,7 +7,7 @@ metadata-only: true
 
 # Universal carousel rules
 
-Every carousel slide prompt — regardless of chosen style — must obey these rules. The Python prompt builder (`common/runners/carousel_prompt_builder.py`) injects them into every generated prompt automatically. **Do not duplicate per-style.**
+Every carousel slide prompt — regardless of chosen style — must obey these rules. The carousel-builder skill chains `image-prompt` per slide; the BRIEF passed into `image-prompt` MUST include the relevant rules so the returned natural-language prompt honors them. **Do not duplicate per-style.**
 
 ---
 
@@ -22,7 +22,7 @@ The style anchor describes:
 
 The style anchor MUST NOT describe a specific recurring scene/setting. If it does, every slide will render the same setting — framework slide will be "4 cards in a library", quote slide will be "single page in a library", etc. That defeats the carousel as an information sequence.
 
-The builder enforces this via per-role **scene policy** (see §11) — non-hook roles override scene-y anchors with "clean style-appropriate textured field, no literal scene". But the safer fix is to keep the anchor itself vocabulary-only from the start.
+The carousel-builder skill enforces this via per-role **scene policy** (see §11) — when briefing `image-prompt` for non-hook roles, the brief must include "clean style-appropriate textured field, no literal scene" to override any scene-y leakage from the anchor. But the safer fix is to keep the anchor itself vocabulary-only from the start.
 
 **Good anchor (vocabulary):**
 > "Dark academia aesthetic — palette of oxblood leather, forest green, oxidised brass, parchment cream, deep sepia. Single warm directional light implied by raking shadows and amber highlights. Deep chiaroscuro. Paper grain + film texture. Old-style serif typography (Garamond / Caslon / Lyon Text) on hand-torn parchment plates with deep sepia italic accents. Possible vocabulary elements (use sparingly per slide): leather, brass, ink, manuscript, ivy. NOT a fixed scene."
@@ -208,28 +208,28 @@ Sharp text rendering, all letters fully formed, no melted glyphs, no gradient te
 
 ## 9. Per-style overrides
 
-A style file MAY override any universal rule in its own `# Style-specific overrides` section. The builder applies overrides AFTER universal rules. Example: `brutalist-grid` may override the page-indicator typography to bracketed tabular monospace `[02/05]`.
+A style file MAY override any universal rule in its own `# Style-specific overrides` section. When briefing `image-prompt` with a style that has overrides, include them after the universal rules. Example: `brutalist-grid` overrides the page-indicator typography to bracketed tabular monospace `[02/05]`.
 
 ---
 
-## 10. Loading order in the builder
+## 10. Brief assembly order
 
-The Python prompt builder concatenates in this order:
+When the carousel-builder skill writes the BRIEF passed to `image-prompt` per slide, the brief should be ordered:
 
 1. Style anchor (text-in-image mode block — vocabulary + treatment, see §0)
 2. **Per-role scene policy** (see §11) — overrides any scene-y leakage from the anchor
-3. Slide-role composition template (from `slide-roles.md`)
-4. Content slots filled in (title + body + list items + data points etc., all quoted)
+3. Slide-role composition guidance (from `slide-roles.md`)
+4. Content slots filled in (title + body + list items + data points etc., all quoted as the EXACT text to render)
 5. Static carousel elements (page indicator + swipe/end + slide marker, style-appropriate)
 6. Anti-AI-tells closing line
 
-The output is a single dense paragraph ≤1500 chars, ready to send to the image provider.
+`image-prompt` then returns a single natural-language designer-grade prompt (~80-150 words) — that is the final prompt passed to the image provider.
 
 ---
 
 ## 11. Per-role scene policy
 
-The builder injects a SCENE POLICY directive per role to prevent scene-y anchors from rendering identical settings across every slide:
+The carousel-builder skill includes a SCENE POLICY directive per role in the brief to prevent scene-y anchors from rendering identical settings across every slide:
 
 | Role | Policy |
 |---|---|
@@ -243,6 +243,6 @@ The builder injects a SCENE POLICY directive per role to prevent scene-y anchors
 | `myth-vs-truth` | Clean textured field. No literal scene. Contrast IS the slide. |
 | `cta` | Clean textured field with AT MOST ONE small decorative element. CTA plate dominates. |
 
-This means: an anchor that bakes in "library reading room at dusk" will still render correctly across the deck — hook gets the library, framework gets clean textured field with the cards, quote gets clean field with the parchment, etc. The policy overrides the anchor's scene leakage on a per-role basis.
+This means: an anchor that bakes in "library reading room at dusk" will still render correctly across the deck — hook gets the library, framework gets clean textured field with the cards, quote gets clean field with the parchment, etc. The policy overrides the anchor's scene leakage on a per-role basis, by being included in the BRIEF passed to `image-prompt`.
 
 Better: write the anchor as vocabulary in the first place (see §0). The scene policy is a safety net, not the primary tool.

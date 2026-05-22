@@ -9,6 +9,304 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.16.0] — 2026-05-22
+
+### Added — `style-suggest` skill (visual-style generator)
+
+New top-level skill `style-suggest/` adapted from figma's `app/lib/agents/StyleSuggestAgent.js`. Takes a user description (text and/or reference image), checks the existing catalog for duplicates (similarity ≥ 0.72), and either points the user to the existing style OR produces a full v2.15.0-schema entry ready to drop into `common/visual-prompt-library/styles/`.
+
+### Skill files
+
+- **`style-suggest/SKILL.md`** — orchestration instructions: read catalog → compose LLM call → validate output → present proposed entry → save on confirmation.
+- **`style-suggest/references/system-prompt.md`** — the SYSTEM_PROMPT for the LLM analysis step (verbatim, adapted from figma StyleSuggestAgent). Includes:
+  - The duplicate-detection contract (`action=duplicate` vs `action=new`).
+  - The full v2.15.0 schema fields the LLM must fill for new entries (9 fields + optional body_notes + optional auto_pick_signal).
+  - Forbidden literals list (no layout labels / hex codes / platform names / named fonts / copyrighted brand names in structured fields).
+  - Vocabulary-preservation rule (don't replace user terms like "oxblood leather" with generic synonyms).
+- **`style-suggest/examples/before-after.md`** — 3 calibration runs (text-only new style / reference-image new style / duplicate-detected with reasoning).
+
+### Invocation modes
+
+- `--describe "<text>"` — text-only
+- `--ref <image-path>` — image reference only
+- `--describe "<text>" --ref <image-path>` — both (most accurate)
+- `--save` — write file + update `_index.md` without asking
+- `--print-only` — never save (preview mode)
+- `--force-new` — skip duplicate-detection, always create
+- `--add-to-auto-pick` — also append a row to `_auto-pick.md` when topic signals are clear
+- `--model anthropic|openai|gemini` — LLM provider (default: anthropic)
+
+### Validated
+
+Live-tested with a text-only description ("Nordic minimalism — snow-white background, single pop of vermillion red, geometric sans-serif on Helsinki magazine layouts, generous negative space, restrained mood, premium B2B / Scandinavian brand"). The agent correctly identified this as NEW (no existing style covers the territory), preserved user vocabulary verbatim ("Helsinki magazine" / "Marimekko-era" / "vermillion red" / "expensive-quiet"), filled all 9 schema fields with 2 typography descriptors + 6 composition signatures + 12 elements + body_notes (when-NOT-to-use + variation hints) + auto_pick_signal mapping. The proposed entry was saved as:
+
+- **`common/visual-prompt-library/styles/nordic-minimal.md`** — the 14th style in the library (first non-figma-ported entry)
+- **`_index.md`** — new row added
+- **`_auto-pick.md`** — new row added for "Premium B2B / Scandinavian brand / mindful tech" topic signals
+
+### Notes
+
+- 40 skills total (was 39).
+- This is the WRITE side of the style library. The READ side (consume styles in downstream image-gen) is the existing shared chain in `common/visual-prompt-library/system-prompt.md` invoked by `carousel-builder` / `cover-maker` / `quote-card-maker` / `meme-card-maker` / `banner-maker` / `logo-maker`.
+- The skill never auto-commits to git. After saving a new style, the user runs `git add common/visual-prompt-library/styles/<slug>.md _index.md _auto-pick.md` + commits explicitly. Avoids accidentally polluting the library with unreviewed entries.
+- Cost per invocation is small (~$0.02 — one LLM call with optional multimodal image input). No image generation in this skill — that happens downstream when a visual skill picks up the new style.
+
+## [2.15.1] — 2026-05-22
+
+### Added — image-to-video on Veo 3.1 + Sora 2 (Kling 3 + Runway Gen-4 already had it)
+
+Previously the video providers were a mixed bag: Kling 3 and Runway Gen-4 already accepted `image_url` (in fact REQUIRED it for their image-to-video-primary models), but Veo 3.1 was text-to-video only and Sora 2 didn't support image input at all. v2.15.1 ships cross-provider parity so any video provider in the collection takes an optional `image_url` / `input_image` kwarg as the first-frame seed.
+
+**`common/runners/providers/google_video.py`** — `_VeoProvider.generate()` now reads `image_url` / `input_image` (cross-provider aliases), loads bytes via the shared `_read_image_bytes_and_mime` helper, and passes `types.Image(image_bytes=..., mime_type=...)` to `client.models.generate_videos(image=...)`. When absent, Veo stays in text-to-video mode (backwards compatible).
+
+**`common/runners/providers/openai_video.py`** — `_SoraBase.generate()` now reads the same kwargs and includes `input_reference` in the POST body. Note: Sora 2 API is still gated (`OPENAI_SORA_API_ENABLED=1`); the field name follows the public-docs convention but may need a multipart/form-data upgrade depending on your account's API contract. The gate restricts who hits this code path.
+
+**Kling 3 + Runway Gen-4** — already accepted `image_url` (they REQUIRE it for image-to-video-primary models). Unchanged.
+
+### Added — carousel-builder optional animation step (docs)
+
+`carousel-builder/SKILL.md` got a new `## Optional: animate the slides` section documenting the image-to-video chain:
+
+1. After static carousel image gen, build a `skills.reel.plan.v1` with one shot per slide.
+2. Each shot's `kwargs.image_url` points to the slide PNG; `kwargs.aspect_ratio: "9:16"`; `kwargs.duration_seconds: 4–8`.
+3. Animation prompts respect the static layout — specify what MOVES (character action, atmospheric pulses, light ripples) and what STAYS STILL (headlines + plates + chrome in double quotes).
+4. Run reel CLI with `--skip-stitch` for 3 independent slide-as-reels, OR omit to ffmpeg-concat into one continuous promo reel.
+
+Cost guidance (Veo 3.1 fast, $0.15/s):
+- 3 slides × 4s = $1.80
+- 3 slides × 8s = $3.60
+- 5 slides × 4s = $3.00
+
+### Validated
+
+Live-tested with the v2.15.0 AI Media Workshop deck (3 cyber-noir slides at /tmp/cover-test/generated/carousel/ai-media-workshop-v215/). Per-shot 4s animations via veo-3-1-fast preserved the static text + character identity while animating subtle motion (head turn → nod → terminal-tap on slide 1; arm extend + data-stream trail on slide 2; rise + welcome gesture + CLASSIFIED stamp pulses on slide 3). $1.80 total. ffmpeg concat into one 11.95s promo reel succeeded.
+
+### Notes
+
+- 39 skills unchanged.
+- No new skills added — the chain is `carousel-builder` (static deck) → existing `reel-builder` CLI (animation + optional stitch) → ffmpeg. Composable, not monolithic.
+- Sora 2 image-to-video support is best-effort given the gated API; first user to enable the gate will discover whether the multipart upgrade is needed.
+
+## [2.15.0] — 2026-05-22
+
+### Refactored — style library split into extensible per-file directory
+
+v2.14.x bundled all 13 styles into one monolithic `common/visual-prompt-library/style-library.md` + a hardcoded quick-reference table inside the SYSTEM_PROMPT. v2.15.0 splits it into an extensible directory — drop a new `<slug>.md` file and every visual skill picks it up automatically, no code changes anywhere.
+
+### New layout
+
+```
+common/visual-prompt-library/
+  system-prompt.md       (library-agnostic — references the directory, no hardcoded style names)
+  style-library.md       (now a redirect pointer to styles/)
+  styles/
+    _schema.md           (required frontmatter fields when adding a new style)
+    _index.md            (catalog — one row per available style with `when_to_use` summary)
+    _auto-pick.md        (topic-signal → style-slug resolution matrix)
+    biotech.md
+    cyber-noir.md
+    brutalist.md
+    vaporwave.md
+    military.md
+    scientific.md
+    streetwear.md
+    art-deco.md
+    blueprint.md
+    grunge.md
+    glamour.md
+    nature.md
+    adventure.md
+```
+
+Each style file has YAML frontmatter with all 9 structured fields (id / slug / name / when_to_use / background / accents / elements / mood / accent_text_color / typography / composition_signature) plus optional body for extended notes / when-NOT-to-use / variation hints.
+
+### Changed — SYSTEM_PROMPT is library-agnostic
+
+The shared SYSTEM_PROMPT no longer enumerates the 13 styles. Instead it instructs the LLM to consult the `Style entry:` block in the user message — which the orchestrating skill resolves and inlines from the chosen `styles/<slug>.md` frontmatter. Adding a new style means adding a file in `styles/`, NOT editing the SYSTEM_PROMPT.
+
+### Updated — buildUserMessage(opts) shape
+
+The `Visual style:` field now carries a slug + structured `Style entry:` block (Background / Accents / Elements / Mood / Accent text color / Typography / Composition signature). For `--style custom`, replace with `Style entry (custom): "<verbatim desc>"`. For library + modifier, add `Style modifier: "<override>"`.
+
+### Updated — per-skill cross-references
+
+All 6 visual skills (`carousel-builder` / `cover-maker` / `quote-card-maker` / `meme-card-maker` / `banner-maker` / `logo-maker`) + their local style-presets refs now point at `common/visual-prompt-library/styles/_index.md` instead of the old `style-library.md`.
+
+### How to add a new style
+
+1. Write `styles/<your-slug>.md` with the frontmatter schema in `styles/_schema.md`.
+2. Add a one-line row to `styles/_index.md`.
+3. Optional: add a topic-signal row to `styles/_auto-pick.md` if the style should auto-resolve.
+4. No code changes. Every visual skill picks it up immediately.
+
+### Notes
+
+- 39 skills unchanged.
+- Old monolithic `style-library.md` kept as a 30-line pointer document for migration / discoverability — links to the new structure.
+- Behavioral output is identical to v2.14.2 — the same 13 styles with the same fields, just stored extensibly.
+
+## [2.14.2] — 2026-05-22
+
+### Enriched — shared style library with Typography + Composition signatures
+
+After v2.14.1 added rich typographic templating to the shared SYSTEM_PROMPT, the LLM still had to invent typography and composition patterns from scratch for each style — the 13-style library entries only listed background / accents / elements / mood / accent text color, with no typography genre or composition signature. This left the LLM picking generic typography (often defaulting to "bold sans-serif" everywhere) regardless of which style was active.
+
+### Added to each of 13 styles in `common/visual-prompt-library/style-library.md`
+
+- **Typography** — genre-level font descriptors specific to the style (image models don't have font libraries; they approximate by genre). Examples:
+  - CYBER-NOIR → heavy stencil display + monospace terminal + condensed grotesque sans
+  - ART DECO → stepped geometric deco display + thin engraved sans + copperplate script
+  - GRUNGE → condensed newspaper serif + typewriter mono + ransom-note collage
+  - GLAMOUR → modern high-contrast serif (Didot/Bodoni) + refined humanist sans + copperplate script
+- **Composition signature** — layout patterns the style is famous for, so the LLM can pick a DIFFERENT signature per slide while staying on-style. Examples:
+  - BRUTALIST → aggressive asymmetric grids, full-bleed headline, oversized numerals, thick black/yellow rules
+  - VAPORWAVE → centered subject over horizon grid + sunset, chrome bevel reflections, kana floating in corners
+  - SCIENTIFIC → journal-page asymmetry, sidebar pull-quote, figure + caption pyramids, marginalia
+  - MILITARY → dossier-folder framing, target reticles centered, topographic map underlays, ammo-box frames
+
+### Expanded element vocabulary
+
+Each style entry's element list is now 2× richer (e.g. CYBER-NOIR: + blinking cursors / target reticles / CRT vignettes / ASCII frames; ART DECO: + deco arch silhouettes / lily pads / peacock feathers / crystal facets / octagonal medallions). Gives the LLM more variety to pick from per slide, avoiding the "same motif on every slide" failure mode.
+
+### Updated SYSTEM_PROMPT to consult the new fields
+
+`common/visual-prompt-library/system-prompt.md` STYLE FIELDS section now explicitly instructs the LLM to pull Typography + Composition signature + Elements from the chosen style's library entry, and to vary the composition signature + elements across slides when N>1. Added a 13-row quick-reference table so the LLM has the highlights in-prompt without needing to re-load the full library.
+
+### Cross-referenced per-skill local presets
+
+Added explicit cross-reference notes at the top of:
+- `quote-card-maker/references/style-presets.md`
+- `banner-maker/references/style-presets.md`
+- `logo-maker/references/style-presets.md`
+- `cover-maker/references/imprints.md`
+
+Each notes that the local skill-specific presets complement the shared 13-style library — users can pick by name from the shared library for broad stylistic coverage, or use the local presets for medium-specific shortcuts.
+
+### Notes
+
+- 39 skills unchanged.
+- The richer library entries cost zero runtime — they're text the LLM reads once per request. Same provider calls, same prices.
+- Validated by re-running the AI Media Workshop carousel + spot-checking a cover-maker book cover generation.
+
+## [2.14.1] — 2026-05-22
+
+### Fixed — rich typography + composition variety in shared SYSTEM_PROMPT
+
+v2.14.0 shipped the unified visual-prompt chain but the SYSTEM_PROMPT's per-prompt instructions over-simplified to "headline + caption + chrome", producing monotone slides — same plate-at-top + same fonts + same character position repeated across the deck. The user pointed out the figma SEEDREAM_SYSTEM_PROMPT has a far richer typographic template + composition guidance that v2.14.0 lost in translation.
+
+### Added to `common/visual-prompt-library/system-prompt.md`
+
+- **RICH TYPOGRAPHIC TEMPLATE** — explicit table of 15+ typographic roles the LLM can choose from per slide: main headline, second headline line, subhead / kicker, highlighted plate / call-out, body paragraph, accent phrase (in style-accent color), numbered list with large display numerals, bullet list, two-column comparison, table / checklist, big stat badge, italic pull quote, code / monospace block, footer / caption, date / number stamp, brand / logo zone. Each role with its own natural-language descriptor pattern.
+- **COMPOSITION VARIETY** — explicit rule that N>1 decks MUST use DIFFERENT compositions per slide. Forbidden: every slide = plate-at-top + character + chrome repeated. Required: vary dominant-element position (top-left / center / right-third / asymmetric split), layout type (full-bleed / two-column / list / badge-centered / pull-quote / table), character position (left edge / right edge / behind type / interacting with one element).
+- **TYPOGRAPHIC VARIETY WITHIN A SLIDE** — at least 2 typeface treatments per slide; biggest element 5–10× the smallest; apply style's accent color to ==marked== accent phrases and key numbers.
+- **STYLE ACCENT COLORS** — explicit instruction to pull accent text colors from the chosen style's `Accent text color` line in `style-library.md` (BIOTECH → cyan/mint; CYBER-NOIR → matrix green/signal red; BRUTALIST → industrial yellow/rust red; ART DECO → gold/champagne; GLAMOUR → gold/champagne/rose gold; etc.).
+
+### Validation
+
+Live-tested with the AI Media Workshop 3-slide carousel + 4 `==accent==` markers + character ref. Result: three radically different compositions:
+- Slide 1 (hook) — asymmetric layout with stencil-display headline + monospace kicker + angled signal-red plate + Mac-window terminal caption + character right-edge.
+- Slide 2 (framework) — vertical navy left panel + 4 giant matrix-green numerals + 4 code-block terminal windows + character profile-left gesturing.
+- Slide 3 (cta) — centered medallion with concentric dashed rings + giant signal-red countdown numeral + arched stencil headline + signal-red CTA plate + matrix-green overlapping pill + classified-stamp + character lower-right.
+
+Each slide has 5+ distinct typographic treatments. Style accent colors applied throughout. Character identity preserved across all 3 via nano-banana-pro ref.
+
+### Notes
+
+- 39 skills unchanged.
+- SYSTEM_PROMPT is the only file modified. The shared chain architecture from v2.14.0 stays. The other skills (cover-maker / quote-card / meme-card / banner / logo) automatically inherit the typography + composition improvements since they all load the same shared SYSTEM_PROMPT.
+
+## [2.14.0] — 2026-05-21
+
+### Added — shared visual-prompt-library + unified chain across all visual skills
+
+After multiple iterations on carousel-builder (Python templates v2.12, image-prompt subagent chain v2.13, text-first → SEEDREAM v2.13.1, then user pointed to the canonical figma `promptCarousel/` flow), the user requested ONE unified prompt-chain approach across every visual-output skill (carousels + covers + flyers + quote / meme / banner / logo cards). v2.14.0 ships exactly that.
+
+### New shared library
+
+- **`common/visual-prompt-library/system-prompt.md`** — the canonical SYSTEM_PROMPT used by every visual skill. Mirrors `figma/app/lib/carousel/promptCarousel/prompts.js` with improvements ported from `slidePrompts/systemPrompt.js` (SEEDREAM):
+  - **Single LLM call** returning JSON `{slides:[{number, prompt}]}` — no per-slide subagents (breaks visual consistency).
+  - **Per-prompt discipline**: 1–3 sentences, text-in-quotes for what should render, natural-language layout ("at top" / "centered" / "right edge"), no meta-labels (no literal `HEADLINE:` / `BODY:` / `SUBHEADLINE:` — they render as visible text on the image).
+  - **Infographic vocabulary** for middle carousel slides (numbered list / comparison / badge / quote / steps / framework / myth-vs-truth) — keeps middle slides informative, not atmospheric.
+  - **Deck structure** for N>1 (hook → info-dense middle → CTA verbatim).
+  - **Single-image structure** for N=1 (title-dominant + secondary attribution zone + optional subtitle).
+  - **Carousel chrome** (page indicator + swipe / end marker) appended automatically when N>1, skipped when N=1.
+  - **Character reference language** — when user supplies a character photo, the LLM is instructed NOT to re-describe face / hair / build / accessories (image-side ref locks identity); only pose / action / position.
+  - **Brand & style reference** — supplied colors become the dominant palette; supplied style images get matched.
+  - **Accent markup** — `==word==` in input text → accent-color callouts on the relevant image.
+  - **Finished-post preservation** — direct quotes + cuts only, never paraphrase.
+  - **Forbidden literals** banned from prompt body (layout labels, hex codes, platform names, dimensions, emojis).
+  - **Retry policy** — up to 2 LLM retries with stricter reminder on malformed JSON / missing slides / forbidden literals.
+
+- **`common/visual-prompt-library/style-library.md`** — the 13-style library ported from figma's SEEDREAM_SYSTEM_PROMPT (BIOTECH / CYBER-NOIR / BRUTALIST / VAPORWAVE / MILITARY / SCIENTIFIC / STREETWEAR / ART-DECO / BLUEPRINT / GRUNGE / GLAMOUR / NATURE / ADVENTURE). Each entry: when-to-use + background + accents + elements + mood + accent text color. Auto-pick matrix at the bottom maps topic / tone signals → dominant style. Custom-style override supported.
+
+### Changed — every visual-output skill switched to the unified chain
+
+- **`carousel-builder`** — PIPELINE step 4 now reads "Compose ONE LLM call, load shared SYSTEM_PROMPT + buildUserMessage(Mode=carousel)". REFERENCES table points at the shared library. Constraints rewritten: ONE LLM call (not per-slide), 1–3 sentence prompts (not 250-word spec-dumps), style = vocabulary + treatment (not a recurring scene). `references/slide-roles.md` demoted from primary to optional content-brief aid.
+
+- **`cover-maker`** — PIPELINE step 5 switched to shared chain with `Mode=cover`. The two-pass Pillow typography composer (v2.11.0) is kept as an opt-in `--typeset overlay` fallback for users who need pixel-perfect typography (publisher imprint precision, multilingual). Default for all mediums is now `--typeset ai` (LLM-prompt → image model renders title + creator in the image).
+
+- **`quote-card-maker`** — PIPELINE step 5 switched to shared chain with `Mode=quote-card`, N = aspect count.
+
+- **`meme-card-maker`** — PIPELINE step 5 switched to shared chain with `Mode=meme-card`, N = variants. Template-specific composition + Impact-style typography cues passed via user message.
+
+- **`banner-maker`** — PIPELINE step 5 switched to shared chain with `Mode=banner`, N = presets count. Per-preset composition zones (leaderboard/medium-rectangle/skyscraper layout asymmetry) passed via user message.
+
+- **`logo-maker`** — PIPELINE step 5 switched to shared chain with `Mode=logo`, N = variants. Brand + tagline + style preset + palette passed via user message.
+
+### Migration notes
+
+- Existing `plan.json` files with `prompt` items continue to work — the CLIs are unchanged (v2.13.0 simplification still applies).
+- The legacy `common/style-library/carousel/` (24 hand-rolled styles) is still on disk for back-compat. New decks should use the 13-style library at `common/visual-prompt-library/style-library.md` instead. The two co-exist; eventually the old library can be deleted in a future cleanup pass.
+- `carousel-builder/references/slide-roles.md` and `references/slide-split.md` are now optional content-brief aids; the SYSTEM_PROMPT's infographic-vocabulary section supersedes them.
+- The Pillow two-pass typography composer in `common/runners/typography.py` (v2.11.0) is retained for `cover-maker --typeset overlay` — kept as opt-in fallback, not the default.
+
+### Notes
+
+- 39 skills total (unchanged).
+- Validated by regenerating the AI Media Workshop 3-slide promo carousel — clean, designerly, character identity preserved across slides via nano-banana-pro image ref.
+- The earlier v8 `common/runners/carousel_composer.py` (Konva-style Pillow text overlay for carousels) was deleted before v2.14.0 was finalized — that approach mirrored `canvas-new` not `promptCarousel`, and the user rejected it as the wrong figma feature to mirror.
+
+## [2.13.0] — 2026-05-21
+
+### Removed — Python carousel prompt builder
+
+`common/runners/carousel_prompt_builder.py` (~564 lines, 9 role-specific dataclasses + 9 layout functions + scene policy + anti-AI-tells) is **deleted**. Live testing kept producing magazine-with-text-overlay output regardless of how much the templates were refined. The root cause was structural, not stylistic: prompt writing is a designer task, not a string-template task. The figma reference (`figma/app/lib/carousel/...`) uses the LLM itself (Claude with SEEDREAM_SYSTEM_PROMPT) to compose ~100-word natural-language prompts per slide. Python templates produced prompts that read like spec-sheets ("HEADLINE: ... / SUBTITLE: ... / FRAMEWORK: ...") which the image model rendered literally as labels-on-image.
+
+### Replaced with — `image-prompt` skill chained per slide
+
+The carousel-builder now invokes the existing `image-prompt` skill once per slide:
+
+1. Skill side assembles a STRUCTURED BRIEF per slide: style anchor (verbatim) + role + content (real titles / boxes / data points / quote+attribution) + composition guidance from `references/slide-roles.md` + universal rules from `_universal-rules.md` + slide marker + swipe arrow / end marker + aspect + character-ref hint if constant across deck.
+2. `image-prompt` returns a single dense natural-language designer prompt (~80-150 words, no meta-labels).
+3. The returned prompt becomes `plan.items[i].prompt` directly.
+4. Carousel CLI is a thin batch runner — fully written prompts in, batched generation out.
+
+### Plan-schema simplification (`skills.carousel.plan.v1`)
+
+The structured `role` + `content` item shape (added in v2.12.1) is removed. Plan items now have ONE shape:
+
+```
+{"index": N, "label": "slide-NN-role", "prompt": "<full natural-language prompt>", "kwargs": {...}}
+```
+
+If an item lacks `prompt`, the CLI errors with: "write prompts via image-prompt skill, then assemble plan items as `{index, label, prompt, kwargs}`. Structured role+content items were removed in v2.13.0."
+
+### Docs rewritten
+
+- **`carousel-builder/SKILL.md`** — step 5 rewrites the pipeline as "brief image-prompt per slide, place returned text into plan items". REFERENCES table now lists `image-prompt` as a chained skill.
+- **`carousel-builder/references/slide-roles.md`** — keeps the 9-role taxonomy + per-role content brief contracts + composition guidance, but reframes the role file as a SPEC FOR BRIEFING image-prompt rather than a SPEC FOR A PYTHON BUILDER. Added "How to brief image-prompt per slide" section at the top.
+- **`common/style-library/carousel/_universal-rules.md`** — reframed §10 (loading order) as "brief assembly order" and dropped Python-builder language from §0, §11, and the intro. Rules still apply; they're now LLM-author guidelines, not template engine injection points.
+
+### Migration
+
+Existing plans with `role` + `content` items are NOT auto-converted. Re-generate via the new chain: brief image-prompt per slide → drop returned text into `items[i].prompt`. For one-off legacy needs, the v2.12.3 builder can be re-extracted from git history.
+
+### Notes
+
+- 39 skills (unchanged).
+- Validated against the hand-written-prompts AI Media Workshop test (3-slide deck) — that test bypassed the Python builder entirely and produced clean designer output. v2.13.0 normalizes that bypass as THE path.
+- Skill counts in scenarios / examples / quickstart unchanged.
+
 ## [2.12.3] — 2026-05-21
 
 ### Fixed — figma-rigor composition for hook + framework + cta layouts; optional character override

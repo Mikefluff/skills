@@ -2,6 +2,8 @@
 
 6 directions. Pick ONE per batch. Different styles imply different composition rules + different model strengths.
 
+For broader stylistic coverage (when the brand has a clear "vibe" — luxury / tech / underground / outdoor / etc.), the shared 13-style library at [`common/visual-prompt-library/styles/_index.md`](../../common/visual-prompt-library/styles/_index.md) (v2.14.1+) provides full Typography + Composition signature + Accent text color recipes — those plug directly into the LLM prompt step. Use the local presets below for logo-specific structural choices (wordmark / emblem / minimal / etc.); use the shared library for the stylistic flavor (cyber-noir / art-deco / vaporwave / etc.).
+
 ---
 
 ## `wordmark`
