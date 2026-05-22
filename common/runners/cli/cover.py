@@ -34,6 +34,8 @@ from pathlib import Path
 from .. import batch as batch_mod
 from .. import config
 from .. import cost as cost_mod
+from .. import cover_imprints
+from .. import typography as type_mod
 from ..errors import CostConfirmationDeclined
 
 
@@ -133,6 +135,51 @@ def main() -> int:
         on_progress=_print_progress,
         extra_meta=extra_meta,
     )
+
+    # ── two-pass typography composition ──
+    # If the plan specifies an imprint OR genre AND typeset=="overlay" (default
+    # for book medium), composite real typography on top of each succeeded variant.
+    imprint_name = plan.get("imprint")
+    genre = plan.get("genre")
+    typeset = plan.get("typeset")
+    medium = plan.get("medium")
+    if typeset is None:
+        typeset = "overlay" if medium == "book" and (imprint_name or genre) else "ai"
+
+    if typeset == "overlay" and result.succeeded:
+        preset = cover_imprints.resolve_imprint(imprint_name, genre)
+        if preset is None:
+            print(
+                "  · typeset=overlay requested but no --imprint or --genre to resolve. "
+                "Skipping composition.",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"\nTypography pass: composing via imprint '{preset.name}' "
+                f"({preset.display_name}) ...",
+                file=sys.stderr,
+            )
+            title = plan.get("title") or ""
+            author = plan.get("creator") or ""
+            subtitle = plan.get("subtitle") or None
+            for item in result.succeeded:
+                src_path = Path(item.output_path) if item.output_path else None
+                if src_path is None or not src_path.is_file():
+                    continue
+                # Build fresh layout per item (avoid shared-state across iterations)
+                preset_fresh = cover_imprints.get_imprint(preset.name)
+                layout = cover_imprints.apply_text(preset_fresh.layout, title, author, subtitle)
+                try:
+                    out_bytes = type_mod.compose_book_cover(src_path.read_bytes(), layout)
+                except Exception as exc:  # noqa: BLE001
+                    print(f"  ✗ typography compose failed for {src_path.name}: {exc}",
+                          file=sys.stderr)
+                    continue
+                # Save composite alongside source as <stem>-typeset.png
+                dest = src_path.with_name(f"{src_path.stem}-typeset.png")
+                dest.write_bytes(out_bytes)
+                print(f"  ✓ {dest.name}", file=sys.stderr)
 
     succeeded = len(result.succeeded)
     failed = len(result.failed)

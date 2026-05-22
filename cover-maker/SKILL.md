@@ -108,6 +108,12 @@ Read metadata + medium + optional photo + style → pick aspect from medium → 
 - `--aspect WxH` — custom aspect (overrides medium default)
 - `--model auto|<slug>` — image provider
 
+### Two-pass typography (v2.11.0+, recommended for `--medium book`)
+
+- `--imprint nyrb-classics|penguin-marber-grid|mit-essential-knowledge|picador-modern|faber-modernist` — design-system preset. AI generates a TEXT-FREE background (per the imprint's prompt fragment); the typography composer then overlays title + author with bundled OFL fonts (EB Garamond / Cormorant / Playfair Display / Inter / Bebas Neue / Cinzel) at the imprint's proper layout fractions, palette, and tracking. Produces designed covers, not "image-with-floating-title".
+- `--genre literary-fiction|thriller|non-fiction|academic|memoir|poetry|...` — auto-picks an imprint when not specified explicitly. Mapping defined in `common/runners/cover_imprints.py:GENRE_DEFAULT_IMPRINT`.
+- `--typeset overlay|ai` — `overlay` runs the two-pass typography composer. `ai` lets the image model render text itself (legacy mode, default for non-book mediums). Auto-defaults to `overlay` when `--medium book` AND (`--imprint` or `--genre`) are set.
+
 ### Execution
 
 - `--execute` — actually generate
@@ -124,6 +130,7 @@ Read metadata + medium + optional photo + style → pick aspect from medium → 
 | [references/cover-types.md](references/cover-types.md) | Step 1-2 — per-medium conventions, what fields are needed, typography expectations |
 | [references/aspect-presets.md](references/aspect-presets.md) | Step 2 — exact pixel dimensions per medium + platform target |
 | [references/composition-zones.md](references/composition-zones.md) | Step 5 — per-medium composition templates (album / book / podcast / magazine / report / deck) |
+| [references/imprints.md](references/imprints.md) | When `--imprint` is set — full per-imprint design system specs (layout fractions, typography family, palette, prompt fragment) |
 | [references/model-picker.md](references/model-picker.md) | Step 4 — model auto-pick, when to override |
 | [references/troubleshoot.md](references/troubleshoot.md) | When text renders wrong, layout fails, photo doesn't integrate |
 

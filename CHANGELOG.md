@@ -9,6 +9,46 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.11.0] — 2026-05-21
+
+### Added — two-pass typography for book covers
+
+This release fixes the fundamental "AI image with floating title" failure mode that every other AI cover generator suffers from. We now separate **background art** (what AI is good at) from **typography** (what AI is bad at), and do typesetting externally with real bundled OFL fonts.
+
+- **`common/runners/typography.py`** — Pillow-based typography composer. `compose_book_cover(image_bytes, layout)` overlays title / author / subtitle / decorations on an AI-generated background using bundled OFL fonts. Supports variable fonts (auto-picks weight axis), per-block sizing as fraction of cover height, tracking in ems, multi-line wrap with max-line cap, optional title legibility bands, optional thin-rule / dot decorations, per-block anchor positioning.
+- **`common/runners/cover_imprints.py`** — five publisher design-system presets encoding real-world layouts:
+  - `nyrb-classics` — painterly background + crimson title plate + Inter Bold caps (NYRB Classics aesthetic)
+  - `penguin-marber-grid` — 1963 Marber tri-band (title 27% / illustration 50% / author 23%, cream + ink + accent)
+  - `mit-essential-knowledge` — top 55% typography (large) + bottom 45% abstract diagram
+  - `picador-modern` — Playfair Display title + EB Garamond italic author + flat-color visual accent
+  - `faber-modernist` — solid color field + Cinzel display caps (typography-as-image, no illustration)
+- **`cover-maker/fonts/`** — bundled OFL 1.1-licensed typefaces (EB Garamond, Cormorant, Playfair Display, Inter, Bebas Neue, Cinzel; ~2.8 MB total). Cross-platform consistent output. Variable-font support; weight is set per-block.
+- **`cover-maker/references/imprints.md`** — full design-system documentation per imprint.
+- **`cover-maker` CLI extensions** (additive — no breaking changes):
+  - `--imprint <slug>` — pick one of 5 presets
+  - `--genre <slug>` — auto-map to default imprint (literary-fiction→nyrb, thriller→marber, academic→mit, memoir→picador, poetry→faber)
+  - `--typeset overlay|ai` — `overlay` runs the two-pass composer (default for `--medium book` when `--imprint` or `--genre` set); `ai` legacy mode lets the image model render text itself
+- **Plan-file schema additions** (`skills.cover.plan.v1`): `imprint`, `genre`, `typeset` fields. Backwards compatible — older plans without these fields still work in legacy `ai`-typeset mode.
+
+### Fixed (bundled patches from session)
+
+- **`openai_image.py` removed deprecated `response_format` param** — OpenAI dropped it from `/v1/images/generations`; v2.10.0/v2.10.1 calls would 400 with `Unknown parameter: 'response_format'`. Now omitted; gpt-image-2 always returns b64_json which we decode regardless.
+- **`openai_image.py` timeout bumped 120 → 300 seconds** — `quality=high` requests can take 90-180s, the old timeout fired during normal generation.
+
+### Changed
+
+- **`common/runners/requirements.txt`** — added `Pillow>=10.4,<12` for the typography composer.
+- **`cover-maker/SKILL.md`** — documents new modes (`--imprint`, `--genre`, `--typeset`) under a Visual subsection.
+- **`VERSION` + `skills.json:version`** → `2.11.0`.
+
+### Notes
+
+- 39 skills total (unchanged). This release is purely additive infrastructure for `cover-maker`.
+- The two-pass pattern is the de-facto standard among pro AI-cover designers (BeYourCover, Inkfluence, Reedsy) as of 2026. Background-only + Pillow overlay produces dramatically better results than letting AI render typography directly.
+- Imprint presets ship with both a `TypeLayout` (for the composer) AND a `prompt_fragment` (for the image-gen prompt) — the prompt asks for "calmer upper third for plate overlay" etc., so the AI generates art that harmonizes with the planned typography zone.
+- The 5 starter imprints cover the 80% case. Custom imprints can be added by editing `cover_imprints.py`; a JSON `--layout-file` flag is planned for v2.12.0.
+- Variable-font weight selection requires Pillow 10.4+ — older versions silently ignore weight axis.
+
 ## [2.10.1] — 2026-05-21
 
 ### Fixed

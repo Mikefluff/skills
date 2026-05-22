@@ -40,7 +40,6 @@ class GptImage2Provider(Provider):
             "quality": quality,
             "n": variants,
             "output_format": output_format,
-            "response_format": "b64_json",
         }
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -52,7 +51,7 @@ class GptImage2Provider(Provider):
                 "https://api.openai.com/v1/images/generations",
                 json=body,
                 headers=headers,
-                timeout=120,
+                timeout=300,
             )
         except requests.RequestException as exc:
             raise ProviderError(self.name, None, f"network error: {exc}") from exc
