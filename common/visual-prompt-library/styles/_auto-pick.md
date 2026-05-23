@@ -26,6 +26,7 @@ Run through rows in order. Pick the first row whose signal terms match the topic
 | Clinical exposé / debunking pseudo-therapy / manipulation tactics / blame-shifting / gaslighting in coaching / fake-diagnosis / MLM-debunk / "обесценивание сложности" | [clinical-debunk](clinical-debunk.md) |
 | Fake exclusivity / "продали доступ к окружению" / batch-as-VIP / MLM buyer-chat / mass-membership as elite / "сильное окружение" critique / Like Центр / БМ-style debunk | [vip-massovka](vip-massovka.md) |
 | Testimonial-as-proof critique / "атмосфера vs результат" / мало проверяемых кейсов / fan-marathon debunk / "отзывов много цифр нет" / mass-testimonial unmasking | [applause-ledger](applause-ledger.md) |
+| AI-infogypsy critique / vibecoded dashboard scam / "навайбкоженный UI" / fake agentic systems / vaporware AI startup / "+320% efficiency" mock data debunk / AI-маркетинг разоблачение | [vibecoded-exposed](vibecoded-exposed.md) |
 
 ## Default fallback
 
