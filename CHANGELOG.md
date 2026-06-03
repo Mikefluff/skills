@@ -9,6 +9,39 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.17.0] — 2026-06-03
+
+### Added — `proposal-maker` skill (brand-copying commercial proposal generator)
+
+New top-level skill `proposal-maker/` — a new **document** modality (HTML/PDF) distinct from the visual-generation skills. Turns a raw, telegram-style commercial offer (client block + itemised order with catalogue links + total) into a beautiful, self-contained `proposal.html` whose visual style is **copied from a website**. Built and verified against the Double D Project event offer (`www.doubledproject.com`).
+
+Why a document, not an image deck: a proposal carries **exact prices** and **clickable product links** — AI image generation garbles both. The renderer emits real HTML text; only `requests` (already a dependency) is required.
+
+**Default flow is LLM-authored, screenshot-driven.** A `proposal_kit.py` step builds a *brand kit* — a headless-Chrome **screenshot** of the brand site, the downloaded logo, resolved tokens, the enriched offer, and a `BRIEF.md` — then the orchestrator *looks at the screenshot* and *authors bespoke HTML* mirroring the brand (dark/light mood, type, accent, logo treatment), rather than filling a fixed template. This fixes two real defects of a pure deterministic renderer: dark sites (Tilda/Webflow serve white-heavy CSS) were misread as light, and white/monochrome logo SVGs vanished on a light theme. The deterministic 3-theme renderer remains as `--quick` (offline / no-LLM).
+
+### Skill files
+
+- **`proposal-maker/SKILL.md`** — orchestrator: capture offer → resolve brand (auto-detect site from offer footer, `--brand-url`, `--brand-file`, or manual overrides) → enrich items → render → surface data-quality warnings → deliver.
+- **`proposal-maker/scripts/run.py`** — venv bootstrap delegating to `common/runners/cli/proposal.py` (same pattern as flyer/cover).
+- **`proposal-maker/references/`** — `offer-format.md` (parse contract), `brand-extraction.md`, `templates.md`, `troubleshoot.md`.
+- **`proposal-maker/examples/before-after.md`** — the Double D offer rendered in all three themes + outlier handling.
+
+### Execute layer (`common/runners/`)
+
+- **`proposal_parse.py`** — pure-stdlib offer parser. RU/EN header aliases, item-line grammar `Name (url) qty — price CUR` (currency symbol may lead or trail; space/comma/European decimals), recomputed subtotal, `total_mismatch` flag, and `price_outliers` (a single line ≥60% of total — flags the seed offer's erroneous `5 000 000` logistics line; never auto-corrects). Emits `skills.proposal.plan.v1`.
+- **`proposal_brand.py`** — `requests` + regex brand extractor: accent/secondary colour (frequency-ranked, saturation/luminance filtered), heading/body fonts + Google Fonts link, logo (og:image / `img[logo]` / favicon), name + tagline. `enrich_items()` thread-pooled per-item `og:image`/`og:description` fetch (failure-tolerant). Calibrated on doubledproject → `#99cc66` + Ubuntu.
+- **`proposal_render.py`** — pure-Python HTML assembly, brand tokens as CSS custom properties, three themes (editorial / invoice / dark), per-item photo cards, `@media print` rules, RU/EN labels, currency formatting, `--embed-images` base64 inlining, and best-effort `to_pdf()` (Playwright → WeasyPrint).
+- **`proposal_kit.py`** — brand-kit collector: cross-platform headless-browser screenshot (`find_browser()` / `capture_screenshot()`), logo download, `write_brief()` (tokens + item table + authoring rules incl. the print-colophon recipe), and `print_pdf()` (system-browser print-to-PDF — no Python deps, preserves links + dark full-bleed; Playwright/WeasyPrint fallback) followed by a Ghostscript image-shrink pass (`find_ghostscript()` / `_gs_shrink()`, `/ebook` @ 144 dpi → ~15 MB to ~0.5 MB, links intact). Exposed via `--pdf-from <html>` / `--pdf`, with `--no-compress` and `--pdf-dpi`.
+- **Print colophons.** The authoring recipe specifies `@page{margin:0}` (no white margins, full-bleed) + running header/footer via the table `<thead>`/`<tfoot>` pattern with gap padding on the head/foot `<td>` — uniform per-page spacing that `position:fixed` bands can't achieve (they reserve space only on the first/last page). `break-after:avoid` keeps category headers from orphaning.
+- **Missing-photo pickup.** `proposal_kit.generate_photo()` / `fill_missing_photos()` — any service the offer left without a catalogue link gets an on-brand, photoreal image generated via the runner's image layer (gpt-image-2 / Imagen / Nano Banana, keys from `~/.skills.env`), saved to `<out>/img/` and wired into the item. `--no-gen-photos` opts out; graceful when no key is set.
+- **Category grouping + density.** Authoring rules (BRIEF + SKILL) now require items grouped into 4–7 categories with per-category subtotals, and a mixed layout — big photo cards for showpieces, compact 2-column rows for utility/low-cost items — instead of one uniform pile.
+- **`cli/proposal.py`** — orchestration; default = build kit and stop for LLM authoring, `--quick` = deterministic template. Flags (`--offer`, `--brand-url|--brand-file|--no-brand`, `--accent/--font/--logo/--brand-name`, `--quick`, `--template`, `--lang`, `--no-thumbnails`, `--embed-images`, `--currency`, `--pdf`, `--parse-only`, `--check`).
+
+### Registration
+
+- `skills.json` — added `proposal-maker` entry; version bumped to `2.17.0`.
+- `VERSION` → `2.17.0`.
+
 ## [2.16.0] — 2026-05-22
 
 ### Added — `style-suggest` skill (visual-style generator)

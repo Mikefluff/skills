@@ -5,3 +5,5 @@ __pycache__/
 .idea/
 .vscode/
 *.swp
+generated/
+.runners-venv/
