@@ -9,7 +9,8 @@ profile: this one is a minimal techy SaaS look, not a cinematic photo deck.
 | File | What it is |
 |---|---|
 | `brand.json` | Resolved tokens — cyan `#22d3ee` accent, indigo `#1e3a8a` secondary, slate canvas `#0b1120`/`#0f172a`, **Fraunces** display serif + **Inter** body, white `inite.ai` logo. `is_dark` and the fonts are corrected here (the scraper returns `var(--font-inter)` and reads this Next.js site loosely). |
-| `template.html` | The authored INITE proposal — a **clone source**, not a live document. Serif headline with one cyan italic word, 3 keyfacts, a before→after metric strip, three Protocol phases (Diagnose / Build / Handover) with cyan step circles + per-phase subtotals, clean photo-less service cards, running `thead`/`tfoot` colophons, `@page{margin:0}` full-bleed. |
+| `template.html` | The authored INITE proposal — a **clone source**, not a live document. Logo-only masthead, serif headline with one cyan italic word, 3 keyfacts, a hero visual, a before→after strip, a Protocol pipeline band (cyan arrows), three phases (Diagnose / Build / Handover) with cyan step circles + per-phase subtotals, a feature card with image + compact service cards with SVG node-glyphs, dot-grid background, running `thead`/`tfoot` colophons, `@page{margin:0}` full-bleed. |
+| `img/hero.jpg`, `img/feature.jpg` | Reusable on-brand visuals (chaos→workflow node-graph / automation pipeline), compressed. Copy the `img/` folder alongside the template. Regenerate per offer if you want fresh ones. |
 
 ## The look in one line
 
@@ -29,9 +30,10 @@ python3 proposal-maker/scripts/run.py --offer /tmp/new-offer.txt \
 
 # 2) clone the saved style and swap the data
 cp proposal-maker/brands/inite/template.html generated/proposal/<slug>/proposal.html
+cp -r proposal-maker/brands/inite/img generated/proposal/<slug>/img   # hero + feature visuals
 #   edit: hero (client name in the cyan <em>), the 3 keyfacts, the before→after strip,
-#   the Protocol phases + their service cards (index / name / desc / WEEK / price),
-#   and the total + optional retainer note. Keep the CSS, masthead and colophons.
+#   the pipeline band, the Protocol phases + service cards (index / name / desc / WEEK / price),
+#   and the total + optional retainer note. Keep the CSS, masthead, visuals and colophons.
 
 # 3) render the PDF
 python3 proposal-maker/scripts/run.py --pdf-from generated/proposal/<slug>/proposal.html

@@ -1,16 +1,17 @@
 <!doctype html>
 <!--
-  INITE AI — saved proposal style (slate / cyan / Fraunces+Inter, techy SaaS, no photos).
-  This is a CLONE SOURCE, not a live document. To reuse for a new offer:
+  INITE AI — saved proposal style (slate / cyan / Fraunces+Inter, techy SaaS).
+  CLONE SOURCE, not a live document. Reuse for a new offer:
     1. run `proposal-maker/scripts/run.py --offer <new>.txt --brand-url https://inite.ai --no-gen-photos`
-       (INITE sells services, not catalogue products — skip per-item photos)
-    2. copy this file, then swap: hero (client name in the cyan <em>), the 3 keyfacts,
-       the before->after metric strip, the Protocol phases + their service cards
-       (index / name / description / WEEK / price), and the total + retainer note
-    3. keep the CSS, masthead, thead/tfoot colophons, @page{margin:0}, the serif headline
-       with one cyan italic word, and the cyan step circles on phase headers
+    2. copy this file (+ the img/ folder), then swap: hero (client in the cyan <em>),
+       the 3 keyfacts, the before->after strip, the Protocol pipeline band, and the
+       phase service cards (index / name / desc / WEEK / price) + the total + retainer note
+    3. keep: logo-only masthead, serif headline with ONE cyan italic word, the hero
+       visual (img/hero.jpg), the pipeline band with cyan arrows, the SVG node-glyphs,
+       the feature card (img/feature.jpg), dot-grid bg, thead/tfoot colophons, @page{margin:0}
     4. render PDF via `--pdf-from`
-  Brand tokens: see brand.json. Full recipe: README.md.
+  img/hero.jpg + img/feature.jpg are reusable on-brand visuals (chaos→workflow / pipeline).
+  Tokens: brand.json. Recipe: README.md.
 -->
 <html lang="en">
 <head>
@@ -27,6 +28,7 @@
     --glow:rgba(34,211,238,.22);
     --serif:'Fraunces',Georgia,'Times New Roman',serif;
     --sans:'Inter',system-ui,-apple-system,Arial,sans-serif;
+    --dots:radial-gradient(rgba(148,163,184,.08) 1px, transparent 1.4px);
   }
   *{box-sizing:border-box}
   html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -35,38 +37,41 @@
   a{color:inherit;text-decoration:none}
   .wrap{max-width:1000px;margin:0 auto}
   .mono{font-variant-numeric:tabular-nums;letter-spacing:.02em}
-  .label{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600}
 
-  /* topbar */
+  /* topbar — logo only (no duplicate wordmark) */
   .topbar{display:flex;align-items:center;justify-content:space-between;
     padding:24px 44px;border-bottom:1px solid var(--hair)}
-  .brand{display:flex;align-items:center;gap:13px}
-  .brand img{height:24px;width:auto}
-  .brand .nm{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+  .topbar img{height:26px;width:auto}
   .topbar .tag{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);
     border:1px solid rgba(34,211,238,.4);border-radius:999px;padding:7px 16px;font-weight:600}
 
   /* hero */
-  .hero{position:relative;padding:74px 44px 50px;overflow:hidden;
-    background:radial-gradient(110% 80% at 100% 0%, rgba(34,211,238,.08), transparent 55%),
-      radial-gradient(90% 70% at 0% 100%, rgba(30,58,138,.18), transparent 60%), var(--bg)}
+  .hero{position:relative;padding:64px 44px 46px;overflow:hidden;
+    background:var(--dots), radial-gradient(110% 80% at 100% 0%, rgba(34,211,238,.10), transparent 55%),
+      radial-gradient(90% 70% at 0% 100%, rgba(30,58,138,.20), transparent 60%), var(--bg);
+    background-size:22px 22px, auto, auto, auto}
+  .herowrap{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:center}
   .kick{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--accent);
-    font-weight:600;margin:0 0 20px}
-  .hero h1{font-family:var(--serif);font-weight:400;font-size:62px;line-height:1.02;
-    letter-spacing:-.01em;margin:0;max-width:16ch}
+    font-weight:600;margin:0 0 18px}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:54px;line-height:1.02;
+    letter-spacing:-.01em;margin:0}
   .hero h1 em{font-style:italic;color:var(--accent);font-weight:500}
-  .hero .sub{margin:22px 0 0;font-size:17px;color:var(--muted);max-width:62ch;line-height:1.6}
+  .hero .sub{margin:20px 0 0;font-size:16px;color:var(--muted);max-width:46ch;line-height:1.6}
+  .heroviz{position:relative;border:1px solid var(--hair);border-radius:18px;overflow:hidden;
+    aspect-ratio:3/2;background:#0b1120;box-shadow:0 0 60px rgba(34,211,238,.10) inset}
+  .heroviz img{width:100%;height:100%;object-fit:cover;display:block;opacity:.95}
+  .heroviz .cap{position:absolute;left:14px;bottom:12px;font-size:9.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted)}
 
-  /* key facts */
-  .keyfacts{display:flex;flex-wrap:wrap;gap:14px;margin:34px 0 0}
-  .keyfacts .kf{flex:1;min-width:170px;border:1px solid var(--hair);border-radius:14px;
-    padding:16px 20px;background:rgba(255,255,255,.02)}
-  .keyfacts .kf .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:600}
-  .keyfacts .kf .v{font-family:var(--serif);font-size:26px;font-weight:600;margin-top:7px;letter-spacing:-.01em}
+  .keyfacts{display:flex;flex-wrap:wrap;gap:12px;margin:26px 0 0}
+  .keyfacts .kf{flex:1;min-width:150px;border:1px solid var(--hair);border-radius:13px;
+    padding:14px 18px;background:rgba(255,255,255,.02)}
+  .keyfacts .kf .k{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .keyfacts .kf .v{font-family:var(--serif);font-size:23px;font-weight:600;margin-top:6px;letter-spacing:-.01em}
   .keyfacts .kf .v b{color:var(--accent);font-weight:600}
 
-  /* before -> after metric strip */
-  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin:30px 0 0;
+  /* before -> after strip */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin:30px 44px 0;
     border:1px solid var(--hair);border-radius:14px;overflow:hidden;background:var(--hair)}
   .metrics .m{background:var(--bg2);padding:15px 18px}
   .metrics .m .k{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -75,10 +80,26 @@
   .metrics .m .v .arr{color:var(--accent);margin:0 7px}
   .metrics .m .v .new{color:var(--accent);font-weight:700}
 
-  .sec{padding:44px 44px 0}
+  /* protocol pipeline overview */
+  .pipe{display:flex;margin:30px 44px 0;border:1px solid var(--hair);border-radius:16px;
+    overflow:hidden;background:var(--bg2)}
+  .pipe .step{flex:1;padding:18px 22px;position:relative}
+  .pipe .step + .step{border-left:1px solid var(--hair)}
+  .pipe .step:not(:last-child)::after{content:"";position:absolute;right:-8px;top:50%;
+    transform:translateY(-50%);z-index:2;border-top:7px solid transparent;border-bottom:7px solid transparent;
+    border-left:8px solid var(--accent)}
+  .pipe .step .top{display:flex;align-items:center;gap:10px}
+  .pipe .step .n{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--accent);
+    border:1px solid rgba(34,211,238,.45);border-radius:999px;width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;flex:none}
+  .pipe .step .nm{font-family:var(--serif);font-size:19px;font-weight:600}
+  .pipe .step .meta{margin-top:8px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .pipe .step .meta b{color:var(--ink);font-weight:600}
+
+  .sec{padding:42px 44px 0}
 
   /* phase */
-  .cat{margin:38px 0 0}
+  .cat{margin:36px 0 0}
   .cat:first-child{margin-top:0}
   .cat-h{display:flex;align-items:center;gap:16px;margin:0 0 18px}
   .cat-h .step{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--accent);
@@ -89,13 +110,14 @@
   .cat-h .sum b{color:var(--accent);font-weight:700}
   .cat-h::after{content:"";flex:1;height:1px;background:var(--hair)}
 
-  /* service cards (no photos — techy) */
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .card{position:relative;border:1px solid var(--hair);border-radius:16px;padding:18px 20px;
     background:var(--card);display:flex;flex-direction:column;break-inside:avoid;page-break-inside:avoid}
+  .card .head{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .card .idx{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--accent);
     font-variant-numeric:tabular-nums}
-  .card .nm{font-family:var(--serif);font-weight:600;font-size:19px;margin:8px 0 0;letter-spacing:-.01em;line-height:1.15}
+  .card .glyph{width:46px;height:22px;opacity:.85;flex:none}
+  .card .nm{font-family:var(--serif);font-weight:600;font-size:19px;margin:10px 0 0;letter-spacing:-.01em;line-height:1.15}
   .card .desc{margin:8px 0 0;color:var(--muted);font-size:13.5px;line-height:1.5}
   .card .foot{display:flex;align-items:baseline;justify-content:space-between;margin-top:16px;
     padding-top:14px;border-top:1px solid var(--hair)}
@@ -104,16 +126,25 @@
   .card .foot .when{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
   .card.span2{grid-column:1 / -1}
 
+  /* feature card — image + text side by side */
+  .feature{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0;overflow:hidden}
+  .feature .fimg{position:relative;min-height:230px;background:#0b1120;border-right:1px solid var(--hair)}
+  .feature .fimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.95}
+  .feature .fbody{padding:22px 24px;display:flex;flex-direction:column}
+  .feature .nm{font-size:22px;margin-top:8px}
+
   /* total */
-  .total{margin:40px 44px 0;padding:30px 34px;border-radius:18px;border:1px solid var(--hair);
-    background:linear-gradient(135deg,rgba(34,211,238,.10),rgba(30,58,138,.10));
-    display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .total{position:relative;margin:40px 44px 0;padding:28px 34px;border-radius:18px;border:1px solid var(--hair);
+    background:var(--dots), linear-gradient(135deg,rgba(34,211,238,.12),rgba(30,58,138,.12));
+    background-size:22px 22px, auto;
+    display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 28px;
+    box-shadow:0 0 54px rgba(34,211,238,.07)}
   .total .lbl{font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
   .total .lbl b{display:block;font-family:var(--serif);color:var(--ink);font-size:17px;letter-spacing:0;
     text-transform:none;margin-top:7px;font-weight:500}
   .total .amt{font-family:var(--serif);font-weight:600;font-size:44px;letter-spacing:-.01em;color:var(--accent);
-    text-shadow:0 0 36px var(--glow)}
-  .total .note{flex-basis:100%;margin:6px 0 0;font-size:12px;color:var(--muted)}
+    justify-self:end;line-height:1}
+  .total .note{grid-column:1 / -1;margin:4px 0 0;font-size:12px;color:var(--muted)}
   .total .note b{color:var(--ink);font-weight:600}
 
   footer.colophon{margin:40px 0 0;padding:24px 44px 46px;border-top:1px solid var(--hair);
@@ -121,23 +152,26 @@
   footer.colophon a{color:var(--accent);font-weight:600}
   footer.colophon .sep{opacity:.4}
 
-  /* running colophons — repeat per print page */
+  /* running colophons */
   table.sheet{width:100%;border-collapse:collapse}
   table.sheet > thead, table.sheet > tfoot{display:none}
   td.main{padding:0}
   .rh{display:flex;align-items:center;gap:11px;height:40px;padding:0 16mm;background:var(--bg2);
     border-bottom:1px solid var(--accent)}
-  .rh img{height:16px}
-  .rh .t{font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase}
+  .rh img{height:15px}
   .rh .r{margin-left:auto;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600}
   .rf{display:flex;align-items:center;justify-content:space-between;height:28px;padding:0 16mm;
     background:var(--bg2);border-top:1px solid var(--hair);font-size:8.5px;letter-spacing:.06em;color:var(--muted)}
   .rf a{color:var(--accent)}
 
-  @media (max-width:700px){
-    .hero h1{font-size:40px}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}
+  @media (max-width:760px){
+    .herowrap,.grid,.feature{grid-template-columns:1fr}
+    .heroviz{aspect-ratio:16/9}.feature .fimg{min-height:180px;border-right:none;border-bottom:1px solid var(--hair)}
+    .hero h1{font-size:38px}.metrics{grid-template-columns:1fr 1fr}.pipe{flex-direction:column}
+    .pipe .step + .step{border-left:none;border-top:1px solid var(--hair)}
+    .pipe .step:not(:last-child)::after{display:none}
     .hero,.sec,.topbar{padding-left:22px;padding-right:22px}
-    .total{margin-left:22px;margin-right:22px}
+    .metrics,.pipe,.total{margin-left:22px;margin-right:22px}
   }
   @media print{
     @page{size:A4;margin:0}
@@ -148,8 +182,8 @@
     table.sheet > tfoot{display:table-footer-group}
     table.sheet > thead > tr > td{padding:0 0 20px}
     table.sheet > tfoot > tr > td{padding:20px 0 0}
-    .hero{padding-top:18px}
-    .card,.total,.metrics{break-inside:avoid;page-break-inside:avoid}
+    .hero{padding-top:16px}
+    .card,.feature,.total,.metrics,.pipe{break-inside:avoid;page-break-inside:avoid}
     .cat-h{break-after:avoid;page-break-after:avoid}
   }
 </style>
@@ -159,7 +193,6 @@
 <thead><tr><td>
   <div class="rh">
     <img src="https://inite.ai/logo.svg" alt="">
-    <span class="t">INITE AI</span>
     <span class="r">Proposal · Acme Realty</span>
   </div>
 </td></tr></thead>
@@ -173,32 +206,42 @@
 <div class="wrap">
 
   <div class="topbar">
-    <div class="brand">
-      <img src="https://inite.ai/logo.svg" alt="INITE AI">
-      <span class="nm">AI Automation</span>
-    </div>
-    <div class="tag">Proposal</div>
+    <img src="https://inite.ai/logo.svg" alt="INITE AI">
+    <div class="tag">Proposal · 24.06.2026</div>
   </div>
 
   <header class="hero">
-    <p class="kick">INITE / Proposal · 24.06.2026</p>
-    <h1>AI automation for <em>Acme Realty</em></h1>
-    <p class="sub">Three workflows deployed in two to four weeks. A free diagnostic first, then
-      automation, integration and a full handover — so the system runs without us.</p>
-
-    <div class="keyfacts">
-      <div class="kf"><div class="k">Timeline</div><div class="v">2–4 <b>weeks</b></div></div>
-      <div class="kf"><div class="k">Efficiency gain</div><div class="v"><b>40–60%</b></div></div>
-      <div class="kf"><div class="k">Payback</div><div class="v">3–6 <b>months</b></div></div>
-    </div>
-
-    <div class="metrics">
-      <div class="m"><div class="k">Lead response</div><div class="v mono"><span class="old">4 h</span><span class="arr">→</span><span class="new">5 min</span></div></div>
-      <div class="m"><div class="k">Listing entry</div><div class="v mono"><span class="old">45 min</span><span class="arr">→</span><span class="new">8 min</span></div></div>
-      <div class="m"><div class="k">Contract prep</div><div class="v mono"><span class="old">6 h</span><span class="arr">→</span><span class="new">8 min</span></div></div>
-      <div class="m"><div class="k">Manual ops</div><div class="v mono"><span class="old">14 d</span><span class="arr">→</span><span class="new">5 d</span></div></div>
+    <div class="herowrap">
+      <div class="heromain">
+        <p class="kick">INITE / Protocol</p>
+        <h1>AI automation for <em>Acme Realty</em></h1>
+        <p class="sub">Three workflows deployed in two to four weeks. A free diagnostic first,
+          then automation, integration and a full handover — so the system runs without us.</p>
+        <div class="keyfacts">
+          <div class="kf"><div class="k">Timeline</div><div class="v">2–4 <b>wks</b></div></div>
+          <div class="kf"><div class="k">Efficiency</div><div class="v"><b>40–60%</b></div></div>
+          <div class="kf"><div class="k">Payback</div><div class="v">3–6 <b>mo</b></div></div>
+        </div>
+      </div>
+      <div class="heroviz">
+        <img src="img/hero.jpg" alt="">
+        <span class="cap">Chaos → automated workflow</span>
+      </div>
     </div>
   </header>
+
+  <div class="metrics">
+    <div class="m"><div class="k">Lead response</div><div class="v mono"><span class="old">4 h</span><span class="arr">→</span><span class="new">5 min</span></div></div>
+    <div class="m"><div class="k">Listing entry</div><div class="v mono"><span class="old">45 min</span><span class="arr">→</span><span class="new">8 min</span></div></div>
+    <div class="m"><div class="k">Contract prep</div><div class="v mono"><span class="old">6 h</span><span class="arr">→</span><span class="new">8 min</span></div></div>
+    <div class="m"><div class="k">Manual ops</div><div class="v mono"><span class="old">14 d</span><span class="arr">→</span><span class="new">5 d</span></div></div>
+  </div>
+
+  <div class="pipe">
+    <div class="step"><div class="top"><span class="n">01</span><span class="nm">Diagnose</span></div><div class="meta">Week 0 · <b>Free</b></div></div>
+    <div class="step"><div class="top"><span class="n">02</span><span class="nm">Build</span></div><div class="meta">Week 1–3 · <b>$18,700</b></div></div>
+    <div class="step"><div class="top"><span class="n">03</span><span class="nm">Handover</span></div><div class="meta">Week 4 · <b>$3,800</b></div></div>
+  </div>
 
   <section class="sec">
 
@@ -207,7 +250,12 @@
       <div class="cat-h"><span class="step">01</span><h2>Diagnose</h2><span class="sum">1 step · <b>Free</b></span></div>
       <div class="grid">
         <div class="card span2">
-          <span class="idx">D · 01</span>
+          <div class="head"><span class="idx">D · 01</span>
+            <svg class="glyph" viewBox="0 0 48 24" fill="none" stroke="#22d3ee" stroke-width="1.4">
+              <circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="6" cy="12" r="2"/>
+              <path d="M8 6h14l8 6-8 6H8M8 12h14"/><circle cx="42" cy="12" r="3" fill="#22d3ee" stroke="none"/>
+            </svg>
+          </div>
           <div class="nm">AI Diagnostics &amp; ROI Plan</div>
           <div class="desc">A 15-minute diagnostic of your rental and sales ops, returned as an
             industry-specific automation map with the three highest-ROI workflows and projected savings — before you commit a cent.</div>
@@ -220,26 +268,42 @@
     <div class="cat">
       <div class="cat-h"><span class="step">02</span><h2>Build</h2><span class="sum">4 items · <b>$18,700</b></span></div>
       <div class="grid">
-        <div class="card">
-          <span class="idx">B · 01</span>
-          <div class="nm">Workflow 1 — Lead Intake &amp; Qualification</div>
-          <div class="desc">Inbound leads captured, enriched and scored across channels, 24/7 — your team only sees the ones worth a call.</div>
-          <div class="foot"><span class="when">Week 1–2</span><span class="pr">$4,500</span></div>
+        <div class="card feature">
+          <div class="fimg"><img src="img/feature.jpg" alt=""></div>
+          <div class="fbody">
+            <div class="head"><span class="idx">B · 01</span><span class="when" style="font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase">Week 1–2</span></div>
+            <div class="nm">Workflow 1 — Lead Intake &amp; Qualification</div>
+            <div class="desc">Inbound leads captured, enriched and scored across every channel, 24/7 —
+              your agents only ever see the ones worth a call, with the rest nurtured automatically.</div>
+            <div class="foot"><span class="when">Flagship workflow</span><span class="pr">$4,500</span></div>
+          </div>
         </div>
         <div class="card">
-          <span class="idx">B · 02</span>
+          <div class="head"><span class="idx">B · 02</span>
+            <svg class="glyph" viewBox="0 0 48 24" fill="none" stroke="#22d3ee" stroke-width="1.4">
+              <circle cx="8" cy="12" r="3"/><circle cx="40" cy="12" r="3"/><path d="M11 9h26M37 15H11" stroke-dasharray="3 2"/>
+            </svg>
+          </div>
           <div class="nm">Workflow 2 — Listing Sync &amp; Enrichment</div>
           <div class="desc">Listings synced and auto-enriched across CRM and portals, with no manual re-entry and no drift between systems.</div>
           <div class="foot"><span class="when">Week 2</span><span class="pr">$5,200</span></div>
         </div>
         <div class="card">
-          <span class="idx">B · 03</span>
+          <div class="head"><span class="idx">B · 03</span>
+            <svg class="glyph" viewBox="0 0 48 24" fill="none" stroke="#22d3ee" stroke-width="1.4">
+              <circle cx="7" cy="12" r="2.5"/><circle cx="24" cy="12" r="2.5"/><circle cx="41" cy="12" r="2.5" fill="#22d3ee" stroke="none"/><path d="M9.5 12h12M26.5 12h12"/>
+            </svg>
+          </div>
           <div class="nm">Workflow 3 — Contract &amp; Document Automation</div>
           <div class="desc">Contracts and documents generated, routed and tracked from a single source of truth, with an audit trail on every step.</div>
           <div class="foot"><span class="when">Week 2–3</span><span class="pr">$6,000</span></div>
         </div>
         <div class="card">
-          <span class="idx">B · 04</span>
+          <div class="head"><span class="idx">B · 04</span>
+            <svg class="glyph" viewBox="0 0 48 24" fill="none" stroke="#22d3ee" stroke-width="1.4">
+              <circle cx="24" cy="12" r="3" fill="#22d3ee" stroke="none"/><circle cx="7" cy="6" r="2"/><circle cx="7" cy="18" r="2"/><circle cx="41" cy="6" r="2"/><circle cx="41" cy="18" r="2"/><path d="M9 7l13 4M9 17l13-4M39 7L26 11M39 17L26 13"/>
+            </svg>
+          </div>
           <div class="nm">Systems Integration</div>
           <div class="desc">CRM, email and Telegram wired into one event flow with retries, idempotency and a full audit trail — the plumbing that keeps state correct.</div>
           <div class="foot"><span class="when">Week 3</span><span class="pr">$3,000</span></div>
@@ -252,13 +316,21 @@
       <div class="cat-h"><span class="step">03</span><h2>Handover</h2><span class="sum">2 items · <b>$3,800</b></span></div>
       <div class="grid">
         <div class="card">
-          <span class="idx">H · 01</span>
+          <div class="head"><span class="idx">H · 01</span>
+            <svg class="glyph" viewBox="0 0 48 24" fill="none" stroke="#22d3ee" stroke-width="1.4">
+              <circle cx="9" cy="12" r="3"/><path d="M12 12h20"/><rect x="33" y="7" width="10" height="10" rx="2"/>
+            </svg>
+          </div>
           <div class="nm">Team Handover &amp; Training</div>
           <div class="desc">Runbooks, dashboards and a live session, so your team owns and operates the system instead of depending on us.</div>
           <div class="foot"><span class="when">Week 4</span><span class="pr">$1,800</span></div>
         </div>
         <div class="card">
-          <span class="idx">H · 02</span>
+          <div class="head"><span class="idx">H · 02</span>
+            <svg class="glyph" viewBox="0 0 48 24" fill="none" stroke="#22d3ee" stroke-width="1.4">
+              <path d="M4 12h8l4-7 6 14 4-9 3 5h11"/>
+            </svg>
+          </div>
           <div class="nm">30-Day Hypercare &amp; Monitoring</div>
           <div class="desc">Monitoring, tuning and on-call support through the first thirty days after launch, while the workflows settle into real traffic.</div>
           <div class="foot"><span class="when">Post-launch</span><span class="pr">$2,000</span></div>
