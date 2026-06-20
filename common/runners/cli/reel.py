@@ -277,8 +277,11 @@ def main() -> int:
         print("Install: 'brew install ffmpeg' (mac) or 'apt-get install -y ffmpeg' (debian).", file=sys.stderr)
         return 0
 
-    shot_paths = [Path(item.output_path) for item in shots_result.succeeded if item.output_path]
-    shot_paths.sort(key=lambda p: p.name)
+    # Concat must follow plan order (shot index), NOT file-finish order.
+    # Sorting by filename concats by timestamp prefix, which reflects when each
+    # shot finished — wrong when shots run in parallel or get retried via --resume.
+    succeeded_in_plan_order = sorted(shots_result.succeeded, key=lambda it: it.index)
+    shot_paths = [Path(item.output_path) for item in succeeded_in_plan_order if item.output_path]
 
     concat_mp4 = output_dir / "concat.mp4"
     with_music_mp4 = output_dir / "with-music.mp4"

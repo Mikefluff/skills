@@ -9,6 +9,39 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.18.0] — 2026-06-20
+
+### Added — canonical video-prompt SYSTEM_PROMPT chain (rules-driven, not hand-written)
+
+New `common/video-prompt-library/system-prompt.md` — sibling to the existing `visual-prompt-library/system-prompt.md`. Encodes 12 rules for overlay-heavy i2v on Veo 3.1 / Veo 3.1 Fast / Kling / Sora / Runway: 2-sentence cap, 80-word cap, one motion verb per shot, identity front-loaded in 8-15 words, verbatim global lock sentence (`Keep everything else still. Maintain the style of the image.`), no rhetorical adjectives, no punitive labels (avoid Veo's safety filter), no negation of locked props, contact-motion described as subject-anchored not target-anchored ("the hand lowers 3 cm in place", not "taps onto the paper"), text-overlay preservation via `last_frame == image` bookend + `negative_prompt` text-stability payload.
+
+`reel-builder/SKILL.md` step 6 now spawns ONE Agent with this SYSTEM_PROMPT and gets all N shot prompts in a single JSON response — the same pattern the carousel chain has used since v2.13.0. Per-shot subagent calls break identity consistency across the reel.
+
+### Added — Veo 3.1 text-overlay preservation (provider level)
+
+`common/runners/providers/google_video.py` now accepts:
+
+- `kwargs["lock_first_last"] = True` — passes the source frame as both `image` AND `last_frame` to the Veo API. Per Google's docs, `last_frame` is "the only documented mechanism for constraining drift" in i2v — when start == end, typography drift collapses. This is the single highest-ROI lever for text wobble on dense overlays.
+- `kwargs["negative_prompt"] = "<phrases>"` — Veo's `negative_prompt` config field. Expects comma-separated PHRASES not negations. Default text-stability payload (set by SYSTEM_PROMPT rule 12): `"text warping, glyph distortion, melting letters, flickering text, re-rendered text, subtitle, caption overlay, watermark change, blurred text, deformed letters, no subtitles"`.
+- Graceful fallback: some preview model IDs (notably `veo-3.1-fast-generate-preview`) reject `last_frame` with a 400 "use case not supported". Provider catches the error and retries once without `last_frame` (other levers stay active); surfaces a stderr `⚠` note so callers know the drift-lock didn't activate. For full text preservation on overlay-heavy reels, opt into `veo-3-1` (non-Fast) at ~4× cost.
+
+### Added — 4 new visual styles (23 total in the library)
+
+- **`servers-not-staff`** (FAKE AI-WORKFORCE EXPOSÉ) — Apple-showroom Mac Mini stack with employee-badge cards defaced by "NOT AN EMPLOYEE" stamps, fake org-chart, HR-audit form with 10 accountability questions stamped UNDEFINED, architecture-blueprint comparison side. For "AI workforce" / "цифровые сотрудники" grift critiques.
+- **`ownership-ledger`** (TAKEN-BY DOCTRINE) — executive ledger paper + brass desk-lamp + wax-seal aesthetic. "TAKEN BY" signed lines vs "ADVISED ONLY · NO SIGNATURE" stamps. For ownership / skin-in-the-game / responsibility-as-income essays.
+- **`rough-and-cut`** (DIAMOND DOCTRINE) — gemmologist's bench, dusty pile of rough stones with handwritten paper-tag grievances vs single cut diamond on black velvet with brass plaque verdict. For emotional-maturity / "люди как алмазы" / grievance-as-inclusion psychology pieces.
+- **`mission-control`** (CONTROL-LOOP DOCTRINE) — NASA Apollo-era dispatcher's pit, wall of red EXECUTOR ALERT lamps vs one steady green OWNER · DELIVERED CRT, corkboard red-yarn schematic, brass desk-mike. For executor-vs-owner / "исполнительность ≠ ответственность" / AI-era execution-cheapening essays.
+
+All four follow the per-file extensible-library schema (frontmatter + body) introduced in v2.15.0. Indexed in `styles/_index.md`, auto-pick rows added to `styles/_auto-pick.md` so they resolve via `--style auto`.
+
+### Fixed — reel concat order respects plan index, not file-finish time
+
+`common/runners/cli/reel.py:281` previously sorted concat inputs by filename (which begins with finish timestamp) — when shots run in parallel or get retried via `--resume`, finish order ≠ plan order, and final.mp4 played shots out of sequence (e.g. `1,3,2,5,4` for a parallel run). Now sorts `shots_result.succeeded` by `item.index` from the plan. Concat order is now strictly 1→2→3→…→N regardless of how shots finished.
+
+### Internal — i2v discipline docs synchronized
+
+`video-prompt/references/i2v-prompting.md` is the human-facing rationale; `common/video-prompt-library/system-prompt.md` is the LLM-facing rule list. The references file now mirrors the SYSTEM_PROMPT's rules 1-12 with worked before/after examples. Memory `feedback_reel_chain.md` codifies "rules not hardcode" as a recurring lesson.
+
 ## [2.17.0] — 2026-06-03
 
 ### Added — `proposal-maker` skill (brand-copying commercial proposal generator)

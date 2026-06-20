@@ -27,6 +27,10 @@ Run through rows in order. Pick the first row whose signal terms match the topic
 | Fake exclusivity / "продали доступ к окружению" / batch-as-VIP / MLM buyer-chat / mass-membership as elite / "сильное окружение" critique / Like Центр / БМ-style debunk | [vip-massovka](vip-massovka.md) |
 | Testimonial-as-proof critique / "атмосфера vs результат" / мало проверяемых кейсов / fan-marathon debunk / "отзывов много цифр нет" / mass-testimonial unmasking | [applause-ledger](applause-ledger.md) |
 | AI-infogypsy critique / vibecoded dashboard scam / "навайбкоженный UI" / fake agentic systems / vaporware AI startup / "+320% efficiency" mock data debunk / AI-маркетинг разоблачение | [vibecoded-exposed](vibecoded-exposed.md) |
+| AI workforce critique / "цифровые сотрудники" debunk / Mac Mini stack as employees / hardware-as-staff / "AI заменил мой отдел" debunk / fake-orgchart / server-rack as команда / hardware-without-architecture critique | [servers-not-staff](servers-not-staff.md) |
+| Responsibility doctrine / ownership / skin-in-the-game / "TAKEN BY" rhetoric / owner-vs-advisor / parasitism critique / accountability-as-income / "ответственность ≠ задачи" / managing-partner gravity / contract-as-rhetoric | [ownership-ledger](ownership-ledger.md) |
+| Emotional maturity doctrine / "тяжёлые люди" psychology / grievance-as-inclusion / "люди как алмазы" / sorting-people-as-stones / "взрослые встречаются редко" / debtor-mindset critique / gemmologist's-bench rhetoric | [rough-and-cut](rough-and-cut.md) |
+| Executor-vs-owner doctrine / "исполнительность ≠ ответственность" / "контур управления" critique / "тупой но исполнительный" antipattern / AI-era execution cheapening / management-load math / Apollo-dispatcher rhetoric | [mission-control](mission-control.md) |
 
 ## Default fallback
 

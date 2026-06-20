@@ -62,18 +62,18 @@ Topic / research / script → build 1-4 shot screenplay with timing → resolve 
    - Video: `--video-provider auto|veo-3-1|sora-2|kling-3-0|runway-gen-4|fal-video`. Auto-pick by style requirements.
    - Music: `--music-provider auto|suno-v5-5|stable-audio-2-5|eleven-music|lyria-3-pro`. Auto by genre/instrumental.
 
-6. **Build per-shot video prompts**:
-   ```
-   <shot anchor (video style)>
+6. **Build per-shot video prompts via the shared chain** — DO NOT hand-write prompts per shot. Instead, spawn ONE Agent with the canonical SYSTEM_PROMPT at [`../common/video-prompt-library/system-prompt.md`](../common/video-prompt-library/system-prompt.md):
 
-   <shot action: subject + motion + setting, 30-60 words>
+   - Load the SYSTEM_PROMPT verbatim from that file.
+   - Fill `buildUserMessage(opts)` per the shape in the same file:
+     - Mode: `i2v` (default — when carousel slides / poster frames are present) or `t2v` (script-from-scratch).
+     - For i2v: pass each source frame's `image_url` + a one-line summary of the in-image overlay text per shot (the LLM uses it to choose which one motion fits the slide's rhetoric, then strips it from the output prompt).
+     - For t2v: pass the screenplay beats per shot.
+     - Always pass the character-identity marker (8-15 words) and the resolved video-style entry.
+   - The Agent returns ONE JSON object `{"shots":[{"index":N,"prompt":"...","kwargs":{...}}]}` — all N shots in a single call. Per-shot subagent calls break identity consistency, just like in the carousel chain.
+   - Append each `shots[i].prompt` + `shots[i].kwargs` to `plan.json` (single canonical path, overwrite — don't proliferate `plan-v1.json`).
 
-   Composition: <framing from screenplay>.
-   Duration: <N> seconds.
-   Aspect: <9:16 vertical | 1:1 square | 16:9 horizontal>.
-
-   <if shot has dialogue> Spoken: "<EXACT dialogue, ≤12 words>" (subject lips sync).
-   ```
+   The SYSTEM_PROMPT encodes the full discipline: i2v 11 rules (2-sentence cap, 80-word cap, single motion verb, identity front-loading, global lock sentence verbatim, no rhetorical adjectives, no punitive labels, contact-motion subject-anchored not target-anchored, etc.) and the t2v cinematic template. The human-readable rationale + worked before/after examples live in the sibling `video-prompt` skill's i2v-prompting reference document (at `../video-prompt/references/`). When the two files conflict, the SYSTEM_PROMPT wins — that doc is the rationale, not the authority.
 
 7. **Build music prompt** based on music-style library entry:
    - Suno: Style of Music box + Lyrics box (instrumental: empty/structured-tags-only)

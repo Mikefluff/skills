@@ -25,8 +25,12 @@ Auto-pick matrix: [`_auto-pick.md`](_auto-pick.md). System prompt loader: [`../s
 | [vip-massovka](vip-massovka.md) | VIP / МАССОВКА (EXCLUSIVITY DEFACED) | Exposing fake exclusivity marketing, "продали доступ к окружению" critiques, batch-as-VIP unmasking, mass-membership marketed as elite |
 | [applause-ledger](applause-ledger.md) | APPLAUSE LEDGER (EVIDENCE GAP) | Exposing testimonial-as-proof tactic, "восторгов много а цифр нет" critiques, atmosphere vs result contrast, mass-testimonial debunk |
 | [vibecoded-exposed](vibecoded-exposed.md) | VIBECODED EXPOSED (AI-DASHBOARD VAPORWARE) | Exposing fake AI / agentic dashboard scams, "навайбкоженный" UI without backend, vaporware AI tooling, mock-data critiques |
+| [servers-not-staff](servers-not-staff.md) | SERVERS NOT STAFF (FAKE AI-WORKFORCE EXPOSÉ) | Exposing "AI workforce" / "цифровые сотрудники" grifts, Mac-Mini-stack-as-employees scams, hardware-as-people pitches, server-shelf-as-команда callouts |
+| [ownership-ledger](ownership-ledger.md) | OWNERSHIP LEDGER (TAKEN-BY DOCTRINE) | Executive-grade responsibility doctrine, "TAKEN BY" vs "ADVISED ONLY" framing, owner-vs-advisor critique, "уровень дохода = уровень ответственности" essays, contract-as-rhetoric |
+| [rough-and-cut](rough-and-cut.md) | ROUGH AND CUT (DIAMOND DOCTRINE) | Emotional / psychological maturity doctrine, "тяжёлые люди" vs "люди-алмазы" framing, grievance-as-inclusion identification, sorting-people-as-stones rhetoric, "взрослые встречаются редко" essays |
+| [mission-control](mission-control.md) | MISSION CONTROL (CONTROL-LOOP DOCTRINE) | Executor-vs-owner doctrine, "исполнительность ≠ ответственность", "контур управления", "тупой но исполнительный" antipattern, AI-era execution cheapening, agentic-system load math |
 
-19 styles — 13 ported from figma's SEEDREAM_SYSTEM_PROMPT (`/Users/mikefluff/Documents/figma/app/lib/carousel/slidePrompts/systemPrompt.js`). Extend by adding more.
+23 styles — 13 ported from figma's SEEDREAM_SYSTEM_PROMPT (`/Users/mikefluff/Documents/figma/app/lib/carousel/slidePrompts/systemPrompt.js`). Extend by adding more.
 
 ## Adding a new style — quick checklist
 
