@@ -1,0 +1,18 @@
+{
+  "url": "https://inite.ai",
+  "ok": true,
+  "name": "INITE AI",
+  "tagline": "AI automation in 2-4 weeks — 40-60% efficiency gain, ROI in 3-6 months.",
+  "accent": "#22d3ee",
+  "accent2": "#1e3a8a",
+  "bg": "#0b1120",
+  "text": "#eef2f7",
+  "is_dark": true,
+  "font_heading": "Fraunces",
+  "font_body": "Inter",
+  "google_fonts_url": "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@300;400;500;600;700&display=swap",
+  "logo_url": "https://inite.ai/logo.svg",
+  "logo_note": "white wordmark SVG (inite + cyan .ai) — use as-is on dark; on a light surface tint via filter:brightness(0) invert(1)",
+  "hero_url": "https://inite.ai/api/og?mode=brand",
+  "style_notes": "Minimal techy SaaS. Slate canvas (#0b1120 page / #0f172a panels), cyan accent #22d3ee, secondary indigo #1e3a8a. Display = Fraunces serif with ONE cyan italic emphasis word; body + uppercase micro-labels = Inter (tabular-nums). Metric-forward: a 3-up keyfacts block (timeline / efficiency / ROI) and a before→after strip with struck-through 'old' + cyan 'new'. NO per-item photos — clean bordered service cards (mono index · serif name · description · WEEK tag · price). Group items into Protocol phases (Diagnose / Build / Handover) with cyan step circles, large serif headers and per-phase subtotals. Running thead/tfoot colophons; @page{margin:0} full-bleed. NOTE: the live scraper returns the font as 'var(--font-inter)' (a Next.js CSS variable) and reads the accent loosely — overridden here to Fraunces + Inter + cyan; prefer --brand-file over a cold scrape."
+}
