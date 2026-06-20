@@ -46,6 +46,14 @@ python3 proposal-maker/scripts/run.py --offer /tmp/new-offer.txt \
   --quick --brand-file proposal-maker/brands/inite/brand.json --pdf
 ```
 
+## Cyrillic / RU proposals
+
+Fraunces ships **no Cyrillic**. For a Russian (or any Cyrillic) proposal, swap only the
+display serif to **Playfair Display** (high-contrast Didone with Cyrillic) — Inter body
+already covers Cyrillic, and the cyan/slate system is unchanged. Use
+`google_fonts_url_cyrillic` from `brand.json` and set `--serif:'Playfair Display',…`. The
+result stays consistent with the English (Fraunces) variant.
+
 ## Notes
 
 - Offer items map to Protocol phases — Diagnose (the free diagnostic), Build (workflows +
