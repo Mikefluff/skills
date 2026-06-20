@@ -1,0 +1,320 @@
+<!doctype html>
+<!--
+  Double D Project — saved proposal style (dark / lime-green / Ubuntu).
+  This is a CLONE SOURCE, not a live document. To reuse for a new offer:
+    1. run `proposal-maker/scripts/run.py --offer <new>.txt` to get the BRIEF + item photos
+    2. copy this file, then swap: hero (event/name), the Date/Time/Location keyfacts,
+       the 5 category blocks and their items/prices/links/photos, and the grand total
+    3. keep the CSS, the table thead/tfoot colophons, @page{margin:0}, and the masthead
+    4. render PDF via `--pdf-from`
+  Brand tokens: see brand.json in this folder. See README.md for the full recipe.
+-->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Birthday Party — Коммерческое предложение · Double D Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#0a0b0d; --bg2:#101216; --card:#15171c; --hair:#23262e;
+    --ink:#f4f6f8; --muted:#9aa1ad; --accent:#99cc66; --accent-d:#8cba51;
+    --glow:rgba(153,204,102,.28);
+    --ff:'Ubuntu',system-ui,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ff);
+    font-weight:400;line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:980px;margin:0 auto}
+
+  /* top bar (screen) */
+  .topbar{display:flex;align-items:center;justify-content:space-between;
+    padding:26px 40px;border-bottom:1px solid var(--hair)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand img{height:46px;width:auto;filter:brightness(0) invert(1)}
+  .brand .nm{font-weight:700;font-size:15px;letter-spacing:.04em;text-transform:uppercase}
+  .brand .nm small{display:block;font-weight:400;font-size:11px;letter-spacing:.22em;color:var(--muted)}
+  .topbar .cta{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);
+    border:1px solid var(--accent);border-radius:999px;padding:9px 18px;font-weight:500}
+
+  /* hero */
+  .hero{position:relative;padding:84px 40px 60px;overflow:hidden;
+    background:radial-gradient(120% 90% at 85% 0%, rgba(153,204,102,.10), transparent 55%),
+      radial-gradient(80% 70% at 0% 100%, rgba(153,204,102,.07), transparent 60%),var(--bg)}
+  .kick{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);
+    font-weight:500;margin:0 0 22px}
+  .hero h1{font-weight:700;font-size:72px;line-height:.94;letter-spacing:-.02em;
+    text-transform:uppercase;margin:0;max-width:14ch}
+  .hero h1 .g{color:var(--accent)}
+  .hero .for{margin:22px 0 0;font-size:19px;color:var(--muted)}
+  .hero .for b{color:var(--ink);font-weight:500}
+  /* prominent key facts — Date / Time / Location, big so the client can't miss them */
+  .keyfacts{display:flex;flex-wrap:wrap;gap:14px;margin:34px 0 0}
+  .keyfacts .kf{flex:1;min-width:190px;border:1px solid var(--hair);border-radius:16px;
+    padding:18px 22px;background:rgba(153,204,102,.05)}
+  .keyfacts .kf .k{font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);font-weight:700}
+  .keyfacts .kf .v{font-size:25px;font-weight:700;margin-top:8px;letter-spacing:-.01em;line-height:1.1}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+  .meta .pill{display:flex;align-items:baseline;gap:8px;border:1px solid var(--hair);
+    border-radius:999px;padding:7px 15px;background:rgba(255,255,255,.02)}
+  .meta .pill .k{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .meta .pill .v{font-size:14px;font-weight:500}
+
+  .sec{padding:46px 40px 0}
+
+  /* category */
+  .cat{margin:40px 0 0}
+  .cat:first-child{margin-top:0}
+  .cat-h{display:flex;align-items:center;gap:16px;margin:0 0 18px}
+  .cat-h h2{font-family:var(--ff);font-size:28px;font-weight:700;letter-spacing:-.01em;
+    margin:0;white-space:nowrap;padding-left:14px;border-left:4px solid var(--accent)}
+  .cat-h .sum{font-size:13px;color:var(--muted);font-weight:500;white-space:nowrap}
+  .cat-h .sum b{color:var(--accent);font-weight:700}
+  .cat-h::after{content:"";flex:1;height:2px;background:var(--hair)}
+
+  /* big photo cards */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .card{position:relative;border:1px solid var(--hair);border-radius:18px;overflow:hidden;
+    background:var(--card);display:flex;flex-direction:column;break-inside:avoid;page-break-inside:avoid}
+  .card .ph{position:relative;aspect-ratio:16/10;background:#0d0f12;overflow:hidden}
+  .card .ph img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.05) contrast(1.03)}
+  .card .ph::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,transparent 45%,rgba(10,11,13,.85))}
+  .card .qty,.row .q{font-weight:700;color:#0a0b0d;background:var(--accent);border-radius:999px}
+  .card .qty{position:absolute;top:12px;left:12px;z-index:2;font-size:11px;padding:3px 11px}
+  .card .body{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+    padding:14px 18px 16px;margin-top:auto}
+  .card .body .nm{font-weight:500;font-size:16.5px;letter-spacing:-.01em;line-height:1.25}
+  .card .body .pr{font-weight:700;font-size:18px;white-space:nowrap}
+
+  /* compact rows (utility items) — 2 per line */
+  .rows{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .row{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;
+    padding:9px 14px 9px 9px;border:1px solid var(--hair);border-radius:12px;background:var(--card);
+    break-inside:avoid;page-break-inside:avoid}
+  .row .th{width:46px;height:46px;border-radius:8px;overflow:hidden;background:#0d0f12;flex:none}
+  .row .th img{width:100%;height:100%;object-fit:cover;display:block}
+  .row .nm{font-size:14px;font-weight:500;min-width:0;line-height:1.22}
+  .row .q{display:inline-block;font-size:10.5px;padding:1px 7px;margin-left:5px}
+  .row .pr{font-weight:700;font-size:14.5px;white-space:nowrap}
+
+  /* total */
+  .total{margin:40px 40px 0;padding:32px 36px;border-radius:20px;border:1px solid var(--hair);
+    background:linear-gradient(135deg,rgba(153,204,102,.08),rgba(153,204,102,.02));
+    display:flex;align-items:center;justify-content:space-between;gap:20px}
+  .total .lbl{font-size:13px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+  .total .lbl b{display:block;color:var(--ink);font-size:18px;letter-spacing:.04em;
+    text-transform:uppercase;margin-top:6px;font-weight:500}
+  .total .amt{font-weight:700;font-size:46px;letter-spacing:-.02em;color:var(--accent);
+    text-shadow:0 0 38px var(--glow)}
+
+  footer.colophon{margin:42px 0 0;padding:24px 40px 46px;border-top:1px solid var(--hair);
+    display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;font-size:12.5px;color:var(--muted)}
+  footer.colophon a{color:var(--accent);font-weight:600}
+  footer.colophon .sep{opacity:.4}
+
+  /* running colophons via table head/foot — repeat per page, uniform spacing */
+  table.sheet{width:100%;border-collapse:collapse}
+  table.sheet > thead, table.sheet > tfoot{display:none}
+  td.main{padding:0}
+  .rh{display:flex;align-items:center;gap:11px;height:42px;padding:0 16mm;background:var(--bg2);
+    border-bottom:2px solid var(--accent)}
+  .rh img{height:22px;filter:brightness(0) invert(1)}
+  .rh .t{font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+  .rh .r{margin-left:auto;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--accent);font-weight:500}
+  .rf{display:flex;align-items:center;justify-content:space-between;height:30px;padding:0 16mm;
+    background:var(--bg2);border-top:1px solid var(--hair);font-size:9px;letter-spacing:.04em;color:var(--muted)}
+  .rf a{color:var(--accent)}
+
+  @media (max-width:680px){
+    .hero h1{font-size:44px}.grid,.rows{grid-template-columns:1fr}
+    .hero,.sec,.topbar{padding-left:22px;padding-right:22px}
+    .total{margin-left:22px;margin-right:22px;flex-direction:column;align-items:flex-start}
+  }
+  @media print{
+    @page{size:A4;margin:0}
+    html,body{background:var(--bg)}
+    body{font-size:12px}
+    .topbar, body > .wrap > footer.colophon{display:none}
+    table.sheet > thead{display:table-header-group}
+    table.sheet > tfoot{display:table-footer-group}
+    table.sheet > thead > tr > td{padding:0 0 20px}
+    table.sheet > tfoot > tr > td{padding:20px 0 0}
+    .hero{padding-top:16px}
+    .card,.row,.total,.cat-h{break-inside:avoid;page-break-inside:avoid}
+    .cat-h{break-after:avoid;page-break-after:avoid}   /* header never orphaned */
+    .cat{break-before:auto}
+  }
+</style>
+</head>
+<body>
+<table class="sheet">
+<thead><tr><td>
+  <div class="rh">
+    <img src="https://static.tildacdn.one/tild6438-3731-4861-a263-643139643031/DD_logo_Vector.svg" alt="">
+    <span class="t">Double D Project</span>
+    <span class="r">Коммерческое предложение · Birthday Party</span>
+  </div>
+</td></tr></thead>
+<tfoot><tr><td>
+  <div class="rf">
+    <span>Double D Project · Event Agency Phuket · +66 00-000-0000</span>
+    <a href="https://www.doubledproject.com">doubledproject.com</a>
+  </div>
+</td></tr></tfoot>
+<tbody><tr><td class="main">
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <img src="https://static.tildacdn.one/tild6438-3731-4861-a263-643139643031/DD_logo_Vector.svg" alt="Double D Project">
+      <div class="nm">Double D Project<small>Event Agency · Phuket</small></div>
+    </div>
+    <div class="cta">Коммерческое предложение</div>
+  </div>
+
+  <header class="hero">
+    <p class="kick">Предложение № DD-300626 · 30.06.2026</p>
+    <h1>Birthday<br><span class="g">Party</span></h1>
+    <p class="for">Подготовлено для <b>Миши</b> — праздник на 30 гостей</p>
+    <div class="keyfacts">
+      <div class="kf"><div class="k">Дата</div><div class="v">30 июня 2026</div></div>
+      <div class="kf"><div class="k">Время</div><div class="v">уточняется</div></div>
+      <div class="kf"><div class="k">Локация</div><div class="v">Пхукет</div></div>
+    </div>
+    <div class="meta">
+      <div class="pill"><span class="k">Гостей</span><span class="v">30</span></div>
+      <div class="pill"><span class="k">Телефон</span><span class="v">+66 00-000-0000</span></div>
+    </div>
+  </header>
+
+  <section class="sec">
+
+    <div class="cat">
+      <div class="cat-h"><h2>Звук и Свет</h2><span class="sum">3 позиции · <b>13 000 ฿</b></span></div>
+      <div class="rows">
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/313474835-951043518092-grandma-controller" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor3832-6333-4666-a330-396231316335/55267769.jpg" alt=""></span>
+          <span class="nm">GrandMa Controller</span><span class="pr">5 000 ฿</span>
+        </a>
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/313474835-208204004261-tripod-totem" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor6433-3066-4335-a662-336436323165/37713275.jpg" alt=""></span>
+          <span class="nm">Трипод / Тотем<span class="q">×2</span></span><span class="pr">6 000 ฿</span>
+        </a>
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/313474937-449055367171-dj-stoika" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor3465-3833-4839-b638-333564643034/26099540.jpg" alt=""></span>
+          <span class="nm">DJ Стойка</span><span class="pr">2 000 ฿</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="cat">
+      <div class="cat-h"><h2>Доп оборудование</h2><span class="sum">2 позиции · <b>12 500 ฿</b></span></div>
+      <div class="grid">
+        <a class="card" href="https://www.doubledproject.com/catalogue/tproduct/313474937-461424221781-led-koktelnii-stol" target="_blank">
+          <div class="ph"><span class="qty">×3</span><img src="https://static.tildacdn.one/stor3862-3063-4536-b433-353730383837/26244082.jpg" alt=""></div>
+          <div class="body"><span class="nm">LED Коктейльный Стол</span><span class="pr">7 500 ฿</span></div>
+        </a>
+      </div>
+      <div class="rows">
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/313474937-368995243981-led-barnaya-stantsiya" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor3334-6338-4666-b134-316566316430/42056022.jpg" alt=""></span>
+          <span class="nm">LED Барная Станция</span><span class="pr">5 000 ฿</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="cat">
+      <div class="cat-h"><h2>Артисты</h2><span class="sum">3 позиции · <b>42 500 ฿</b></span></div>
+      <div class="grid">
+        <a class="card" href="https://www.doubledproject.com/catalogue/tproduct/308485350-458229275921-dj" target="_blank">
+          <div class="ph"><img src="https://static.tildacdn.one/stor3562-3366-4164-b961-666462633339/63774196.jpg" alt=""></div>
+          <div class="body"><span class="nm">DJ</span><span class="pr">15 000 ฿</span></div>
+        </a>
+        <a class="card" href="https://www.doubledproject.com/catalogue/tproduct/308485350-633656288521-led-krilya-shou" target="_blank">
+          <div class="ph"><img src="https://static.tildacdn.one/stor3535-3764-4064-a234-393561303333/82273049.jpg" alt=""></div>
+          <div class="body"><span class="nm">LED Крылья · Шоу</span><span class="pr">20 000 ฿</span></div>
+        </a>
+        <a class="card" href="https://www.doubledproject.com/catalogue/tproduct/313474835-456099151562-ognemet" target="_blank">
+          <div class="ph"><img src="https://static.tildacdn.one/stor3738-6135-4234-b862-626136333030/16106754.jpg" alt=""></div>
+          <div class="body"><span class="nm">Огнемёт</span><span class="pr">7 500 ฿</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="cat">
+      <div class="cat-h"><h2>Декорации</h2><span class="sum">3 позиции · <b>33 000 ฿</b></span></div>
+      <div class="grid">
+        <div class="card">
+          <div class="ph"><img src="img/photozone.png" alt=""></div>
+          <div class="body"><span class="nm">Авторская Фотозона</span><span class="pr">20 000 ฿</span></div>
+        </div>
+      </div>
+      <div class="rows">
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/313475058-143785707781-installyatsiya" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor3862-3761-4737-b162-316461363133/78076016.jpg" alt=""></span>
+          <span class="nm">Инсталляция</span><span class="pr">6 000 ฿</span>
+        </a>
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/313474937-679015360551-fakel-bambukovii" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor3035-6236-4530-a362-356633656330/18535508.jpg" alt=""></span>
+          <span class="nm">Факел Бамбуковый<span class="q">×10</span></span><span class="pr">7 000 ฿</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="cat">
+      <div class="cat-h"><h2>Сервис</h2><span class="sum">6 позиций · <b>58 000 ฿</b></span></div>
+      <div class="grid">
+        <a class="card" href="https://www.doubledproject.com/catalogue/tproduct/313475058-406419228611-keitering" target="_blank">
+          <div class="ph"><img src="https://static.tildacdn.one/stor6231-3761-4332-a639-316139383563/20571555.jpg" alt=""></div>
+          <div class="body"><span class="nm">Кейтеринг</span><span class="pr">40 000 ฿</span></div>
+        </a>
+      </div>
+      <div class="rows">
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/474812171-733180106221-paket-picnic-basic" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor6632-3539-4661-a365-363563383332/bf0db41d98242549c598f58fb8b64588.jpg" alt=""></span>
+          <span class="nm">Пакет PICNIC Basic</span><span class="pr">10 000 ฿</span>
+        </a>
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/313474992-588600500231-barmen" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor3734-3130-4438-a462-303966656663/17837088.jpg" alt=""></span>
+          <span class="nm">Бармен</span><span class="pr">1 000 ฿</span>
+        </a>
+        <a class="row" href="https://www.doubledproject.com/uslugi-ofitsianta-na-meropriyatie" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/tild6535-3930-4262-b837-313065333964/_.webp" alt=""></span>
+          <span class="nm">Официант</span><span class="pr">1 000 ฿</span>
+        </a>
+        <a class="row" href="https://www.doubledproject.com/uslugi-videografa" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/tild6163-3664-4337-b036-363662303762/11DSCF7337.jpg" alt=""></span>
+          <span class="nm">Видеограф</span><span class="pr">1 000 ฿</span>
+        </a>
+        <a class="row" href="https://www.doubledproject.com/catalogue/tproduct/313475058-500014919021-logistika" target="_blank">
+          <span class="th"><img src="https://static.tildacdn.one/stor6662-6361-4736-b930-356630616139/49905956.jpg" alt=""></span>
+          <span class="nm">Логистика</span><span class="pr">5 000 ฿</span>
+        </a>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="total">
+    <div class="lbl">Итого по предложению<b>17 позиций · всё под ключ</b></div>
+    <div class="amt">159 000 ฿</div>
+  </div>
+
+  <footer class="colophon">
+    <a href="https://www.doubledproject.com/catalogue" target="_blank">Каталог фото и видео услуг</a>
+    <span class="sep">·</span>
+    <a href="https://www.doubledproject.com" target="_blank">doubledproject.com</a>
+  </footer>
+
+</div>
+</td></tr></tbody>
+</table>
+</body>
+</html>
