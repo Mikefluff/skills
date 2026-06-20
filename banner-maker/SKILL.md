@@ -1,6 +1,7 @@
 ---
 name: banner-maker
-description: "Banner-ad / display-creative generator with standard-size presets — Google Display (728×90 leaderboard, 300×250 medium rectangle, 320×100 mobile banner, 160×600 wide skyscraper), LinkedIn ad (1200×627), OG image (1200×630), Twitter card (1500×500), Facebook ad (1200×628), generic header (1456×180). Dense text + CTA aesthetic, ad-feel composition. Wraps image-prompt --execute + the carousel style library with text-heavy bias. Default model ideogram-3-quality for clean embedded text. Outputs: ./generated/banner/<slug>/<preset>.png + manifest.json. Use when the user says 'banner ad', 'display ad', 'Google Display creative', 'OG image', 'Twitter card', 'баннер для рекламы', 'OG-картинка'."
+description: "Banner-ad / display-creative generator with standard-size presets: Google Display (leaderboard, medium rectangle, mobile, skyscraper), LinkedIn, OG image, Twitter card, Facebook ad, header. Text-heavy ad aesthetic, ideogram-3-quality default. Use when: 'banner ad', 'display ad', 'OG image', 'Twitter card', 'баннер для рекламы', 'OG-картинка'."
+
 license: MIT
 allowed-tools:
   - Read

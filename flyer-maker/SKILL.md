@@ -1,6 +1,7 @@
 ---
 name: flyer-maker
-description: "Orchestrator skill — turns event details (title / date / location / CTA) plus an optional photo into a poster/flyer/social-event-graphic with embedded text in a chosen visual style. Wraps image-prompt --execute + the carousel style library (24 visual styles) + the runner's batch executor. Modes: --title <text> --date <text> --location <text> [--cta <text>] [--photo <path>] [--style auto|<library-id>] [--aspects portrait,square,story,landscape,a4]. Picks a text-friendly + multi-ref-capable model (gpt-image-2 / ideogram-3-quality / nano-banana-pro). Outputs: ./generated/flyer/<event-slug>/<aspect>.png + manifest.json + prompts.md. Use when the user says 'make a flyer for X', 'event poster', 'workshop flyer', 'meetup poster', 'афиша', 'плакат', 'флайер для мероприятия'."
+description: "Turn event details (title / date / location / CTA) plus optional photo into a poster / flyer / social-event-graphic with embedded text in a chosen style. Multi-aspect: portrait, square, story, landscape, a4. Use when: 'make a flyer for X', 'event poster', 'workshop flyer', 'meetup poster', 'афиша', 'плакат', 'флайер для мероприятия'."
+
 license: MIT
 allowed-tools:
   - Read

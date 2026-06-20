@@ -1,6 +1,7 @@
 ---
 name: subtitle-burner
-description: "Burn captions / subtitles onto an existing video via ffmpeg. Supports SRT, WebVTT, and plain-text subtitle sources. Style presets: modern (white text on black backplate, lower-third) / minimal (no backplate) / bold (yellow text, larger, denser backplate). Outputs <video>-subtitled<ext>. No API calls — pure ffmpeg. Subcommands: burn <video> [--subtitle <file>|--inline <text>] / preview. Use when the user says 'add subtitles to my video', 'burn captions onto this MP4', 'subtitle my reel', 'добавь субтитры к видео', 'жёстко вшей субтитры'."
+description: "Burn captions / subtitles onto a video via ffmpeg. Supports SRT, WebVTT, plain text. Presets: modern (white on black lower-third), minimal, bold (yellow, denser). Subcommands: burn, preview. Pure ffmpeg. Use when: 'add subtitles to my video', 'burn captions onto this MP4', 'subtitle my reel', 'добавь субтитры к видео', 'жёстко вшей субтитры'."
+
 license: MIT
 allowed-tools:
   - Read

@@ -1,6 +1,7 @@
 ---
 name: style-suggest
-description: "Visual style generator — turn a text description and/or a reference image into a fully-structured style entry that drops into common/visual-prompt-library/styles/. Mirrors figma's StyleSuggestAgent: takes free-form input, optionally checks if a similar style already exists in the catalog (duplicate detection), otherwise produces a new entry with all v2.15.0 schema fields (background / accents / elements / mood / accent_text_color / typography / composition_signature / when_to_use). Use when the user says 'make a new style', 'add a style based on this image', 'описание стиля', 'добавь стиль', 'предложи стиль', 'на основе этой картинки сделай стиль'."
+description: "Visual style generator — turn a text description and/or reference image into a structured style entry for the prompt-library. Duplicate-detect then emit v2.15.0 schema (background, accents, mood, typography, composition_signature). Use when: 'make a new style', 'add a style based on this image', 'добавь стиль', 'предложи стиль'."
+
 license: MIT
 allowed-tools:
   - Read

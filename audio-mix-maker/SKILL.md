@@ -1,6 +1,7 @@
 ---
 name: audio-mix-maker
-description: "Mix a music / audio track onto an existing video via ffmpeg. Three modes: replace (drop original audio), overlay (mix both audible), duck (sidechain-compressor lowers music when speech is detected). Volume + fade-in + fade-out controls. No API calls — pure ffmpeg. Use when the user says 'mix this music onto the video', 'add background music to video', 'duck the music under voiceover', 'смешай музыку с видео', 'фоновая музыка для видео'."
+description: "Mix music/audio onto an existing video via ffmpeg. Modes: replace, overlay, duck (sidechain compressor lowers music under speech). Volume + fade controls. Pure ffmpeg, no API. Use when: 'mix this music onto the video', 'add background music to video', 'duck the music under voiceover', 'смешай музыку с видео', 'фоновая музыка для видео'."
+
 license: MIT
 allowed-tools:
   - Read

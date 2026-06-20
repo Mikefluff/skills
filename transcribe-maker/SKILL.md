@@ -1,6 +1,7 @@
 ---
 name: transcribe-maker
-description: "Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts --lang ISO-639-1 hint. ~$0.006/min. Closes the loop with subtitle-burner — produce captions from a video, then burn them in. Whisper API limit 25 MB per call. Use when the user says 'transcribe this video', 'subtitles from audio', 'speech to text', 'распознай речь', 'сделай субтитры из видео', 'whisper'."
+description: "Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts --lang ISO-639-1. ~$0.006/min. Pairs with subtitle-burner. Whisper API limit 25 MB/call. Use when: 'transcribe this video', 'subtitles from audio', 'speech to text', 'распознай речь', 'сделай субтитры из видео', 'whisper'."
+
 license: MIT
 allowed-tools:
   - Read

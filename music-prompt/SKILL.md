@@ -1,6 +1,7 @@
 ---
 name: music-prompt
-description: "Write prompts for 10+ frontier AI music generators (Suno v5.5, Udio v4, Google Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen, Tencent SongGeneration, Sonauto v2, Riffusion, Mubert). 2026 canonical meta-tag taxonomy (Structure / Vocal delivery / Vocal effects / Instrumental / Mix-production / Energy-dynamics / Era-genre / FX), `|` stacking, two-box Style+Lyrics workflow (Suno), exclude-styles (Eleven), field-driven (Lyria). Lyrics conventions: ad-libs, repetition, section headers, language switching. Use when the user says 'prompt for Suno / Udio / Lyria / Eleven Music', 'song about X', 'AI music prompt', 'meta tags for this chorus', 'cover song style', 'orchestral cue'."
+description: "Write prompts for 10+ frontier AI music generators (Suno v5.5, Udio v4, Lyria 3 Pro, ElevenLabs Music, Stable Audio, MusicGen, Sonauto, Riffusion, Mubert). 2026 meta-tag taxonomy, Style+Lyrics workflow, exclude-styles. Use when: 'prompt for Suno / Udio / Lyria / Eleven Music', 'song about X', 'meta tags', 'cover song style'."
+
 license: MIT
 allowed-tools:
   - Read

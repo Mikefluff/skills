@@ -1,6 +1,7 @@
 ---
 name: avatar-maker
-description: "Orchestrator skill — turn a user photo into N profile-pic / headshot / avatar variants in a consistent style. Wraps image-prompt --execute + the carousel style library + the runner's batch executor. Identity preserve is THE differentiator — defaults to nano-banana-pro for best face preservation. Multi-aspect output (square 1:1, square-tight 1:1 cropped, cover-banner 4:5, story 9:16). Modes: --photo <path> --style auto|<library-id> --variants N --aspects square,cover,story. Outputs: ./generated/avatar/<slug>/<aspect>-v<N>.png + manifest.json. Use when the user says 'make me an avatar', 'profile picture from this photo', 'headshot variants', 'LinkedIn profile pic', 'аватарка', 'портрет', 'хедшот'."
+description: "Turn a user photo into N profile-pic / headshot / avatar variants in a consistent style. Identity-preserve focused, defaults to nano-banana-pro. Multi-aspect (square, square-tight, cover 4:5, story 9:16). Use when: 'make me an avatar', 'profile picture from this photo', 'headshot variants', 'LinkedIn profile pic', 'аватарка', 'портрет', 'хедшот'."
+
 license: MIT
 allowed-tools:
   - Read

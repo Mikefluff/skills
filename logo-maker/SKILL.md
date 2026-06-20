@@ -1,6 +1,7 @@
 ---
 name: logo-maker
-description: "Brand mark / wordmark / logo generator. Defaults to ideogram-3-quality for cleanest embedded text (other text-strong fallbacks: gpt-image-2). Single-image output (no aspect multiplexing); N variants per call differ only in stochastic interpretation. Six style presets (wordmark / minimal / illustrated / typographic / geometric / emblem) + optional palette hint. Outputs PNG (typically isolated on white via prompt hint; pipe through bg-remover for transparent BG). Use when the user says 'logo', 'brand mark', 'wordmark', 'логотип', 'эмблема', 'фирменный знак'."
+description: "Brand mark / wordmark / logo generator. Default ideogram-3-quality for clean embedded text (gpt-image-2 fallback). Six presets: wordmark, minimal, illustrated, typographic, geometric, emblem. Optional palette hint. N variants per call. Use when: 'logo', 'brand mark', 'wordmark', 'логотип', 'эмблема', 'фирменный знак'."
+
 license: MIT
 allowed-tools:
   - Read

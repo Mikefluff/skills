@@ -1,6 +1,7 @@
 ---
 name: cover-maker
-description: "Orchestrator skill — turn cover metadata (title / creator / subtitle / medium) into an album / book / podcast / report / deck / magazine cover. Wraps image-prompt --execute + the carousel style library (24 visual styles) + the runner's batch executor. Picks aspect by medium (album 1:1, book 2:3 portrait, podcast 1:1, magazine 2:3, report 1:√2 A4). Multi-variant output. Optional photo / artwork reference. Outputs: ./generated/cover/<slug>/<medium>.png + manifest.json. Use when the user says 'album cover', 'book cover', 'podcast cover', 'report cover', 'обложка для альбома / книги / подкаста / отчёта'."
+description: "Turn cover metadata (title / creator / subtitle / medium) into an album, book, podcast, report, deck, or magazine cover. Aspect auto-picked per medium. Optional photo/artwork reference. Multi-variant output. Use when: 'album cover', 'book cover', 'podcast cover', 'report cover', 'обложка для альбома / книги / подкаста / отчёта'."
+
 license: MIT
 allowed-tools:
   - Read

@@ -1,6 +1,7 @@
 ---
 name: upscaler
-description: "Image upscaling utility — single image in, upscaled image out (2× / 4× / 8×). Wraps Replicate-hosted upscalers (Real-ESRGAN by default; alternatives: GFPGAN for faces, SwinIR, clarity-upscaler). Optional --face-enhance for portrait restoration. ~$0.005-0.02 per image. Use when the user says 'upscale', 'enhance resolution', 'sharpen low-res image', 'make this bigger', 'улучши разрешение', 'увеличь фотку', 'апскейл'."
+description: "Image upscaling utility — image in, upscaled image out (2× / 4× / 8×). Wraps Replicate upscalers (Real-ESRGAN default; GFPGAN for faces, SwinIR, clarity-upscaler). Optional --face-enhance for portrait restoration. Use when: 'upscale', 'enhance resolution', 'sharpen low-res image', 'make this bigger', 'улучши разрешение', 'увеличь фотку', 'апскейл'."
+
 license: MIT
 allowed-tools:
   - Read

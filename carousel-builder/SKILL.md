@@ -1,6 +1,7 @@
 ---
 name: carousel-builder
-description: "Orchestrator skill — turns a topic or research brief into an N-slide Instagram / LinkedIn / TikTok carousel with consistent visual style and ready-to-post captions. Wraps essay-write + viral-text (for content) + image-prompt --execute (for slides) + common style library (24 visual styles). Modes: --topic / --research; --style auto|<library-id>|--style-ref <image>; --slides 3-12; --platform instagram|linkedin|tiktok; --aspect portrait|square|story; --text-mode embedded|overlay|none; --execute; --resume. Outputs: ./generated/carousel/<slug>/slide-{1..N}.png + captions.md + manifest.json. Use when the user says 'make a carousel about X', 'turn this research into a post', '8 slides on Y', 'carousel for LinkedIn'."
+description: "Turn a topic or research brief into an N-slide Instagram / LinkedIn / TikTok carousel with consistent visual style and ready-to-post captions. Modes: --topic / --research; --slides 3-12; --platform; --aspect; --text-mode. Use when: 'make a carousel about X', 'turn this research into a post', '8 slides on Y', 'carousel for LinkedIn'."
+
 license: MIT
 allowed-tools:
   - Read

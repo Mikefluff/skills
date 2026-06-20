@@ -1,6 +1,7 @@
 ---
 name: thumbnail-maker
-description: "Orchestrator skill — produce YouTube / blog / podcast-episode thumbnails. 16:9 default (1280×720 standard, 1920×1080 high-res). Face + bold title aesthetic; supports face-placement variants (left / right / center). Wraps image-prompt --execute + the carousel style library + the runner's batch executor. Picks model for face preserve + text rendering. Outputs: ./generated/thumbnail/<slug>/<variant>.png + manifest.json. Use when the user says 'YouTube thumbnail', 'blog header image', 'podcast episode cover', 'обложка для youtube видео / поста / эпизода'."
+description: "Produce YouTube / blog / podcast-episode thumbnails. 16:9 default (1280×720, 1920×1080). Face + bold title aesthetic; face-placement variants (left / right / center). Model picked for face preserve + text rendering. Use when: 'YouTube thumbnail', 'blog header image', 'podcast episode cover', 'обложка для youtube видео / поста / эпизода'."
+
 license: MIT
 allowed-tools:
   - Read

@@ -9,6 +9,14 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.18.1] — 2026-06-20
+
+### Fixed — skill descriptions tightened for Claude ingest
+
+27 SKILL.md `description:` fields were over 350 chars (`proposal-maker` was 1066, over Claude Cowork's 1024-char hard limit). Rewrote each to ≤350 chars while preserving every trigger phrase (EN + RU) — only implementation detail and feature lists were cut. Output: skills now register cleanly in Claude Cowork / claude.ai / Anthropic Skill ingest pipelines, and the matching signal is sharper (the writer-linter's preferred sweet spot is 120-300; most landed at 300-340).
+
+Skills touched: audio-mix-maker, avatar-maker, banner-maker, bg-remover, carousel-builder, cover-maker, flyer-maker, gif-maker, image-prompt, logo-maker, meme-card-maker, music-prompt, proposal-maker, quote-card-maker, reel-builder, research-brief, rfc-writer, skills-keys, skills-styles, style-suggest, style-transfer, subtitle-burner, thumbnail-maker, transcribe-maker, upscaler, video-prompt, voiceover-maker.
+
 ## [2.18.0] — 2026-06-20
 
 ### Added — canonical video-prompt SYSTEM_PROMPT chain (rules-driven, not hand-written)

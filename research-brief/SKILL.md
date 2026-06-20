@@ -1,6 +1,7 @@
 ---
 name: research-brief
-description: "Produce a structured research brief on any topic — TL;DR, key facts with citations, notable quotes, suggested angles, open questions. 3-15 queries by depth, multi-source (WebSearch + WebFetch + optional Firecrawl/Exa MCP). Output is a markdown file ready for downstream consumption by carousel-builder, reel-builder, viral-text, essay-write, landing-copy. Use when the user says 'research X', 'gather facts on Y', 'brief me on Z', 'what's known about W', 'prepare research for a post / carousel / reel about Q'."
+description: "Produce a structured research brief on any topic — TL;DR, cited key facts, notable quotes, suggested angles, open questions. 3-15 queries by depth, multi-source (WebSearch + WebFetch + Firecrawl/Exa MCP). Markdown for downstream skills. Use when: 'research X', 'gather facts on Y', 'brief me on Z', 'prepare research for a post / carousel / reel'."
+
 license: MIT
 allowed-tools:
   - Read

@@ -1,6 +1,7 @@
 ---
 name: skills-keys
-description: "Manage API keys for the runner's --execute layer. CRUD on ~/.skills.env (chmod 600): list / add / update / remove / enable / disable gate flags / verify (ping vendor APIs) / export (eval-ready). Single source of truth for OPENAI_API_KEY, GEMINI_API_KEY, BFL_API_KEY, FAL_KEY, REPLICATE_API_TOKEN, RUNWAY_API_KEY, KLING_ACCESS_KEY_ID/SECRET, SUNO_API_KEY, ELEVENLABS_API_KEY, IDEOGRAM_API_KEY, ANTHROPIC_API_KEY, S3_* + gate flags (LYRIA_API_ENABLED, SUNO_API_ENABLED, OPENAI_SORA_API_ENABLED). Explicit shell exports always win over file entries. Use when the user says 'add my OpenAI key', 'rotate the Suno key', 'check which keys are set', 'verify my Gemini key works', 'where do I put my keys'."
+description: "Manage API keys for the runner's --execute layer. CRUD on ~/.skills.env (chmod 600): list / add / update / remove / verify / export. Covers OpenAI, Gemini, BFL, FAL, Replicate, Runway, Kling, Suno, Eleven, Ideogram, Anthropic, S3. Use when: 'add my OpenAI key', 'rotate the Suno key', 'which keys are set', 'verify my key works'."
+
 license: MIT
 allowed-tools:
   - Read

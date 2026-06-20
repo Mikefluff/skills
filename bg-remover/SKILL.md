@@ -1,6 +1,7 @@
 ---
 name: bg-remover
-description: "Background removal utility — take an image, output the same image with transparent background. Wraps Replicate-hosted background removal models (851-labs/background-remover by default; alternatives via --replicate-model). Single image input, transparent PNG output. Use when the user says 'remove the background', 'cut out the subject', 'transparent PNG', 'убери фон', 'вырежи фон с фотки'."
+description: "Background removal utility — image in, transparent PNG out. Wraps Replicate-hosted models (851-labs/background-remover default; alternatives via --replicate-model). Use when: 'remove the background', 'cut out the subject', 'transparent PNG', 'убери фон', 'вырежи фон с фотки'."
+
 license: MIT
 allowed-tools:
   - Read

@@ -1,6 +1,7 @@
 ---
 name: quote-card-maker
-description: "Quote card / aphorism graphic generator — bold short text + attribution + minimal visual. Output: text-dominant composition where typography IS the image (1080×1080 square, 1080×1350 portrait, 1080×1920 story). Wraps image-prompt --execute + the carousel style library (24 visual styles) with a text-friendly bias. Default model: ideogram-3-quality (cleanest embedded text). Multi-aspect for Twitter / Instagram / LinkedIn quote posts. Outputs: ./generated/quote/<slug>/<aspect>.png + manifest.json. Use when the user says 'quote card', 'aphorism graphic', 'pull quote post', 'цитата для соцсетей', 'афоризм на картинке', 'постер с цитатой'."
+description: "Quote card / aphorism graphic generator — bold short text + attribution + minimal visual. Typography IS the image. Multi-aspect: 1080×1080, 1080×1350, 1080×1920. Default ideogram-3-quality for clean text. Use when: 'quote card', 'aphorism graphic', 'pull quote post', 'цитата для соцсетей', 'афоризм на картинке', 'постер с цитатой'."
+
 license: MIT
 allowed-tools:
   - Read

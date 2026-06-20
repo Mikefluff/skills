@@ -1,6 +1,7 @@
 ---
 name: video-prompt
-description: "Write prompts for 20+ frontier AI video generators (Veo 3.1 + native audio, Sora 2 + cameos, Kling 3.0 / Elements, Runway Gen-4 / Aleph V2V / Act-One, Luma Ray 3 / Modify, Pika 2.2 / Pikaframes, Hailuo 02, Higgsfield, LTX-2, HunyuanCustom, Wan 2.2, Seedance). Modes: T2V / I2V / V2V / extend / multi-shot / dialogue+audio. CHARACTER FIRST law, beat structure, exact camera vocabulary, identity-reference grammar, pacing modes. Use when the user says 'video prompt', 'animate this image', 'Kling/Veo/Sora/Runway prompt', 'dialogue scene with audio', 'edit this clip', 'character consistency across shots'."
+description: "Write prompts for 20+ frontier AI video generators (Veo 3.1 + audio, Sora 2 + cameos, Kling 3.0, Runway Gen-4 / Aleph / Act-One, Luma Ray 3, Pika 2.2, Hailuo 02, LTX-2, Wan 2.2, Seedance). Modes: T2V / I2V / V2V / extend / multi-shot / dialogue+audio. Use when: 'video prompt', 'animate this image', 'Kling/Veo/Sora/Runway prompt', 'dialogue scene'."
+
 license: MIT
 allowed-tools:
   - Read

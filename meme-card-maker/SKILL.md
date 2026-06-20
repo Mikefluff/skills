@@ -1,6 +1,7 @@
 ---
 name: meme-card-maker
-description: "Meme-format graphic generator — top text + bottom text + optional centerpiece image. Wraps image-prompt --execute with a meme aesthetic anchor (Impact-style bold typography with stroke, classic internet meme template feel). Supports 5 popular templates as composition hints (drake, distracted-boyfriend, expanding-brain, two-buttons, custom). Optional --base-photo to use a user image as the centerpiece. Default model gpt-image-2 (good at illustration + text + visual integration). Outputs: ./generated/meme/<slug>/meme-v<N>.png + manifest.json. Use when the user says 'meme', 'meme template', 'meme image', 'мем', 'сделай мем'."
+description: "Meme-format graphic generator — top + bottom text + optional centerpiece image. Impact-style bold typography. 5 templates: drake, distracted-boyfriend, expanding-brain, two-buttons, custom. Optional --base-photo. Default gpt-image-2. Use when: 'meme', 'meme template', 'meme image', 'мем', 'сделай мем'."
+
 license: MIT
 allowed-tools:
   - Read

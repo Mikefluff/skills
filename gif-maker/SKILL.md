@@ -1,6 +1,7 @@
 ---
 name: gif-maker
-description: "Short looping GIF utility. Two modes: (A) convert an existing MP4 to GIF with 2-pass palette optimization; (B) generate a 1-3 second clip via a video provider (Veo / Sora / Kling / Runway / fal-video) then convert. Aspect crop presets (1:1 social, 9:16 story, 16:9 banner, 2:1 wide). ffmpeg-driven (palette generation + paletteuse for quality). Outputs: ./generated/gif/<name>.gif. Use when the user says 'gif', 'looping animation', 'short loop', 'make a gif', 'сделай гифку', 'короткая зацикленная анимация'."
+description: "Short looping GIF utility. Modes: (A) MP4-to-GIF with 2-pass palette optimization; (B) generate 1-3s clip via Veo/Sora/Kling/Runway/fal-video then convert. Aspect presets 1:1, 9:16, 16:9, 2:1. Use when: 'gif', 'looping animation', 'short loop', 'make a gif', 'сделай гифку', 'короткая зацикленная анимация'."
+
 license: MIT
 allowed-tools:
   - Read

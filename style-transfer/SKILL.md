@@ -1,6 +1,7 @@
 ---
 name: style-transfer
-description: "Apply an artistic style to an existing image. Default provider Flux Kontext (best for natural-language style transfer). 12 style presets (watercolor / oil-painting / sketch / line-art / ink-wash / cyberpunk / studio-ghibli / pixar-3d / manga / art-deco / low-poly / vaporwave) + custom mode with --prompt-mod. Single image in, stylized image out. Use when the user says 'style transfer', 'make this look like X', 'turn this photo into a watercolor', 'стилизуй фото', 'переведи в стиль X', 'переведи в акварель / манга / гибли'."
+description: "Apply an artistic style to an existing image. Default Flux Kontext. 12 presets: watercolor, oil, sketch, line-art, ink-wash, cyberpunk, ghibli, pixar-3d, manga, art-deco, low-poly, vaporwave. Custom via --prompt-mod. Use when: 'style transfer', 'make this look like X', 'стилизуй фото', 'переведи в стиль X', 'переведи в акварель / манга / гибли'."
+
 license: MIT
 allowed-tools:
   - Read

@@ -1,6 +1,7 @@
 ---
 name: skills-styles
-description: "Manage the local style library — bundled styles (24 carousel + 12 video director + 12 music genre) plus user overrides at ~/.claude/style-library/<modality>/<id>.md. CRUD on user styles (add / edit / remove / show / list / diff / validate / path) and build upstream-PR submission packages (submit). Frontmatter + body schema validation per modality. Templates ship with the library. Use when the user says 'add a custom carousel style', 'create a directorial style', 'genre preset for k-pop', 'list available styles', 'check my style is valid', 'submit my style upstream', 'show what's in kinfolk-minimal', 'edit the soft-watercolor style'."
+description: "Manage the local style library — bundled (24 carousel + 12 video director + 12 music genre) plus user overrides at ~/.claude/style-library/. CRUD + submit (upstream-PR packages) + schema validation. Use when: 'add a custom carousel style', 'create a directorial style', 'genre preset for k-pop', 'list available styles', 'submit my style upstream'."
+
 license: MIT
 allowed-tools:
   - Read

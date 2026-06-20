@@ -1,6 +1,7 @@
 ---
 name: voiceover-maker
-description: "Text-to-speech skill — script in, MP3 out. Wraps the runner's audio modality (ElevenLabs eleven-tts + OpenAI gpt-4o-mini-tts). Supports voice picker, multilingual TTS (Eleven), speed control, and long-form scripts. Saves to ./generated/audio/<slug>.mp3. Optional --execute pattern: without it, returns the assembled script + provider notes; with it, calls the TTS API. Use when the user says 'voiceover for X', 'narration for this script', 'TTS this', 'read this aloud', 'озвучь', 'голосовая дорожка', 'диктор для видео'."
+description: "Text-to-speech — script in, MP3 out. Wraps ElevenLabs eleven-tts + OpenAI gpt-4o-mini-tts. Voice picker, multilingual, speed control, long-form. --execute calls the API; without it returns script + provider notes. Use when: 'voiceover for X', 'narration for this script', 'TTS this', 'озвучь', 'голосовая дорожка', 'диктор для видео'."
+
 license: MIT
 allowed-tools:
   - Read

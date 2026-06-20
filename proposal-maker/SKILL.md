@@ -1,6 +1,7 @@
 ---
 name: proposal-maker
-description: "Orchestrator skill — turns a raw, telegram-style commercial offer (client details + line items with catalogue links + total) into a beautiful, self-contained HTML commercial proposal whose visual style is COPIED FROM A WEBSITE. The default flow is LLM-authored: a Python step builds a 'brand kit' (a SCREENSHOT of the brand site + logo asset + colour/font tokens + the parsed offer + real per-item product photos), then the orchestrator LOOKS at the screenshot and AUTHORS bespoke HTML that mirrors the brand — dark/light mood, type, accent, logo treatment, imagery — rather than filling a fixed template. Output is a single proposal.html (clickable links, exact prices) that prints to a perfect PDF (Cmd+P). A --quick mode renders a deterministic themed template offline (no LLM). No image generation — prices and links stay exact. Use when the user says 'make a proposal', 'commercial offer', 'КП', 'коммерческое предложение', 'оффер для клиента', 'смету красиво', 'proposal in the style of <site>', 'turn this offer into a nice document', 'копируй стиль с сайта'."
+description: "Turn a raw commercial offer (client + line items + total) into an HTML proposal whose style copies a brand website. LLM-authored from a brand screenshot; --quick offline fallback. Output: proposal.html with clickable links + exact prices, prints to PDF. Use when: 'make a proposal', 'commercial offer', 'КП', 'коммерческое предложение'."
+
 license: MIT
 allowed-tools:
   - Read

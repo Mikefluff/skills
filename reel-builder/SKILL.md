@@ -1,6 +1,7 @@
 ---
 name: reel-builder
-description: "Orchestrator skill — turns a topic / research brief / script into a 9:16 vertical reel: 1-4 video shots + matched background music + ffmpeg-stitched final.mp4 with optional burned-in captions. Wraps viral-text (for script) + video-prompt --execute + music-prompt --execute + common video/music style library + ffmpeg. Modes: --topic / --research / --script-file; --shots 1-5; --shot-duration <seconds>; --style auto|<library-id>; --music-style auto|<library-id>; --aspect vertical|square|horizontal; --captions on|off; --execute; --resume. Outputs: ./generated/reel/<slug>/final.mp4 + shots/ + music.mp3 + script.md + manifest.json. Use when the user says 'make a reel about X', 'short video on Y', 'TikTok / Reels / Shorts about Z'."
+description: "Turn a topic / research brief / script into a 9:16 vertical reel: 1-4 shots + matched music + ffmpeg-stitched final.mp4 with optional burned-in captions. Modes: --topic / --research / --script-file; --shots; --style; --music-style; --aspect; --captions. Use when: 'make a reel about X', 'short video on Y', 'TikTok / Reels / Shorts about Z'."
+
 license: MIT
 allowed-tools:
   - Read
