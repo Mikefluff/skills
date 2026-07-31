@@ -9,6 +9,16 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+### Fixed — nothing was checking the launch copy
+
+Caught by the user asking whether the rewritten posts had been run through the skills. They had not, and two layers of blindness met — both self-inflicted.
+
+`lint.py` masks fenced code blocks by default, and the launch copy *is* the fenced block, so linting those files measured the surrounding notes. On top of that the files were marked `lint-role: catalogue`, which makes the pre-commit hook skip them entirely — correct for the hook, fatal as the only defence. The result: promotional copy for an anti-slop toolkit, written by a model, that nothing ever read back. The same structural blindness `check-after-samples.py` exists to fix, in a place the lesson was not applied.
+
+Linted properly, the prose held up: every hit but two was a quoted example, since these posts legitimately print "revolutionary" and "delve into" as the things the linter catches. The two real ones were a closing line left over from the old draft ("highest-leverage 30 seconds you'll spend this week") and heavy bold density in the long-form pieces.
+
+`scripts/check-launch-copy.py` added as gate 11/12. It scans fenced blocks and compares against a frozen baseline of reviewed (category, matched-text) pairs, so known quotes pass and anything new fails. Adding a genuinely new example means re-freezing the baseline on purpose, which is the review moment worth having. Verified it catches real slop by injecting some.
+
 ### Fixed — launch copy described a version that no longer exists
 
 `docs/launch-posts/` still pitched v1.x: "17 skills", "12 wrappers", "28 categories", and DALL-E among the image models. The AI-media half and all 13 orchestrators — most of what the collection now is — went unmentioned. The Hacker News draft advertised "CI/CD with conventional commits → auto-release" for a pipeline removed several versions ago, and `docs/COMPOSING.md` was credited with 14 recipes against 5.

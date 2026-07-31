@@ -122,5 +122,5 @@ It doesn't work as one mega-skill. Claude Code matches requests against each ski
 
 github.com/Mikefluff/skills
 
-If you write LLM-assisted prose and the output is starting to sound generic — try the offline linter on your last three drafts. Highest-leverage 30 seconds you'll spend this week.
+If your LLM-assisted drafts have started sounding generic, run the offline linter over the last three. It takes a second per file, and the output names the pattern and quotes the line, so you can disagree with it specifically.
 ```

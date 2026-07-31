@@ -126,7 +126,7 @@ your-skill/
 
 ```bash
 make validate         # frontmatter + cross-link + description-length + tag dict
-make smoke            # all 11 gates (see below)
+make smoke            # all 12 gates (see below)
 make test-unit        # runner unit tests alone
 make check-docs       # README/USER-GUIDE/walkthroughs/CHANGELOG/SKILL-INDEX consistency
 make lint-all         # writer linter across every reference/example/doc file (advisory)
@@ -222,7 +222,7 @@ For each skill:
 
 ### 2. `smoke` (`bash scripts/smoke.sh`)
 
-Eleven gates, all must pass:
+Twelve gates, all must pass:
 
 1. **validate** — all `validate.sh` checks
 2. **linter regression** — `writer/examples/before-after.md` must still read as neuroslop
@@ -234,7 +234,8 @@ Eleven gates, all must pass:
 8. **markdownlint** — pinned to the version CI uses, tracked files only
 9. **linter coverage doc** — `docs/LINTER-COVERAGE.md` is generated from the category catalogue plus `lint.py`; it went stale silently once
 10. **launch-thread tweet lengths** — every tweet in `docs/launch-posts/x-thread.md` fits 280 characters
-11. **runners import** — every provider module imports and registers
+11. **launch copy** — the drafts in `docs/launch-posts/` linted with fenced blocks scanned, against a baseline of reviewed quoted examples
+12. **runners import** — every provider module imports and registers
 
 ### 3. `check-docs-consistency` (`bash scripts/check-docs-consistency.sh`)
 
@@ -292,7 +293,7 @@ So: **as a contributor, do not tag releases** — but understand that no pipelin
 When opening a PR, confirm:
 
 - [ ] `make validate` passes (no WARN)
-- [ ] `make smoke` passes (11/11)
+- [ ] `make smoke` passes (12/12)
 - [ ] `make check-docs` passes (6/6 sub-checks)
 - [ ] `python3 scripts/check-links.py` passes (or just run `make smoke`, which includes it)
 - [ ] `shellcheck install.sh scripts/*.sh` exits 0

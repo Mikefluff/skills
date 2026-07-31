@@ -56,6 +56,9 @@ check-docs: ## Verify skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs ↔
 gen-readme: ## Regenerate the README skills table from skills.json (write in place)
 	python3 scripts/gen-skills-table.py --write
 
+gen-launch-baseline: ## Re-freeze the reviewed launch-copy lint baseline
+	python3 scripts/check-launch-copy.py --update
+
 gen-coverage: ## Regenerate docs/LINTER-COVERAGE.md from the catalogue + lint.py
 	python3 scripts/coverage.py --write
 

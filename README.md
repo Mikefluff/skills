@@ -307,7 +307,7 @@ skills/
 ```bash
 make help                       # list all targets
 make install                    # install from this checkout into ~/.claude/skills/
-make smoke                      # 11 gates: validate, linter, snapshots, samples, links, unit tests, pricing, markdownlint, coverage, tweets, imports
+make smoke                      # 12 gates: validate, linter, snapshots, samples, links, unit tests, pricing, markdownlint, coverage, tweets, launch copy, imports
 make test-unit                  # runner unit tests alone
 make check-docs                 # docs-consistency gate
 make gen-readme                 # regenerate the skills table

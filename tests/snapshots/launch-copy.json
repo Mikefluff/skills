@@ -1,0 +1,259 @@
+{
+  "docs/launch-posts/awesome-claude-code.md": [],
+  "docs/launch-posts/hacker-news.md": [
+    [
+      "GPT_FILLER",
+      "delve into"
+    ],
+    [
+      "GPT_FILLER",
+      "it's important to note"
+    ],
+    [
+      "STOCK_METAPHOR",
+      "rich tapestry of"
+    ]
+  ],
+  "docs/launch-posts/linkedin.md": [
+    [
+      "GPT_FILLER",
+      "it's important to note"
+    ]
+  ],
+  "docs/launch-posts/reddit.md": [
+    [
+      "BOLD_DENSITY",
+      "8 bold spans across 596 words (budget ~2)"
+    ],
+    [
+      "EMPTY_CTA",
+      "click here"
+    ],
+    [
+      "EMPTY_CTA",
+      "get started"
+    ],
+    [
+      "EMPTY_CTA",
+      "learn more"
+    ],
+    [
+      "GPT_FILLER",
+      "delve into"
+    ],
+    [
+      "GPT_FILLER",
+      "it's important to note"
+    ],
+    [
+      "MARKETING_HYPE",
+      "cutting-edge"
+    ],
+    [
+      "MARKETING_HYPE",
+      "game-changing"
+    ],
+    [
+      "MARKETING_HYPE",
+      "industry-leading"
+    ],
+    [
+      "MARKETING_HYPE",
+      "revolutionary"
+    ],
+    [
+      "MARKETING_HYPE",
+      "world-class"
+    ],
+    [
+      "VAGUE_BENEFIT",
+      "boost productivity"
+    ],
+    [
+      "VAGUE_BENEFIT",
+      "save time"
+    ]
+  ],
+  "docs/launch-posts/substack.md": [
+    [
+      "AI_HEDGE",
+      "both perspectives have merit"
+    ],
+    [
+      "AI_HEDGE",
+      "on one hand... on the other hand"
+    ],
+    [
+      "AI_HEDGE",
+      "while there are valid"
+    ],
+    [
+      "AI_INTENSIFIER",
+      "absolutely critical"
+    ],
+    [
+      "AI_INTENSIFIER",
+      "deeply important"
+    ],
+    [
+      "AI_INTENSIFIER",
+      "incredibly powerful"
+    ],
+    [
+      "AI_INTENSIFIER",
+      "truly remarkable"
+    ],
+    [
+      "BOLD_DENSITY",
+      "14 bold spans across 580 words (budget ~2)"
+    ],
+    [
+      "EMPTY_CTA",
+      "click here"
+    ],
+    [
+      "EMPTY_CTA",
+      "get started"
+    ],
+    [
+      "EMPTY_CTA",
+      "learn more"
+    ],
+    [
+      "GPT_FILLER",
+      "Bear in mind"
+    ],
+    [
+      "GPT_FILLER",
+      "It's important to note"
+    ],
+    [
+      "GPT_FILLER",
+      "It's important to note"
+    ],
+    [
+      "GPT_FILLER",
+      "Let's delve into"
+    ],
+    [
+      "GPT_FILLER",
+      "delve into"
+    ],
+    [
+      "GPT_FILLER",
+      "delve into"
+    ],
+    [
+      "MARKETING_HYPE",
+      "best-in-class"
+    ],
+    [
+      "MARKETING_HYPE",
+      "cutting-edge"
+    ],
+    [
+      "MARKETING_HYPE",
+      "game-changing"
+    ],
+    [
+      "MARKETING_HYPE",
+      "game-changing"
+    ],
+    [
+      "MARKETING_HYPE",
+      "industry-leading"
+    ],
+    [
+      "MARKETING_HYPE",
+      "revolutionary"
+    ],
+    [
+      "MARKETING_HYPE",
+      "revolutionary"
+    ],
+    [
+      "MARKETING_HYPE",
+      "world-class"
+    ],
+    [
+      "STOCK_METAPHOR",
+      "cornerstone of"
+    ],
+    [
+      "STOCK_METAPHOR",
+      "embark on a journey"
+    ],
+    [
+      "STOCK_METAPHOR",
+      "navigate the complexities"
+    ],
+    [
+      "STOCK_METAPHOR",
+      "navigate the complexities"
+    ],
+    [
+      "STOCK_METAPHOR",
+      "rich tapestry of"
+    ],
+    [
+      "STOCK_METAPHOR",
+      "tapestry of"
+    ],
+    [
+      "THERAPEUTIC",
+      "and that's okay"
+    ],
+    [
+      "THERAPEUTIC",
+      "you're not alone"
+    ],
+    [
+      "VAGUE_BENEFIT",
+      "boost productivity"
+    ],
+    [
+      "VAGUE_BENEFIT",
+      "get more done"
+    ],
+    [
+      "VAGUE_BENEFIT",
+      "save time"
+    ],
+    [
+      "VAGUE_PERSON",
+      "some experts say"
+    ]
+  ],
+  "docs/launch-posts/x-thread.md": [
+    [
+      "GPT_FILLER",
+      "delve into"
+    ],
+    [
+      "GPT_FILLER",
+      "it's important to note"
+    ]
+  ],
+  "docs/LAUNCH-POST.md": [
+    [
+      "AI_TRIPLETS",
+      "smart, capable, and intelligent"
+    ],
+    [
+      "BOLD_DENSITY",
+      "12 bold spans across 476 words (budget ~2)"
+    ],
+    [
+      "MARKETING_HYPE",
+      "revolutionary"
+    ],
+    [
+      "MARKETING_HYPE",
+      "world-class"
+    ],
+    [
+      "STOCK_METAPHOR",
+      "navigate the complexities"
+    ]
+  ]
+}
