@@ -23,7 +23,7 @@ This skill is a thin shell over the base `writer` skill. Writer handles all clea
 
 ## DEPENDENCY ON `writer`
 
-Before output, ALWAYS run the text through the `writer` skill's 4-layer cleaning pass (full neuroslop regex 20 categories + structural synthetics + surgical patches + read-aloud final). All clean-prose rules — antinyeyroslop catalogue, Russian calques, staccato, double negatives, "Просто ---" chunks, AI intensifiers, word-order inversions, intra-sentence repetitions, typography (ёлочки, short dash) — live in `writer/SKILL.md` and apply by default.
+Before output, ALWAYS run the text through the `writer` skill's 4-layer cleaning pass (full neuroslop regex 25 categories + structural synthetics + surgical patches + read-aloud final). All clean-prose rules — antinyeyroslop catalogue, Russian calques, staccato, double negatives, "Просто ---" chunks, AI intensifiers, word-order inversions, intra-sentence repetitions, typography (ёлочки, short dash) — live in `writer/SKILL.md` and apply by default.
 
 This file only contains what is viral-specific.
 
@@ -79,12 +79,14 @@ CTA = keyword + human call to dialogue.
 ### Step 5: WRITER PASS (mandatory)
 
 Apply the `writer` skill's 4-layer cleaning pass:
-- Layer 1: full neuroslop regex check (20 categories, ~80 patterns)
+- Layer 1: full neuroslop regex check (25 categories, ~80 patterns)
 - Layer 2: structural synthetics (staccato, double negations, "Просто ---" chunks, inversions, repetitions)
 - Layer 3: surgical patches
 - Layer 4: read-aloud final pass
 
 In addition, run two viral-specific validations (Viral Layer A — hook, Viral Layer B — content + structure) and the "would I repost this?" final pass. Full validation checklist: [references/validation.md](references/validation.md).
+
+**Delete the water, not the function.** The CTA and the micro-conclusion are working parts, not decoration — writer's default treatment is deletion, and a post that reads cleaner but asks for nothing has stopped doing its job. Treat them by replacement or simplification. After the pass, verify the CTA survived. See `forbidden-substitutions.md` in the `writer` skill.
 
 If length exceeds limit — trim the longest point first, preserving CTA and micro-conclusion.
 

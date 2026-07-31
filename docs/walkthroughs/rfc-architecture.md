@@ -15,7 +15,7 @@ skills:
 
 ## Intent — что значит «good ADR»
 
-Architecture Decision Record (см. Michael Nygard's original template, расширенный в `rfc-writer/references/adr-template.md`):
+Architecture Decision Record (см. Michael Nygard's original template, расширенный в `rfc-writer/references/templates.md`):
 
 - **Status** — proposed / accepted / deprecated / superseded
 - **Context** — что подталкивает к решению. Не история, не roadmap — текущие constraints и forces.
@@ -95,7 +95,7 @@ We currently run on MySQL 5.7. Three forces push us off:
 1. **MySQL 5.7 EOL'd in October 2023.** We are on extended support
    with no security patches beyond critical issues. Upgrade to 8.0 is
    non-trivial — multiple incompatibilities documented in our staging
-   audit (see [migration-audit-2025.md](../audits/migration-audit-2025.md)).
+   audit (see the staging migration audit).
 2. **JSON-type ceiling.** Two services (notifications, audit-log) hit
    MySQL's JSON-field query performance ceiling. Mitigation paths
    (denormalize, separate document store) add complexity without
@@ -275,4 +275,4 @@ By design. ADR без «considered alternatives» = post-hoc rationalization. Е
 - [release-notes-saas.md](release-notes-saas.md) — где shipped decisions появляются user-facing
 - [tone-shift.md](tone-shift.md) — если у тебя есть draft ADR в wrong tone (slack message → formal doc)
 - [landing-launch.md](landing-launch.md) — внешнее представление того же decision (если решение выходит наружу)
-- [rfc-writer/references/adr-template.md](../../rfc-writer/references/adr-template.md) — полная schema ADR
+- [rfc-writer/references/templates.md](../../rfc-writer/references/templates.md) — полная schema ADR

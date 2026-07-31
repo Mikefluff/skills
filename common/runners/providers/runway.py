@@ -19,6 +19,22 @@ from .base import GenerationResult, JobHandle, Provider
 _API_BASE = "https://api.dev.runwayml.com/v1"
 _API_VERSION = "2024-11-06"
 
+_MIME_BY_EXT = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
+
+
+def _to_uri(ref: str) -> str:
+    """Runway wants an http(s) URL or a data URI. Local paths become data URIs."""
+    if ref.startswith(("http://", "https://", "data:")):
+        return ref
+    from base64 import b64encode
+    from pathlib import Path
+
+    p = Path(ref)
+    if p.exists():
+        mime = _MIME_BY_EXT.get(p.suffix.lower(), "image/png")
+        return f"data:{mime};base64,{b64encode(p.read_bytes()).decode()}"
+    return ref
+
 
 class _RunwayBase(Provider):
     modality = "video"
@@ -127,13 +143,27 @@ class _RunwayI2V(_RunwayBase):
             raise ProviderError(self.name, None, "image_url is required for image-to-video")
         duration = int(kwargs.get("duration", self.default_duration))
         ratio = kwargs.get("ratio", "1280:720")
-        return {
+        body: dict[str, Any] = {
             "model": self.model_id,
             "promptText": prompt,
-            "promptImage": image_url,
             "duration": duration,
             "ratio": ratio,
         }
+        # First/Last-Image mode — Runway's native drift lock. Mirrors the
+        # google_video.py / kling.py kwarg contract: explicit last_frame wins;
+        # lock_first_last=True bookends start == end, collapsing overlay-text drift.
+        # (Runway has no negative_prompt parameter — that kwarg is intentionally ignored.)
+        tail_ref = kwargs.get("last_frame") or kwargs.get("last_frame_image")
+        if tail_ref is None and kwargs.get("lock_first_last"):
+            tail_ref = image_url
+        if tail_ref:
+            body["promptImage"] = [
+                {"uri": _to_uri(image_url), "position": "first"},
+                {"uri": _to_uri(tail_ref), "position": "last"},
+            ]
+        else:
+            body["promptImage"] = _to_uri(image_url)
+        return body
 
 
 class Gen4Provider(_RunwayI2V):

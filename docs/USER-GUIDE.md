@@ -84,14 +84,13 @@ Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ## The collection in one paragraph
 
-Thirty-nine skills layered on top of one base linter (`writer`):
+Forty-one skills layered on top of one base linter (`writer`):
 
-- **Base**: `writer` strips 28 categories of LLM-prose tells from any text, in RU or EN. Runs as a final pass under every other prose skill.
+- **Base**: `writer` strips 25 catalogued categories of LLM-prose tells from any text, in RU or EN, plus chatbot copy-paste artifacts and rhythm metrics. Runs as a final pass under every other prose skill.
 - **Wrappers** (21): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`).
-- **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
-- **Orchestrators** (11, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
-- **Meta** (3): `skills-update`, `skills-keys`, `skills-styles`.
-- **Meta**: `skills-update` (apply newer release of this collection) and `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer).
+- **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint and AI-detection audits, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
+- **Orchestrators** (13, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; `proposal-maker` turns a raw offer into a brand-faithful HTML proposal; `style-suggest` turns a description or reference image into a new visual-style entry; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
+- **Meta** (3): `skills-update` (apply a newer release of this collection), `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer), `skills-styles` (manage the local style library).
 
 Skills work on any text file (`.md`, `.tex`, `.txt`, …) — there's no assumed file format or project layout.
 
@@ -378,6 +377,8 @@ Outputs `./generated/carousel/<slug>/`:
 - `style-used.md` + `prompts.md` (reproducibility + fallback)
 
 Default cost: $0.32-0.80 per 8-slide carousel depending on model. Budget cap: `SKILLS_CAROUSEL_BUDGET=1.50` (override).
+
+**Animate it** (v2.19.0+): add `--animate` and the deck continues into an animated reel — each slide becomes a 4s image-to-video shot (subtle character micro-gesture, all overlay text frozen via the video-chain discipline), ffmpeg-stitched into one final.mp4. `--animate-provider veo-3-1-fast` (default, $0.15/s) or `veo-3-1` for publication-grade text stability. 5 slides × 4s ≈ $3.00 on Fast. The motion prompts are written by the shared [video chain](../common/video-prompt-library/system-prompt.md) — not by hand.
 
 For details: [carousel-builder/SKILL.md](../carousel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
 
@@ -717,6 +718,21 @@ For details: [transcribe-maker/SKILL.md](../transcribe-maker/SKILL.md) · [forma
 
 ---
 
+### "I want a commercial proposal (КП) styled like a brand site" {#i-want-a-proposal}
+
+`/proposal-maker --offer <path>` turns a raw, telegram-style offer (client block + line items with catalogue links + total) into a self-contained `proposal.html` whose visual style is copied from a brand website — real product photos, exact prices, clickable links, prints to clean PDF. LLM-authored from a screenshot of the brand site by default; `--quick` renders an offline themed template.
+
+```
+/proposal-maker --offer ./offer.txt                                          # brand auto-detected from the offer footer
+/proposal-maker --offer ./offer.txt --brand-url https://client-site.com      # explicit brand site
+/proposal-maker --offer ./offer.txt --brand-file proposal-maker/brands/double-d/brand.json   # saved profile (preferred when it exists)
+/proposal-maker --offer ./offer.txt --quick --template dark --pdf            # offline, no LLM
+```
+
+**Saved brand profiles** — client-ready designs are saved under [proposal-maker/brands/](../proposal-maker/brands/_index.md) (`brand.json` tokens + authored `template.html` to clone + cached assets). Profiles encode manual corrections a live scrape gets wrong (dark Tilda sites scrape as light; white SVG logos vanish). After finishing a proposal for a new brand, save it as a profile.
+
+For details: [proposal-maker/SKILL.md](../proposal-maker/SKILL.md) · [examples](../proposal-maker/examples/before-after.md).
+
 ---
 
 ## Meta (collection management)
@@ -743,6 +759,46 @@ For details: [transcribe-maker/SKILL.md](../transcribe-maker/SKILL.md) · [forma
 After `add`, the file is a skeleton with `<placeholder>` text. Either edit yourself or ask Claude in chat to fill the content based on your description, then `validate`.
 
 For details: [skills-styles/SKILL.md](../skills-styles/SKILL.md) · [usage reference](../skills-styles/references/usage.md) · [templates schema](../skills-styles/references/templates.md).
+
+---
+
+### "I want a new visual style from a description or a reference image" {#i-want-a-new-visual-style}
+
+`/style-suggest` writes a new entry for the shared visual-prompt style library, the one every image-producing skill reads (`carousel-builder`, `cover-maker`, `flyer-maker`, `quote-card-maker`, `banner-maker`, `logo-maker`, `thumbnail-maker`, `avatar-maker`, `meme-card-maker`).
+
+It checks the existing catalogue for a near-duplicate first and tells you when one already covers your idea, rather than growing the library with variations of the same thing.
+
+```
+/style-suggest "тёплая плёночная эстетика, зерно, выцветшие тона"
+/style-suggest --image ./reference.jpg
+/style-suggest --image ./poster.png "но холоднее и с более жёсткой сеткой"
+```
+
+Output is a complete entry in the v2.15.0 schema — background, accents, elements, mood, accent_text_color, typography, composition_signature, when_to_use — dropped into `common/visual-prompt-library/styles/`. It is usable immediately, no restart.
+
+Difference from `/skills-styles`: that one manages the *carousel / video / music* style library by hand (list, add from template, edit, validate, submit). This one *authors* a visual-prompt entry from your description or image.
+
+For details: [style-suggest/SKILL.md](../style-suggest/SKILL.md).
+
+---
+
+### "I want to turn an offer into a commercial proposal" {#i-want-a-commercial-proposal}
+
+`/proposal-maker` takes a raw, telegram-style offer — client, line items with catalogue links, total — and produces a self-contained `proposal.html` whose visual style is copied from a brand's website.
+
+The default flow is LLM-authored: a Python step builds the brand kit (site screenshot, logo, accent and font tokens, per-item catalogue photos, `BRIEF.md`), then the skill writes bespoke HTML mirroring that brand. Line items missing a photo get an on-brand generated image. Prices and links stay exact — nothing about the commercial terms is generated.
+
+```
+/proposal-maker --offer ./offer.txt --brand https://client-site.com
+/proposal-maker --offer ./offer.txt --brand https://client-site.com --pdf
+/proposal-maker --offer ./offer.txt --quick --theme editorial     # offline, deterministic
+```
+
+`--quick` skips the brand scrape and renders one of three fixed themes (editorial / invoice / dark) — useful with no network or when the client has no site. Output prints to a link-preserving, Ghostscript-compressed PDF.
+
+Saved brand profiles live in [proposal-maker/brands/](../proposal-maker/brands/_index.md) and can be reused across proposals for the same client.
+
+For details: [proposal-maker/SKILL.md](../proposal-maker/SKILL.md).
 
 ---
 

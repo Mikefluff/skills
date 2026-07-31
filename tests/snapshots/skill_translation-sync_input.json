@@ -1,21 +1,38 @@
 {
-  "verdict": "clean",
-  "total": 4,
+  "verdict": "neuroslop suspected",
+  "gate": "fail",
+  "total": 8,
+  "hard_bans": 4,
   "by_category": {
+    "EM_DASH_RU": 4,
     "TYPOGRAPHY": 4
   },
   "by_severity": {
-    "blocker": 0,
+    "blocker": 4,
     "caution": 0,
     "nit": 4
   },
   "hits": [
+    {
+      "line": 5,
+      "col": 101,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
     {
       "line": 14,
       "col": 7,
       "category": "TYPOGRAPHY",
       "severity": "nit",
       "match": "\"Nikolskaya Street\""
+    },
+    {
+      "line": 15,
+      "col": 19,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
     },
     {
       "line": 16,
@@ -25,11 +42,25 @@
       "match": "\"7:15am\""
     },
     {
+      "line": 17,
+      "col": 20,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
       "line": 18,
       "col": 7,
       "category": "TYPOGRAPHY",
       "severity": "nit",
       "match": "\"350 meters\""
+    },
+    {
+      "line": 18,
+      "col": 20,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
     },
     {
       "line": 20,

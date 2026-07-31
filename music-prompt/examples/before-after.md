@@ -2,6 +2,10 @@
 
 Six paired examples covering pop, drill, jazz fusion, orchestral, vocal-realism, and an RU example. Each shows a weak prompt and the rewrite this skill should produce.
 
+Some AFTER samples contain song lyrics, where the em-dash is the writer's punctuation rather than a slop marker — hence the fiction declaration below.
+
+<!-- after-samples: fiction -->
+
 ---
 
 ## Example 1 — Anthemic modern pop chorus (Suno v5.5)

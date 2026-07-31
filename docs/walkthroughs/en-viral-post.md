@@ -7,6 +7,9 @@ skills:
   - writer
 ---
 
+<!-- lint-role: catalogue -->
+<!-- This walkthrough shows AI slop being cleaned, so it quotes the patterns it removes. -->
+
 # An EN viral post in one pass
 
 Scenario: you have a topic in your head ("how senior engineers actually use AI day-to-day"), you want a clean LinkedIn or X post ready to publish. No manual hook-tuning, no rewriting the conclusion, no scraping LLM-tells out of the draft — `viral-text` does the structural work, `writer` does the cleanup.
@@ -108,7 +111,7 @@ The question must be specific. Generic ones ("What do you think?") get ignored o
 
 After the skill drafts the body, it auto-runs `writer` on the result:
 
-- Strip 23 categories of AI-slop (now with EN coverage — see `writer/references/neuroslop-categories.md` § "EN AI-style signatures")
+- Strip 25 categories of AI-slop (now with EN coverage — see `writer/references/neuroslop-categories.md` § "EN AI-style signatures")
 - Typography: smart quotes (`"X"` not `"X"`), em-dashes (`—` not `--` or `-`)
 - Comma-splice fixes
 - Em-dash overuse trim (the classic Claude-tell — limit to 1-2 per paragraph)

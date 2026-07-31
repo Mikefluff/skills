@@ -138,7 +138,7 @@ Things that go wrong with carousel-builder and how to fix them.
 **Causes + fixes**:
 
 1. **Typo in --style id.**
-   - Run `--list-styles` (TODO: implement) or check `common/style-library/carousel/_index.md` for valid ids.
+   - Check `common/style-library/carousel/_index.md` for valid ids, or run `/skills-styles list carousel`.
 
 2. **User override file is malformed.**
    - Check `~/.claude/style-library/carousel/<id>.md` — must have frontmatter with `id:` matching the filename.

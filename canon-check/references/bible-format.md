@@ -55,7 +55,7 @@ Non-fiction biographical projects sometimes split canon across two sources:
 1. The book's own `notes/story-bible.{md,tex,...}` — formal structure (timelines, named individuals, locations).
 2. An external memory file or notes document the user maintains — extended biographical detail, character arcs, side memoirs.
 
-For non-fiction canon-check, the skill should read **both sources** when available. The location and naming of any external memory file is project-specific; configure it in [references/routing.md](references/routing.md) and reference it explicitly.
+For non-fiction canon-check, the skill should read **both sources** when available. The location and naming of any external memory file is project-specific; configure it in [routing.md](routing.md) and reference it explicitly.
 
 When sources disagree, ask the user — never guess. External memory may be outdated; the bible may be incomplete.
 

@@ -1,21 +1,96 @@
 {
-  "verdict": "clean",
-  "total": 1,
+  "verdict": "neuroslop suspected",
+  "gate": "fail",
+  "total": 11,
+  "hard_bans": 8,
   "by_category": {
+    "RHYTHM_MONOTONE": 1,
+    "VERB_ECHO": 1,
+    "EM_DASH_RU": 8,
     "DOUBLE_NEG_REGEX": 1
   },
   "by_severity": {
-    "blocker": 0,
-    "caution": 1,
+    "blocker": 8,
+    "caution": 3,
     "nit": 0
   },
   "hits": [
+    {
+      "line": 0,
+      "col": 0,
+      "category": "RHYTHM_MONOTONE",
+      "severity": "caution",
+      "match": "adjacent sentence lengths differ by 2.9 words on average (live prose: 6+)"
+    },
+    {
+      "line": 0,
+      "col": 0,
+      "category": "VERB_ECHO",
+      "severity": "caution",
+      "match": "«раскры…» repeats in adjacent sentences: Но раскрывать его — означало бы предать саму ткань"
+    },
+    {
+      "line": 5,
+      "col": 42,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 5,
+      "col": 70,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
     {
       "line": 5,
       "col": 97,
       "category": "DOUBLE_NEG_REGEX",
       "severity": "caution",
       "match": "Не радость, не печаль"
+    },
+    {
+      "line": 5,
+      "col": 127,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 7,
+      "col": 173,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 9,
+      "col": 39,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 9,
+      "col": 89,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 11,
+      "col": 35,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 11,
+      "col": 58,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
     }
   ]
 }

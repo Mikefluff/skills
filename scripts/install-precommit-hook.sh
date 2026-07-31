@@ -52,10 +52,20 @@ if [ -n "$staged_md" ]; then
       # User guide and launch drafts cite banned patterns as examples
       docs/USER-GUIDE.md|docs/LAUNCH-POST.md|docs/launch-posts/*) continue ;;
     esac
+    # A file may declare itself a catalogue of anti-patterns. Several SKILL.md
+    # files list the phrases they exist to strip ("world-class", "Click here"),
+    # and walkthroughs demonstrate slop being cleaned. Linting those for slop
+    # measures the examples, not the prose. The marker lives in the file so this
+    # list stops growing every time a skill documents what it bans.
+    if head -40 "$ROOT/$f" | grep -q '<!-- lint-role: catalogue -->'; then
+      continue
+    fi
     code=0
     python3 "$ROOT/writer/scripts/lint.py" "$ROOT/$f" --quiet || code=$?
     if [ "$code" = "2" ]; then
-      echo "pre-commit: $f flagged as neuroslop suspected — fix or bypass with --no-verify"
+      echo "pre-commit: $f flagged as neuroslop suspected — fix, add"
+      echo "  <!-- lint-role: catalogue -->  if it quotes patterns on purpose,"
+      echo "  or bypass once with --no-verify"
       fail=1
     fi
   done <<<"$staged_md"

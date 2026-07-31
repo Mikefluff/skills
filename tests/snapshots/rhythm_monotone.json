@@ -1,0 +1,23 @@
+{
+  "verdict": "clean",
+  "gate": "pass",
+  "total": 1,
+  "hard_bans": 0,
+  "by_category": {
+    "RHYTHM_MONOTONE": 1
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 1,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 0,
+      "col": 0,
+      "category": "RHYTHM_MONOTONE",
+      "severity": "caution",
+      "match": "adjacent sentence lengths differ by 0.2 words on average (live prose: 6+)"
+    }
+  ]
+}

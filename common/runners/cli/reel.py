@@ -310,17 +310,24 @@ def main() -> int:
             print(f"\nffmpeg music mix failed: {exc} — using silent reel.", file=sys.stderr)
             stitched = concat_mp4
 
+    def _finalize(src: Path) -> None:
+        # No transformation left between src and final.mp4 — rename instead of copy
+        # so the reel dir doesn't carry two identical multi-MB files.
+        if src == final_mp4:
+            return
+        if final_mp4.exists():
+            final_mp4.unlink()
+        src.replace(final_mp4)
+
     if captions_enabled and captions:
         try:
             cap_tuples = [(float(c["start"]), float(c["end"]), str(c["text"])) for c in captions]
             ff_mod.burn_captions(stitched, cap_tuples, final_mp4, ffmpeg_bin=probe.binary or "ffmpeg")
         except Exception as exc:  # noqa: BLE001
             print(f"\nffmpeg burn-captions failed: {exc} — using uncaptioned reel.", file=sys.stderr)
-            import shutil as _shutil
-            _shutil.copyfile(stitched, final_mp4)
+            _finalize(stitched)
     else:
-        import shutil as _shutil
-        _shutil.copyfile(stitched, final_mp4)
+        _finalize(stitched)
 
     print(f"\nReel: {final_mp4}")
     print(f"Components: {output_dir}/(shots/, music.mp3, script.md)")

@@ -5,7 +5,7 @@ After the writer's 4-layer cleaning pass, run the two viral-specific layers belo
 ## Step 5: WRITER PASS (mandatory)
 
 Apply the `writer` skill's 4-layer cleaning pass:
-- Layer 1: full neuroslop regex check (20 categories, ~80 patterns)
+- Layer 1: full neuroslop regex check (25 categories, ~80 patterns)
 - Layer 2: structural synthetics (staccato, double negations, "Просто ---" chunks, inversions, repetitions)
 - Layer 3: surgical patches
 - Layer 4: read-aloud final pass

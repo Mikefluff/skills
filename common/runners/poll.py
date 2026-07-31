@@ -1,6 +1,6 @@
 """poll-with-timeout helper for async vendors (video, music).
 
-Pattern mirrored from /Users/mikefluff/Documents/figma/app/lib/imageAI/runAnimateImage.js —
+Pattern mirrored from the author's earlier production polling layer —
 simple poll loop with exponential-ish backoff and a max wait time.
 """
 

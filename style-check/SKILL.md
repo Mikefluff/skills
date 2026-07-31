@@ -30,7 +30,7 @@ The skill picks which rule layer to apply (writer / prose-edit / essay-write) ba
 ## DEPENDENCY
 
 This skill applies rules from:
-- `writer/SKILL.md` — baseline anti-neuro-slop (20 categories) + structural synthetic markers
+- `writer/SKILL.md` — baseline anti-neuro-slop (25 categories) + structural synthetic markers
 - `prose-edit/SKILL.md` — fiction layer
 - `essay-write/SKILL.md` — non-fiction layer
 
@@ -73,6 +73,13 @@ Not a diff; a full pass over the file. Useful for older files.
 ### `file <path> <line1>:<line2>` — check a line range
 Full pass on the indicated fragment.
 
+### `detect` — "was this written by AI?"
+Not a lint pass but an audit with a verdict. Triggers: «проверь на ИИ», «палится ли текст», «это нейросеть писала?», "is this AI-written".
+
+Run the linter, then score findings by *family* (лексика / структура / коммуникация), not by raw count — hits from a single family are the author's style, not a model. Any class A copy-paste artifact (`turn0search3`, `oaicite`, `utm_source=chatgpt.com`) settles it on its own without a cluster.
+
+Returns a table of quotes with a verdict. Does not rewrite. Full scale, family taxonomy, output shape and the limits of what soft signals can prove — [references/detect-mode.md](references/detect-mode.md).
+
 ## OUTPUT FORMAT
 
 Structured report grouped by file, then by violations (L<line> CATEGORY «quote» → rule/advice), plus a `=== SUMMARY ===` block with counters by layer and severity breakdown. Full reference template — in [references/output-format.md](references/output-format.md); a separate calibration sample — in [examples/sample-report.md](examples/sample-report.md).
@@ -99,6 +106,7 @@ The skill does not install the hook itself. If the user asks — emit installati
 - **Does not edit files.** Reads and reports only. For editing — use `writer`/`prose-edit`/`essay-write`.
 - **Does not spawn sub-agents.** Lightweight read-only skill, everything goes through Read+Grep+Bash directly.
 - **Does not fabricate sources to check fabrication.** It only marks suspicious citations as `UNVERIFIED_SOURCE` — verification is the author's job.
+- **Does not assert authorship from soft signals.** In `detect` mode, flawless grammar, dryness and a wide vocabulary prove nothing. Report the markers with quotes; let the reader conclude. Missing a machine-written text is cheaper than accusing a living author.
 - **Does not block commits automatically without exit code.** When run as a normal skill — report only. Blocking happens only via an installed hook.
 - **Does not touch code.** `.py`, `.js`, `.ts`, `.go` and similar — silently skipped.
 
@@ -108,6 +116,7 @@ The skill does not install the hook itself. If the user asks — emit installati
 
 | File | When to load |
 | --- | --- |
+| [references/detect-mode.md](references/detect-mode.md) | The user asks whether a text was written by AI — verdict scale, family taxonomy, class A artifacts, and where to stop. |
 | [references/routing.md](references/routing.md) | Deciding which rule set applies to a given path / extension; need edge cases or want to configure your own routing patterns. |
 | [references/severity.md](references/severity.md) | Need to classify a violation as BLOCKING / WARNING / INFO or want the full category list. |
 | [references/output-format.md](references/output-format.md) | Producing the final report — need the full template with the SUMMARY block. |

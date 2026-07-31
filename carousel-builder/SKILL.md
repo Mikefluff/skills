@@ -130,6 +130,13 @@ Topic / research → split content into N slides → pick style + model → asse
 - `--yes` — skip cost confirmation
 - `--resume` — pick up from manifest.json after a partial failure
 
+### Animation (chained reel — see "`--animate`" section below)
+
+- `--animate` — after slides render, animate each slide via the video-chain SYSTEM_PROMPT + reel CLI (one command, no manual plan assembly)
+- `--animate-duration 4|8` — seconds per shot (default 4)
+- `--animate-provider veo-3-1-fast|veo-3-1|kling-3-0|runway-gen-4` — default veo-3-1-fast
+- `--animate-stitch on|off` — ffmpeg-concat into one reel (on, default) or N independent clips (off)
+
 ### Inspection / dry-run
 
 - `--prompts-only` — print all per-slide prompts, don't generate (use this to review before spending)
@@ -155,34 +162,33 @@ Topic / research → split content into N slides → pick style + model → asse
 
 See [examples/before-after.md](examples/before-after.md) — 3 calibration runs: 8-slide LinkedIn carousel from a research brief (Flux 2 Pro), 6-slide Instagram with embedded text (Ideogram 3 Quality), 10-slide TikTok with user-provided reference image (Nano Banana Pro).
 
-## Optional: animate the slides (v2.15.1+)
+## `--animate` — one-command carousel → animated reel (v2.19.0+)
 
-After generating the static deck via the chain above, each slide can be animated via image-to-video. Pass each slide PNG as the first frame to Veo 3.1 (or Kling 3 / Runway Gen-4 / Sora 2 — all support `image_url` kwarg in v2.15.1+) and write a per-shot prompt describing subtle character movement that respects the slide's static layout (keep headlines / plates / chrome frozen; animate only the character + atmospheric elements like scanlines / glow / pulses).
+With `--animate`, the skill continues past the static deck into a stitched animated reel WITHOUT any manual plan-file assembly:
 
-Pipeline:
+1. **Slides render first** (steps above) → N slide PNGs + the slide-content summaries already in hand.
 
-1. **Build a reel plan** (schema `skills.reel.plan.v1`) with one shot per slide. Each shot's `kwargs.image_url` points to the corresponding slide PNG; `kwargs.aspect_ratio` is `"9:16"` (Veo's portrait aspect); `kwargs.duration_seconds` is 4–8.
+2. **Spawn ONE Agent with the canonical video SYSTEM_PROMPT** at [`../common/video-prompt-library/system-prompt.md`](../common/video-prompt-library/system-prompt.md). Fill `buildUserMessage(opts)` with:
+   - Mode `i2v`, N shots, aspect `9:16`, 4s per shot, target model (default `veo-3-1-fast`).
+   - Per shot: the slide PNG path as `image_url` + a one-line summary of the slide's overlay text (so the LLM can pick a motion that fits the slide's rhetoric — it must NOT re-describe the text in the output prompt).
+   - The character-identity marker (8–15 words) when a character ref was used.
+   - Suggested micro-gesture variety across the deck (head turn / hand lift / finger tap / nod / blink — one distinct verb per shot).
+   The Agent returns `{"shots":[{"index":N,"prompt":"...","kwargs":{...}}]}` — all N shots in ONE call. The SYSTEM_PROMPT enforces the full i2v discipline (2-sentence cap, 80-word cap, single motion verb, global lock verbatim, `lock_first_last` + `negative_prompt` kwargs for overlay-heavy frames, no punitive labels, subject-anchored contact motion).
 
-2. **Animation prompt discipline** (mirrors the SYSTEM_PROMPT discipline for static slides):
-   - 1–3 sentences per shot.
-   - Specify what MOVES (character action, atmospheric pulses, light ripples, drift) and what STAYS STILL (all text in double quotes, plates, chrome). E.g. "The character slowly turns his head toward the viewer and nods. The 'AI-МЕДИА' headline, the 'WARNING' plate, and the '1 из 3' indicator stay still and crisp."
-   - Subtle, designed motion — not a wholesale scene change. The slide must remain recognizable as the same slide.
-   - Consistent character behavior across slides (the same person, same energy).
+3. **Build the reel plan mechanically** — each returned shot becomes a `skills.reel.plan.v1` item (label `shot-NN-<slug>`; labels MUST start with `shot-` or the reel CLI skips them). Write to `<output_dir>/reel-plan.json` (single canonical path, overwrite).
 
-3. **Run with `--skip-stitch`** for 3 independent slide animations (best for IG carousel-as-reels):
+4. **Run the reel CLI**:
    ```
-   python3 -m common.runners.cli.reel --plan-file <plan.json> --yes --skip-stitch
+   python3 -m common.runners.cli.reel --plan-file <output_dir>/reel-plan.json --yes            # stitched final.mp4
+   python3 -m common.runners.cli.reel --plan-file <output_dir>/reel-plan.json --yes --skip-stitch  # N independent clips (IG carousel-as-reels)
    ```
+   Concat order follows plan index (fixed v2.18.0) — parallel finish order can't scramble the sequence.
 
-4. **OR omit `--skip-stitch`** to ffmpeg-concat them into one continuous reel (best for one-shot promo video).
+5. **Verify against the source slides** — spot-check first frames of each shot mp4 against the slide PNGs (index ↔ content match). If a shot fails on Veo's safety filter (`no videos`), soften the PROMPT body per SYSTEM_PROMPT rule 10 and `--resume`.
 
-Cost (Veo 3.1 fast, $0.15/s):
-- 3 slides × 4s = $1.80
-- 3 slides × 8s = $3.60
-- 5 slides × 4s = $3.00
-- 8 slides × 4s = $4.80
+Flags: `--animate` (off by default) · `--animate-duration 4|8` (default 4) · `--animate-provider veo-3-1-fast|veo-3-1|kling-3-0|runway-gen-4` (default veo-3-1-fast; pick non-Fast Veo when `last_frame` drift-lock matters more than cost) · `--animate-stitch on|off` (default on).
 
-Cost (Veo 3.1 standard, $0.40/s) is ~2.7× higher; use fast for promo content, standard if you need crisper motion / hand-detail fidelity.
+Cost (Veo 3.1 fast, $0.15/s): 3×4s = $1.80 · 5×4s = $3.00 · 8×4s = $4.80. Veo 3.1 standard ($0.40/s) is ~2.7× — use for publication-grade text stability (`last_frame` supported).
 
 Cost (Kling 3 / Runway Gen-4 / Sora 2) — see `common/runners/cost.py` for per-provider pricing; all four accept `image_url` for image-to-video.
 

@@ -11,6 +11,9 @@ allowed-tools:
   - Glob
 ---
 
+<!-- lint-role: catalogue -->
+<!-- This file lists the marketing phrases the skill exists to strip, so it trips the slop linter by design. -->
+
 <objective>
 Write marketing strings for landing pages, SEO meta tags, social cards, and paid ads. Output: structured copy ready to drop into design / CMS / ad platform.
 
@@ -49,6 +52,8 @@ Read the brief (product, audience, value prop) → identify what surface needs c
 5. **Apply universal rules.** Plain language, specific value, no marketing hype, action-oriented CTAs. See `references/banned-patterns.md` for what to strip.
 
 6. **Run `writer` final pass.** Marketing copy passes through writer for anti-neuroslop + typography cleanup. Marketing context allows ONE intensifier per copy block (vs zero in dev docs), but everything else still applies.
+
+   **Delete the water, not the function.** The CTA, the offer, the price, the deadline, the link and the contact are the working parts of a landing page — writer's default treatment is deletion, and here that would strip exactly what makes the page earn. Treat them by replacement or simplification instead. A cleaner hero with no offer has stopped doing its job. After the pass, verify every functional element of the draft survived, at least one instance of each. See `forbidden-substitutions.md` in the `writer` skill.
 
 7. **Output.** One or multiple strings depending on surface. For ads — usually multiple variants (3-5) for A/B testing.
 

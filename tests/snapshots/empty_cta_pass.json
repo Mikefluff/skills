@@ -1,6 +1,8 @@
 {
   "verdict": "neuroslop suspected",
+  "gate": "pass",
   "total": 9,
+  "hard_bans": 0,
   "by_category": {
     "EMPTY_CTA": 9
   },

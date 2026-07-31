@@ -11,6 +11,9 @@ allowed-tools:
   - Glob
 ---
 
+<!-- lint-role: catalogue -->
+<!-- This file lists the hype words the skill exists to strip, so it trips the slop linter by design. -->
+
 <objective>
 Write release notes that users actually read. Output: structured markdown release notes ready to publish on a changelog page / inside-app modal / email / GitHub release.
 
@@ -57,6 +60,8 @@ Read commits / PRs / feature list + target audience → group by Keep-a-Changelo
 7. **Add a header / lead** (1-2 lines) for context: what version, what date, what theme if there is one. See `references/structure.md`.
 
 8. **Final pass.** Run through `writer` for anti-neuroslop + typography + structural-prose layers.
+
+   **Delete the water, not the function.** Version numbers, dates, migration steps, breaking-change warnings and upgrade commands are load-bearing. Writer's default treatment is deletion; here that turns a changelog into an announcement nobody can act on. Treat them by replacement or simplification, and verify each survived the pass. See `forbidden-substitutions.md` in the `writer` skill.
 
 ## MODES
 

@@ -2,6 +2,10 @@
 
 3 paired examples of RU↔EN translation drift, each restored to parity. Every pair includes the drifted source/target pair, the parity-restored pair, a parity-report excerpt (exactly what the skill would emit for each state), and Deltas naming the specific drift class.
 
+The AFTER blocks here are parity-report output, not prose — `L42 — "..." → "in 1987" — OK` is report notation. Prose hard bans do not apply, hence the declaration below.
+
+<!-- after-samples: none -->
+
 How to read these:
 
 - The **Before** is the drifted state: RU added a sentence the EN doesn't have, or EN lost a paragraph from the RU, or the chapter title diverged between languages. These are the three most common drift shapes after a depth-pass on one language only.

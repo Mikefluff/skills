@@ -24,7 +24,7 @@ skills:
 
 ## Intent — Julian Shapiro hero formula
 
-Hero — это первая и единственная секция, которую читают 80% посетителей. Правило формы (см. `landing-copy/references/julian-shapiro-hero.md`):
+Hero — это первая и единственная секция, которую читают 80% посетителей. Правило формы (см. `landing-copy/references/hero-formula.md`):
 
 ```
 [H1]   What it is + who it's for (one line, ≤ 12 words)
@@ -351,4 +351,4 @@ Microcopy default mood — «neutral helpful». Если бренд — sober (f
 - [cold-email-pitch.md](cold-email-pitch.md) — где landing-copy ссылается (link from email body to hero)
 - [release-notes-saas.md](release-notes-saas.md) — что shipped (changelog), а не что promised (landing)
 - [image-prompt-cover.md](image-prompt-cover.md) — для hero illustration к этой landing
-- [landing-copy/references/julian-shapiro-hero.md](../../landing-copy/references/julian-shapiro-hero.md) — полная Hero formula
+- [landing-copy/references/hero-formula.md](../../landing-copy/references/hero-formula.md) — полная Hero formula

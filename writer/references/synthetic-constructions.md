@@ -154,7 +154,7 @@ These are templates because they're load-bearing for "authenticity" without spec
 
 ## Cross-references
 
-- General AI-prose tells: [`neuroslop-categories.md`](neuroslop-categories.md) (23 categories)
+- General AI-prose tells: [`neuroslop-categories.md`](neuroslop-categories.md) (25 categories)
 - Structural / sentence-level patterns: [`structural-prose.md`](structural-prose.md)
 - Viral content specifically: [`../../viral-text/references/viral-rules.md`](../../viral-text/references/viral-rules.md)
 

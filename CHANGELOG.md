@@ -9,6 +9,202 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.20.0] — 2026-07-31
+
+### Added — `proposal-maker`: raw offer → brand-faithful HTML proposal
+
+Takes a telegram-style offer (client, line items with catalogue links, total) and produces a self-contained `proposal.html` whose visual style is copied from a brand's website.
+
+Default flow is LLM-authored: a Python step assembles the brand kit (site screenshot, logo, accent and font tokens, per-item catalogue photos, `BRIEF.md`), then the skill writes bespoke HTML mirroring that brand. Line items missing a photo get an on-brand generated image. Prices and links stay exact — nothing about the commercial terms is generated. Prints to a link-preserving, Ghostscript-compressed PDF.
+
+`--quick` skips the brand scrape entirely and renders one of three deterministic themes (editorial / invoice / dark), for offline use or clients with no site. Saved brand profiles live in `proposal-maker/brands/` and are reusable across proposals for the same client.
+
+### Added — `style-suggest`: description or reference image → visual-style entry
+
+Authors a new entry for the shared visual-prompt style library that every image-producing skill reads (`carousel-builder`, `cover-maker`, `flyer-maker`, `quote-card-maker`, `banner-maker`, `logo-maker`, `thumbnail-maker`, `avatar-maker`, `meme-card-maker`).
+
+Takes free-form text, a reference image, or both. Checks the catalogue for a near-duplicate first (similarity ≥ 0.72) and says so rather than growing the library with variations of the same look. Otherwise emits a complete v2.15.0 entry — background, accents, elements, mood, accent_text_color, typography, composition_signature, when_to_use — into `common/visual-prompt-library/styles/`, usable immediately.
+
+Distinct from `skills-styles`, which manages the carousel / video / music library by hand. This one writes the entry for you.
+
+---
+
+Detection and discipline pass over the prose stack, adapted from [smixs/humanizer-ru](https://github.com/smixs/humanizer-ru) (MIT), which in turn credits [Vladimir-Human/humanizer-ru](https://github.com/Vladimir-Human/humanizer-ru) and [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) (both MIT).
+
+### Added — class A copy-paste artifacts: one hit is the verdict
+
+`writer/scripts/lint.py` now catches the service markers that reach a text only by copying out of a chat UI: `:contentReference[oaicite:N]`, `turn0search3`, `utm_source=chatgpt.com`, `referrer=grok.com`, Gemini's `[cite: 8]` and `grounding-api-redirect`, `【12†source】`, `sandbox:/mnt/data/`, `</think>`, `ppl-ai-file-upload`, unfilled placeholders, PUA glyphs.
+
+No editor and no CMS produces these, so they need no corroborating cluster — a single hit settles the question. Reported as `COPYPASTE_ARTIFACT` at `blocker` severity. Two deliberate exemptions: URLs are scanned rather than stripped (that is where `utm_source` lives), and backticked spans never count, because quoting an artifact in documentation is not pasting one. Zero-width characters are class B (`ZERO_WIDTH`, caution) — newsletters inject them too — with ZWJ inside emoji sequences explicitly allowed. Registry: `writer/references/copypaste-artifacts.md`.
+
+### Added — a gate that is orthogonal to the density verdict
+
+The linter now emits two independent results. `verdict` is unchanged (clean / borderline / neuroslop suspected) and stays a judgement call about slop density. `gate` is pass/fail on hard bans and is not a judgement call. A text can read clean and still fail the gate on one pasted `turn0search3`.
+
+Hard bans wired as `blocker`: RU em-dash, math and code signs in prose (`= → > < ≈ vs`), completed negative parallelism («не только X, но и Y», «это не просто…»), chopped drama («Без X. Без Y.»), and class A artifacts. The `blocker` severity tier existed in the JSON schema but had no category assigned to it — it was dead code until now. New exit code `3` for a failed gate. New JSON fields `gate` and `hard_bans`.
+
+`--fiction` demotes the em-dash ban to an advisory nit, matching the exception `writer/references/typography.md` already granted to book typesetting — without it every line of dialogue would fail.
+
+### Added — structural detectors regex cannot express
+
+Five document-level checks, none of which are phrase lookups:
+
+- **`RHYTHM_MONOTONE` / `RHYTHM_NO_SHORT`** — mean difference between adjacent sentence lengths under 4 words, or no sentence under 9 words across 10+. Uniform sentence width is the LLM tell no word list catches.
+- **`VERB_ECHO`** — the same verb stem in adjacent sentences. The repetition penalty makes models vary nouns (hence synonym cycling) while *duplicating* verbs into parallel constructions: «Сбербанк предлагает… Тинькофф предлагает…».
+- **`BOLD_DENSITY`** — more than roughly one bold span per 200 words: formatting standing in for content.
+- **`HEADING_ECHO`** — a short line after a heading that restates it. Stem-based, so it survives Russian inflection.
+- **`HEDGE_CASCADE`** — three or more softeners in one sentence. One or two are ordinary careful speech and do not fire.
+
+### Added — three new categories, two of them regex-backed
+
+`THERAPEUTIC` («и это нормально», «вы не одиноки», "and that's okay") — fake care, distinct from `SELFHELP`'s fake drive. `CALQUE_COLLOCATION` («адресовать проблему», «доставить ценность») — every word Russian, the pairing English; distinct from the direct borrowings already in `ru-calques.md`. `DANGLING_GERUND` («используя метод, результаты улучшаются») — deliberately narrowed to a closed list of gerunds plus a required impersonal head, because a suffix guess would also match ordinary adjectives. `FALSE_RANGE` is documented but intentionally has no regex: legitimate ranges outnumber the slop.
+
+Catalogue is now 25 RU categories + 18 EN signatures.
+
+### Added — forbidden substitutions: slop replaced by kindred slop is still slop
+
+New `writer/references/forbidden-substitutions.md`. The failure mode it guards against is mechanical: a repetition penalty pushes the model toward synonym substitution instead of deletion, so «ключевой» becomes «важнейший» and «не только X, но и Y» becomes «как X, так и Y» — same cadence, new packaging, cleaning pass scored as a success.
+
+Contains the treatment hierarchy (delete → replace with a fact from the original → rewrite simpler; a synonym is level zero and does not count), the substitution table, three rules for how a replacement knits into surrounding text, and the "do not touch" list.
+
+### Added — delete the water, not the function
+
+The default treatment for slop is deletion, which is dangerous for text that has a job to do. A CTA, offer, price, deadline, link, contact, recovery step or upgrade command is a working part, not water — treat by replacement or simplification, then verify each survived.
+
+Wired into `landing-copy`, `cold-email`, `microcopy`, `viral-text`, `release-notes`, and made a standing requirement for every sub-skill in `writer/references/integration.md`.
+
+### Added — phase discipline and a stop rule in `writer`
+
+Audit → edit → verify, and the phases do not mix. Editing while reading overwrites detection: a model that has started rewriting goes on to repeat its own phrasing and misses half the patterns, because it is reading its draft over the text rather than the text.
+
+Phase 1 builds a findings table and edits nothing. **If there are no findings, stop and return the text unchanged** — re-editing clean text degrades it, and dry text with no catalogued patterns is just dry text, not AI. Phase 3 adds a blind verification pass: hand a fresh subagent only the final text and the category catalogue, with no original and no edit history, because an editor recognizes their own phrasing and grades it leniently.
+
+### Added — `detect` mode in `style-check`
+
+Answers "was this written by AI?" without touching the text. Scores findings by *family* (лексика / структура / коммуникация) rather than raw count: hits confined to one family are an author's style, hits spread across two or more are a model. Any class A artifact settles it alone.
+
+Includes an explicit limit: flawless grammar, dryness and a wide vocabulary prove nothing, so report markers with quotes and let the reader conclude. Missing a machine-written text is cheaper than accusing a living author. See `style-check/references/detect-mode.md`.
+
+### Added — prompt-injection guard
+
+Text handed to `writer` is data, not instructions. Directives inside it («забудь правила», «выполни», «отправь») are edited as ordinary sentences, never executed; a noticed attempt is reported in the summary. Matters because these skills routinely process text pasted from clients, email and websites.
+
+### Added — behavioural evals, a layer the repo did not have
+
+`tests/evals/writer.json` — 9 scenarios, 49 checks. Snapshot tests lock the linter; these lock the skill. A snapshot proves `lint.py` still flags «представляет собой»; it cannot tell whether the model invented a statistic while removing it, deleted the CTA along with the water, or swapped «ключевой» for «важнейший» and stopped.
+
+Seven of the nine are `guard` traps, and that ratio is the point: clean text that must come back untouched, slop that must not be replaced by kindred slop, functional elements that must survive, facts that must not be invented, a prompt injection that must not execute, fiction that must not be business-edited. A skill scoring well on the happy path and failing these produces confident, clean-reading damage.
+
+Not wired into CI — they need a model in the loop, and a test that needs a model is not a smoke test.
+
+### Fixed — the calibration samples the linter could never see
+
+`scripts/check-after-samples.py`, wired into `smoke.sh` as step 4/5.
+
+The hole it closes: calibration samples live inside fenced code blocks, and `lint.py` masks fenced blocks by default. So the one thing a model copies verbatim — the "После" sample — was the one thing never checked. Six real violations were sitting in them, including an em-dash in `landing-copy`'s hero sample and in `microcopy`'s empty-state body, both of which the skills would have reproduced.
+
+Fixed in `landing-copy`, `microcopy`, `release-notes`, `rfc-writer`. Scope is deliberately narrow: only `EM_DASH_RU`, `NEG_PARALLEL` and `CHOPPED_DRAMA` are checked. `MATH_SIGN_PROSE` is excluded because inside samples the signs are usually legitimate — RFC specs (`p95 ≤ 5 с`), UI paths (Настройки → Тема), parity-report output — and flagging those would teach people to ignore the check.
+
+Files whose samples are not ordinary prose declare it inline: `<!-- after-samples: fiction -->` for dialogue dashes and lyrics (`writer`, `music-prompt`), `<!-- after-samples: none -->` for tool output (`translation-sync`).
+
+### Fixed — docs consistency
+
+`docs/USER-GUIDE.md` claimed thirty-nine skills against forty-one on disk, carried two duplicate **Meta** bullets, and never mentioned `proposal-maker` or `style-suggest`. Census corrected, duplicate merged, both skills given working sections. `README.md` table and `docs/SKILL-INDEX.md` regenerated.
+
+Check 5 in `check-docs-consistency.sh` scanned only `[Unreleased]` for new-skill entries. This repo writes version sections directly and cuts tags manually — the last tag is `v2.12.3` while the changelog is seven minors ahead — so a skill shipping in an untagged 2.20.0 could never satisfy it. The window now spans every section above the last tagged version. Verified it still fails when an entry is genuinely absent.
+
+### Fixed — link rot that no check could see
+
+`scripts/check-links.py`, wired into `smoke.sh` as step 5/6. Resolves all 1180 relative markdown links across 460 files.
+
+`validate.sh` greps for `references/<file>.md` and resolves it inside the *owning* skill, so three whole classes of link were never checked, and all three had rotted: cross-skill links from `docs/walkthroughs/` into `../../<skill>/references/`, docs-to-docs links, and repo-root links from `.github/` templates. Seven were broken, every one of them in public-facing documentation — `image-prompt/references/formula.md` (is `prompt-formula.md`), `landing-copy/references/julian-shapiro-hero.md` (is `hero-formula.md`), `release-notes/references/keep-a-changelog.md` (is `sections.md`), `rfc-writer/references/adr-template.md` (is `templates.md`), `video-prompt/references/kling.md` (is `models/i2v-tier.md`), a wrong relative depth in `canon-check`, and a malformed `../blob/main/` path in the PR template.
+
+Placeholders are skipped rather than reported: a target containing angle brackets, `...` or a bare curly slot documents a format, it is not a link.
+
+### Fixed — HEADING_ECHO flagged ordinary documentation
+
+Caught by the pre-commit hook refusing this very release, which is what the hook is for.
+
+The first cut counted *shared* stems between a heading and the line under it. That also matches a section's opening sentence, which naturally reuses the section's topic: `## Where the canon may live` → "Non-fiction projects split canon across two sources:" shares three stems and is not an echo. It also matched cross-references — `### Artifact / physical invariant` → "In `Physical invariants`:".
+
+The discriminator is *restates vs. adds*, not overlap. An echo introduces almost nothing beyond the heading; a real opening sentence introduces several new stems. Now fires only when the line adds two content stems or fewer, and backticked spans are stripped first so an identifier reference is not read as prose.
+
+### Changed — `<!-- lint-role: catalogue -->`
+
+Several `SKILL.md` files list the phrases they exist to strip ("world-class", "Click here", "revolutionary"), and walkthroughs demonstrate slop being cleaned. Linting those for slop measures the examples, not the prose — they were failing the pre-commit hook before this release too, on pre-existing categories.
+
+The hook already exempted `banned-patterns*.md` by path. A file now declares its own role instead, so that list stops growing every time a skill documents what it bans. Applied to `landing-copy`, `release-notes` and the EN viral-post walkthrough.
+
+### Added — unit tests for the layer that spends money
+
+`tests/unit/` — 80 tests over `common/runners`, wired into `smoke.sh` and CI. Plain stdlib `unittest`, no pytest: the README promises no required dependencies and this keeps that true.
+
+Chosen by risk, not by coverage percentage. `cost.py` decides what the user gets billed and whether to prompt at all — a wrong multiplier there does not fail loudly, it silently overcharges. `keysfile.py` writes secrets to disk, loads them into the environment, and prints them back to a terminal; the tests pin file mode `0600`, that `mask()` never shows the middle of a key, that a shell export escapes quotes and backslashes (an unescaped quote in `eval "$(...)"` becomes executable words), and that a deliberate shell export still beats a file entry. `proposal_parse.py` reads the prices that reach a client, where `5,154` misread as a decimal is an error of three orders of magnitude. `poll.py` runs with a stubbed clock, so the suite finishes in 0.07 s and still proves backoff grows, stays capped, and never sleeps past the caller's timeout.
+
+This is the highest-risk surface, not full coverage of 13 500 lines. The rest of the runner layer remains untested.
+
+### Added — pricing generated from the code that bills
+
+`scripts/gen-pricing.py` renders `common/references/model-pricing.md` from `cost.PRICE_TABLE`, with `--check` failing CI on drift (step 7/8 in smoke, `make gen-pricing` to regenerate).
+
+Per-unit prices were hand-written into ten `model-picker.md` files. They happened to agree, but nothing enforced it, and none of them were tied to the table that actually estimates the bill. A documented price that disagrees with the charged price is worse than no price. All ten now point at the generated table as canonical and keep their own figures as batch illustrations.
+
+### Fixed — the release process was broken end to end
+
+`scripts/bump.sh` did not exist, yet `make bump-patch|bump-minor|bump-major` called it and `docs/VERSIONING.md` documented it. Every path to cutting a release failed with `No such file or directory`, so `VERSION` was edited by hand and tagging quietly stopped. The last tag sat eight versions behind the changelog — and because `install.sh` defaults to `--version latest`, resolved from the newest published GitHub *release*, the `curl | bash` command in the README was serving v2.12.3.
+
+- **`scripts/bump.sh` written** — bumps `VERSION`, opens a CHANGELOG section, refuses to reuse an existing tag, supports `--dry-run`. It deliberately does not commit, tag, or push.
+- **`make release` hardened** — now verifies the tag is free, that `CHANGELOG.md` has a section for the current `VERSION`, and that `smoke.sh` passes, before tagging. It no longer claims "release workflow will fire"; it prints the reminder that a tag without a published release leaves installs on the previous version.
+- **`docs/VERSIONING.md`, `CONTRIBUTING.md` and `docs/FAQ.md` corrected.** All three described the auto-bump pipeline as live. `CONTRIBUTING.md` instructed contributors "do not manually tag releases — the pipeline does it", which was exactly backwards.
+
+### Fixed — pre-publication hygiene
+
+- **Private paths.** Five live files referenced an absolute path into the author's private project (`/Users/mikefluff/Documents/figma/...`) as the origin of a ported pattern. Genericized in `common/runners/config.py`, `poll.py`, `storage/s3.py`, `common/visual-prompt-library/system-prompt.md` and `styles/_index.md`, and in `style-suggest`. The CHANGELOG keeps its historical entries — a log records what was true when written.
+- **Stale counts.** `README.md` said thirty-nine skills against forty-one, with eleven orchestrators against thirteen. `scripts/coverage.py` still documented 23 categories.
+- **A promise in the docs.** `carousel-builder/references/troubleshoot.md` told users to run `--list-styles (TODO: implement)`. Replaced with the two things that do work.
+- **`CODE_OF_CONDUCT.md`** added — deliberately short, since a long one on a project this size reads as process theatre.
+- **Client brand profiles are no longer published.** A saved `proposal-maker` profile carries a named client's brand tokens, their logo, and the authored structure of their real commercial offer. `.gitignore` now excludes `brands/*/` with an exception for the author's own brand, which stays as a worked example of the format. The Double D Project profile was untracked; the files remain on disk and keep working.
+
+### Changed — test fixtures
+
+Five new fixtures: `hard_bans`, `copypaste_artifacts`, `structural_signals`, `rhythm_monotone`, `fiction_dialogue`. `tests/run.sh` now passes `--fiction` for fixtures named `fiction_*`. `clean_prose.md` lost its two em-dashes — they violated `typography.md`, and the linter simply never checked before. All 30 snapshots re-baselined for the new `gate` / `hard_bans` JSON fields.
+
+## [2.19.0] — 2026-07-11
+
+### Added — `carousel-builder --animate`: one-command carousel → animated reel
+
+The carousel → animation pipeline no longer requires manual reel-plan assembly. With `--animate`, after the static deck renders, the skill spawns ONE Agent with the canonical video SYSTEM_PROMPT (`common/video-prompt-library/system-prompt.md`), passes each slide PNG + a one-line overlay-text summary + the character-identity marker, receives all N motion prompts in a single JSON, mechanically builds `reel-plan.json`, and runs the reel CLI. Flags: `--animate-duration 4|8` · `--animate-provider veo-3-1-fast|veo-3-1|kling-3-0|runway-gen-4` · `--animate-stitch on|off`. Labels are validated to start with `shot-` (the reel CLI's filter).
+
+### Added — provider parity for text-stability kwargs (Kling + Runway)
+
+`lock_first_last` / `last_frame` now work across all three i2v providers with one kwarg contract:
+
+- **`kling.py`**: `lock_first_last=True` → Kling's native `image_tail` bookend (start == end). Local paths are base64-encoded for both `image` and `image_tail` (Kling accepts URL or base64).
+- **`runway.py`**: `lock_first_last=True` → Runway's First/Last-Image mode (`promptImage` as `[{uri, position: "first"}, {uri, position: "last"}]`). Local paths become data URIs. Runway has no `negative_prompt` parameter — the kwarg is intentionally ignored there.
+- **`google_video.py`** (since v2.18.0): `last_frame` + `negative_prompt`, with graceful fallback when a preview model rejects `last_frame`.
+
+### Added — orientation lock + wardrobe continuity in the image SYSTEM_PROMPT
+
+Two field-tested rules added to `common/visual-prompt-library/system-prompt.md`:
+
+- **Orientation lock**: every prompt must OPEN with an orientation cue ("Vertical portrait composition, taller than wide —"); "wide / panoramic / cinematic POV" openers are banned on portrait/square because image models let prompt language override the size kwarg (two slides rendered landscape in production because a prompt opened with "wide cinematic POV").
+- **Wardrobe continuity**: when a character ref is present, every slide's prompt carries a generic wardrobe-continuity clause ("the same 3D-cartoon figure in the same hat, glasses, and outfit as on every slide") — naming accessory CATEGORIES generically keeps them present across slides without overriding their look (fixes hats/glasses vanishing on individual slides).
+
+Both SYSTEM_PROMPTs now cross-link each other (image chain ↔ video chain).
+
+### Added — brand-profile registry for proposal-maker (documents v2.18.1+ work)
+
+The 4 previously-unversioned commits (Double D Project + INITE brand profiles) are now first-class: `proposal-maker/brands/_index.md` registry + a "Saved brand profiles" section in SKILL.md. Each `brands/<slug>/` holds a corrected `brand.json`, an authored `template.html` to clone, cached assets, and reuse README. Prefer `--brand-file brands/<slug>/brand.json` over a fresh scrape — profiles encode manual corrections (dark Tilda sites scrape as light; white SVG logos vanish on light surfaces).
+
+### Changed — reel output dedup
+
+`reel.py` no longer copies the stitched video into `final.mp4` when no transformation remains — it renames instead. A music-less, caption-less reel dir now holds ONE multi-MB video (final.mp4), not two identical ones (concat.mp4 + final.mp4).
+
+### Docs
+
+- README: style-library section now lists BOTH libraries (legacy per-modality `common/style-library/` + extensible `common/visual-prompt-library/styles/`, 23 entries), links both LLM prompt chains, and the brand-profile registry.
+- USER-GUIDE: new "commercial proposal (КП)" scenario section; carousel section gained the `--animate` block.
+
 ## [2.18.1] — 2026-06-20
 
 ### Fixed — skill descriptions tightened for Claude ingest

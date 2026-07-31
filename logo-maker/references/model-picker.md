@@ -1,5 +1,10 @@
 # Model picker — logo-maker
 
+> Per-unit prices below are illustrative; the canonical table is
+> [`common/references/model-pricing.md`](../../common/references/model-pricing.md),
+> generated from `common/runners/cost.py` — the same table that estimates your bill.
+> Batch figures here are that unit price times the item count.
+
 ## Default: `ideogram-3-quality`
 
 Text rendering is everything for logos. ~90% of generated logos fail because the text is mangled. Ideogram 3 Quality is the current best-in-class for embedded text.

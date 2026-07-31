@@ -1,6 +1,8 @@
 {
   "verdict": "clean",
+  "gate": "pass",
   "total": 0,
+  "hard_bans": 0,
   "by_category": {},
   "by_severity": {
     "blocker": 0,

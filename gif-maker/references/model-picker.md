@@ -1,5 +1,10 @@
 # Model picker — gif-maker (Mode B)
 
+> Per-unit prices below are illustrative; the canonical table is
+> [`common/references/model-pricing.md`](../../common/references/model-pricing.md),
+> generated from `common/runners/cost.py` — the same table that estimates your bill.
+> Batch figures here are that unit price times the item count.
+
 For generation mode (`--prompt --model`). Mode A doesn't pick a model — it converts.
 
 ## Default: `veo-3-1-fast`

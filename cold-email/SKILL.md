@@ -46,6 +46,8 @@ Read context (who is the recipient, what's the ask, what's the proof) → assemb
 
 5. **Final `writer` pass.** 4-layer cleanup. Even more strict than usual: cold email has no slack for slop.
 
+   **Delete the water, not the function.** The ask, the easy-yes, the proof link and the sign-off are the email's working parts. Writer's default treatment is deletion; applied here it produces a polished note that requests nothing. Treat them by replacement or simplification. After the pass, verify the ask is still present and still specific. See `forbidden-substitutions.md` in the `writer` skill.
+
 6. **Output.** Subject line + body. Subject line follows its own rules (see `references/structure.md` section 6).
 
 ## MODES

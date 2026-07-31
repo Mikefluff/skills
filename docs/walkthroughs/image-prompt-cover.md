@@ -14,7 +14,7 @@ skills:
 
 ## Intent — 6-part formula
 
-Любой нормальный image prompt — это шесть слотов (см. `image-prompt/references/formula.md`):
+Любой нормальный image prompt — это шесть слотов (см. `image-prompt/references/prompt-formula.md`):
 
 1. **Subject** — что в кадре, конкретно. Не «person», а «a woman in her 40s, silver glasses, denim shirt».
 2. **Setting** — где это происходит. Не «office», а «glass-walled coworking space at golden hour, plants spilling over the divider».
@@ -348,4 +348,4 @@ MJ иногда генерит fake signatures в углу (имитация art
 - [video-prompt-reel.md](video-prompt-reel.md) — родственная задача, но для motion
 - [landing-launch.md](landing-launch.md) — куда эта cover, скорее всего, ляжет
 - [viral-post.md](viral-post.md) — если cover для соц-поста, не для блога
-- [image-prompt/references/formula.md](../../image-prompt/references/formula.md) — полная 6-part formula с примерами
+- [image-prompt/references/prompt-formula.md](../../image-prompt/references/prompt-formula.md) — полная 6-part formula с примерами

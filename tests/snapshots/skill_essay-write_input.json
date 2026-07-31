@@ -1,15 +1,19 @@
 {
   "verdict": "neuroslop suspected",
-  "total": 5,
+  "gate": "fail",
+  "total": 9,
+  "hard_bans": 4,
   "by_category": {
     "FILLER_INTRO": 1,
     "PSEUDO_SMART": 1,
+    "EM_DASH_RU": 3,
     "GPT_FILLER": 1,
     "AI_HEDGE": 1,
-    "AI_BRIDGE": 1
+    "AI_BRIDGE": 1,
+    "NEG_PARALLEL": 1
   },
   "by_severity": {
-    "blocker": 0,
+    "blocker": 4,
     "caution": 5,
     "nit": 0
   },
@@ -29,11 +33,25 @@
       "match": "в конечном итоге"
     },
     {
+      "line": 5,
+      "col": 151,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
       "line": 7,
       "col": 1,
       "category": "GPT_FILLER",
       "severity": "caution",
       "match": "Важно отметить"
+    },
+    {
+      "line": 7,
+      "col": 30,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
     },
     {
       "line": 7,
@@ -48,6 +66,20 @@
       "category": "AI_BRIDGE",
       "severity": "caution",
       "match": "В заключение"
+    },
+    {
+      "line": 9,
+      "col": 34,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 9,
+      "col": 36,
+      "category": "NEG_PARALLEL",
+      "severity": "blocker",
+      "match": "это не просто"
     }
   ]
 }

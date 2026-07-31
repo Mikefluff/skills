@@ -3,7 +3,7 @@
 Providers self-register on import. The CLI looks up by name and asks each
 provider whether all its required env vars are set before attempting a call.
 
-Pattern (simplified) from /Users/mikefluff/Documents/figma/app/lib/generations/providers/llmApiKeys.js.
+Pattern (simplified) from the author's earlier production key-resolution layer.
 No company-DB layer — single-user CLI reads from os.environ only.
 """
 

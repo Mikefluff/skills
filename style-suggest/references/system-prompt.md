@@ -1,6 +1,6 @@
 # Style-suggest LLM step — SYSTEM_PROMPT + user-message shape
 
-Adapted from `/Users/mikefluff/Documents/figma/app/lib/agents/StyleSuggestAgent.js` for the v2.15.0+ extensible style-library schema. The carousel-builder / cover-maker / etc. visual skills consume styles via `common/visual-prompt-library/styles/<slug>.md`; this skill is the WRITE side that produces those files.
+Adapted from the author's earlier StyleSuggestAgent for the v2.15.0+ extensible style-library schema. The carousel-builder / cover-maker / etc. visual skills consume styles via `common/visual-prompt-library/styles/<slug>.md`; this skill is the WRITE side that produces those files.
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-coverage.py — report which of the 23 neuroslop categories defined in
+coverage.py — report which of the neuroslop categories defined in
 `writer/references/neuroslop-categories.md` are actually detected by regex in
 `writer/scripts/lint.py`, and how many patterns each category has.
 

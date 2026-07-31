@@ -14,7 +14,7 @@ CI parses commit messages to decide the next semver bump — see docs/VERSIONING
 
 ## Scope
 
-- [ ] New skill (followed [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) SOTA layout)
+- [ ] New skill (followed [CONTRIBUTING.md](../CONTRIBUTING.md) SOTA layout)
 - [ ] Extension to an existing skill (specify which: ____________________)
 - [ ] Infrastructure (installer / CI / scripts / docs)
 - [ ] Bug fix

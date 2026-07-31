@@ -1,10 +1,12 @@
 {
   "verdict": "borderline",
+  "gate": "pass",
   "total": 3,
+  "hard_bans": 0,
   "by_category": {
     "AI_QA": 1,
-    "BUREAU_INV": 1,
-    "GPT_FILLER": 1
+    "GPT_FILLER": 1,
+    "BUREAU_INV": 1
   },
   "by_severity": {
     "blocker": 0,
@@ -21,17 +23,17 @@
     },
     {
       "line": 3,
-      "col": 189,
-      "category": "BUREAU_INV",
-      "severity": "caution",
-      "match": "играет важную роль"
-    },
-    {
-      "line": 3,
       "col": 140,
       "category": "GPT_FILLER",
       "severity": "caution",
       "match": "Стоит отметить"
+    },
+    {
+      "line": 3,
+      "col": 189,
+      "category": "BUREAU_INV",
+      "severity": "caution",
+      "match": "играет важную роль"
     }
   ]
 }

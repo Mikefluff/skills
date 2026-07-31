@@ -1,20 +1,22 @@
 {
   "verdict": "neuroslop suspected",
+  "gate": "pass",
   "total": 54,
+  "hard_bans": 0,
   "by_category": {
     "FILLER_INTRO": 1,
-    "GPT_FILLER": 4,
-    "STOCK_METAPHOR": 6,
-    "AI_INTENSIFIER": 5,
     "PSEUDO_SMART": 4,
+    "STOCK_METAPHOR": 6,
+    "GPT_FILLER": 4,
+    "AI_INTENSIFIER": 5,
     "AI_QA": 5,
     "NE_X_A_Y": 2,
     "BUREAU_INV": 5,
     "CORPORATE": 4,
     "PSEUDO_SCI": 2,
     "VAGUE_PERSON": 3,
-    "TYPOGRAPHY": 2,
     "NOMINALIZATION": 1,
+    "TYPOGRAPHY": 2,
     "AI_HEDGE": 3,
     "SELF_REF": 2,
     "SUPERLATIVE_OVERLOAD": 2,
@@ -36,10 +38,10 @@
     },
     {
       "line": 3,
-      "col": 127,
-      "category": "GPT_FILLER",
+      "col": 52,
+      "category": "PSEUDO_SMART",
       "severity": "caution",
-      "match": "It's important to note"
+      "match": "fundamentally "
     },
     {
       "line": 3,
@@ -47,6 +49,13 @@
       "category": "STOCK_METAPHOR",
       "severity": "caution",
       "match": "very fabric of"
+    },
+    {
+      "line": 3,
+      "col": 127,
+      "category": "GPT_FILLER",
+      "severity": "caution",
+      "match": "It's important to note"
     },
     {
       "line": 3,
@@ -61,27 +70,6 @@
       "category": "AI_INTENSIFIER",
       "severity": "caution",
       "match": "far-reaching"
-    },
-    {
-      "line": 3,
-      "col": 52,
-      "category": "PSEUDO_SMART",
-      "severity": "caution",
-      "match": "fundamentally "
-    },
-    {
-      "line": 5,
-      "col": 267,
-      "category": "AI_QA",
-      "severity": "caution",
-      "match": "Sounds familiar?"
-    },
-    {
-      "line": 5,
-      "col": 284,
-      "category": "AI_QA",
-      "severity": "caution",
-      "match": "Let's be honest"
     },
     {
       "line": 5,
@@ -113,13 +101,6 @@
     },
     {
       "line": 5,
-      "col": 211,
-      "category": "AI_INTENSIFIER",
-      "severity": "caution",
-      "match": "truly remarkable"
-    },
-    {
-      "line": 5,
       "col": 184,
       "category": "AI_INTENSIFIER",
       "severity": "caution",
@@ -127,10 +108,31 @@
     },
     {
       "line": 5,
+      "col": 211,
+      "category": "AI_INTENSIFIER",
+      "severity": "caution",
+      "match": "truly remarkable"
+    },
+    {
+      "line": 5,
       "col": 267,
       "category": "AI_QA",
       "severity": "caution",
       "match": "Sounds familiar?"
+    },
+    {
+      "line": 5,
+      "col": 267,
+      "category": "AI_QA",
+      "severity": "caution",
+      "match": "Sounds familiar?"
+    },
+    {
+      "line": 5,
+      "col": 284,
+      "category": "AI_QA",
+      "severity": "caution",
+      "match": "Let's be honest"
     },
     {
       "line": 5,
@@ -169,6 +171,13 @@
     },
     {
       "line": 9,
+      "col": 340,
+      "category": "CORPORATE",
+      "severity": "caution",
+      "match": "strategic priorities"
+    },
+    {
+      "line": 9,
       "col": 362,
       "category": "CORPORATE",
       "severity": "caution",
@@ -187,13 +196,6 @@
       "category": "CORPORATE",
       "severity": "caution",
       "match": "key metric"
-    },
-    {
-      "line": 9,
-      "col": 340,
-      "category": "CORPORATE",
-      "severity": "caution",
-      "match": "strategic priorities"
     },
     {
       "line": 11,
@@ -232,38 +234,10 @@
     },
     {
       "line": 13,
-      "col": 323,
-      "category": "TYPOGRAPHY",
-      "severity": "nit",
-      "match": "\"if\""
-    },
-    {
-      "line": 13,
-      "col": 332,
-      "category": "TYPOGRAPHY",
-      "severity": "nit",
-      "match": "\"when\""
-    },
-    {
-      "line": 13,
       "col": 1,
       "category": "PSEUDO_SMART",
       "severity": "caution",
       "match": "Essentially"
-    },
-    {
-      "line": 13,
-      "col": 288,
-      "category": "PSEUDO_SMART",
-      "severity": "caution",
-      "match": "fundamentally, "
-    },
-    {
-      "line": 13,
-      "col": 265,
-      "category": "PSEUDO_SMART",
-      "severity": "caution",
-      "match": "At the end of the day"
     },
     {
       "line": 13,
@@ -281,6 +255,13 @@
     },
     {
       "line": 13,
+      "col": 102,
+      "category": "NOMINALIZATION",
+      "severity": "caution",
+      "match": "The implementation of"
+    },
+    {
+      "line": 13,
       "col": 142,
       "category": "BUREAU_INV",
       "severity": "caution",
@@ -295,17 +276,31 @@
     },
     {
       "line": 13,
-      "col": 102,
-      "category": "NOMINALIZATION",
+      "col": 265,
+      "category": "PSEUDO_SMART",
       "severity": "caution",
-      "match": "The implementation of"
+      "match": "At the end of the day"
     },
     {
-      "line": 15,
-      "col": 111,
-      "category": "AI_HEDGE",
+      "line": 13,
+      "col": 288,
+      "category": "PSEUDO_SMART",
       "severity": "caution",
-      "match": "On one hand, automation may eliminate certain roles; on the other hand"
+      "match": "fundamentally, "
+    },
+    {
+      "line": 13,
+      "col": 323,
+      "category": "TYPOGRAPHY",
+      "severity": "nit",
+      "match": "\"if\""
+    },
+    {
+      "line": 13,
+      "col": 332,
+      "category": "TYPOGRAPHY",
+      "severity": "nit",
+      "match": "\"when\""
     },
     {
       "line": 15,
@@ -313,6 +308,13 @@
       "category": "AI_HEDGE",
       "severity": "caution",
       "match": "While there are valid"
+    },
+    {
+      "line": 15,
+      "col": 111,
+      "category": "AI_HEDGE",
+      "severity": "caution",
+      "match": "On one hand, automation may eliminate certain roles; on the other hand"
     },
     {
       "line": 15,
@@ -379,13 +381,6 @@
     },
     {
       "line": 21,
-      "col": 117,
-      "category": "AI_INTENSIFIER",
-      "severity": "caution",
-      "match": "underscores the importance"
-    },
-    {
-      "line": 21,
       "col": 69,
       "category": "AI_TRIPLETS",
       "severity": "caution",
@@ -397,6 +392,13 @@
       "category": "AI_TRIPLETS",
       "severity": "caution",
       "match": "smart, capable, and intelligent"
+    },
+    {
+      "line": 21,
+      "col": 117,
+      "category": "AI_INTENSIFIER",
+      "severity": "caution",
+      "match": "underscores the importance"
     },
     {
       "line": 21,

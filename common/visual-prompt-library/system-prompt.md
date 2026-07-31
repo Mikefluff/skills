@@ -1,5 +1,7 @@
 # Visual prompt chain — system prompt (shared across visual skills, v2.14.0+)
 
+> Sibling chain: for ANIMATING generated images (carousel slides → reel shots), see [`../video-prompt-library/system-prompt.md`](../video-prompt-library/system-prompt.md) — the motion-prompt SYSTEM_PROMPT with the overlay-heavy i2v discipline.
+
 This file is the canonical SYSTEM_PROMPT used by every visual-generation skill in this collection that takes text input and produces one or more designed images with text inside the image:
 
 - `carousel-builder` (N slides, IG / LinkedIn / TikTok)
@@ -12,7 +14,7 @@ This file is the canonical SYSTEM_PROMPT used by every visual-generation skill i
 
 The skill loads this SYSTEM_PROMPT verbatim, fills `buildUserMessage(opts)` with the user's input, spawns ONE Agent (`subagent_type=general-purpose`) with `system=SYSTEM_PROMPT` and `user=<built message>`, and gets back JSON `{"slides":[{"number":1,"prompt":"..."},...]}`. For N==1 (single-image skills) the JSON still has a `slides` array with one entry.
 
-The chain mirrors `/Users/mikefluff/Documents/figma/app/lib/carousel/promptCarousel/prompts.js` with improvements ported from `slidePrompts/systemPrompt.js` (SEEDREAM): expanded style library, infographic discipline, carousel chrome (when N>1), forbidden literals, accent markup, CTA verbatim rule, character-ref language.
+The chain mirrors the author's earlier carousel prompt chain, with improvements ported from its SEEDREAM slide-prompt system prompt: expanded style library, infographic discipline, carousel chrome (when N>1), forbidden literals, accent markup, CTA verbatim rule, character-ref language.
 
 ---
 
@@ -92,8 +94,14 @@ CAROUSEL CHROME (append to EVERY prompt when N>1 — skip entirely when N==1)
 - Slides 1..(N-1): bottom-right small arrow + label in double quotes — "swipe →" / "листай →" / appropriate localized form. Styled to match the slide.
 - Last slide (N): bottom-right small end marker in double quotes — "end." / "конец" / "finis" / a closing glyph. NO swipe arrow on the last slide.
 
+ORIENTATION LOCK (CRITICAL — image models let prompt language override the size kwarg)
+- EVERY prompt MUST OPEN with an orientation cue matching the requested aspect: portrait → "Vertical portrait composition, taller than wide —", square → "Square composition —", landscape → "Wide landscape composition —".
+- For portrait and square: NEVER open a prompt with "wide", "wide-angle", "panoramic", "widescreen", or "cinematic POV" — these words override the size kwarg and the model renders landscape even when 4:5 was requested. Describe breadth through CONTENT placement instead ("a tall back wall filling the upper two-thirds of the frame", "the console stretches across the lower third").
+- If a composition genuinely needs a wide-feeling scene inside a portrait frame, say "the wide room compressed into a tall portrait frame" — the orientation words must always win the sentence.
+
 CHARACTER REFERENCE — if user supplied a character photo / ref
-- DO NOT describe face / hair / build / sunglasses / beard / accessories / clothing color in the prompts. The image-side reference locks identity.
+- DO NOT describe face / hair / build / accessory details / clothing color in the prompts (no "red beard", no "orange-temple sunglasses"). The image-side reference locks identity.
+- DO include a generic wardrobe-continuity clause in EVERY slide's prompt: "the same 3D-cartoon figure in the same hat, glasses, and outfit as on every slide". Without it, individual slides drop accessories (hat vanishes, glasses change) — naming the categories generically keeps them present without overriding their look.
 - Describe ONLY: pose, action, expression, position in the frame, gesture toward the layout. Use "the same character" / "the same 3D-cartoon figure" / "the same person" consistently across slides.
 
 BRAND / STYLE REFERENCE
@@ -117,6 +125,8 @@ FORBIDDEN IN PROMPT BODY (these render as visible text on the image — NEVER us
 PRE-OUTPUT VALIDATION CHECKLIST (run mentally before returning)
 - N entries in `slides`, numbers 1..N in order (N==1 for single-image skills).
 - Each `prompt` is 1–3 sentences.
+- Each prompt OPENS with the orientation cue; no "wide / panoramic / cinematic POV" openers on portrait or square.
+- When a character ref is present: every prompt carries the wardrobe-continuity clause.
 - Each prompt has text-in-quotes for what should render.
 - For N>1: slide 1 reads as a hook, last slide as a CTA (when needCta). Carousel chrome appended.
 - For N==1: ONE title-dominant composition with structured supporting elements; no chrome.

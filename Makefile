@@ -47,7 +47,7 @@ smoke: ## Validate + writer linter regression + fixture snapshots
 test: ## Run snapshot tests on fixtures (writer linter)
 	bash tests/run.sh
 
-coverage: ## Show which of the 23 neuroslop categories lint.py detects via regex
+coverage: ## Show which neuroslop categories lint.py detects via regex
 	python3 scripts/coverage.py
 
 check-docs: ## Verify skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs ↔ CHANGELOG
@@ -55,6 +55,12 @@ check-docs: ## Verify skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs ↔
 
 gen-readme: ## Regenerate the README skills table from skills.json (write in place)
 	python3 scripts/gen-skills-table.py --write
+
+gen-pricing: ## Regenerate common/references/model-pricing.md from cost.PRICE_TABLE
+	python3 scripts/gen-pricing.py --write
+
+test-unit: ## Run runner unit tests (stdlib unittest, no deps)
+	python3 -m unittest discover -s tests/unit -t . -v
 
 gen-index: ## Regenerate docs/SKILL-INDEX.md from skills.json (write in place)
 	python3 scripts/gen-skill-index.py --write
@@ -105,9 +111,15 @@ release: ## Tag current VERSION and push (assumes VERSION already bumped + commi
 	if git rev-parse "v$$v" >/dev/null 2>&1; then \
 	  echo "tag v$$v already exists"; exit 1; \
 	fi; \
+	if ! grep -q "^## \[$$v\]" CHANGELOG.md; then \
+	  echo "CHANGELOG.md has no [$$v] section — run 'make bump-*' first"; exit 1; \
+	fi; \
+	bash scripts/smoke.sh >/dev/null || { echo "smoke failed — not tagging"; exit 1; }; \
 	git tag -a "v$$v" -m "release: v$$v" && \
 	git push origin "v$$v" && \
-	echo "tagged + pushed v$$v — release workflow will fire"
+	echo "tagged + pushed v$$v"; \
+	echo "NOTE: install.sh --version latest resolves the newest GitHub *release*."; \
+	echo "      Publish the release for v$$v on GitHub, or curl installs stay on the previous tag."
 
 # ── housekeeping ─────────────────────────────────────────────────────────
 

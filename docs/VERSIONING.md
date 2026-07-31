@@ -12,22 +12,44 @@ If a change is ambiguous, prefer bumping higher rather than lower. The cost of a
 
 ## How bumps are decided
 
-CI (`.github/workflows/release.yml`) parses commit subjects since the last `v*` tag and picks the highest-severity bump found:
+By you, manually. There is no auto-bump workflow — the previous `release.yml` was removed for tagging the wrong major bumps on additive commits.
 
-| Commit prefix / marker | Bump |
+Commit subjects still use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), because they make the changelog easy to write, but nothing parses them:
+
+| Commit prefix / marker | Intended bump |
 |---|---|
 | `BREAKING CHANGE:` in body, **or** `!` after type (e.g. `feat!:`) | major |
 | `feat:` / `feat(scope):` | minor |
 | `fix:` / `perf:` / `refactor:` | patch |
-| `docs:` / `chore:` / `style:` / `ci:` / `test:` | (none) |
+| `docs:` / `chore:` / `style:` / `ci:` / `test:` | none on their own |
 
-Other prefixes are ignored. A push with only `docs:` and `chore:` commits will produce no release.
+## Cutting a release
 
-You can also force a level from the GitHub UI: `Actions → release → Run workflow → level: patch/minor/major`.
+```bash
+make bump-minor              # VERSION 2.20.0 -> 2.21.0, opens a CHANGELOG section
+# fill in the CHANGELOG bullets
+make smoke && make check-docs
+git commit -am "chore(release): v2.21.0"
+make release                 # verifies, tags v2.21.0, pushes the tag
+```
+
+`make release` refuses to tag when the tag already exists, when `CHANGELOG.md` has no section for the current `VERSION`, or when `smoke.sh` fails.
+
+### Then publish the GitHub release
+
+**The tag alone is not enough.** `install.sh` defaults to `--version latest`, which resolves the newest **published GitHub release** through the API — not the newest tag. A tag with no release attached leaves every `curl | bash` install on the previous version.
+
+This is not hypothetical: it is exactly how the last tag drifted eight versions behind the changelog. `scripts/bump.sh` was referenced by the Makefile and by this document but had never been written, so `make bump-*` failed outright, `VERSION` got edited by hand, and tagging quietly stopped happening.
+
+After `make release`, create the release on GitHub (UI or `gh release create v2.21.0 --notes-from-tag`), then confirm:
+
+```bash
+bash install.sh --check      # local marker vs latest published release
+```
 
 ## Tag format
 
-Tags are `vMAJOR.MINOR.PATCH` (e.g. `v0.2.0`). The `VERSION` file holds the same string without the `v` (e.g. `0.2.0`). The two are kept in sync by `scripts/bump.sh` and the release workflow.
+Tags are `vMAJOR.MINOR.PATCH` (e.g. `v2.21.0`). The `VERSION` file holds the same string without the `v`. `scripts/bump.sh` writes `VERSION`; `make release` derives the tag from it, so the two cannot disagree.
 
 ## CHANGELOG
 
@@ -46,7 +68,7 @@ Tags are `vMAJOR.MINOR.PATCH` (e.g. `v0.2.0`). The `VERSION` file holds the same
 - ...
 ```
 
-`scripts/bump.sh` inserts the section header automatically; you fill in the bullets before pushing the release commit (or rely on the CI workflow's autogeneration, which uses commit subjects as fallback content).
+`scripts/bump.sh` inserts the section header automatically; you fill in the bullets before committing. Nothing autogenerates them — `make release` simply refuses to tag if the section for the current `VERSION` is missing.
 
 ## Pre-releases
 

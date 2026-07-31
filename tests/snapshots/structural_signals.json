@@ -1,0 +1,93 @@
+{
+  "verdict": "neuroslop suspected",
+  "gate": "pass",
+  "total": 10,
+  "hard_bans": 0,
+  "by_category": {
+    "HEDGE_CASCADE": 1,
+    "RHYTHM_MONOTONE": 1,
+    "VERB_ECHO": 1,
+    "HEADING_ECHO": 1,
+    "COLON_REVEAL": 1,
+    "DANGLING_GERUND": 1,
+    "CALQUE_COLLOCATION": 2,
+    "THERAPEUTIC": 2
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 10,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 0,
+      "col": 0,
+      "category": "HEDGE_CASCADE",
+      "severity": "caution",
+      "match": "3 softeners in one sentence: Возможно, в некоторых случаях это, скорее всего, сработает и"
+    },
+    {
+      "line": 0,
+      "col": 0,
+      "category": "RHYTHM_MONOTONE",
+      "severity": "caution",
+      "match": "adjacent sentence lengths differ by 2.4 words on average (live prose: 6+)"
+    },
+    {
+      "line": 0,
+      "col": 0,
+      "category": "VERB_ECHO",
+      "severity": "caution",
+      "match": "«предла…» repeats in adjacent sentences: Тинькофф предлагает подтверждать каждую операцию о"
+    },
+    {
+      "line": 3,
+      "col": 0,
+      "category": "HEADING_ECHO",
+      "severity": "caution",
+      "match": "line restates the heading «Инвалидация кэша»"
+    },
+    {
+      "line": 7,
+      "col": 1,
+      "category": "COLON_REVEAL",
+      "severity": "caution",
+      "match": "Самое интересное:"
+    },
+    {
+      "line": 11,
+      "col": 1,
+      "category": "DANGLING_GERUND",
+      "severity": "caution",
+      "match": "Используя этот метод, результаты"
+    },
+    {
+      "line": 13,
+      "col": 9,
+      "category": "CALQUE_COLLOCATION",
+      "severity": "caution",
+      "match": "адресовала проблему"
+    },
+    {
+      "line": 13,
+      "col": 31,
+      "category": "CALQUE_COLLOCATION",
+      "severity": "caution",
+      "match": "доставила ценность"
+    },
+    {
+      "line": 15,
+      "col": 38,
+      "category": "THERAPEUTIC",
+      "severity": "caution",
+      "match": "И это нормально"
+    },
+    {
+      "line": 15,
+      "col": 55,
+      "category": "THERAPEUTIC",
+      "severity": "caution",
+      "match": "Вы не одиноки"
+    }
+  ]
+}

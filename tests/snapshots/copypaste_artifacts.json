@@ -1,0 +1,66 @@
+{
+  "verdict": "neuroslop suspected",
+  "gate": "fail",
+  "total": 7,
+  "hard_bans": 7,
+  "by_category": {
+    "COPYPASTE_ARTIFACT": 6,
+    "EM_DASH_RU": 1
+  },
+  "by_severity": {
+    "blocker": 7,
+    "caution": 0,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 1,
+      "col": 27,
+      "category": "COPYPASTE_ARTIFACT",
+      "severity": "blocker",
+      "match": "oaicite footnote: :contentReference[oaicite:0]"
+    },
+    {
+      "line": 1,
+      "col": 87,
+      "category": "COPYPASTE_ARTIFACT",
+      "severity": "blocker",
+      "match": "turn marker: turn0search3"
+    },
+    {
+      "line": 3,
+      "col": 38,
+      "category": "COPYPASTE_ARTIFACT",
+      "severity": "blocker",
+      "match": "chatbot utm/referrer: utm_source=chatgpt.com"
+    },
+    {
+      "line": 3,
+      "col": 61,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 3,
+      "col": 91,
+      "category": "COPYPASTE_ARTIFACT",
+      "severity": "blocker",
+      "match": "gemini citation: [cite: 8"
+    },
+    {
+      "line": 5,
+      "col": 19,
+      "category": "COPYPASTE_ARTIFACT",
+      "severity": "blocker",
+      "match": "internal footnote: 【12†source】"
+    },
+    {
+      "line": 7,
+      "col": 33,
+      "category": "COPYPASTE_ARTIFACT",
+      "severity": "blocker",
+      "match": "unfilled placeholder: INSERT_SOURCE_URL"
+    }
+  ]
+}

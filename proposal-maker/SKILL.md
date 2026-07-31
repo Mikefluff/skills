@@ -140,6 +140,11 @@ python3 proposal-maker/scripts/run.py --offer /tmp/offer.txt --quick --template 
   `--no-brand` (defaults, no network) · `--accent <#hex>` · `--font "<Family>"` ·
   `--logo <url|path>` · `--brand-name "<Name>"`.
 
+### Saved brand profiles (`brands/`)
+- Reusable profiles live in [`brands/_index.md`](brands/_index.md) — each `brands/<slug>/` holds a corrected `brand.json` + an authored `template.html` to clone + cached assets + reuse README.
+- When a profile exists for the client's brand, PREFER `--brand-file brands/<slug>/brand.json` over a fresh scrape: profiles encode manual corrections a live scrape gets wrong (dark themes read as light on Tilda/Webflow, vanishing white SVG logos).
+- After any client-ready proposal for a NEW brand, offer to save it as a profile (see the checklist in `brands/_index.md`).
+
 ### Build / look
 - (default) brand-kit mode · `--quick` deterministic template · `--template auto|editorial|invoice|dark` (quick only) ·
   `--lang auto|ru|en` · `--no-thumbnails` · `--embed-images` (quick) · `--currency <CODE>`.

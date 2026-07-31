@@ -30,7 +30,7 @@ Auto-pick matrix: [`_auto-pick.md`](_auto-pick.md). System prompt loader: [`../s
 | [rough-and-cut](rough-and-cut.md) | ROUGH AND CUT (DIAMOND DOCTRINE) | Emotional / psychological maturity doctrine, "тяжёлые люди" vs "люди-алмазы" framing, grievance-as-inclusion identification, sorting-people-as-stones rhetoric, "взрослые встречаются редко" essays |
 | [mission-control](mission-control.md) | MISSION CONTROL (CONTROL-LOOP DOCTRINE) | Executor-vs-owner doctrine, "исполнительность ≠ ответственность", "контур управления", "тупой но исполнительный" antipattern, AI-era execution cheapening, agentic-system load math |
 
-23 styles — 13 ported from figma's SEEDREAM_SYSTEM_PROMPT (`/Users/mikefluff/Documents/figma/app/lib/carousel/slidePrompts/systemPrompt.js`). Extend by adding more.
+23 styles — 13 ported from the author's earlier SEEDREAM carousel system prompt. Extend by adding more.
 
 ## Adding a new style — quick checklist
 

@@ -16,11 +16,11 @@ if [ ! -x scripts/validate.sh ]; then
   red "scripts/validate.sh is not executable"; exit 1
 fi
 
-echo "─── 1/3 validate ─────────────────────────────────────────────"
+echo "─── 1/8 validate ─────────────────────────────────────────────"
 bash scripts/validate.sh
 
 echo
-echo "─── 2/3 writer/lint.py self-test ─────────────────────────────"
+echo "─── 2/8 writer/lint.py self-test ─────────────────────────────"
 # writer/examples/before-after.md contains intentional BEFORE samples that
 # should trip the linter. Verdict must be "neuroslop suspected".
 if ! command -v python3 >/dev/null 2>&1; then
@@ -39,11 +39,34 @@ else
 fi
 
 echo
-echo "─── 3/4 fixture snapshots ────────────────────────────────────"
+echo "─── 3/8 fixture snapshots ────────────────────────────────────"
 bash tests/run.sh
 
 echo
-echo "─── 4/4 runners import smoke ─────────────────────────────────"
+echo "─── 4/8 AFTER calibration samples ────────────────────────────"
+# Calibration samples live inside fenced blocks, which lint.py masks by default —
+# so the one thing a model copies verbatim is the one thing the linter misses.
+python3 scripts/check-after-samples.py
+
+echo
+echo "─── 5/8 relative links ───────────────────────────────────────"
+# validate.sh only resolves references/*.md inside the owning skill; cross-skill,
+# docs-to-docs and repo-root links were unchecked until this step existed.
+python3 scripts/check-links.py
+
+echo
+echo "─── 6/8 runner unit tests ────────────────────────────────────"
+# stdlib unittest, no pytest dependency — the README promises no required deps.
+python3 -m unittest discover -s tests/unit -t . -q
+
+echo
+echo "─── 7/8 pricing doc ↔ cost.PRICE_TABLE ───────────────────────"
+# The published price table is generated from the code that bills. Drift here
+# means the docs quote a number the runner does not charge.
+python3 scripts/gen-pricing.py --check
+
+echo
+echo "─── 8/8 runners import smoke ─────────────────────────────────"
 # common/runners is the optional execution layer. We don't require API keys —
 # just confirm every provider module imports cleanly and registers.
 if [ -d common/runners ]; then

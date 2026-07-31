@@ -261,14 +261,18 @@ Conventional Commits with semantic-versioning interpretation (parsed by `scripts
 | `test:` | no release | test-only |
 | `ci:` | no release | CI config only |
 
-Every push to `main` triggers `.github/workflows/release.yml`, which:
+These prefixes are a convention for readable history, not an automation trigger. Nothing parses them: the `release.yml` workflow that used to do so was removed for choosing the wrong major bump on additive commits.
 
-1. Parses commits since the last `v*` tag
-2. Decides the bump (or "no release")
-3. Runs `make bump-{patch,minor,major}` which promotes `[Unreleased]` in CHANGELOG to a versioned section
-4. Tags `vX.Y.Z`, pushes the tag, creates a GitHub Release with the CHANGELOG section as the body
+Releases are cut by the maintainer:
 
-So: **do not manually tag releases**. The pipeline does it.
+1. `make bump-{patch,minor,major}` — writes `VERSION`, opens a CHANGELOG section
+2. Fill in the CHANGELOG bullets
+3. `make smoke && make check-docs`
+4. `git commit -am "chore(release): vX.Y.Z"`
+5. `make release` — verifies, tags, pushes
+6. Publish the GitHub release, or `curl | bash` installs stay on the previous version
+
+So: **as a contributor, do not tag releases** — but understand that no pipeline does it either. Full process: [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 ---
 
@@ -277,8 +281,8 @@ So: **do not manually tag releases**. The pipeline does it.
 When opening a PR, confirm:
 
 - [ ] `make validate` passes (no WARN)
-- [ ] `make smoke` passes (all fixtures match snapshots)
-- [ ] `make check-docs` passes (5/5 sub-checks)
+- [ ] `make smoke` passes (8/8: validate, linter, snapshots, AFTER samples, links, unit tests, pricing, imports)
+- [ ] `make check-docs` passes (6/6 sub-checks)
 - [ ] `shellcheck install.sh scripts/*.sh` exits 0
 - [ ] `markdownlint-cli2` reports no errors
 - [ ] If you added a skill: `skills.json` updated, README table regenerated, USER-GUIDE mentions it, CHANGELOG `[Unreleased]` has an entry, ≥1 fixture exists

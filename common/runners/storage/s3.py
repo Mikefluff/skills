@@ -1,6 +1,6 @@
 """S3-compatible sink. Supports AWS S3, MinIO, DigitalOcean Spaces, Cloudflare R2.
 
-Pattern ported (and trimmed) from /Users/mikefluff/Documents/figma/workers/python/object_storage_adapter.py.
+Pattern ported (and trimmed) from the author's earlier object-storage adapter.
 """
 
 from __future__ import annotations

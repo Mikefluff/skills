@@ -1,0 +1,104 @@
+{
+  "verdict": "neuroslop suspected",
+  "gate": "fail",
+  "total": 12,
+  "hard_bans": 11,
+  "by_category": {
+    "RHYTHM_MONOTONE": 1,
+    "NEG_PARALLEL": 3,
+    "EM_DASH_RU": 1,
+    "MATH_SIGN_PROSE": 6,
+    "CHOPPED_DRAMA": 1
+  },
+  "by_severity": {
+    "blocker": 11,
+    "caution": 1,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 0,
+      "col": 0,
+      "category": "RHYTHM_MONOTONE",
+      "severity": "caution",
+      "match": "adjacent sentence lengths differ by 2.1 words on average (live prose: 6+)"
+    },
+    {
+      "line": 1,
+      "col": 1,
+      "category": "NEG_PARALLEL",
+      "severity": "blocker",
+      "match": "Это не просто"
+    },
+    {
+      "line": 1,
+      "col": 20,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 3,
+      "col": 4,
+      "category": "NEG_PARALLEL",
+      "severity": "blocker",
+      "match": "не только даём знания, но и"
+    },
+    {
+      "line": 5,
+      "col": 9,
+      "category": "MATH_SIGN_PROSE",
+      "severity": "blocker",
+      "match": " > "
+    },
+    {
+      "line": 5,
+      "col": 36,
+      "category": "MATH_SIGN_PROSE",
+      "severity": "blocker",
+      "match": " = "
+    },
+    {
+      "line": 5,
+      "col": 59,
+      "category": "MATH_SIGN_PROSE",
+      "severity": "blocker",
+      "match": "→"
+    },
+    {
+      "line": 5,
+      "col": 70,
+      "category": "MATH_SIGN_PROSE",
+      "severity": "blocker",
+      "match": "→"
+    },
+    {
+      "line": 7,
+      "col": 7,
+      "category": "MATH_SIGN_PROSE",
+      "severity": "blocker",
+      "match": "vs"
+    },
+    {
+      "line": 7,
+      "col": 29,
+      "category": "MATH_SIGN_PROSE",
+      "severity": "blocker",
+      "match": "≈"
+    },
+    {
+      "line": 9,
+      "col": 1,
+      "category": "CHOPPED_DRAMA",
+      "severity": "blocker",
+      "match": "Без кода. Без "
+    },
+    {
+      "line": 11,
+      "col": 1,
+      "category": "NEG_PARALLEL",
+      "severity": "blocker",
+      "match": "Речь идёт не только"
+    }
+  ]
+}

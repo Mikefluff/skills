@@ -1,18 +1,28 @@
 {
   "verdict": "neuroslop suspected",
-  "total": 19,
+  "gate": "fail",
+  "total": 20,
+  "hard_bans": 1,
   "by_category": {
-    "MARKETING_HYPE": 9,
     "WEAK_OPENER": 2,
+    "MARKETING_HYPE": 9,
     "VAGUE_BENEFIT": 3,
-    "EMPTY_CTA": 5
+    "EMPTY_CTA": 5,
+    "EM_DASH_RU": 1
   },
   "by_severity": {
-    "blocker": 0,
+    "blocker": 1,
     "caution": 19,
     "nit": 0
   },
   "hits": [
+    {
+      "line": 3,
+      "col": 1,
+      "category": "WEAK_OPENER",
+      "severity": "caution",
+      "match": "We're thrilled to"
+    },
     {
       "line": 3,
       "col": 32,
@@ -42,11 +52,25 @@
       "match": "state-of-the-art"
     },
     {
-      "line": 3,
+      "line": 5,
       "col": 1,
-      "category": "WEAK_OPENER",
+      "category": "VAGUE_BENEFIT",
       "severity": "caution",
-      "match": "We're thrilled to"
+      "match": "Save time"
+    },
+    {
+      "line": 5,
+      "col": 12,
+      "category": "VAGUE_BENEFIT",
+      "severity": "caution",
+      "match": "boost productivity"
+    },
+    {
+      "line": 5,
+      "col": 36,
+      "category": "VAGUE_BENEFIT",
+      "severity": "caution",
+      "match": "get more done"
     },
     {
       "line": 5,
@@ -68,27 +92,6 @@
       "category": "MARKETING_HYPE",
       "severity": "caution",
       "match": "unparalleled"
-    },
-    {
-      "line": 5,
-      "col": 1,
-      "category": "VAGUE_BENEFIT",
-      "severity": "caution",
-      "match": "Save time"
-    },
-    {
-      "line": 5,
-      "col": 12,
-      "category": "VAGUE_BENEFIT",
-      "severity": "caution",
-      "match": "boost productivity"
-    },
-    {
-      "line": 5,
-      "col": 36,
-      "category": "VAGUE_BENEFIT",
-      "severity": "caution",
-      "match": "get more done"
     },
     {
       "line": 7,
@@ -113,10 +116,10 @@
     },
     {
       "line": 9,
-      "col": 39,
-      "category": "MARKETING_HYPE",
+      "col": 1,
+      "category": "WEAK_OPENER",
       "severity": "caution",
-      "match": "мирового класса"
+      "match": "Мы рады"
     },
     {
       "line": 9,
@@ -127,10 +130,10 @@
     },
     {
       "line": 9,
-      "col": 73,
-      "category": "EMPTY_CTA",
+      "col": 39,
+      "category": "MARKETING_HYPE",
       "severity": "caution",
-      "match": "нажмите здесь"
+      "match": "мирового класса"
     },
     {
       "line": 9,
@@ -141,10 +144,17 @@
     },
     {
       "line": 9,
-      "col": 1,
-      "category": "WEAK_OPENER",
+      "col": 71,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 9,
+      "col": 73,
+      "category": "EMPTY_CTA",
       "severity": "caution",
-      "match": "Мы рады"
+      "match": "нажмите здесь"
     }
   ]
 }

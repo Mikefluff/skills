@@ -1,5 +1,7 @@
 # Video prompt chain — system prompt (shared across video / reel skills, v2.17.0+)
 
+> Sibling chain: for GENERATING the source images this chain animates (carousel slides, covers, posters), see [`../visual-prompt-library/system-prompt.md`](../visual-prompt-library/system-prompt.md) — the image-prompt SYSTEM_PROMPT with the typographic template + style library.
+
 This file is the canonical SYSTEM_PROMPT used by every video-generation skill in this collection that takes EITHER one or more source frames (image-to-video) OR a beat text (text-to-video) and produces motion prompts for an AI video model:
 
 - `reel-builder` (N shots, 9:16 vertical reel)

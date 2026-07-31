@@ -283,6 +283,6 @@ The validation taxonomy is the **interface** between style-check and prose-edit.
 - Style-check pipeline (main): [`../SKILL.md`](../SKILL.md)
 - Viral hook criteria (27): [`../../viral-text/references/hook-criteria.md`](../../viral-text/references/hook-criteria.md)
 - Viral content rules: [`../../viral-text/references/viral-rules.md`](../../viral-text/references/viral-rules.md)
-- Neuroslop catalogue (23 categories): [`../../writer/references/neuroslop-categories.md`](../../writer/references/neuroslop-categories.md)
+- Neuroslop catalogue (25 categories): [`../../writer/references/neuroslop-categories.md`](../../writer/references/neuroslop-categories.md)
 - Synthetic constructions: [`../../writer/references/synthetic-constructions.md`](../../writer/references/synthetic-constructions.md)
 - Patch-refining (consumes this taxonomy): [`../../prose-edit/references/patch-refining.md`](../../prose-edit/references/patch-refining.md)

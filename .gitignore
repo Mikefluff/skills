@@ -7,3 +7,11 @@ __pycache__/
 *.swp
 generated/
 .runners-venv/
+
+# proposal-maker: client brand profiles stay local. A saved profile carries a
+# named client's tokens, logo and the authored structure of their real offer —
+# publishing that is their call, not ours. The repo ships only the author's own
+# brand as a worked example of the format.
+proposal-maker/brands/*/
+!proposal-maker/brands/inite/
+!proposal-maker/brands/inite/**

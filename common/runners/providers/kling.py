@@ -25,6 +25,18 @@ def _b64url(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
 
 
+def _image_payload(ref: str) -> str:
+    """Kling accepts a URL or a base64 string. Local paths are read + base64-encoded."""
+    if ref.startswith(("http://", "https://")):
+        return ref
+    from pathlib import Path
+
+    p = Path(ref)
+    if p.exists():
+        return base64.b64encode(p.read_bytes()).decode()
+    return ref
+
+
 def _make_jwt(access_key_id: str, access_key_secret: str, ttl_seconds: int = 1800) -> str:
     header = {"alg": "HS256", "typ": "JWT"}
     now = int(time.time())
@@ -76,7 +88,7 @@ class Kling3Provider(Provider):
 
         body: dict[str, Any] = {
             "model_name": model_name,
-            "image": image_url,
+            "image": _image_payload(image_url),
             "prompt": prompt,
             "duration": duration,
             "mode": mode,
@@ -85,6 +97,15 @@ class Kling3Provider(Provider):
             body["negative_prompt"] = kwargs["negative_prompt"]
         if "cfg_scale" in kwargs:
             body["cfg_scale"] = kwargs["cfg_scale"]
+        # Last-frame bookend — Kling's native drift lock (`image_tail`). Mirrors the
+        # google_video.py kwarg contract: explicit image_tail / last_frame wins;
+        # lock_first_last=True bookends with the first frame (start == end), which
+        # collapses overlay-text drift the same way Veo's last_frame does.
+        tail_ref = kwargs.get("image_tail") or kwargs.get("last_frame") or kwargs.get("last_frame_image")
+        if tail_ref is None and kwargs.get("lock_first_last"):
+            tail_ref = image_url
+        if tail_ref:
+            body["image_tail"] = _image_payload(tail_ref)
 
         host = self._host()
         url = f"{host}/v1/videos/image2video"

@@ -1,11 +1,114 @@
 {
-  "verdict": "clean",
-  "total": 0,
-  "by_category": {},
+  "verdict": "neuroslop suspected",
+  "gate": "fail",
+  "total": 14,
+  "hard_bans": 14,
+  "by_category": {
+    "EM_DASH_RU": 14
+  },
   "by_severity": {
-    "blocker": 0,
+    "blocker": 14,
     "caution": 0,
     "nit": 0
   },
-  "hits": []
+  "hits": [
+    {
+      "line": 1,
+      "col": 12,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 5,
+      "col": 29,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 6,
+      "col": 30,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 7,
+      "col": 25,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 8,
+      "col": 23,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 14,
+      "col": 23,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 16,
+      "col": 1,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 16,
+      "col": 16,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 16,
+      "col": 47,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 22,
+      "col": 44,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 23,
+      "col": 65,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 24,
+      "col": 37,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 25,
+      "col": 53,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 26,
+      "col": 57,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    }
+  ]
 }

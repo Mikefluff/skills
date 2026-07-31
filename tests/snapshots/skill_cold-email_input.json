@@ -1,11 +1,30 @@
 {
-  "verdict": "clean",
-  "total": 0,
-  "by_category": {},
+  "verdict": "borderline",
+  "gate": "fail",
+  "total": 2,
+  "hard_bans": 2,
+  "by_category": {
+    "EM_DASH_RU": 2
+  },
   "by_severity": {
-    "blocker": 0,
+    "blocker": 2,
     "caution": 0,
     "nit": 0
   },
-  "hits": []
+  "hits": [
+    {
+      "line": 1,
+      "col": 24,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 20,
+      "col": 40,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    }
+  ]
 }

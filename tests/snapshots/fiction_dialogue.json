@@ -1,0 +1,72 @@
+{
+  "verdict": "clean",
+  "gate": "pass",
+  "total": 8,
+  "hard_bans": 0,
+  "by_category": {
+    "EM_DASH_RU": 8
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 0,
+    "nit": 8
+  },
+  "hits": [
+    {
+      "line": 1,
+      "col": 1,
+      "category": "EM_DASH_RU",
+      "severity": "nit",
+      "match": "—"
+    },
+    {
+      "line": 1,
+      "col": 17,
+      "category": "EM_DASH_RU",
+      "severity": "nit",
+      "match": "—"
+    },
+    {
+      "line": 3,
+      "col": 1,
+      "category": "EM_DASH_RU",
+      "severity": "nit",
+      "match": "—"
+    },
+    {
+      "line": 3,
+      "col": 17,
+      "category": "EM_DASH_RU",
+      "severity": "nit",
+      "match": "—"
+    },
+    {
+      "line": 3,
+      "col": 49,
+      "category": "EM_DASH_RU",
+      "severity": "nit",
+      "match": "—"
+    },
+    {
+      "line": 5,
+      "col": 70,
+      "category": "EM_DASH_RU",
+      "severity": "nit",
+      "match": "—"
+    },
+    {
+      "line": 7,
+      "col": 1,
+      "category": "EM_DASH_RU",
+      "severity": "nit",
+      "match": "—"
+    },
+    {
+      "line": 7,
+      "col": 10,
+      "category": "EM_DASH_RU",
+      "severity": "nit",
+      "match": "—"
+    }
+  ]
+}

@@ -30,7 +30,7 @@ jobs:
       - name: validate frontmatter + cross-links + description quality
         run: bash scripts/validate.sh
 
-      - name: writer linter regression + fixture snapshots + runners import
+      - name: writer linter regression + fixture snapshots + AFTER samples + runners import
         run: bash scripts/smoke.sh
 
       - name: docs consistency (skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs)

@@ -1,18 +1,44 @@
 {
-  "verdict": "borderline",
-  "total": 4,
+  "verdict": "neuroslop suspected",
+  "gate": "fail",
+  "total": 10,
+  "hard_bans": 5,
   "by_category": {
+    "RHYTHM_MONOTONE": 1,
+    "EM_DASH_RU": 4,
     "AI_HEDGE": 1,
     "FILLER_INTRO": 1,
+    "NEG_PARALLEL": 1,
     "PSEUDO_SMART": 1,
     "SYNTHETIC": 1
   },
   "by_severity": {
-    "blocker": 0,
-    "caution": 4,
+    "blocker": 5,
+    "caution": 5,
     "nit": 0
   },
   "hits": [
+    {
+      "line": 0,
+      "col": 0,
+      "category": "RHYTHM_MONOTONE",
+      "severity": "caution",
+      "match": "adjacent sentence lengths differ by 3.4 words on average (live prose: 6+)"
+    },
+    {
+      "line": 1,
+      "col": 24,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 5,
+      "col": 121,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
     {
       "line": 11,
       "col": 53,
@@ -26,6 +52,27 @@
       "category": "FILLER_INTRO",
       "severity": "caution",
       "match": "В современном мире"
+    },
+    {
+      "line": 15,
+      "col": 112,
+      "category": "NEG_PARALLEL",
+      "severity": "blocker",
+      "match": "не только бизнеса, но и"
+    },
+    {
+      "line": 15,
+      "col": 149,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 19,
+      "col": 75,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
     },
     {
       "line": 21,

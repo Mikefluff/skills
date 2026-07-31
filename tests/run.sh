@@ -27,10 +27,17 @@ for fix in tests/fixtures/*.md; do
   snap="tests/snapshots/${name}.json"
   checked=$((checked + 1))
 
-  # lint.py exits 0/1/2 to indicate the verdict bucket — that's data, not failure.
+  # Fixtures named fiction_* exercise the book-typesetting exception, where the
+  # em-dash is legitimate punctuation (dialogue dashes) rather than a hard ban.
+  extra_args=""
+  case "$name" in
+    fiction_*) extra_args="--fiction" ;;
+  esac
+
+  # lint.py exits 0/1/2/3 to indicate verdict + gate — that's data, not failure.
   # Use a temp file so the exit code doesn't trip set -e.
   tmp_out="$(mktemp)"
-  python3 writer/scripts/lint.py "$fix" --json > "$tmp_out" || true
+  python3 writer/scripts/lint.py "$fix" --json ${extra_args} > "$tmp_out" || true
   actual="$(cat "$tmp_out")"
   rm -f "$tmp_out"
 

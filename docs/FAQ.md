@@ -171,14 +171,16 @@ Use `style-check` as a pre-commit gate; use `writer` / `prose-edit` / `essay-wri
 
 ## How is the release cadence?
 
-Tag-driven from `main`. Every push to `main` triggers `.github/workflows/release.yml`, which parses commit messages since the last tag:
+Manual, whenever there are real changes — no schedule. Releases used to be cut by a `release.yml` workflow that parsed commit messages, but it kept picking the wrong major bump on additive commits and was removed.
 
-- `feat:` → minor bump
-- `fix:` / `perf:` / `refactor:` → patch bump
-- `!` after type or `BREAKING CHANGE:` in body → major bump
-- `docs:` / `chore:` / `style:` / `ci:` / `test:` → no release
+The maintainer runs `make bump-{patch,minor,major}`, fills in the CHANGELOG section, then `make release` to tag. Conventional-commit prefixes still guide which level to pick, but nothing parses them automatically:
 
-So expect a release ~as often as there are real changes, with no scheduled cadence. The status-line banner caches the latest tag for 24 h, so the banner reflects yesterday's-or-newer state.
+- `feat:` → minor
+- `fix:` / `perf:` / `refactor:` → patch
+- `!` after type or `BREAKING CHANGE:` in body → major
+- `docs:` / `chore:` / `style:` / `ci:` / `test:` → no release on their own
+
+The status-line banner caches the latest published release for 24 h, so it reflects yesterday's-or-newer state. Full process: [`docs/VERSIONING.md`](VERSIONING.md).
 
 ---
 

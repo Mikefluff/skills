@@ -145,9 +145,14 @@ else
 fi
 echo
 
-# ── Check 5 — new skills since last tag must be in CHANGELOG [Unreleased] ───
+# ── Check 5 — new skills since last tag must be documented in CHANGELOG ─────
+#
+# The window is every CHANGELOG section above the last tagged version, not just
+# [Unreleased]. This repo documents version sections directly and cuts tags
+# manually, so a skill shipping in an untagged 2.20.0 belongs under [2.20.0] —
+# scanning [Unreleased] alone would fail every such entry.
 
-echo "[5/6] new skills since last v* tag ↔ CHANGELOG [Unreleased]"
+echo "[5/6] new skills since last v* tag ↔ CHANGELOG (untagged sections)"
 last_tag="$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)"
 if [ -z "$last_tag" ]; then
   info "no v* tag yet — skipping (this check matters only after first release)"
@@ -170,10 +175,13 @@ else
   if [ -z "$new_skills" ]; then
     info "no new skills added since $last_tag"
   else
-    unreleased="$(awk '
-      /^## \[Unreleased\]/ { capture=1; next }
-      capture && /^## \[/  { exit }
-      capture              { print }
+    # Capture from the top of the changelog down to (and excluding) the section
+    # matching the last tag — everything above it is not yet released.
+    tag_version="${last_tag#v}"
+    unreleased="$(awk -v stop="## [$tag_version]" '
+      index($0, stop) == 1 { exit }
+      /^## \[/            { capture=1 }
+      capture             { print }
     ' CHANGELOG.md)"
     missing_log=""
     for s in $new_skills; do
@@ -183,10 +191,10 @@ else
       esac
     done
     if [ -z "$missing_log" ]; then
-      pass "all new skills since $last_tag mentioned in CHANGELOG [Unreleased]"
+      pass "all new skills since $last_tag documented in CHANGELOG"
     else
       for s in $missing_log; do
-        fail "skill $s added since $last_tag but NOT in CHANGELOG [Unreleased]"
+        fail "skill $s added since $last_tag but NOT in CHANGELOG (any untagged section)"
       done
     fi
   fi

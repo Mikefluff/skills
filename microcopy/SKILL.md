@@ -51,7 +51,9 @@ Read the request → identify UI element type → check length budget → write 
 
 5. **Pick voice.** Default: friendly-professional (see `references/voice-by-product-type.md` for adjustments). Override only if user names a different brand voice.
 
-6. **Output.** One or multiple strings (if alternatives are useful), each formatted for paste. If error → also include the structured form: `code`, `title`, `body`, `action`.
+6. **Run `writer` — but delete the water, not the function.** Microcopy is almost entirely function: the next step, the recovery action, the button verb. Writer's default treatment is deletion, and at this length a single deleted clause can remove the only actionable thing on screen. Treat functional elements by replacement or simplification instead. After the pass, verify the next step is still stated. See `forbidden-substitutions.md` in the `writer` skill.
+
+7. **Output.** One or multiple strings (if alternatives are useful), each formatted for paste. If error → also include the structured form: `code`, `title`, `body`, `action`.
 
 ## MODES
 

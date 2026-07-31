@@ -87,7 +87,7 @@ reached the base. Everything holds for 1.5 seconds. No additional motion.
 
 ## Step 4. The Kling-final prompt
 
-Kling-specific temporal markers (см. `video-prompt/references/kling.md`): use seconds as anchors, avoid relative «then», prefer «at 3.0s», use one camera-move verb per beat.
+Kling-specific temporal markers (см. `video-prompt/references/models/i2v-tier.md`): use seconds as anchors, avoid relative «then», prefer «at 3.0s», use one camera-move verb per beat.
 
 ```
 An amber-coloured glass bottle of cold brew with visible condensation
@@ -164,4 +164,4 @@ Anchor: «exactly one droplet, no other droplets moving, all other condensation 
 - [image-prompt-cover.md](image-prompt-cover.md) — родственная задача со 6-part formula для still
 - [viral-post.md](viral-post.md) — если video идёт в виральный пост
 - [landing-launch.md](landing-launch.md) — если video идёт на landing hero
-- [video-prompt/references/kling.md](../../video-prompt/references/kling.md) — полный Kling syntax reference
+- [video-prompt/references/models/i2v-tier.md](../../video-prompt/references/models/i2v-tier.md) — полный Kling syntax reference

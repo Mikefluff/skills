@@ -1,11 +1,14 @@
 {
-  "verdict": "clean",
-  "total": 1,
+  "verdict": "neuroslop suspected",
+  "gate": "fail",
+  "total": 6,
+  "hard_bans": 5,
   "by_category": {
-    "FILLER_INTRO": 1
+    "FILLER_INTRO": 1,
+    "EM_DASH_RU": 5
   },
   "by_severity": {
-    "blocker": 0,
+    "blocker": 5,
     "caution": 1,
     "nit": 0
   },
@@ -16,6 +19,41 @@
       "category": "FILLER_INTRO",
       "severity": "caution",
       "match": "В современном мире"
+    },
+    {
+      "line": 5,
+      "col": 34,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 9,
+      "col": 40,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 10,
+      "col": 10,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 13,
+      "col": 32,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 15,
+      "col": 28,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
     }
   ]
 }

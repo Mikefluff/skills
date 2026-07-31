@@ -1,32 +1,42 @@
 {
   "verdict": "neuroslop suspected",
-  "total": 17,
+  "gate": "fail",
+  "total": 18,
+  "hard_bans": 1,
   "by_category": {
-    "PSEUDO_SMART": 2,
+    "FILLER_INTRO": 1,
+    "GPT_FILLER": 2,
     "AI_INTENSIFIER": 2,
+    "PSEUDO_SMART": 2,
     "BUREAU_INV": 1,
     "CORPORATE": 3,
-    "GPT_FILLER": 2,
-    "FILLER_INTRO": 1,
-    "PSEUDO_CAUSAL": 1,
     "NEURAL_METAPHOR": 1,
-    "AI_QA": 1,
+    "PSEUDO_CAUSAL": 1,
     "NE_X_A_Y": 1,
+    "EM_DASH_RU": 1,
+    "AI_QA": 1,
     "AI_HEDGE": 1,
     "WIDE_NET": 1
   },
   "by_severity": {
-    "blocker": 0,
+    "blocker": 1,
     "caution": 17,
     "nit": 0
   },
   "hits": [
     {
       "line": 1,
-      "col": 155,
-      "category": "PSEUDO_SMART",
+      "col": 1,
+      "category": "FILLER_INTRO",
       "severity": "caution",
-      "match": "по сути дела"
+      "match": "В современном мире"
+    },
+    {
+      "line": 1,
+      "col": 35,
+      "category": "GPT_FILLER",
+      "severity": "caution",
+      "match": "важно понимать"
     },
     {
       "line": 1,
@@ -44,17 +54,17 @@
     },
     {
       "line": 1,
+      "col": 155,
+      "category": "PSEUDO_SMART",
+      "severity": "caution",
+      "match": "по сути дела"
+    },
+    {
+      "line": 1,
       "col": 169,
       "category": "BUREAU_INV",
       "severity": "caution",
       "match": "представляет собой"
-    },
-    {
-      "line": 1,
-      "col": 209,
-      "category": "CORPORATE",
-      "severity": "caution",
-      "match": "целевой аудитории"
     },
     {
       "line": 1,
@@ -65,38 +75,17 @@
     },
     {
       "line": 1,
-      "col": 35,
-      "category": "GPT_FILLER",
-      "severity": "caution",
-      "match": "важно понимать"
-    },
-    {
-      "line": 1,
-      "col": 1,
-      "category": "FILLER_INTRO",
-      "severity": "caution",
-      "match": "В современном мире"
-    },
-    {
-      "line": 3,
-      "col": 139,
-      "category": "PSEUDO_SMART",
-      "severity": "caution",
-      "match": "в конечном счёте"
-    },
-    {
-      "line": 3,
-      "col": 110,
+      "col": 209,
       "category": "CORPORATE",
       "severity": "caution",
-      "match": "синергия"
+      "match": "целевой аудитории"
     },
     {
       "line": 3,
-      "col": 194,
-      "category": "GPT_FILLER",
+      "col": 25,
+      "category": "NEURAL_METAPHOR",
       "severity": "caution",
-      "match": "стоит отметить"
+      "match": "трещит по швам"
     },
     {
       "line": 3,
@@ -107,17 +96,24 @@
     },
     {
       "line": 3,
-      "col": 25,
-      "category": "NEURAL_METAPHOR",
+      "col": 110,
+      "category": "CORPORATE",
       "severity": "caution",
-      "match": "трещит по швам"
+      "match": "синергия"
     },
     {
-      "line": 5,
-      "col": 61,
-      "category": "AI_QA",
+      "line": 3,
+      "col": 139,
+      "category": "PSEUDO_SMART",
       "severity": "caution",
-      "match": "Знакомо?"
+      "match": "в конечном счёте"
+    },
+    {
+      "line": 3,
+      "col": 194,
+      "category": "GPT_FILLER",
+      "severity": "caution",
+      "match": "стоит отметить"
     },
     {
       "line": 5,
@@ -125,6 +121,20 @@
       "category": "NE_X_A_Y",
       "severity": "caution",
       "match": "Ты не разработчик — ты архитектор"
+    },
+    {
+      "line": 5,
+      "col": 19,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 5,
+      "col": 61,
+      "category": "AI_QA",
+      "severity": "caution",
+      "match": "Знакомо?"
     },
     {
       "line": 5,
