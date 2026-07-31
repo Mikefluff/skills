@@ -226,7 +226,7 @@ will use `pg_logical_replication_slot` with `streaming=on` and
 
 ### Хочу сохранить одну фразу как есть
 
-Оберни её в `{{ keep: ... }}` — скилл уважает sentinel-маркеры. Полный список в `tone-shifter/references/markers.md`.
+Оберни её в `{{ keep: ... }}` — скилл уважает sentinel-маркеры. Полный список в `tone-shifter/references/transformation-rules.md`.
 
 ### Diff слишком большой, нечитаем
 

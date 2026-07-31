@@ -297,7 +297,7 @@ muted saturation, quiet stillness --ar 16:9 --style raw --stylize 150
 
 ### Промпт работал, потом перестал (после MJ version bump)
 
-MJ меняет defaults между версиями. Скилл версионируется — `image-prompt/references/midjourney-versions.md` хранит deltas. Запусти `/image-prompt --model midjourney --version 6.1` если хочешь pin старый стиль.
+MJ меняет defaults между версиями. Скилл версионируется — `image-prompt/references/models/midjourney.md` хранит deltas. Запусти `/image-prompt --model midjourney --version 6.1` если хочешь pin старый стиль.
 
 ### Слишком литерально (image буквально иллюстрирует слова prompt'а)
 

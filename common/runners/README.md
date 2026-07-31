@@ -87,7 +87,7 @@ common/runners/
     music.py
 ```
 
-Pattern adapted from `figma/app/lib/imageAI/providers/` (provider abstraction) + `figma/workers/python/object_storage_adapter.py` (S3 sink) — single-user CLI cut of those, without Temporal / SurrealDB / multi-tenancy.
+Pattern adapted from the author's earlier provider abstraction and S3 sink — single-user CLI cut of those, without Temporal / SurrealDB / multi-tenancy.
 
 ## Cost confirmation
 

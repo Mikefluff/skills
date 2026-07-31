@@ -34,6 +34,7 @@ The full doc hub: [`docs/`](docs/README.md). Most-used pages:
 | [QUICKSTART](docs/QUICKSTART.md) | 5-minute first run — install → first prose edit → first AI image → first end-to-end |
 | [USER-GUIDE](docs/USER-GUIDE.md) | The scenarios index — pick what you want to do |
 | [walkthroughs/](docs/walkthroughs/README.md) | 19 step-by-step recipes, categorized |
+| [CONTRIBUTING](CONTRIBUTING.md) · [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) | Adding a skill, reporting a bug, house rules |
 | [SKILL-INDEX](docs/SKILL-INDEX.md) | Every skill by layer / domain / language |
 | [COMPOSING](docs/COMPOSING.md) | Named workflows for chaining skills + data flow + anti-patterns |
 | [INSTALL](docs/INSTALL.md) | Install methods (curl, npm, brew, Docker, local, pinned) |
@@ -105,7 +106,7 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 
 | Skill | Layer | Languages | Purpose |
 | --- | --- | --- | --- |
-| [`writer`](writer/) | base | ru/en | Base clean-prose editor — antinyeyroslop (28 categories), typography, structural synthetics, RU calques. Invoked by all other prose skills. |
+| [`writer`](writer/) | base | ru/en | Base clean-prose editor — antinyeyroslop (25 catalogued categories + copy-paste artifacts + rhythm metrics), typography, structural synthetics, RU calques. Invoked by all other prose skills. |
 | [`viral-text`](viral-text/) | wrapper | ru/en | Write viral social media content — hooks, numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules + platform adaptation. |
 | [`prose-edit`](prose-edit/) | wrapper | ru | Fiction rewrite layer — Pelevin/Manson voice vector, 10-item style drift checklist, no meta-refs / anglicisms in narrator voice, long artistic rewrite (no comma-stitching), ToV pattern, 5-trigger structural-synthesis detector, Postirony depth-pass. |
 | [`essay-write`](essay-write/) | wrapper | ru | Non-fiction layer — long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content. |
@@ -259,13 +260,15 @@ skills/
 ├── .env.example             # template for ~/.skills.env (manage via /skills-keys)
 ├── Makefile                 # local dev convenience
 ├── CONTRIBUTING.md          # how to add / report / propose a skill
+├── CODE_OF_CONDUCT.md       # short; scales up if the project does
+├── SECURITY.md              # how to report a vulnerability
 │
-├── <skill-name>/            # 22 skills, one folder each
+├── <skill-name>/            # 41 skills, one folder each
 │
 ├── common/
 │   ├── references/          # shared anti-pattern catalogues (hype words, preambles, …)
 │   ├── runners/             # optional Python execute layer (image/video/music)
-│   │   ├── providers/       # 14 image + 10 video + 5 music + 2 audio = 31 providers
+│   │   ├── providers/       # 14 image + 10 video + 5 music + 3 audio = 32 providers
 │   │   ├── cli/             # per-modality CLI entries (image / video / music / carousel / reel / keys)
 │   │   ├── styles.py        # style library loader
 │   │   ├── batch.py         # parallel executor for carousel / reel
@@ -273,7 +276,7 @@ skills/
 │   │   ├── keysfile.py      # CRUD over ~/.skills.env
 │   │   ├── verify.py        # HTTP probes for 9 providers
 │   │   └── requirements.txt
-│   └── style-library/       # 50 bundled styles (24 carousel + 12 director + 12 music)
+│   └── style-library/       # 48 bundled styles (24 carousel + 12 director + 12 music)
 │
 ├── docs/
 │   ├── QUICKSTART.md        # 5-minute first run
@@ -292,9 +295,9 @@ skills/
 │
 ├── scripts/                 # validate + smoke + doc generators
 ├── hooks/                   # ambient update banner (opt-in)
-├── tests/                   # fixture snapshots
+├── tests/                   # fixtures + snapshots, runner unit tests, model-in-loop evals
 ├── bin/                     # the `skills` CLI shim (npm package)
-└── .github/                 # workflows + issue/PR templates + SECURITY.md
+└── .github/                 # workflows + issue/PR templates
 ```
 
 ---
@@ -304,13 +307,14 @@ skills/
 ```bash
 make help                       # list all targets
 make install                    # install from this checkout into ~/.claude/skills/
-make smoke                      # validate + linter regression + fixture snapshots
+make smoke                      # 10 gates: validate, linter, snapshots, samples, links, unit tests, pricing, markdownlint, coverage, imports
+make test-unit                  # runner unit tests alone
 make check-docs                 # docs-consistency gate
 make gen-readme                 # regenerate the skills table
 make new-skill NAME=foo-bar DESC="..."
 ```
 
-Releases are manual — bump `VERSION`, write the CHANGELOG entry, tag `vX.Y.Z`, push tag, create GitHub Release. See [docs/VERSIONING.md](docs/VERSIONING.md).
+Releases are manual: `make bump-minor` → fill the CHANGELOG section → `make release` (verifies, tags, pushes) → publish the GitHub release. That last step matters — `install.sh` resolves `latest` from the newest *published release*, so a bare tag leaves `curl` installs on the previous version. See [docs/VERSIONING.md](docs/VERSIONING.md).
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 

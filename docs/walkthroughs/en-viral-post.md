@@ -186,7 +186,7 @@ Just `remove source N` — the skill will rewrite the claim that depended on it.
 
 Two paths:
 1. `re-run writer pass — strict mode` (forces a second pass with tighter heuristics)
-2. Manual: copy the post, open the relevant references file (`viral-text/references/voice-patterns.md` or equivalent), spot-check against your voice samples, and `prose-edit` it for voice.
+2. Manual: copy the post, open the relevant references file (`viral-text/references/viral-rules.md` or equivalent), spot-check against your voice samples, and `prose-edit` it for voice.
 
 ### "X thread mode broke — tweets are over 280 chars."
 

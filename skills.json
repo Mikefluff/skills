@@ -9,7 +9,7 @@
       "name": "writer",
       "dir": "writer",
       "layer": "base",
-      "description": "Base clean-prose editor — antinyeyroslop (28 categories), typography, structural synthetics, RU calques. Invoked by all other prose skills.",
+      "description": "Base clean-prose editor — antinyeyroslop (25 catalogued categories + copy-paste artifacts + rhythm metrics), typography, structural synthetics, RU calques. Invoked by all other prose skills.",
       "languages": [
         "ru",
         "en"
@@ -370,26 +370,52 @@
       "dir": "cover-maker",
       "layer": "orchestrator",
       "description": "Turn cover metadata (title / creator / subtitle / medium) into an album / book / podcast / report / deck / magazine cover. Wraps image-prompt --execute + the carousel style library (24 visual styles) + the runner's batch executor. Picks aspect by medium. Multi-variant output. Optional photo / artwork reference. Outputs: ./generated/cover/<slug>/<medium>.png + manifest.json.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "marketing", "generation", "orchestration"],
-      "deps": ["image-prompt"]
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
+      "deps": [
+        "image-prompt"
+      ]
     },
     {
       "name": "thumbnail-maker",
       "dir": "thumbnail-maker",
       "layer": "orchestrator",
       "description": "Produce YouTube / blog / podcast-episode thumbnails. 16:9 default (1280×720 standard, 1920×1080 high-res). Face + bold title aesthetic; supports face-placement variants (left / right / center). Wraps image-prompt --execute + the carousel style library + the runner's batch executor. Outputs: ./generated/thumbnail/<slug>/<variant>.png + manifest.json.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "marketing", "generation", "orchestration"],
-      "deps": ["image-prompt"]
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
+      "deps": [
+        "image-prompt"
+      ]
     },
     {
       "name": "bg-remover",
       "dir": "bg-remover",
       "layer": "wrapper",
       "description": "Background removal utility — image in, transparent PNG out. Wraps Replicate-hosted background removal models (851-labs/background-remover by default). Single image input, transparent PNG output. ~$0.001-0.005 per image.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "editing"],
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "editing"
+      ],
       "deps": []
     },
     {
@@ -486,53 +512,108 @@
       "dir": "logo-maker",
       "layer": "orchestrator",
       "description": "Brand mark / wordmark / logo generator. Defaults to ideogram-3-quality (cleanest embedded text). Six style presets (wordmark / minimal / illustrated / typographic / geometric / emblem) + optional palette hint. Single-image output, N stochastic variants per call. Outputs: ./generated/logo/<slug>/logo-v<N>.png + manifest.json.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "marketing", "generation", "orchestration"],
-      "deps": ["image-prompt"]
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
+      "deps": [
+        "image-prompt"
+      ]
     },
     {
       "name": "quote-card-maker",
       "dir": "quote-card-maker",
       "layer": "orchestrator",
       "description": "Quote card / aphorism graphic generator — short text + attribution on a typography-dominant composition. Wraps image-prompt --execute + the carousel style library biased toward text-friendly anchors (minimal-serif / swiss-grid / editorial-magazine / monochrome-bold / gradient-mesh-modern / russian-constructivist). Multi-aspect (square / portrait / story / landscape). Default model ideogram-3-quality. Outputs: ./generated/quote/<slug>/<aspect>.png + manifest.json.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "marketing", "generation", "orchestration"],
-      "deps": ["image-prompt"]
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
+      "deps": [
+        "image-prompt"
+      ]
     },
     {
       "name": "gif-maker",
       "dir": "gif-maker",
       "layer": "wrapper",
       "description": "Short looping GIF utility. Mode A: convert existing MP4 → GIF via ffmpeg 2-pass palette optimization. Mode B: generate 1-3s clip via a video provider (Veo / Kling / fal-video / Sora) then convert. Aspect crop presets (1:1 / 9:16 / 16:9 / 4:5 / 2:1). Outputs: ./generated/gif/<name>.gif.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "generation", "editing"],
-      "deps": ["video-prompt"]
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "generation",
+        "editing"
+      ],
+      "deps": [
+        "video-prompt"
+      ]
     },
     {
       "name": "banner-maker",
       "dir": "banner-maker",
       "layer": "orchestrator",
       "description": "Banner-ad / display-creative generator with standard-size presets — Google Display (leaderboard, medium-rectangle, mobile-banner, wide-skyscraper), OG image, LinkedIn ad, Facebook ad, Twitter card. Headline + CTA + brand composition. Default model ideogram-3-quality for clean embedded text. Outputs: ./generated/banner/<slug>/<preset>.png + manifest.json.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "marketing", "generation", "orchestration"],
-      "deps": ["image-prompt"]
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
+      "deps": [
+        "image-prompt"
+      ]
     },
     {
       "name": "meme-card-maker",
       "dir": "meme-card-maker",
       "layer": "orchestrator",
       "description": "Meme-format graphic generator — top text + bottom text + optional centerpiece image. Wraps image-prompt --execute with Impact-style typography (bold white text + thick black stroke). Supports 5 template hints (drake / distracted-boyfriend / expanding-brain / two-buttons / change-my-mind) + custom mode. Optional --base-photo for user-image centerpiece. Default model gpt-image-2. Outputs: ./generated/meme/<slug>/meme-v<N>.png + manifest.json.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "marketing", "generation", "orchestration"],
-      "deps": ["image-prompt"]
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
+      "deps": [
+        "image-prompt"
+      ]
     },
     {
       "name": "upscaler",
       "dir": "upscaler",
       "layer": "wrapper",
       "description": "Image upscaling utility — single image in, upscaled image out (2× / 4× / 8×). Wraps Replicate-hosted upscalers (Real-ESRGAN default; alternatives: GFPGAN for faces, SwinIR, clarity-upscaler). Optional --face-enhance for portrait restoration. ~$0.005-0.02 per image.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "editing"],
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "editing"
+      ],
       "deps": []
     },
     {
@@ -540,8 +621,14 @@
       "dir": "audio-mix-maker",
       "layer": "wrapper",
       "description": "Mix a music / audio track onto an existing video via ffmpeg. Three modes: replace (drop original audio), overlay (mix both audible), duck (sidechain compressor lowers music when speech detected). Volume + fade controls. No API calls — pure ffmpeg.",
-      "languages": ["en", "ru"],
-      "tags": ["audio", "editing"],
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "audio",
+        "editing"
+      ],
       "deps": []
     },
     {
@@ -549,8 +636,15 @@
       "dir": "style-transfer",
       "layer": "wrapper",
       "description": "Apply an artistic style to an existing image. Default provider Flux Kontext. 12 style presets (watercolor / oil-painting / sketch / line-art / ink-wash / cyberpunk / studio-ghibli / pixar-3d / manga / art-deco / low-poly / vaporwave) + custom mode. ~$0.05 per image.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "editing", "generation"],
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "editing",
+        "generation"
+      ],
       "deps": []
     },
     {
@@ -558,8 +652,14 @@
       "dir": "transcribe-maker",
       "layer": "wrapper",
       "description": "Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts ISO-639-1 hint. ~$0.006/min. Closes the loop with subtitle-burner — produce captions from video, then burn them in. 25 MB file limit.",
-      "languages": ["en", "ru"],
-      "tags": ["audio", "editing"],
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "audio",
+        "editing"
+      ],
       "deps": []
     },
     {
@@ -567,17 +667,32 @@
       "dir": "style-suggest",
       "layer": "orchestrator",
       "description": "Visual-style generator — turn a text description and/or reference image into a fully-structured style entry that drops into common/visual-prompt-library/styles/. Adapted from figma's StyleSuggestAgent: takes free-form input, checks the existing catalog for duplicates (similarity ≥ 0.72), otherwise produces a new entry with all v2.15.0 schema fields (background / accents / elements / mood / accent_text_color / typography / composition_signature / when_to_use). The new style is immediately usable by every visual-output skill via the shared chain.",
-      "languages": ["en", "ru"],
-      "tags": ["visual", "generation"],
-      "deps": ["common/visual-prompt-library/styles"]
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "generation"
+      ],
+      "deps": [
+        "common/visual-prompt-library/styles"
+      ]
     },
     {
       "name": "proposal-maker",
       "dir": "proposal-maker",
       "layer": "orchestrator",
       "description": "Turn a raw, telegram-style commercial offer into a self-contained, brand-faithful HTML proposal whose style is copied from a website. Default flow is LLM-authored: a Python step builds a brand kit (site screenshot + logo + accent/font tokens + per-item catalogue photos + BRIEF.md), then the orchestrator authors bespoke HTML mirroring the brand. Items missing a photo get an on-brand generated image; prices and links stay exact; prints to a Ghostscript-compressed PDF. A --quick mode renders a deterministic theme (editorial/invoice/dark). Output: ./generated/proposal/<slug>/.",
-      "languages": ["en", "ru"],
-      "tags": ["marketing", "generation", "orchestration"],
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "marketing",
+        "generation",
+        "orchestration"
+      ],
       "deps": []
     }
   ]

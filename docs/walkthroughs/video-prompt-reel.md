@@ -14,7 +14,7 @@ skills:
 
 ## Intent — CHARACTER FIRST law
 
-Главное правило video prompts (см. `video-prompt/references/character-first.md`):
+Главное правило video prompts (см. `video-prompt/references/identity-references.md`):
 
 > Subject (character / hero object) описывается ПЕРВЫМ, БУКВАЛЬНО, в полных словах. Перед лимит-чувствительной частью. Video models дропают first 30-40% prompt в кэш — туда нужно положить subject, иначе модель impro визирует character.
 

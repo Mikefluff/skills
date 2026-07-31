@@ -31,6 +31,14 @@ LINK = re.compile(r"\[[^\]]*\]\(\s*([^)\s]+?)\s*\)")
 PLACEHOLDER = re.compile(r"[<>{}]|\.\.\.|^path$|^slug$")
 SKIP_SCHEME = ("http://", "https://", "mailto:", "tel:", "#", "data:")
 
+# Backticked paths pointing at a skill's own reference files. Markdown-link
+# checking misses these entirely, and nine of them had rotted into walkthroughs
+# — `microcopy/references/banned.md` when the file is `banned-words.md`, and so
+# on. Scoped deliberately to `<skill>/references/<file>.md`: broad path matching
+# also hits user-project examples (`your-book/ru/chapters/ch07.md`), runtime
+# outputs (`plan.json`, `script.md`) and /tmp paths, none of which exist here.
+BACKTICK_REF = re.compile(r"`([a-z0-9][a-z0-9-]*/references/[A-Za-z0-9_./-]+\.md)`")
+
 
 def tracked_markdown(subtree: str | None) -> list[pathlib.Path]:
     args = ["git", "ls-files", "*.md"]
@@ -41,6 +49,10 @@ def tracked_markdown(subtree: str | None) -> list[pathlib.Path]:
 
 
 def main() -> int:
+    root = pathlib.Path(
+        subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                       capture_output=True, text=True).stdout.strip() or "."
+    )
     subtree = sys.argv[1] if len(sys.argv) > 1 else None
     files = tracked_markdown(subtree)
     broken: list[str] = []
@@ -61,6 +73,18 @@ def main() -> int:
             if not (f.parent / path_part).exists():
                 line = text[: m.start()].count("\n") + 1
                 broken.append(f"  {f}:{line}  ->  {target}")
+        # Backticked `<skill>/references/<file>.md` — always repo-root-relative.
+        # CHANGELOG is exempt: a log records what was true when written, and its
+        # entries legitimately name files that were later renamed or removed
+        # (including the entry documenting these very fixes).
+        if f.name == "CHANGELOG.md":
+            continue
+        for m in BACKTICK_REF.finditer(text):
+            target = m.group(1)
+            checked += 1
+            if not (root / target).exists():
+                line = text[: m.start()].count("\n") + 1
+                broken.append(f"  {f}:{line}  ->  `{target}`  (backticked ref)")
     if broken:
         print(f"links: FAILED — {len(broken)} broken of {checked} relative links\n")
         print("\n".join(broken))

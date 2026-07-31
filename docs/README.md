@@ -21,9 +21,9 @@ For the project overview + install + the skills table, go back to the top-level 
 | Doc | What it's for | Length |
 |---|---|---|
 | [SKILL-INDEX.md](SKILL-INDEX.md) | Every skill indexed by layer / domain / language. Auto-generated from `skills.json` | ~75 lines |
-| [COMPOSING.md](COMPOSING.md) | How the 22 skills compose — dependency graph + named workflows + data flow table + anti-patterns | ~290 lines |
+| [COMPOSING.md](COMPOSING.md) | How the 41 skills compose — dependency graph + named workflows + data flow table + anti-patterns | ~290 lines |
 | [walkthroughs/](walkthroughs/) | 19 step-by-step recipes with categorized [index](walkthroughs/README.md) | ~200 lines each |
-| [LINTER-COVERAGE.md](LINTER-COVERAGE.md) | Auto-generated regex coverage table for the `writer` linter (28 categories) | ~50 lines |
+| [LINTER-COVERAGE.md](LINTER-COVERAGE.md) | Auto-generated regex coverage table for the `writer` linter (25 categories) | ~50 lines |
 
 ---
 
@@ -51,8 +51,8 @@ The skills themselves are at the repo root. Each has its own SKILL.md + referenc
 
 Shared infrastructure:
 
-- [`common/runners/`](../common/runners/) — optional Python execute layer (31 providers, batch executor, ffmpeg wrappers, keysfile)
-- [`common/style-library/`](../common/style-library/) — 50 bundled styles (24 carousel + 12 video director + 12 music genre)
+- [`common/runners/`](../common/runners/) — optional Python execute layer (32 providers, batch executor, ffmpeg wrappers, keysfile)
+- [`common/style-library/`](../common/style-library/) — 48 bundled styles (24 carousel + 12 video director + 12 music genre)
 - [`common/references/`](../common/references/) — shared anti-pattern catalogues (hype words, preambles, empty CTAs)
 
 Project files:

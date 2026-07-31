@@ -6,47 +6,63 @@
 
 | # | Category | Status | Patterns |
 |---|---|---|---|
-| 1 | `AI_QA` | ✓ covered | 7 |
-| 2 | `NE_X_A_Y` | ✓ covered | 5 |
-| 3 | `PSEUDO_SMART` | ✓ covered | 10 |
-| 4 | `AI_INTENSIFIER` | ✓ covered | 15 |
-| 5 | `BUREAU_INV` | ✓ covered | 9 |
-| 6 | `CORPORATE` | ✓ covered | 12 |
-| 7 | `GPT_FILLER` | ✓ covered | 13 |
-| 8 | `AI_BRIDGE` | ✓ covered | 7 |
-| 9 | `STOCK_METAPHOR` | ✓ covered | 12 |
-| 10 | `AI_HEDGE` | ✓ covered | 4 |
-| 11 | `SELF_REF` | ✓ covered | 3 |
-| 12 | `PSEUDO_CAUSAL` | ✓ covered | 7 |
-| 13 | `SELFHELP` | ✓ covered | 8 |
-| 14 | `PSEUDO_SCI` | ✓ covered | 6 |
+| 1 | `AI_QA` | ✓ covered | 12 |
+| 2 | `NE_X_A_Y` | ✓ covered | 8 |
+| 3 | `PSEUDO_SMART` | ✓ covered | 15 |
+| 4 | `AI_INTENSIFIER` | ✓ covered | 24 |
+| 5 | `BUREAU_INV` | ✓ covered | 16 |
+| 6 | `CORPORATE` | ✓ covered | 22 |
+| 7 | `GPT_FILLER` | ✓ covered | 20 |
+| 8 | `AI_BRIDGE` | ✓ covered | 13 |
+| 9 | `STOCK_METAPHOR` | ✓ covered | 20 |
+| 10 | `AI_HEDGE` | ✓ covered | 10 |
+| 11 | `SELF_REF` | ✓ covered | 7 |
+| 12 | `PSEUDO_CAUSAL` | ✓ covered | 10 |
+| 13 | `SELFHELP` | ✓ covered | 13 |
+| 14 | `PSEUDO_SCI` | ✓ covered | 12 |
 | 15 | `WIDE_NET` | ✓ covered | 3 |
 | 16 | `INFLATED_TRIPLET` | ✗ missing | 0 |
-| 17 | `NOMINALIZATION` | ⚠ partial | 2 |
-| 18 | `FILLER_INTRO` | ✓ covered | 5 |
-| 19 | `VAGUE_PERSON` | ✓ covered | 5 |
-| 20 | `SUPERLATIVE_OVERLOAD` | ⚠ partial | 2 |
+| 17 | `NOMINALIZATION` | ✓ covered | 4 |
+| 18 | `FILLER_INTRO` | ✓ covered | 9 |
+| 19 | `VAGUE_PERSON` | ✓ covered | 9 |
+| 20 | `SUPERLATIVE_OVERLOAD` | ✓ covered | 5 |
 | 21 | `BALANCE_HEDGE` | ✗ missing | 0 |
 | 22 | `NEURAL_METAPHOR` | ✓ covered | 11 |
 | 23 | `TYPOGRAPHY` | ⚠ partial | 2 |
+| 24 | `THERAPEUTIC` | ✓ covered | 11 |
+| 25 | `FALSE_RANGE` | ✗ missing | 0 |
 
 ## Summary
 
-- Total categories: **23**
-- Covered (≥ 3 patterns): **18**
-- Partial (1-2 patterns): **3**
-- Missing (0 patterns): **2**
+- Total categories: **25**
+- Covered (≥ 3 patterns): **21**
+- Partial (1-2 patterns): **1**
+- Missing (0 patterns): **3**
 
 ## Why some categories are intentionally LLM-only
 
 - **`SELFHELP`** — low base rate in author's corpus; LLM picks up rare hits well enough.
 - **`INFLATED_TRIPLET`** — requires semantic check on three abstract nouns; regex too brittle.
-- **`SUPERLATIVE_OVERLOAD`** — currently uncovered — Russian morphology makes "самый X-ный" hard to scope without false positives.
+- **`SUPERLATIVE_OVERLOAD`** — partial by design — Russian morphology makes "самый X-ный" hard to scope, so only the narrow EN forms and a couple of RU ones are matched.
 - **`BALANCE_HEDGE`** — AI-fingerprint detection at paragraph level, not line level — regex misses cadence.
-- **`TYPOGRAPHY`** — current regex only catches straight + curly quotes; em-dash and number-as-word checks are LLM territory.
+- **`TYPOGRAPHY`** — regex catches straight + curly quotes; numbers-as-words stays LLM territory. The em-dash is no longer here — it is a hard ban (EM_DASH_RU), gated to Cyrillic lines and demoted to a nit under --fiction.
+- **`FALSE_RANGE`** — no regex on purpose — legitimate ranges ("от 5 до 10", "от Москвы до Владивостока") vastly outnumber the slop form, so this one is checked by eye.
 
 ## Reading this
 
 - `covered` = the offline `lint.py` reliably catches this category.
 - `partial` = some pattern coverage, but expect to miss variants — LLM cleaning pass is the safety net.
 - `missing` = either intentionally LLM-only (see notes above), or a real gap to fix in `lint.py`.
+
+## Not in this table
+
+This table covers the *probabilistic* catalogue only — the categories that
+mean something in clusters. Two other detector families run alongside it and
+are not scored here because coverage is not the right question for them:
+
+- **Hard bans** (`EM_DASH_RU`, `MATH_SIGN_PROSE`, `NEG_PARALLEL`, `CHOPPED_DRAMA`,
+  `COPYPASTE_ARTIFACT`) — pass/fail, not density. One hit fails the gate.
+- **Structural detectors** (`RHYTHM_MONOTONE`, `RHYTHM_NO_SHORT`, `VERB_ECHO`,
+  `BOLD_DENSITY`, `HEADING_ECHO`, `HEDGE_CASCADE`, `COLON_REVEAL`) — computed
+  over the whole document rather than matched per line, so they have no
+  pattern count to report.

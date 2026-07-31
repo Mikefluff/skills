@@ -12,7 +12,7 @@ curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | 
 
 What this does:
 
-- Copies 22 skills into `~/.claude/skills/`
+- Copies 41 skills into `~/.claude/skills/`
 - Copies shared references + the style library (50 visual / directorial / music presets)
 - Auto-creates `~/.claude/skills/.runners-venv` with Python deps (for the optional `--execute` layer)
 - Offers to install ffmpeg via brew / apt (needed only for the `reel-builder` skill)
@@ -47,7 +47,7 @@ In Claude Code, paste an LLM-shaped draft and say:
 
 > Run /writer on this. — `<your text>`
 
-The skill returns a cleaned version with antinyeyroslop applied (28 categories of LLM tells removed), Russian-typography fixes, structural-synthesis fixes, and tone neutralization.
+The skill returns a cleaned version with antinyeyroslop applied (25 catalogued categories of LLM tells removed), Russian-typography fixes, structural-synthesis fixes, and tone neutralization.
 
 No keys, no setup. This is the floor of the toolkit.
 

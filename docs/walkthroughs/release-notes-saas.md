@@ -28,7 +28,7 @@ skills:
 
 ## Intent — anti-marketing-fluff bans
 
-Release notes ≠ marketing email. Скилл режет (см. `release-notes/references/banned.md`):
+Release notes ≠ marketing email. Скилл режет (см. `release-notes/references/banned-patterns.md`):
 
 - «We're excited to announce...» / «We're thrilled...»
 - «Game-changing» / «revolutionary» / «next-generation»

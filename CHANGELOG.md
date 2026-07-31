@@ -9,6 +9,22 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+### Fixed — documentation audit before going public
+
+Counts that had drifted, phantom references, and rotted paths a link checker could not see.
+
+**Stale numbers**, in README and four docs pages: "22 skills" against 41, "31 providers" against 32 (the audio tier grew to 3), "50 bundled styles" where 24 + 12 + 12 is 48, "28 categories" against the current 25. The README repo-layout block placed `SECURITY.md` under `.github/` when it sits at the root, and omitted `CODE_OF_CONDUCT.md`, `tests/unit/` and `tests/evals/`.
+
+**Phantom tooling in `CONTRIBUTING.md`.** It credited commit parsing to `scripts/decide-bump.sh`, deleted alongside `release.yml` long ago — the same class of rot as the missing `bump.sh` this release already fixed. Its `smoke` section still described three checks against the current ten, and `check-docs` "five sub-checks" against six.
+
+**Nine rotted backtick references.** `docs/walkthroughs/` pointed at `microcopy/references/banned.md` (is `banned-words.md`), `release-notes/references/banned.md` (is `banned-patterns.md`), `tone-shifter/references/markers.md` (is `transformation-rules.md`), `video-prompt/references/character-first.md` (is `identity-references.md`), and five more. Markdown-link checking never saw them because they are inline code, not links.
+
+`scripts/check-links.py` now resolves backticked `<skill>/references/<file>.md` too — 1287 links, up from 1195. Scoped deliberately: broad path matching also hits user-project examples (`your-book/ru/chapters/ch07.md`), runtime outputs (`plan.json`, `script.md`) and `/tmp` paths, none of which exist in the repo. `CHANGELOG.md` is exempt, since a log names files that were later renamed.
+
+**`docs/LINTER-COVERAGE.md` was stale and self-contradicting** — generated, but nothing compared it to its sources, so the new categories never appeared and a note claimed `SUPERLATIVE_OVERLOAD` was uncovered while the table showed five patterns. Another note called the em-dash "LLM territory" after it had become a hard ban. `scripts/coverage.py` gained `--write` / `--check`, wired into smoke as gate 9/10, and the doc now states which detector families it deliberately does not score: hard bans are pass/fail rather than density, and structural detectors are computed per document rather than matched per line.
+
+One more private-path leak reached `common/runners/README.md` after the earlier sweep; genericized.
+
 ## [2.20.0] — 2026-07-31
 
 ### Added — `proposal-maker`: raw offer → brand-faithful HTML proposal

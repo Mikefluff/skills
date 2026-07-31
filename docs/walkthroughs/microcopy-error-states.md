@@ -28,7 +28,7 @@ skills:
 
 ## Setup
 
-Скилл установлен. EN-only по дефолту. Состояния перечислены в `microcopy/references/states/checkout.md`.
+Скилл установлен. EN-only по дефолту. Состояния перечислены в `microcopy/references/element-types.md`.
 
 ## Step 1. Define the matrix
 
@@ -139,7 +139,7 @@ Why: «on our end» (explicit ownership — это критично), «card was
 
 ## Step 4. Banned patterns scanner
 
-Скилл прогоняет финалы через banlist (см. `microcopy/references/banned.md`):
+Скилл прогоняет финалы через banlist (см. `microcopy/references/banned-words.md`):
 
 - «Oops!» / «Whoops!» — infantilizing
 - «Something went wrong» — generic, useless without specifics
@@ -183,7 +183,7 @@ Tone audit — checkout-flow error states (6 states)
 
 ### Engineer wants the technical code in the body
 
-«They asked for `(code: 51)` so they can debug» — fair, но не в primary body. Скилл предлагает шаблон: основной user-facing body + collapsed «Technical details» секция (revealed via «Show details» link). Полная схема в `microcopy/references/dev-details.md`.
+«They asked for `(code: 51)` so they can debug» — fair, но не в primary body. Скилл предлагает шаблон: основной user-facing body + collapsed «Technical details» секция (revealed via «Show details» link). Полная схема в `microcopy/references/rules.md`.
 
 ### Body превышает 20 слов и не сжимается
 

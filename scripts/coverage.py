@@ -7,6 +7,8 @@ coverage.py — report which of the neuroslop categories defined in
 Usage:
     python3 scripts/coverage.py            # markdown report to stdout
     python3 scripts/coverage.py --json     # machine-readable JSON
+    python3 scripts/coverage.py --write    # write docs/LINTER-COVERAGE.md
+    python3 scripts/coverage.py --check    # exit 1 if that file is stale
 """
 
 from __future__ import annotations
@@ -58,9 +60,10 @@ def status_for(count: int) -> tuple[str, str]:
 # Notes about why specific categories are intentionally LLM-only.
 LLM_ONLY_NOTES = {
     "INFLATED_TRIPLET": "requires semantic check on three abstract nouns; regex too brittle.",
+    "FALSE_RANGE": "no regex on purpose — legitimate ranges (\"от 5 до 10\", \"от Москвы до Владивостока\") vastly outnumber the slop form, so this one is checked by eye.",
     "BALANCE_HEDGE": "AI-fingerprint detection at paragraph level, not line level — regex misses cadence.",
-    "TYPOGRAPHY": "current regex only catches straight + curly quotes; em-dash and number-as-word checks are LLM territory.",
-    "SUPERLATIVE_OVERLOAD": "currently uncovered — Russian morphology makes \"самый X-ный\" hard to scope without false positives.",
+    "TYPOGRAPHY": "regex catches straight + curly quotes; numbers-as-words stays LLM territory. The em-dash is no longer here — it is a hard ban (EM_DASH_RU), gated to Cyrillic lines and demoted to a nit under --fiction.",
+    "SUPERLATIVE_OVERLOAD": "partial by design — Russian morphology makes \"самый X-ный\" hard to scope, so only the narrow EN forms and a couple of RU ones are matched.",
     "SELFHELP": "low base rate in author's corpus; LLM picks up rare hits well enough.",
 }
 
@@ -102,6 +105,19 @@ def render_markdown(report: dict) -> str:
     lines.append("- `partial` = some pattern coverage, but expect to miss variants — LLM cleaning pass is the safety net.")
     lines.append("- `missing` = either intentionally LLM-only (see notes above), or a real gap to fix in `lint.py`.")
     lines.append("")
+    lines.append("## Not in this table")
+    lines.append("")
+    lines.append("This table covers the *probabilistic* catalogue only — the categories that")
+    lines.append("mean something in clusters. Two other detector families run alongside it and")
+    lines.append("are not scored here because coverage is not the right question for them:")
+    lines.append("")
+    lines.append("- **Hard bans** (`EM_DASH_RU`, `MATH_SIGN_PROSE`, `NEG_PARALLEL`, `CHOPPED_DRAMA`,")
+    lines.append("  `COPYPASTE_ARTIFACT`) — pass/fail, not density. One hit fails the gate.")
+    lines.append("- **Structural detectors** (`RHYTHM_MONOTONE`, `RHYTHM_NO_SHORT`, `VERB_ECHO`,")
+    lines.append("  `BOLD_DENSITY`, `HEADING_ECHO`, `HEDGE_CASCADE`, `COLON_REVEAL`) — computed")
+    lines.append("  over the whole document rather than matched per line, so they have no")
+    lines.append("  pattern count to report.")
+    lines.append("")
     # Single trailing newline (markdownlint MD012 catches multiple)
     return "\n".join(lines).rstrip("\n") + "\n"
 
@@ -109,6 +125,10 @@ def render_markdown(report: dict) -> str:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--json", action="store_true", help="emit JSON instead of markdown")
+    p.add_argument("--write", action="store_true",
+                   help="write docs/LINTER-COVERAGE.md instead of printing")
+    p.add_argument("--check", action="store_true",
+                   help="exit 1 if docs/LINTER-COVERAGE.md is stale")
     args = p.parse_args(argv)
 
     if not CAT_FILE.exists():
@@ -152,8 +172,27 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
-    else:
-        print(render_markdown(report), end="")
+        return 0
+
+    md = render_markdown(report)
+    target = ROOT / "docs" / "LINTER-COVERAGE.md"
+    if args.write:
+        target.write_text(md, encoding="utf-8")
+        print(f"Updated {target.relative_to(ROOT)}")
+        return 0
+    if args.check:
+        # The doc is generated from the catalogue and the linter. It went stale
+        # once already — new categories shipped and nothing compared the two.
+        if not target.is_file():
+            print(f"coverage: FAILED — {target.relative_to(ROOT)} does not exist")
+            return 1
+        if target.read_text(encoding="utf-8") != md:
+            print("coverage: FAILED — LINTER-COVERAGE.md is out of date")
+            print("  run: python3 scripts/coverage.py --write")
+            return 1
+        print("coverage: OK (LINTER-COVERAGE.md matches the catalogue + linter)")
+        return 0
+    print(md, end="")
     return 0
 
 

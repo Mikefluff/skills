@@ -935,7 +935,7 @@ See [`README.md § What's in the box`](../README.md#whats-in-the-box) for the up
 - [QUICKSTART](QUICKSTART.md) — 5-minute first run
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
-- [COMPOSING](COMPOSING.md) — how the 22 skills compose; recipe library
+- [COMPOSING](COMPOSING.md) — how the 41 skills compose; recipe library
 - [SKILL-INDEX](SKILL-INDEX.md) — every skill indexed by layer / domain / language
 - [walkthroughs/README.md](walkthroughs/README.md) — 19 walkthroughs, categorized
 - [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection

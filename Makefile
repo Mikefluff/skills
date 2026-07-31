@@ -56,6 +56,9 @@ check-docs: ## Verify skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs ↔
 gen-readme: ## Regenerate the README skills table from skills.json (write in place)
 	python3 scripts/gen-skills-table.py --write
 
+gen-coverage: ## Regenerate docs/LINTER-COVERAGE.md from the catalogue + lint.py
+	python3 scripts/coverage.py --write
+
 gen-pricing: ## Regenerate common/references/model-pricing.md from cost.PRICE_TABLE
 	python3 scripts/gen-pricing.py --write
 

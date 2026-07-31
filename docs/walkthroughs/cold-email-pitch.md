@@ -149,7 +149,7 @@ Word count (body): 78 words. Word budget: 120. Spend conservative — leaves roo
 
 ### Скилл отказывается писать без specific datapoint про recipient
 
-Это by design. Cold email без specific fact = spam. Если нечего сказать про recipient — либо research больше, либо don't send. См. `cold-email/references/research-checklist.md`.
+Это by design. Cold email без specific fact = spam. Если нечего сказать про recipient — либо research больше, либо don't send. См. `cold-email/references/structure.md`.
 
 ### Hook не получается узким — слишком много traction signals
 

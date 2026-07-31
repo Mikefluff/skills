@@ -126,7 +126,8 @@ your-skill/
 
 ```bash
 make validate         # frontmatter + cross-link + description-length + tag dict
-make smoke            # full smoke: validate + lint snapshot + fixtures
+make smoke            # all 10 gates (see below)
+make test-unit        # runner unit tests alone
 make check-docs       # README/USER-GUIDE/walkthroughs/CHANGELOG/SKILL-INDEX consistency
 make lint-all         # writer linter across every reference/example/doc file (advisory)
 shellcheck install.sh scripts/*.sh
@@ -221,20 +222,29 @@ For each skill:
 
 ### 2. `smoke` (`bash scripts/smoke.sh`)
 
-- All `validate.sh` checks
-- `writer/scripts/lint.py` runs on every `tests/fixtures/*.md`
-- Output is byte-equal to the corresponding `tests/snapshots/*.json`
-- If snapshots drifted, the test fails with a diff — fix the linter or accept the drift via `bash tests/run.sh --update`
+Ten gates, all must pass:
+
+1. **validate** — all `validate.sh` checks
+2. **linter regression** — `writer/examples/before-after.md` must still read as neuroslop
+3. **fixture snapshots** — `lint.py --json` on every `tests/fixtures/*.md`, byte-equal to `tests/snapshots/*.json`. On intentional drift, re-baseline with `bash tests/run.sh --update`
+4. **AFTER calibration samples** — hard bans inside the "После" blocks of `examples/before-after.md`. These live in fenced blocks, which the linter masks, so they need their own pass
+5. **relative links** — all ~1200 of them; `validate.sh` only resolves same-skill `references/`
+6. **runner unit tests** — `tests/unit/`, stdlib `unittest`
+7. **pricing doc ↔ `cost.PRICE_TABLE`** — the published prices are generated from the code that bills
+8. **markdownlint** — pinned to the version CI uses, tracked files only
+9. **linter coverage doc** — `docs/LINTER-COVERAGE.md` is generated from the category catalogue plus `lint.py`; it went stale silently once
+10. **runners import** — every provider module imports and registers
 
 ### 3. `check-docs-consistency` (`bash scripts/check-docs-consistency.sh`)
 
-Five sub-checks, all must pass:
+Six sub-checks, all must pass:
 
 1. README table ↔ `skills.json` (auto-generated; if drift, run `make gen-readme`)
 2. Skill folders on disk ↔ `skills.json` (new folder without manifest entry → fail)
 3. Walkthrough `skills:` frontmatter list ↔ `skills.json` (unknown skill referenced → fail)
 4. Every skill in `skills.json` is mentioned somewhere in `docs/USER-GUIDE.md`
-5. New skill folders since last `v*` tag ↔ `CHANGELOG.md [Unreleased]`
+5. New skill folders since the last `v*` tag are documented in `CHANGELOG.md` — in any section above the tagged version, not only `[Unreleased]`, because this repo writes version sections directly
+6. `docs/SKILL-INDEX.md` ↔ `skills.json` (auto-generated; if drift, run `make gen-index`)
 
 ### 4. Shellcheck + Markdownlint
 
@@ -245,7 +255,7 @@ Five sub-checks, all must pass:
 
 ## Commit message convention
 
-Conventional Commits with semantic-versioning interpretation (parsed by `scripts/decide-bump.sh`):
+Conventional Commits, read by humans. Nothing parses them — the workflow that used to (`release.yml`, with `scripts/decide-bump.sh`) was removed for picking the wrong major bump on additive commits. The prefix tells the maintainer which `make bump-*` to run:
 
 | Prefix | Triggers | Notes |
 |---|---|---|
@@ -281,8 +291,9 @@ So: **as a contributor, do not tag releases** — but understand that no pipelin
 When opening a PR, confirm:
 
 - [ ] `make validate` passes (no WARN)
-- [ ] `make smoke` passes (8/8: validate, linter, snapshots, AFTER samples, links, unit tests, pricing, imports)
+- [ ] `make smoke` passes (10/10)
 - [ ] `make check-docs` passes (6/6 sub-checks)
+- [ ] `python3 scripts/check-links.py` passes (or just run `make smoke`, which includes it)
 - [ ] `shellcheck install.sh scripts/*.sh` exits 0
 - [ ] `markdownlint-cli2` reports no errors
 - [ ] If you added a skill: `skills.json` updated, README table regenerated, USER-GUIDE mentions it, CHANGELOG `[Unreleased]` has an entry, ≥1 fixture exists

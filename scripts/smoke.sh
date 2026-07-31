@@ -16,11 +16,11 @@ if [ ! -x scripts/validate.sh ]; then
   red "scripts/validate.sh is not executable"; exit 1
 fi
 
-echo "─── 1/9 validate ─────────────────────────────────────────────"
+echo "─── 1/10 validate ─────────────────────────────────────────────"
 bash scripts/validate.sh
 
 echo
-echo "─── 2/9 writer/lint.py self-test ─────────────────────────────"
+echo "─── 2/10 writer/lint.py self-test ─────────────────────────────"
 # writer/examples/before-after.md contains intentional BEFORE samples that
 # should trip the linter. Verdict must be "neuroslop suspected".
 if ! command -v python3 >/dev/null 2>&1; then
@@ -39,34 +39,34 @@ else
 fi
 
 echo
-echo "─── 3/9 fixture snapshots ────────────────────────────────────"
+echo "─── 3/10 fixture snapshots ────────────────────────────────────"
 bash tests/run.sh
 
 echo
-echo "─── 4/9 AFTER calibration samples ────────────────────────────"
+echo "─── 4/10 AFTER calibration samples ────────────────────────────"
 # Calibration samples live inside fenced blocks, which lint.py masks by default —
 # so the one thing a model copies verbatim is the one thing the linter misses.
 python3 scripts/check-after-samples.py
 
 echo
-echo "─── 5/9 relative links ───────────────────────────────────────"
+echo "─── 5/10 relative links ───────────────────────────────────────"
 # validate.sh only resolves references/*.md inside the owning skill; cross-skill,
 # docs-to-docs and repo-root links were unchecked until this step existed.
 python3 scripts/check-links.py
 
 echo
-echo "─── 6/9 runner unit tests ────────────────────────────────────"
+echo "─── 6/10 runner unit tests ────────────────────────────────────"
 # stdlib unittest, no pytest dependency — the README promises no required deps.
 python3 -m unittest discover -s tests/unit -t . -q
 
 echo
-echo "─── 7/9 pricing doc ↔ cost.PRICE_TABLE ───────────────────────"
+echo "─── 7/10 pricing doc ↔ cost.PRICE_TABLE ───────────────────────"
 # The published price table is generated from the code that bills. Drift here
 # means the docs quote a number the runner does not charge.
 python3 scripts/gen-pricing.py --check
 
 echo
-echo "─── 8/9 markdownlint (CI-pinned version) ─────────────────────"
+echo "─── 8/10 markdownlint (CI-pinned version) ─────────────────────"
 # CI runs markdownlint-cli2-action@v16, which pins v0.13.0. Running a newer
 # local version reports rules CI does not have (and misses none it does), so
 # the version is pinned here too. Tracked files only: generated/ is ignored.
@@ -81,7 +81,12 @@ else
 fi
 
 echo
-echo "─── 9/9 runners import smoke ─────────────────────────────────"
+echo "─── 9/10 linter coverage doc ─────────────────────────────────"
+# Generated from the category catalogue + lint.py. It went stale silently once.
+python3 scripts/coverage.py --check
+
+echo
+echo "─── 10/10 runners import smoke ─────────────────────────────────"
 # common/runners is the optional execution layer. We don't require API keys —
 # just confirm every provider module imports cleanly and registers.
 if [ -d common/runners ]; then
