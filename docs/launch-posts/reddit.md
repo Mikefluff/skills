@@ -1,32 +1,32 @@
 # Reddit
 
-Suitable subreddits: r/ClaudeAI, r/MachineLearning, r/programming, r/copywriting (for landing-copy + release-notes wrappers).
+<!-- lint-role: catalogue -->
+<!-- Launch copy quotes the patterns it describes, so linting it for slop measures the examples. -->
+
+Suitable subreddits: r/ClaudeAI, r/LocalLLaMA, r/programming, r/copywriting (for the landing-copy and release-notes wrappers).
 
 **Title** (r/ClaudeAI, r/programming):
 
 ```
-I built 17 Claude Code skills to make LLM-assisted writing stop sounding like LLM output
+I open-sourced 41 Claude Code skills, built around an offline linter for LLM-prose tells
 ```
 
 **Body**:
 
 ```
-I've been writing with LLMs and got tired of every output reading the same way — "It's important to note that...", "delve into...", "in today's fast-paced world...", "we're excited to announce...", balance hedges everywhere.
+I write a lot with LLMs and got tired of every draft reading the same way — "it's important to note that", "delve into", "we're excited to announce", the balance paragraph that argues both sides and lands nowhere.
 
-So I built a collection of skills around an offline Python regex linter. The linter catches 28 categories of AI-prose tells in 50ms on a 5K-word file. No LLM call required for the linter — it's pure regex (writer/scripts/lint.py).
+So the base of this is `writer`: a pure-Python regex linter over 25 catalogued categories of those tells, RU and EN. No LLM call, no dependencies, ~80ms on a 4K-word file in-process. Every prose skill in the collection runs it as a final pass, and it works standalone.
 
-Twelve wrappers compose on top:
-- viral, fiction (prose-edit), non-fiction (essay-write)
-- register shifts (tone-shifter)
-- voice digressions (pelevin-digression)
-- cold email (5-block / ≤120 words)
-- landing copy (Julian Shapiro hero formula + char-limits per platform)
-- release notes (Keep-a-Changelog, per-audience tone)
-- RFCs / ADRs / Tech Specs (RFC 2119 keywords)
-- microcopy (errors, empty states, buttons, 404s)
-- image / video prompts (MJ, DALL-E, Flux, Kling, Veo, Sora, Runway)
+Two parts of it I'd defend over the word lists.
 
-Three read-only linters: pre-commit gate, multilingual translation parity (RU/EN/PT-BR), story-bible consistency for fiction.
+**Copy-paste artifacts are a separate class.** Markers that reach a text only by copying out of a chat UI: `:contentReference[oaicite:0]`, `turn0search3`, `utm_source=chatgpt.com`, Gemini's `[cite: 8]`, a leftover `</think>`. No editor and no CMS produces those, so they need no corroborating signal — one hit settles it. Everything else in the catalogue is probabilistic and only means something in clusters. One "however" is nothing; "however" plus a rule of three plus a Conclusion section is a confession.
+
+**Density and gate are separate outputs.** Density asks "does this read like a model wrote it". The gate is pass/fail on house rules. I had them mixed at first and a Russian document with forty-eight ordinary em-dashes and one real slop marker came out as machine-written — a typography preference wearing the costume of evidence.
+
+The other half of the collection is AI media. Prompt skills for image, video and music (14, 20 and 10 model families), plus an optional `--execute` layer that calls the vendor API and saves real files — 32 providers behind one interface, with cost confirmation before anything bills. Then 13 orchestrators chain the halves: research a topic with citations, turn it into an eight-slide carousel with one consistent visual style, or into a vertical reel with matched music and ffmpeg stitching.
+
+Structure: 1 base + 21 wrappers + 3 read-only linters + 13 orchestrators + 3 meta.
 
 Install:
 curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | bash
@@ -34,40 +34,49 @@ curl -fsSL https://raw.githubusercontent.com/Mikefluff/skills/main/install.sh | 
 Or Docker:
 docker pull ghcr.io/mikefluff/skills
 
-MIT. Open to feedback / contributions.
+MIT. Open to feedback and contributions — especially on the linter categories, which are where the arguments are.
 
 Repo: github.com/Mikefluff/skills
 Docs: github.com/Mikefluff/skills/blob/main/docs/USER-GUIDE.md
-Skill index by tag: github.com/Mikefluff/skills/blob/main/docs/SKILL-INDEX.md
+Skill index: github.com/Mikefluff/skills/blob/main/docs/SKILL-INDEX.md
 ```
 
 ---
 
-**Variant for r/copywriting** (focus on marketing-copy skills):
+**Variant for r/copywriting** (focus on the marketing-copy skills):
 
 **Title**:
 
 ```
-Open-sourced a collection of writing tools that strip the "AI-generated" feel from copy
+Open-sourced a set of writing tools that strip the "AI-generated" feel from copy
 ```
 
 **Body**:
 
 ```
-17 Claude Code skills + an offline regex linter that catches the patterns that mark copy as LLM-generated.
+41 Claude Code skills built on an offline regex linter that catches the patterns marking copy as LLM-generated. No API call for the linter — it is pure regex and runs in under a tenth of a second.
 
-The linter catches 28 categories — including the marketing-specific set: revolutionary, world-class, game-changing, industry-leading, cutting-edge, "click here", "learn more", "get started" (alone), "we're excited to announce", "save time", "boost productivity", "will support" (future-tense for shipped features). EN + RU.
+25 catalogued categories, including the marketing-specific set: revolutionary, world-class, game-changing, industry-leading, cutting-edge, "click here", "learn more", bare "get started", "we're excited to announce", "save time", "boost productivity", and future tense for already-shipped features. English and Russian.
 
-Wrappers most relevant to copywriters:
-- landing-copy — hero (Julian Shapiro 5-step formula + 5 alternatives), features, pricing, FAQ, SEO meta (title + description + Open Graph + Twitter), ad copy (Google RSA / Facebook / LinkedIn / X / Reddit / TikTok with exact char limits per platform)
+Wrappers most relevant here:
+
+- landing-copy — hero (Julian Shapiro's formula plus alternatives), features, pricing, FAQ, SEO meta including Open Graph and Twitter cards, ad copy for Google RSA / Facebook / LinkedIn / X with exact character limits per platform
 - release-notes — Keep-a-Changelog format with per-audience tone (end-user / dev / ops)
-- microcopy — error messages, empty states, tooltips, buttons, modals, 404/500 pages, onboarding (≤8 words for buttons, never blames user)
-- cold-email — 5-block structure, ≤120-word budget, banned ceremony patterns
-- viral-text — hooks + numbered points + NLP question + CTA, EN viral patterns
+- microcopy — errors, empty states, tooltips, buttons, modals, 404 and 500 pages, onboarding. Buttons capped at 8 words, and the copy never blames the user
+- cold-email — five blocks, a 120-word budget, banned ceremony patterns
+- viral-text — hooks, numbered points, closing question, CTA
 
-Each wrapper has a `references/banned-patterns.md` with the domain-specific anti-patterns, plus a `before-after.md` calibration file showing the transformation.
+One rule worth stealing even if you never install this: **delete the water, not the function.** A cleaning pass will happily remove your CTA, your offer, your deadline and your price along with the filler, and the result scores beautifully on every slop metric while no longer doing its job. Those elements get rewritten, never deleted.
 
-MIT license. Free.
+Each wrapper ships a `references/banned-patterns.md` for its domain and a `before-after.md` calibration file showing real transformations.
+
+MIT. Free.
 
 GitHub: github.com/Mikefluff/skills
 ```
+
+## Notes before posting
+
+- r/ClaudeAI and r/programming tolerate self-promotion when the post carries a technical argument. The two design points are that argument; the feature list alone reads as an ad.
+- The r/copywriting variant leads with a rule the reader can use immediately, which survives even if they never install anything.
+- Do not cross-post the same body. Reddit surfaces duplicates and the reception drops.

@@ -1,9 +1,12 @@
 # Hacker News
 
+<!-- lint-role: catalogue -->
+<!-- Launch copy quotes the patterns it describes, so linting it for slop measures the examples. -->
+
 **Title** (Show HN):
 
 ```
-Show HN: Mikefluff/skills – 17 Claude Code skills for editing prose without LLM-tells
+Show HN: 41 Claude Code skills for writing and AI media, with an offline slop linter
 ```
 
 **URL**:
@@ -15,19 +18,29 @@ https://github.com/Mikefluff/skills
 **Body** (first comment from submitter):
 
 ```
-Hi HN — I've been writing with LLMs for the last couple of years and noticed everyone's output started to converge on the same handful of tells: "It's important to note that...", "delve into the rich tapestry of...", "in today's fast-paced world...", "we're excited to announce...", balance hedges, intensifier ladders, em-dash overuse.
+I write a lot with LLMs and got tired of every draft converging on the same handful of tells: "it's important to note that", "delve into the rich tapestry of", "we're excited to announce", the two-sided balance paragraph that commits to nothing, intensifier ladders, em-dash clusters.
 
-This is 17 Claude Code skills built around an offline Python regex linter that catches 28 categories of those tells. EN + RU, ~50ms on a 5K-word file. The latest set adds marketing-specific patterns (revolutionary / world-class / industry-leading / click here / learn more / save time / boost productivity / we're excited to announce) since those bypass the older "prose" rules and land hardest on landing pages and release notes.
+So the base of this is `writer`: a pure-Python regex linter over 25 catalogued categories of those tells, RU and EN. No dependencies, ~80ms on a 4K-word file in-process, ~135ms through the CLI including Python startup. It runs standalone via Docker or curl-pipe, and every prose skill in the collection calls it as a final pass.
 
-The base linter is standalone and useful on its own (run via Docker or curl-pipe). Twelve wrappers compose on top — viral-text, prose-edit (fiction), essay-write (non-fic), tone-shifter (register changes), pelevin-digression, cold-email (5-block / ≤120 words), landing-copy (Julian Shapiro hero formula + char-limits per platform), release-notes (Keep-a-Changelog), rfc-writer (RFCs / ADRs / Tech Specs with RFC 2119), microcopy, image-prompt (MJ/DALL-E/Flux), video-prompt (Kling/Veo/Sora). Three read-only linters — style-check (pre-commit), translation-sync (RU↔EN↔PT-BR parity), canon-check (story-bible consistency).
+Two things in it I think are worth more than the word lists.
 
-Linter has severity tags (blocker/caution/nit) and is code-fence-aware (skips ```fenced``` blocks so it doesn't false-positive on code examples).
+Copy-paste artifacts. Markers that reach a text only by copying out of a chat UI: `:contentReference[oaicite:0]`, `turn0search3`, `utm_source=chatgpt.com`, Gemini's `[cite: 8]`, a stray `</think>`. No editor produces those, so they need no corroborating signal — one hit settles it. Everything else in the catalogue is probabilistic and only means something in clusters.
 
-MIT. No external deps. CI/CD with conventional commits → auto-release. Skills compose by chaining (see docs/COMPOSING.md for 14 recipes).
+The verdict and the gate are separate outputs. Density (clean / borderline / slop-suspected) answers "does this read like a model wrote it". The gate is pass/fail on house rules. I had them mixed at first, and a Russian document with forty-eight ordinary em-dashes and one actual slop marker came out as "slop suspected" — a typography choice masquerading as evidence of machine authorship. Keeping them apart fixed it.
 
-The interesting bit (to me): every skill has a sharp `description:` field that Claude Code matches against user requests. Overlapping descriptions hurt discovery, so the boundary between skills is intentional, not aesthetic. There's also a `skills.json` manifest with tags (`fiction`, `marketing`, `outreach`, `tech-docs`, `ux-copy`, `visual`, …) and an auto-generated skill index by tag + language.
+The other half of the collection is AI media. Prompt skills for image, video and music (14, 20 and 10 model families), then an optional --execute layer that calls the vendor API and saves real files. 32 providers behind one interface. Orchestrators chain the two halves: research a topic with citations, turn it into an 8-slide carousel with a consistent visual style, or into a vertical reel with matched music and ffmpeg stitching.
 
-Happy to answer questions on the linter design, the regex categories, the skill-discovery contract, or how the wrappers compose.
+Structure: 1 base + 21 wrappers + 3 read-only linters + 13 orchestrators + 3 meta. Skills are discovered by Claude Code through a `description:` field, so the boundary between them is a discovery contract rather than taste — overlapping descriptions make the wrong skill fire.
+
+MIT. Releases are cut by hand; an auto-bump workflow used to do it and kept choosing the wrong major on additive commits, so I removed it.
+
+Happy to talk about the linter design, why some categories are deliberately regex-free, or how the --execute layer handles cost confirmation.
 
 Repo: https://github.com/Mikefluff/skills
 ```
+
+## Notes before posting
+
+- Show HN wants the submitter's first comment to explain what it is and what is interesting about it. The two design points (artifacts, verdict-vs-gate) carry that weight; the feature list alone will not.
+- Expect pushback on regex-for-prose. The honest answer: the catalogue is high-recall by design, false positives are the accepted cost, and anything needing semantics is documented as deliberately uncovered in `docs/LINTER-COVERAGE.md`.
+- Do not claim the linter detects AI authorship. It detects patterns. `style-check` has a detect mode with an explicit limit on what soft signals can prove.

@@ -9,6 +9,16 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+### Fixed — launch copy described a version that no longer exists
+
+`docs/launch-posts/` still pitched v1.x: "17 skills", "12 wrappers", "28 categories", and DALL-E among the image models. The AI-media half and all 13 orchestrators — most of what the collection now is — went unmentioned. The Hacker News draft advertised "CI/CD with conventional commits → auto-release" for a pipeline removed several versions ago, and `docs/COMPOSING.md` was credited with 14 recipes against 5.
+
+Two claims were measurably wrong. The linter was billed at "~50ms on a 5K-word file"; it is ~80ms in-process on 4K words and ~135ms through the CLI. And the X thread claimed "all tweets ≤280 chars (verified)" beside a verification one-liner that no longer parsed the file — two tweets were over.
+
+All six drafts rewritten around what the project actually is now, leading with the two design decisions worth defending (copy-paste artifacts as a conclusive class; density and gate as separate outputs) rather than a feature list. `scripts/check-tweet-length.py` added and wired into smoke as gate 10/11, so the "verified" claim is now true. Launch files carry `lint-role: catalogue` — they quote the patterns they describe.
+
+`README.md` also called `docs/LAUNCH-POST.md` "frozen v1.9 launch copy". It is the index of those drafts, and it was not frozen.
+
 ### Fixed — the gate was not actually orthogonal to the verdict
 
 Two defects in this release's own work, both surfaced by the pre-commit hook during the docs audit.

@@ -1,15 +1,18 @@
 # Launch posts
 
-Per-platform copy-paste drafts (refreshed for v1.9 — 17 skills, 28 linter categories, all current wrappers).
+<!-- lint-role: catalogue -->
+<!-- Launch copy quotes the patterns it describes, so linting it for slop measures the examples. -->
 
-Pick the file that matches the audience; edit before posting if needed. All drafts pass `writer/scripts/lint.py --scan-code-blocks` cleanly except for the deliberate examples that quote banned patterns.
+Per-platform copy-paste drafts, current as of v2.20.0 — 41 skills, 25 linter categories, the AI-media half and the orchestrators.
+
+Pick the file that matches the audience and edit before posting. Every draft quotes the patterns it describes, so linting one for slop measures the examples rather than the copy; the files are marked accordingly. Tweet lengths are verified by `scripts/check-tweet-length.py`.
 
 ## Drafts
 
 | Platform | File | Length |
 | --- | --- | --- |
-| X / Twitter — single tweet | [`launch-posts/x-thread.md`](launch-posts/x-thread.md) | 279 chars |
-| X / Twitter — 9-tweet thread | [`launch-posts/x-thread.md`](launch-posts/x-thread.md) | thread |
+| X / Twitter — single tweet | [`launch-posts/x-thread.md`](launch-posts/x-thread.md) | 264 chars |
+| X / Twitter — 10-tweet thread | [`launch-posts/x-thread.md`](launch-posts/x-thread.md) | all ≤280, verified |
 | LinkedIn — long post | [`launch-posts/linkedin.md`](launch-posts/linkedin.md) | ~1500 chars |
 | Hacker News — Show HN + body | [`launch-posts/hacker-news.md`](launch-posts/hacker-news.md) | ~2200 chars |
 | Reddit (r/ClaudeAI, r/programming, r/copywriting) | [`launch-posts/reddit.md`](launch-posts/reddit.md) | per-sub variants |
@@ -34,15 +37,17 @@ Grammarly catches grammar. LanguageTool catches typos and basic style. Hemingway
 
 **Q: Why a regex linter? Won't an LLM judge better?**
 
-For pre-commit / CI gating, regex wins: 50ms vs 5-10s, no API cost, deterministic, no LLM dependence. For nuanced rewriting, the wrappers DO use the LLM (via Claude Code) — that's where context matters. The linter is the floor; the wrappers are the ceiling.
+For pre-commit and CI gating, regex wins: ~80ms against five to ten seconds, no API cost, deterministic, no network. For nuanced rewriting the wrappers do use the model, because that is where context matters. The linter is the floor; the wrappers are the ceiling.
+
+There is also a class regex handles better than a judge would: chatbot copy-paste artifacts. A model asked "was this pasted from ChatGPT" reasons about it. A regex either finds `turn0search3` or does not.
 
 **Q: Why so many skills instead of one big one?**
 
-Discovery. Claude Code matches user requests against the `description:` field. A single mega-skill would match too broadly and hurt precision. Splitting lets each skill have a sharp discriminator. The boundary is intentional, not aesthetic. See `docs/COMPOSING.md` for 14 named recipes showing how the 17 skills chain into workflows.
+Discovery. Claude Code matches user requests against the `description:` field. A single mega-skill would match too broadly and hurt precision. Splitting lets each skill carry a sharp discriminator, so the boundary is a discovery contract rather than taste. See `docs/COMPOSING.md` for the named recipes showing how the 41 skills chain into workflows.
 
 **Q: Russian-first sounds limiting. What about English?**
 
-EN coverage is now first-class — all 28 linter categories have EN patterns (the marketing-specific set added in v1.8 is EN-led). On synthetic EN neuroslop, the linter fires 54 hits across 18 categories. 14 of 17 skills support both languages. The 3 RU-only skills are author-/language-specific (prose-edit for Russian fiction, essay-write for Russian non-fiction structure, pelevin-digression).
+English is first-class. The catalogue carries 25 RU categories plus 18 EN-specific signatures, and the marketing set is EN-led. Most skills support both languages; the RU-only ones are language-specific by nature — prose-edit for Russian fiction, essay-write for Russian non-fiction structure, pelevin-digression.
 
 **Q: How do I add my own rules?**
 

@@ -1,15 +1,18 @@
 # Substack / personal blog (long form)
 
+<!-- lint-role: catalogue -->
+<!-- Launch copy quotes the patterns it describes, so linting it for slop measures the examples. -->
+
 ```markdown
 # I'm tired of my writing sounding like Claude
 
 I've been writing with LLMs for two years. The output saves time. The output also reads more and more like everyone else's LLM output. "It's important to note that..." "delve into..." "rich tapestry of..." "navigate the complexities..." "we're excited to announce..." "revolutionary, game-changing..." — every LinkedIn post, every product update, every newsletter.
 
-So I built a tool that strips them. Then I extended it. Now it's 17 Claude Code skills, MIT-licensed, with one curl to install.
+So I built a tool that strips them. Then I kept extending it. It is now 41 Claude Code skills, MIT-licensed, one curl to install.
 
 ## The shape
 
-The base is a ~500-line Python regex linter — `writer/scripts/lint.py`. No LLM call. Pure regex, ~50ms on a 5,000-word file. It catches 28 categories of LLM-prose tells:
+The base is a Python regex linter — `writer/scripts/lint.py`, about a thousand lines. No LLM call, no dependencies, roughly 80ms on a 4,000-word file. It carries 25 catalogued categories of LLM-prose tells:
 
 - **Filler intros** — "In today's fast-paced world...", "In a world where...", "As we all know..."
 - **AI bridges** — "Furthermore", "Moreover", "Additionally", "In conclusion" as paragraph openers
@@ -17,16 +20,17 @@ The base is a ~500-line Python regex linter — `writer/scripts/lint.py`. No LLM
 - **Intensifier ladders** — "truly remarkable", "absolutely critical", "deeply important", "incredibly powerful"
 - **Balance hedges** — "while there are valid points on both sides", "on one hand... on the other hand", "both perspectives have merit"
 - **GPT filler** — "It's important to note", "It's worth noting", "Let's delve into", "Bear in mind"
-- **Marketing hype** — "revolutionary", "game-changing", "world-class", "industry-leading", "cutting-edge", "best-in-class" (new in v1.8 — catches the patterns that landing-page LLMs default to)
+- **Marketing hype** — "revolutionary", "game-changing", "world-class", "industry-leading", "cutting-edge", "best-in-class" — the register landing-page LLMs default to
 - **Empty CTAs** — "click here", "learn more", "get started" (alone)
 - **Weak openers** — "We're excited to announce", "We're thrilled to share"
 - **Vague benefits** — "save time", "boost productivity", "get more done"
-- Plus 18 more: comma-splice, em-dash overuse, double-negation, nominalization, pseudo-causal bridges, vague-person ("some experts say"), pseudo-science triggers, AI triplets, synthetic-authenticity templates...
+- Plus the rest: comma-splice, double negation, nominalization, pseudo-causal bridges, vague attribution ("some experts say"), pseudo-science triggers, AI triplets, synthetic-authenticity templates, and a pseudo-therapeutic register ("and that's okay", "you're not alone")
 
 Sample output, on a synthetic neuroslop fixture (the kind of text Claude produces if you ask "write a paragraph about AI"):
 
 \`\`\`
 writer-lint: neuroslop suspected (54 hits)
+gate passed: no hard bans.
 
 By category:
   STOCK_METAPHOR         6
@@ -44,11 +48,11 @@ By severity:
   nit      2
 \`\`\`
 
-54 hits across 18 categories in 300 words. That's typical first-draft LLM output.
+54 hits across 18 categories in 443 words. That is ordinary first-draft LLM output, not a caricature.
 
 ## The wrappers
 
-The linter alone is useful as a CI gate. But for actual editing, twelve wrappers compose on top:
+The linter alone works as a CI gate. For actual editing, 21 wrappers compose on top. A selection:
 
 **Prose** (5):
 - `viral-text` — generates social posts with EN viral hook patterns + numbered points + NLP question + CTA. Strips clichés.
@@ -67,8 +71,18 @@ The linter alone is useful as a CI gate. But for actual editing, twelve wrappers
 - `cold-email` — first-touch, follow-up, intro-request, re-engage. 5-block structure (hook / value / ask / easy-yes / sign-off). ≤120-word budget. Banned ceremony patterns.
 
 **Visual prompts** (2):
-- `image-prompt` — Midjourney / DALL-E / Flux / Nano Banana / Stable Diffusion. 6-part formula (subject + setting + style + lighting + camera + texture), per-model deltas, negative prompts.
+- `image-prompt` — Midjourney, Flux, Imagen, Nano Banana Pro, gpt-image-2, Ideogram, Seedream and more. Six-part formula (subject, setting, style, lighting, camera, texture), per-model deltas, negative prompts.
 - `video-prompt` — Kling / Veo / Sora / Runway / Pika / Hailuo / Luma. CHARACTER FIRST law, beat structure (Beat 1/2/3), exact camera vocabulary, pacing modes.
+
+## The other half: AI media
+
+Somewhere along the way this stopped being only a prose project.
+
+There are prompt skills for image, video and music — 14, 20 and 10 model families respectively — each encoding what that specific model responds to rather than a generic template. Then an optional `--execute` layer that stops producing paste-ready text and actually calls the vendor API, saving real PNGs, MP4s and MP3s. 32 providers sit behind one interface.
+
+That layer spends your money, so it confirms first. A single call estimated over ten cents prompts before running; a batch asks once for the aggregate rather than once per item, and warns when the total exceeds a per-modality budget. The price table the estimate uses is the same one the published docs are generated from, so the number you read is the number you get charged.
+
+On top of both halves sit 13 orchestrators. `research-brief` gathers a topic with citations. `carousel-builder` turns that into an eight-slide deck with one consistent visual style and ready-to-post captions. `reel-builder` turns it into a vertical video with matched music, stitched with ffmpeg. `proposal-maker` takes a raw price list and produces an HTML commercial proposal styled from the client's own website, prices and links kept exact.
 
 ## The read-only linters
 
@@ -102,7 +116,7 @@ It doesn't replace your voice. It strips the noise so your voice can land.
 
 It doesn't catch every false positive. The regex set is high-recall by design.
 
-It doesn't work as one mega-skill. Each skill is sharp and discriminating — Claude Code matches user requests against the `description:` field, and overlapping descriptions hurt discovery.
+It doesn't work as one mega-skill. Claude Code matches requests against each skill's `description:` field, so overlapping descriptions make the wrong skill fire. The boundaries are a discovery contract, not taste.
 
 ## Repo
 
