@@ -643,12 +643,19 @@ class Report:
         return "fail" if self.hard_bans else "pass"
 
     def verdict(self) -> tuple[int, str]:
-        # Nit-only hits don't escalate verdict.
-        non_nit_total = sum(1 for h in self.hits if h.severity != "nit")
-        cats = {}
-        for h in self.hits:
-            if h.severity == "nit":
-                continue
+        """Density of probabilistic slop signals. Independent of the gate.
+
+        Blockers are excluded on purpose. They are pass/fail facts, not evidence
+        of machine authorship, and counting them wrecked the verdict: a Russian
+        document with forty-eight legitimate em-dashes read as "neuroslop
+        suspected" while carrying a single actual slop marker. Density answers
+        "does this read like a model wrote it"; the gate answers "does this break
+        a house rule". Mixing them lets a typography choice masquerade as slop.
+        """
+        counted = [h for h in self.hits if h.severity == "caution"]
+        non_nit_total = len(counted)
+        cats: dict[str, int] = {}
+        for h in counted:
             cats[h.category] = cats.get(h.category, 0) + 1
         max_per_cat = max(cats.values(), default=0)
         if non_nit_total >= 5 or max_per_cat >= 3:
@@ -962,7 +969,13 @@ def main(argv: list[str] | None = None) -> int:
                 indent=2,
             )
         )
-    elif not (args.quiet and code == 0 and not report.hard_bans):
+    # --quiet means quiet: emit only when the density verdict is not clean.
+    # Hard bans still set exit code 3 and still print on a normal run — but a
+    # batch caller (the pre-commit hook) asked for silence and gets it, and
+    # decides for itself what to do with the exit code. Printing the full report
+    # for every hard ban buried each commit under hundreds of lines, because the
+    # repo's own Russian documentation uses em-dashes throughout.
+    elif not (args.quiet and code == 0):
         sys.stdout.write(format_human(report))
 
     # A hard ban outranks the density verdict: a text can be sparse in slop and

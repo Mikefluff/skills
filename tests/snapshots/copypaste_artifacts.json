@@ -1,5 +1,5 @@
 {
-  "verdict": "neuroslop suspected",
+  "verdict": "clean",
   "gate": "fail",
   "total": 7,
   "hard_bans": 7,

@@ -9,6 +9,16 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+### Fixed — the gate was not actually orthogonal to the verdict
+
+Two defects in this release's own work, both surfaced by the pre-commit hook during the docs audit.
+
+**Hard bans counted toward the density verdict.** They were given `blocker` severity, and `verdict()` counted every non-nit hit. So `docs/walkthroughs/canon-check-audit.md` — one real slop marker, forty-eight ordinary Russian em-dashes — read as "neuroslop suspected". Before this release it read clean. Density now counts `caution` hits only. A typography choice is a house-rule violation, not evidence that a model wrote the text.
+
+**Exit code 3 masked exit code 2.** `main()` returned `3 if hard_bans else code`, so a file that was both slop-dense *and* carried a hard ban returned 3 — and the pre-commit hook, which blocks on 2, let it through. Hard bans made the hook weaker. The hook now reads `verdict` and `gate` from `--json` as separate signals: it blocks on a `neuroslop suspected` verdict and reports a failed gate without blocking, because the gate targets prose deliverables and this repo's own Russian documentation legitimately uses em-dashes.
+
+`--quiet` also stopped being quiet, printing the full report whenever a hard ban existed. Every commit was buried under hundreds of lines. It now honours its documented contract — emit only when the density verdict is not clean — and callers use the exit code.
+
 ### Fixed — documentation audit before going public
 
 Counts that had drifted, phantom references, and rotted paths a link checker could not see.

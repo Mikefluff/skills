@@ -40,6 +40,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 staged_md="$(git diff --cached --name-only --diff-filter=ACMR -- '*.md' || true)"
 if [ -n "$staged_md" ]; then
   fail=0
+  hard_ban_files=""
   while IFS= read -r f; do
     [ -f "$ROOT/$f" ] || continue
     case "$f" in
@@ -60,15 +61,31 @@ if [ -n "$staged_md" ]; then
     if head -40 "$ROOT/$f" | grep -q '<!-- lint-role: catalogue -->'; then
       continue
     fi
-    code=0
-    python3 "$ROOT/writer/scripts/lint.py" "$ROOT/$f" --quiet || code=$?
-    if [ "$code" = "2" ]; then
+    # Read verdict and gate as separate signals. The exit code cannot carry both:
+    # a hard ban returns 3, which would otherwise mask a "neuroslop suspected"
+    # density verdict and let the worse file through.
+    read -r verdict gate <<EOF
+$(python3 "$ROOT/writer/scripts/lint.py" "$ROOT/$f" --json 2>/dev/null \
+  | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["verdict"].split()[0], d["gate"])' 2>/dev/null \
+  || echo "clean pass")
+EOF
+    # The gate targets prose deliverables. This repo's own Russian documentation
+    # uses em-dashes throughout — references/typography.md scopes the ban to
+    # "прозы и виральных постов". Worth naming, not worth refusing the commit.
+    if [ "$gate" = "fail" ]; then
+      hard_ban_files="$hard_ban_files $f"
+    fi
+    if [ "$verdict" = "neuroslop" ]; then
       echo "pre-commit: $f flagged as neuroslop suspected — fix, add"
       echo "  <!-- lint-role: catalogue -->  if it quotes patterns on purpose,"
       echo "  or bypass once with --no-verify"
       fail=1
     fi
   done <<<"$staged_md"
+  if [ -n "$hard_ban_files" ]; then
+    echo "pre-commit: hard bans present (not blocking):$hard_ban_files"
+    echo "  run  python3 writer/scripts/lint.py <file>  to see them"
+  fi
   if [ "$fail" = "1" ]; then
     exit 1
   fi
