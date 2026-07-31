@@ -115,7 +115,11 @@ def render() -> str:
     add("|---|---|---|")
     for modality, budget in _DEFAULT_BUDGETS.items():
         add(f"| {modality} | ${budget} | `{_BUDGET_ENV_OVERRIDE[modality]}` |")
-    add("")
+
+    # Section separators leave a trailing blank; joined with the final newline it
+    # becomes a double blank line, which is markdownlint MD012.
+    while out and not out[-1].strip():
+        out.pop()
     return "\n".join(out) + "\n"
 
 

@@ -121,6 +121,12 @@ Check 5 in `check-docs-consistency.sh` scanned only `[Unreleased]` for new-skill
 
 Placeholders are skipped rather than reported: a target containing angle brackets, `...` or a bare curly slot documents a format, it is not a link.
 
+### Fixed — markdownlint ran only in CI, so it failed only after push
+
+The generated pricing table ended on a double blank line (MD012). Local smoke had no markdownlint step, so the first CI run on this release failed on a one-character problem that could not be seen before pushing.
+
+Smoke now runs it as step 8/9, pinned to `markdownlint-cli2@0.13.0` — the version `markdownlint-cli2-action@v16` uses. A newer local version reports rules CI does not have (MD060 fires across 157 files) and would have made the step permanently red. Tracked files only, since `generated/` is ignored.
+
 ### Fixed — HEADING_ECHO flagged ordinary documentation
 
 Caught by the pre-commit hook refusing this very release, which is what the hook is for.

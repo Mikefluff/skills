@@ -103,4 +103,3 @@ the total exceeds the per-modality budget:
 | carousel | $1.50 | `SKILLS_CAROUSEL_BUDGET` |
 | reel | $4.00 | `SKILLS_REEL_BUDGET` |
 | research | $0.00 | `SKILLS_RESEARCH_BUDGET` |
-
