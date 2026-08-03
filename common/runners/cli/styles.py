@@ -26,16 +26,17 @@ from __future__ import annotations
 import argparse
 import difflib
 import os
-import shutil
 import subprocess
 import sys
-import time
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from .. import styles as styles_mod
 from .. import styles_authoring
 from .. import styles_validate
 from ..styles import Modality
+from ._styles_submit import _cmd_submit
 
 
 _VALID_MODALITIES: tuple[Modality, ...] = ("carousel", "video", "music")
@@ -55,57 +56,69 @@ def _id_arg(parser: argparse.ArgumentParser, *, optional: bool = False) -> None:
         parser.add_argument("style_id")
 
 
+_STATUS_MARKER = {
+    "bundled":   "\033[2m·\033[0m bundled    ",
+    "user-only": "\033[32m+\033[0m user-only ",
+    "override":  "\033[33m*\033[0m override   ",
+    "missing":   "  missing    ",
+}
+
+
+def _ids_in(directory: Path) -> set[str]:
+    """Style ids in one modality directory. `_template.md` and READMEs are not styles."""
+    if not directory.is_dir():
+        return set()
+    return {
+        p.stem for p in directory.glob("*.md")
+        if not p.name.startswith("_") and p.name.lower() != "readme.md"
+    }
+
+
+def _listed_ids(modality: str, args: argparse.Namespace) -> list[str]:
+    bundled = _ids_in(styles_authoring.bundled_dir() / modality)
+    user = _ids_in(styles_authoring.user_dir() / modality)
+    if args.user_only:
+        return sorted(user)
+    if args.bundled_only:
+        return sorted(bundled)
+    return sorted(bundled | user)
+
+
+def _print_modality(modality: str, ids: list[str]) -> None:
+    print(f"# {modality}  ({len(ids)} style(s))")
+    print()
+    for sid in ids:
+        status = styles_authoring.resolution_status(sid, modality)
+        try:
+            display = styles_mod.load_style(sid, modality).display
+        except Exception:  # noqa: BLE001 — one broken file must not hide the list
+            display = "(parse error)"
+        print(f"  {_STATUS_MARKER.get(status, status)}  {sid:<32s}  {display}")
+    print()
+
+
+def _print_empty_hint(args: argparse.Namespace) -> None:
+    if args.user_only:
+        print(f"(no user-override styles in {styles_authoring.user_dir()})")
+        print()
+        print("Add one with:  skills-styles add <modality> <id>")
+    elif args.bundled_only:
+        print(f"(no bundled styles in {styles_authoring.bundled_dir()})")
+    else:
+        print("(no styles found)")
+
+
 def _cmd_list(args: argparse.Namespace) -> int:
     modalities = [args.modality] if args.modality else list(_VALID_MODALITIES)
-    bundled_root = styles_authoring.bundled_dir()
-    user_root = styles_authoring.user_dir()
-    any_printed = False
+    printed = False
     for mod in modalities:
-        # Discover all ids in both dirs
-        bundled_ids = set()
-        if (bundled_root / mod).is_dir():
-            bundled_ids = {p.stem for p in (bundled_root / mod).glob("*.md") if not p.name.startswith("_") and p.name.lower() != "readme.md"}
-        user_ids = set()
-        if (user_root / mod).is_dir():
-            user_ids = {p.stem for p in (user_root / mod).glob("*.md") if not p.name.startswith("_") and p.name.lower() != "readme.md"}
-
-        if args.user_only:
-            all_ids = sorted(user_ids)
-        elif args.bundled_only:
-            all_ids = sorted(bundled_ids)
-        else:
-            all_ids = sorted(bundled_ids | user_ids)
-
-        if not all_ids:
+        ids = _listed_ids(mod, args)
+        if not ids:
             continue
-
-        any_printed = True
-        print(f"# {mod}  ({len(all_ids)} style(s))")
-        print()
-        for sid in all_ids:
-            status = styles_authoring.resolution_status(sid, mod)
-            marker = {
-                "bundled":   "\033[2m·\033[0m bundled    ",
-                "user-only": "\033[32m+\033[0m user-only ",
-                "override":  "\033[33m*\033[0m override   ",
-                "missing":   "  missing    ",
-            }.get(status, status)
-            try:
-                st = styles_mod.load_style(sid, mod)
-                display = st.display
-            except Exception:  # noqa: BLE001
-                display = "(parse error)"
-            print(f"  {marker}  {sid:<32s}  {display}")
-        print()
-    if not any_printed:
-        if args.user_only:
-            print(f"(no user-override styles in {styles_authoring.user_dir()})")
-            print()
-            print("Add one with:  skills-styles add <modality> <id>")
-        elif args.bundled_only:
-            print(f"(no bundled styles in {styles_authoring.bundled_dir()})")
-        else:
-            print("(no styles found)")
+        printed = True
+        _print_modality(mod, ids)
+    if not printed:
+        _print_empty_hint(args)
     return 0
 
 
@@ -254,217 +267,58 @@ def _cmd_path(args: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_submit(args: argparse.Namespace) -> int:
-    # 1. Validate first
-    try:
-        style = styles_mod.load_style(args.style_id, args.modality)
-    except FileNotFoundError as exc:
-        print(f"  ✗ {exc}", file=sys.stderr)
-        return 2
-    issues = styles_validate.validate_style(style)
-    if issues and not args.force:
-        print(f"  ✗ style has {len(issues)} validation issue(s):", file=sys.stderr)
-        for i in issues:
-            print(f"    - {i}", file=sys.stderr)
-        print(f"\n  Fix with: skills-styles edit {args.modality} {args.style_id}", file=sys.stderr)
-        print(f"  Or pass --force to submit anyway (not recommended).", file=sys.stderr)
-        return 2
 
-    # 2. Check this is a user style, not bundled
-    status = styles_authoring.resolution_status(args.style_id, args.modality)
-    if status == "bundled":
-        print(f"  · '{args.style_id}' is already in the bundled library — nothing to submit.", file=sys.stderr)
-        return 0
-    if status == "override":
-        print(f"  · '{args.style_id}' is a user override of a bundled style.", file=sys.stderr)
-        print(f"    The PR will REPLACE the bundled version. Make sure that's intended.", file=sys.stderr)
-        if not args.force and not _confirm("    Continue?"):
-            return 0
-
-    source = styles_authoring.user_dir() / args.modality / f"{args.style_id}.md"
-    if not source.is_file():
-        print(f"  ✗ user-override file not found: {source}", file=sys.stderr)
-        return 2
-
-    # 3. Build submission package
-    ts = time.strftime("%Y%m%d-%H%M%S")
-    pkg_dir = Path(f"./style-submission-{ts}-{args.modality}-{args.style_id}").resolve()
-    target_in_pkg = pkg_dir / "common" / "style-library" / args.modality / f"{args.style_id}.md"
-    target_in_pkg.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, target_in_pkg)
-
-    pr_desc = _build_pr_description(style, args.modality, args.style_id, status)
-    (pkg_dir / "PR-DESCRIPTION.md").write_text(pr_desc, encoding="utf-8")
-    (pkg_dir / "README.md").write_text(_build_submission_readme(args.modality, args.style_id, status), encoding="utf-8")
-
-    print(f"  ✓ Submission package ready: {pkg_dir}")
-    print()
-    print(f"  Contents:")
-    print(f"    common/style-library/{args.modality}/{args.style_id}.md")
-    print(f"    PR-DESCRIPTION.md")
-    print(f"    README.md  (step-by-step manual PR instructions)")
-    print()
-    print(f"  Next steps (manual, takes ~2 minutes):")
-    print(f"    1. Fork https://github.com/Mikefluff/skills on GitHub")
-    print(f"    2. Clone your fork, copy {target_in_pkg} into <fork>/common/style-library/{args.modality}/")
-    print(f"    3. git checkout -b style/{args.modality}-{args.style_id}")
-    print(f"    4. git add common/style-library/{args.modality}/{args.style_id}.md")
-    print(f'    5. git commit -m "feat(style-library): add {args.modality} style \\"{style.display}\\""')
-    print(f"    6. git push origin style/{args.modality}-{args.style_id}")
-    print(f"    7. gh pr create --body-file {pkg_dir / 'PR-DESCRIPTION.md'}")
-    print()
-    print(f"  Full step-by-step: cat {pkg_dir / 'README.md'}")
-    return 0
+def _list_flags(parser: argparse.ArgumentParser) -> None:
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--user-only", action="store_true", help="show only user-overrides")
+    group.add_argument("--bundled-only", action="store_true", help="show only bundled styles")
 
 
-def _build_pr_description(style: "styles_mod.Style", modality: str, style_id: str, status: str) -> str:
-    action = "replace bundled" if status == "override" else "add"
-    return f"""## What
-
-{action.title()} `common/style-library/{modality}/{style_id}.md` ({style.display}).
-
-## Why
-
-<Explain the gap this fills: what use case or aesthetic is currently not served by
-any bundled style? What problem does this style solve for the user?>
-
-## Reviewer checklist
-
-- [ ] Frontmatter matches the schema (run `skills-styles validate {modality} {style_id}`)
-- [ ] `Style anchor` is model-agnostic (works with all relevant providers)
-- [ ] No copyrighted living artist names anywhere in the prompt-facing fields
-- [ ] No real-brand mimicry in anchor text
-- [ ] Mood + tags don't duplicate existing styles' identity
-- [ ] Color palette / typography are concrete (not vibes)
-- [ ] Caption tone reads as a one-line directive, not generic advice
-- [ ] If `text_friendly: true`, the text-in-image anchor includes typography specs
-
-## Style metadata
-
-- **id**: `{style_id}`
-- **display**: {style.display}
-- **mood**: {', '.join(style.mood) or '(none)'}
-- **tags**: {', '.join(style.tags) or '(none)'}
-- **source**: built locally with `skills-styles`
-
-## Sample usage
-
-After this merges, users can apply the style via:
-
-```
-carousel-builder --topic "<example>" --style {style_id} --execute
-```
-
-(adjust for video / music modality as appropriate)
-
-## Out-of-scope for this PR
-
-- This PR is library-only — no skill behaviour or runner-code changes.
-"""
+def _add_flags(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--from", dest="source_id", default=None,
+        help="copy an existing style as a starting point",
+    )
+    parser.add_argument("--force", action="store_true", help="overwrite if file exists")
 
 
-def _build_submission_readme(modality: str, style_id: str, status: str) -> str:
-    return f"""# Submission package — {modality}/{style_id}
-
-This directory contains everything you need to submit your style upstream.
-
-## Files
-
-- `common/style-library/{modality}/{style_id}.md` — the style file, at the EXACT path it needs to land in the repo
-- `PR-DESCRIPTION.md` — PR body template (fill in the "Why" section)
-- `README.md` — this file
-
-## Manual PR submission (2 minutes)
-
-### 1. Fork the repo
-
-Go to https://github.com/Mikefluff/skills and click "Fork".
-
-### 2. Clone your fork
-
-```bash
-cd /tmp
-git clone https://github.com/<your-username>/skills.git
-cd skills
-git remote add upstream https://github.com/Mikefluff/skills.git
-```
-
-### 3. Sync with upstream
-
-```bash
-git fetch upstream
-git checkout main
-git merge upstream/main
-git push origin main
-```
-
-### 4. Create a branch
-
-```bash
-git checkout -b style/{modality}-{style_id}
-```
-
-### 5. Copy the style file
-
-From this submission package into the fork:
-
-```bash
-cp common/style-library/{modality}/{style_id}.md <path-to-fork>/common/style-library/{modality}/
-```
-
-### 6. Verify it loads
-
-```bash
-cd <path-to-fork>
-bash scripts/validate.sh
-```
-
-Should print `validate: OK`.
-
-### 7. Commit
-
-```bash
-git add common/style-library/{modality}/{style_id}.md
-git commit -m 'feat(style-library): add {modality} style {style_id}'
-```
-
-### 8. Push
-
-```bash
-git push origin style/{modality}-{style_id}
-```
-
-### 9. Open the PR
-
-```bash
-gh pr create --title 'feat(style-library): add {modality} style {style_id}' \\
-  --body-file ../style-submission-*/PR-DESCRIPTION.md
-```
-
-Or open via the GitHub web UI — it'll detect the branch and offer "Compare & pull request".
-
-## Quality bar
-
-PRs are reviewed manually. Things that get a request-for-changes:
-
-- Style anchor too generic / vague (must be specific enough to lock the aesthetic)
-- Frontmatter incomplete or types wrong
-- Copyrighted living-artist names in any prompt-facing field
-- Real-brand mimicry in anchor text ("Apple's WWDC look")
-- Duplicate of an existing bundled style with marginal differences
-- Hype words ("stunning", "amazing", "revolutionary")
-
-If the style genuinely adds something new (a directorial grammar / aesthetic / genre not covered), it has a high chance of being merged.
-"""
+def _remove_flags(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--force", action="store_true", help="confirm deletion")
 
 
-def _confirm(prompt: str) -> bool:
-    if not sys.stdin.isatty():
-        return False
-    sys.stderr.write(f"{prompt} [y/N] ")
-    sys.stderr.flush()
-    ans = sys.stdin.readline().strip().lower()
-    return ans in {"y", "yes"}
+def _submit_flags(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--force", action="store_true", help="skip validation gate / confirmations"
+    )
+
+
+@dataclass(frozen=True)
+class _Sub:
+    """One subcommand. Nearly all of them are just <modality> <id> plus a handler."""
+
+    name: str
+    help: str
+    handler: Callable[[argparse.Namespace], int]
+    optional_modality: bool = False
+    optional_id: bool = False
+    wants_id: bool = True
+    extra: Callable[[argparse.ArgumentParser], None] | None = None
+
+
+# Order here is the order in --help, so it is the order a reader meets them in.
+_SUBCOMMANDS: tuple[_Sub, ...] = (
+    _Sub("list", "list styles", _cmd_list,
+         optional_modality=True, wants_id=False, extra=_list_flags),
+    _Sub("show", "print a style file", _cmd_show),
+    _Sub("add", "create a new user style from template or copy", _cmd_add, extra=_add_flags),
+    _Sub("edit", "open user-override in $EDITOR", _cmd_edit),
+    _Sub("remove", "delete a user-override", _cmd_remove, extra=_remove_flags),
+    _Sub("validate", "frontmatter + body schema check", _cmd_validate),
+    _Sub("diff", "diff user-override vs bundled", _cmd_diff),
+    _Sub("path", "print resolved path(s)", _cmd_path,
+         optional_modality=True, optional_id=True),
+    _Sub("submit", "build an upstream-PR submission package", _cmd_submit, extra=_submit_flags),
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -474,56 +328,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_list = sub.add_parser("list", help="list styles")
-    _modality_arg(p_list, optional=True)
-    group = p_list.add_mutually_exclusive_group()
-    group.add_argument("--user-only", action="store_true", help="show only user-overrides")
-    group.add_argument("--bundled-only", action="store_true", help="show only bundled styles")
-    p_list.set_defaults(func=_cmd_list)
-
-    p_show = sub.add_parser("show", help="print a style file")
-    _modality_arg(p_show)
-    _id_arg(p_show)
-    p_show.set_defaults(func=_cmd_show)
-
-    p_add = sub.add_parser("add", help="create a new user style from template or copy")
-    _modality_arg(p_add)
-    _id_arg(p_add)
-    p_add.add_argument("--from", dest="source_id", default=None, help="copy an existing style as a starting point")
-    p_add.add_argument("--force", action="store_true", help="overwrite if file exists")
-    p_add.set_defaults(func=_cmd_add)
-
-    p_edit = sub.add_parser("edit", help="open user-override in $EDITOR")
-    _modality_arg(p_edit)
-    _id_arg(p_edit)
-    p_edit.set_defaults(func=_cmd_edit)
-
-    p_remove = sub.add_parser("remove", help="delete a user-override")
-    _modality_arg(p_remove)
-    _id_arg(p_remove)
-    p_remove.add_argument("--force", action="store_true", help="confirm deletion")
-    p_remove.set_defaults(func=_cmd_remove)
-
-    p_validate = sub.add_parser("validate", help="frontmatter + body schema check")
-    _modality_arg(p_validate)
-    _id_arg(p_validate)
-    p_validate.set_defaults(func=_cmd_validate)
-
-    p_diff = sub.add_parser("diff", help="diff user-override vs bundled")
-    _modality_arg(p_diff)
-    _id_arg(p_diff)
-    p_diff.set_defaults(func=_cmd_diff)
-
-    p_path = sub.add_parser("path", help="print resolved path(s)")
-    _modality_arg(p_path, optional=True)
-    _id_arg(p_path, optional=True)
-    p_path.set_defaults(func=_cmd_path)
-
-    p_submit = sub.add_parser("submit", help="build an upstream-PR submission package")
-    _modality_arg(p_submit)
-    _id_arg(p_submit)
-    p_submit.add_argument("--force", action="store_true", help="skip validation gate / confirmations")
-    p_submit.set_defaults(func=_cmd_submit)
+    for spec in _SUBCOMMANDS:
+        p = sub.add_parser(spec.name, help=spec.help)
+        _modality_arg(p, optional=spec.optional_modality)
+        if spec.wants_id:
+            _id_arg(p, optional=spec.optional_id)
+        if spec.extra is not None:
+            spec.extra(p)
+        p.set_defaults(func=spec.handler)
 
     return parser
 
