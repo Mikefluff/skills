@@ -14,8 +14,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .providers.base import Modality, Provider
+    from .publishers.base import Publisher
 
 _REGISTRY: dict[str, "Provider"] = {}
+_PUBLISHERS: dict[str, "Publisher"] = {}
 
 
 def register(provider: "Provider") -> None:
@@ -81,4 +83,51 @@ def load_all_providers() -> None:
         replicate,
         runway,
         suno,
+    )
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# Publisher registry — same self-registration pattern, separate namespace.
+# A publisher named "instagram" must not collide with a provider slug.
+# ───────────────────────────────────────────────────────────────────────────
+
+
+def register_publisher(publisher: "Publisher") -> None:
+    _PUBLISHERS[publisher.name] = publisher
+
+
+def get_publisher(name: str) -> "Publisher":
+    try:
+        return _PUBLISHERS[name]
+    except KeyError as exc:
+        known = ", ".join(sorted(_PUBLISHERS)) or "(none registered yet)"
+        raise KeyError(f"unknown platform '{name}'. Known: {known}") from exc
+
+
+def all_publishers() -> list["Publisher"]:
+    return sorted(_PUBLISHERS.values(), key=lambda p: p.name)
+
+
+def load_all_publishers() -> None:
+    """Force-import every publisher module so they self-register.
+
+    Mirrors load_all_providers(), including the ~/.skills.env pull — app-level
+    creds (META_APP_ID, TELEGRAM_BOT_TOKEN, ...) live there alongside the
+    generation keys. Short-lived user tokens live in ~/.skills-tokens.json and
+    are read on demand by the tokens module, not loaded into os.environ.
+    """
+    try:
+        from . import keysfile
+
+        keysfile.load_into_env(override=False)
+    except Exception:  # noqa: BLE001 — never break runners over keysfile errors
+        pass
+    from .publishers import (  # noqa: F401
+        instagram,
+        linkedin,
+        telegram,
+        threads,
+        tiktok,
+        x,
+        youtube,
     )

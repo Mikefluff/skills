@@ -21,7 +21,7 @@ For the project overview + install + the skills table, go back to the top-level 
 | Doc | What it's for | Length |
 |---|---|---|
 | [SKILL-INDEX.md](SKILL-INDEX.md) | Every skill indexed by layer / domain / language. Auto-generated from `skills.json` | ~75 lines |
-| [COMPOSING.md](COMPOSING.md) | How the 41 skills compose — dependency graph + named workflows + data flow table + anti-patterns | ~290 lines |
+| [COMPOSING.md](COMPOSING.md) | How the 42 skills compose — dependency graph + named workflows + data flow table + anti-patterns | ~290 lines |
 | [walkthroughs/](walkthroughs/) | 19 step-by-step recipes with categorized [index](walkthroughs/README.md) | ~200 lines each |
 | [LINTER-COVERAGE.md](LINTER-COVERAGE.md) | Auto-generated regex coverage table for the `writer` linter (25 categories) | ~50 lines |
 

@@ -9,6 +9,45 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+### Added — new skills
+
+- **`post-publisher`** (orchestrator). Publishes finished assets to Instagram, Threads, TikTok, X, YouTube, Telegram and LinkedIn through the official APIs. Composes with `carousel-builder` / `reel-builder` — it takes their output directory, reads `captions.md`, and sends it.
+
+### Added — the collection can finally publish what it makes
+
+Every skill here stopped at `./generated/`. Three separate places said so on purpose: `carousel-builder/SKILL.md` ("output is files you upload via the platform's UI / API"), `reel-builder/SKILL.md`, and `docs/walkthroughs/research-to-carousel-reel.md` ("that's a deliberate boundary — each platform's API has different OAuth flows"). The boundary was defensible when it was drawn and had simply stopped being: the OAuth flows differ, but they differ in ways one adapter layer absorbs.
+
+`common/runners/publishers/` is a sibling of `providers/`, not a subclass of it. A provider turns a prompt into bytes, costs money, and can be retried for free; a publisher takes bytes that exist and does something irreversible with them. Shoehorning the second into `generate(prompt, **kwargs) -> bytes` plus `estimate_cost()` would have inherited the wrong invariants. So there is no cost estimation in the publishing layer, and in its place there is `preflight()` — which every caller runs before `publish()`, and which is a concrete method rather than an abstract one precisely so a subclass cannot forget to call `super()` and skip the file-exists check.
+
+**Dry-run is the default and `--yes` is what leaves it.** That inverts the convention everywhere else in this repo, where `--yes` means "skip the cost prompt". The asymmetry is the point: a wasted generation costs cents, a wasted publish costs an audience. Even with `--yes`, each platform confirms separately — approving an Instagram post is not approval to also post to X.
+
+`posted.json` receipts sit next to the assets, keyed on (platform, content hash). Re-running the identical command is refused; editing the caption makes it new content and it goes through. The hash fingerprints media by name and size rather than bytes, because hashing a 1 GB video on every dry run would be absurd and the case worth catching is "ran the same command twice".
+
+State matters in that check, and a first pass that ignored it broke the workflow drafts exist for: staging a container, reviewing it, then publishing is the documented path for Meta and TikTok, and treating the draft as "already done" turned the second half into a `--force`. A publication is blocked only by a previous publication; a draft is blocked by either, since re-staging something already staged or already live has no purpose.
+
+Four platform-specific decisions worth recording:
+
+- **TikTok defaults to the inbox, not to publishing.** Direct posting requires passing TikTok's app audit; an unaudited app has every post silently forced to SELF_ONLY — the API returns success and nobody can see the post. That is the one failure mode in the set that reports itself as a success, so `--draft` routes to `/inbox/video/init/`, which needs no audit, and preflight warns loudly on the direct path.
+- **Instagram uses Instagram Login, not Facebook Login for Business.** The older route additionally requires a linked Facebook Page, which most people publishing their own content neither want nor need. Business/Creator is still mandatory — there is no API path to a personal account, and `references/browser-fallback.md` says so rather than implying one exists.
+- **The browser fallback is instructions, not code.** A Playwright robot holding social-network session cookies would be a worse thing to own than the problem it solves, and selectors rot on every redesign. It drives Claude in Chrome against the user's already-logged-in browser, stores nothing, and requires explicit consent per post.
+- **Meta drafts became genuinely two-step.** A staged container is only useful if you can publish it later, so `--publish-container <id>` exists. Without it `--draft` on Instagram would have been decorative.
+
+`common/runners/tokens.py` is a second credential store rather than an extension of `keysfile.py`. App credentials are long-lived and pasted by hand; user tokens expire in hours and arrive from an OAuth flow. Merging them would have meant sixteen generation providers carrying expired social tokens in `os.environ` at every runner startup. Tokens are never loaded into the environment — they are read on demand, refreshed transparently inside a 300-second skew window, and masked everywhere they are printed. `common/runners/atomicfile.py` now holds the secure-write helper both stores use.
+
+Also: `scripts/validate.sh` only resolved `references/*.md` links inside the same skill, so any cross-skill reference was reported broken. It now matches `../other-skill/references/*.md` too.
+
+144 new unit tests, none of which touch the network. Five of them exist because a review pass found the bugs they now pin: an explicit `--title` silently discarded on YouTube whenever the caption was empty (operator precedence — `(title or first_line) if text else "Untitled"`); a TikTok chunk plan that declared a 20 MB chunk for a 6 MB file, which TikTok rejects; Threads permanently unrefreshable because `tokens.py` hardcoded `"instagram"` as the one platform allowed to renew without a refresh token; a one-shot OAuth listener that a browser's `/favicon.ico` request could consume instead of the callback; and a partial-alt-text warning that the documentation described and the code did not implement.
+
+### Fixed — the npm package and the Docker image shipped a 17-skill subset
+
+Caught while deciding whether the release was safe to cut. Tagging `v*.*.*` triggers the Docker build, and the image would have gone out without `post-publisher` — along with 24 other skills.
+
+`Dockerfile` and `package.json` both listed the same seventeen directories: exactly the v1.x prose set, frozen since around v2.3 while twenty-five skills were added around them. `skills.json` advertised all forty-two, so `install.sh` running inside the container warned about twenty-five missing skills — inside the artifact meant to contain them. The Dockerfile's own header claimed it ships "all skill markdown", which had quietly stopped being true.
+
+The cost was never size. These are markdown directories; the rebuilt image is 117 MB and the skills contribute almost nothing to that. The subset was drift, not a decision.
+
+Both lists regenerated from `skills.json`, and `check-docs-consistency.sh` gained gate 7 to compare them against it. That gate is the actual fix — the lists drifted for eighteen releases precisely because nothing compared them to anything. Verified it fails by removing a skill from each and watching it name both.
+
 ### Fixed — nothing was checking the launch copy
 
 Caught by the user asking whether the rewritten posts had been run through the skills. They had not, and two layers of blindness met — both self-inflicted.

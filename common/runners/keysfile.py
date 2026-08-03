@@ -15,10 +15,10 @@ from __future__ import annotations
 
 import os
 import re
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import atomicfile
 
 KEYS_FILE = Path(os.environ.get("SKILLS_KEYS_FILE", str(Path.home() / ".skills.env")))
 _KV_RE = re.compile(r"^([A-Z][A-Z0-9_]*)\s*=\s*(.*)$")
@@ -50,11 +50,7 @@ def _strip_quotes(s: str) -> str:
 
 
 def ensure_secure_perms() -> None:
-    if KEYS_FILE.is_file():
-        try:
-            KEYS_FILE.chmod(0o600)
-        except OSError:
-            pass
+    atomicfile.ensure_secure_perms(KEYS_FILE)
 
 
 def read_all() -> list[KeyEntry]:
@@ -148,18 +144,7 @@ def load_into_env(*, override: bool = False) -> int:
 
 def _atomic_write(content: str) -> None:
     """Write KEYS_FILE atomically (write to temp + rename)."""
-    KEYS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp_path = tempfile.mkstemp(prefix=".skills.env.", dir=str(KEYS_FILE.parent))
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            fh.write(content)
-        os.replace(tmp_path, KEYS_FILE)
-    except Exception:
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
-        raise
+    atomicfile.write_secret_text(KEYS_FILE, content)
 
 
 def export_lines(*, mask_values: bool = False) -> list[str]:

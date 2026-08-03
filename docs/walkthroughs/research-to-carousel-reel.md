@@ -196,11 +196,33 @@ You now have:
 - 15-second vertical reel in `./generated/reel/.../final.mp4`
 - Research brief with cited sources at `./generated/research/...md` (useful for fact-checking comments)
 
-Upload manually:
-- LinkedIn: open the LinkedIn UI, attach 8 images, paste the caption from `captions.md`.
-- Instagram / TikTok: open the app, upload `final.mp4`, paste post caption.
+### Step 4 — publish
 
-The skills don't post for you — that's a deliberate boundary (each platform's API has different OAuth flows, and you may want to schedule via Buffer / Later / Notion).
+`post-publisher` takes either output directory and sends it. Nothing goes out
+without a confirmation: dry-run is the default, and `--yes` still asks per
+platform.
+
+```bash
+# see what would happen, change nothing
+post-publisher ./generated/carousel/<slug>/ --platform linkedin,instagram
+
+# stage the Instagram post without publishing it
+post-publisher ./generated/carousel/<slug>/ --platform instagram --draft --yes
+
+# the reel into TikTok's inbox, to finish in the app
+post-publisher ./generated/reel/<slug>/ --platform tiktok --draft --yes
+```
+
+The caption is read from `captions.md` automatically — check what it extracted
+in the dry-run preview before adding `--yes`.
+
+Accounts have to be connected once first; see
+[`post-publisher/references/oauth-setup.md`](../../post-publisher/references/oauth-setup.md).
+Telegram needs no OAuth and Threads is the simplest of the OAuth ones, so those
+are the right places to start. Where the API path is closed — an unaudited
+TikTok app, a personal Instagram account — uploading by hand is still the
+answer, and `references/browser-fallback.md` covers doing that with the browser
+while keeping the receipt honest.
 
 ---
 

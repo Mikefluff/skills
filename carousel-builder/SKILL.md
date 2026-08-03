@@ -27,7 +27,7 @@ This skill does NOT:
 - Compose the slides into a single tall image — Instagram / LinkedIn handle multi-image posts natively.
 - Add text overlays via a design tool — text either gets generated INSIDE the image (gpt-image-2 / Ideogram / Imagen) via `--text-mode embedded`, or is left to the user's editor (`--text-mode overlay`).
 - Generate animated carousels (those are reels — use `reel-builder`).
-- Post to platforms — output is files you upload via the platform's UI / API.
+- Post to platforms — that is `post-publisher`, which takes this skill's output directory as its input.
 </objective>
 
 ## ROLE
@@ -249,4 +249,4 @@ If the user gives a topic but no platform: default to `instagram`, ask once if L
 
 Defaults: `--slides 8 --platform instagram --aspect portrait --text-mode embedded --model auto`. Without `--execute`, returns prompts + caption text for manual paste. With `--execute`, generates slides.
 
-This skill is downstream of `research-brief` (consumes the brief) and upstream of any manual post — final step is uploading the slides to the platform's UI.
+This skill is downstream of `research-brief` (consumes the brief) and upstream of `post-publisher`, which reads this skill's output directory — slides plus `captions.md` — and sends it to Instagram / Threads / TikTok / LinkedIn. When the user says "и выложи" after a deck is generated, hand the output directory to `post-publisher`; it dry-runs by default, so nothing goes out without a confirmation.

@@ -42,6 +42,38 @@ def _client() -> Any:
     return boto3.client("s3", **kwargs)
 
 
+def presigned_url(key: str, *, ttl: int = 3600) -> str:
+    """Time-limited GET URL for an object already in the bucket.
+
+    Used by the publishing layer: Instagram and Threads will not accept raw
+    bytes — they fetch the media themselves from a URL you hand them. A
+    presigned link is the right shape for that and a public-read ACL is not:
+    the bucket stays private, the link dies on its own, and nothing generated
+    here is left permanently readable by whoever finds the URL.
+    """
+    if not s3_configured():
+        raise RuntimeError("S3 not configured (S3_BUCKET / S3_ACCESS_KEY / S3_SECRET_KEY missing)")
+    bucket = os.environ["S3_BUCKET"]
+    prefix = os.environ.get("S3_PATH_PREFIX", "").strip("/")
+    full_key = f"{prefix}/{_safe_key(key)}" if prefix else _safe_key(key)
+    return _client().generate_presigned_url(
+        "get_object", Params={"Bucket": bucket, "Key": full_key}, ExpiresIn=ttl
+    )
+
+
+def stage_for_fetch(path, key: str, content_type: str, *, ttl: int = 3600) -> str:
+    """Upload a local file and return a URL a platform can fetch it from.
+
+    One call because the two halves are never useful apart, and because
+    forgetting the presign step would silently hand Meta a URL that 403s.
+    """
+    from pathlib import Path
+
+    data = Path(path).read_bytes()
+    write_s3(data, key, content_type)
+    return presigned_url(key, ttl=ttl)
+
+
 def write_s3(content: bytes, key: str, content_type: str) -> str:
     """Upload to the configured bucket. Returns a URL.
 

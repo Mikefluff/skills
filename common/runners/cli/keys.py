@@ -196,6 +196,32 @@ def _cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_accounts(args: argparse.Namespace) -> int:
+    """Social accounts live in a second store (~/.skills-tokens.json) because
+    they expire and these do not. Surfaced here anyway — this is the skill
+    people open when they are looking for "where do my credentials live"."""
+    from .. import tokens
+    from ..errors import RunnerError
+    from . import auth
+
+    # Call the command functions directly rather than rewriting sys.argv and
+    # re-entering auth.main() — that left argv clobbered for anything running
+    # after this in the same process.
+    try:
+        if args.connect:
+            return auth.cmd_connect(args.connect)
+        if args.revoke:
+            return auth.cmd_revoke(args.revoke)
+    except RunnerError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    print(f"# {tokens.TOKENS_FILE}")
+    for line in tokens.status_lines():
+        print(line)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="common.runners.cli.keys",
@@ -238,6 +264,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_export = sub.add_parser("export", help="print eval-ready export lines")
     p_export.add_argument("--mask", action="store_true", help="mask values (for inspection)")
     p_export.set_defaults(func=_cmd_export)
+
+    p_accounts = sub.add_parser("accounts", help="connected social accounts (publishing)")
+    p_accounts.add_argument("--connect", metavar="PLATFORM", help="run the OAuth flow for a platform")
+    p_accounts.add_argument("--revoke", metavar="PLATFORM", help="forget a platform's stored token")
+    p_accounts.set_defaults(func=_cmd_accounts)
 
     return parser
 

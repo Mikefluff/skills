@@ -63,8 +63,10 @@ for skill in $SKILLS; do
     pass "frontmatter OK (name, description, license, allowed-tools)"
   fi
 
-  # 2) Cross-link check: every references/<file>.md mentioned in SKILL.md must exist
-  links="$(grep -oE 'references/[a-z0-9_-]+\.md' "$skill/SKILL.md" | sort -u || true)"
+  # 2) Cross-link check: every references/<file>.md mentioned in SKILL.md must exist.
+  # Matches intra-skill links (references/x.md) and cross-skill ones
+  # (../other-skill/references/x.md); both resolve against the skill dir.
+  links="$(grep -oE '(\.\./[a-z0-9_-]+/)?references/[a-z0-9_-]+\.md' "$skill/SKILL.md" | sort -u || true)"
   link_err=0
   for link in $links; do
     if [ -f "$skill/$link" ]; then

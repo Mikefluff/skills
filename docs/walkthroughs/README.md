@@ -60,6 +60,7 @@ These chain multiple skills + the execute layer + style libraries into a single 
 | Walkthrough | Skills | What you'll do |
 |---|---|---|
 | [Research → carousel → reel (end-to-end)](research-to-carousel-reel.md) | `research-brief` + `carousel-builder` + `reel-builder` | One topic → cited research brief → 8-slide LinkedIn carousel → 15-second vertical reel. ~6-10 min wall time, $2-7 total cost depending on provider mix. The most ambitious recipe in the collection. |
+| [Generate → publish (the last mile)](publish-to-social.md) | `post-publisher` + `carousel-builder` + `viral-text` | Connect an account, then send a finished deck or reel to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn. Dry-run first, drafts where the platform has them, receipts so nothing goes out twice. ~20 min the first time, ~2 min after. |
 
 ---
 
