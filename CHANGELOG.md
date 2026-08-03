@@ -38,6 +38,16 @@ Also: `scripts/validate.sh` only resolved `references/*.md` links inside the sam
 
 144 new unit tests, none of which touch the network. Five of them exist because a review pass found the bugs they now pin: an explicit `--title` silently discarded on YouTube whenever the caption was empty (operator precedence — `(title or first_line) if text else "Untitled"`); a TikTok chunk plan that declared a 20 MB chunk for a 6 MB file, which TikTok rejects; Threads permanently unrefreshable because `tokens.py` hardcoded `"instagram"` as the one platform allowed to renew without a refresh token; a one-shot OAuth listener that a browser's `/favicon.ico` request could consume instead of the callback; and a partial-alt-text warning that the documentation described and the code did not implement.
 
+### Fixed — the npm package and the Docker image shipped a 17-skill subset
+
+Caught while deciding whether the release was safe to cut. Tagging `v*.*.*` triggers the Docker build, and the image would have gone out without `post-publisher` — along with 24 other skills.
+
+`Dockerfile` and `package.json` both listed the same seventeen directories: exactly the v1.x prose set, frozen since around v2.3 while twenty-five skills were added around them. `skills.json` advertised all forty-two, so `install.sh` running inside the container warned about twenty-five missing skills — inside the artifact meant to contain them. The Dockerfile's own header claimed it ships "all skill markdown", which had quietly stopped being true.
+
+The cost was never size. These are markdown directories; the rebuilt image is 117 MB and the skills contribute almost nothing to that. The subset was drift, not a decision.
+
+Both lists regenerated from `skills.json`, and `check-docs-consistency.sh` gained gate 7 to compare them against it. That gate is the actual fix — the lists drifted for eighteen releases precisely because nothing compared them to anything. Verified it fails by removing a skill from each and watching it name both.
+
 ### Fixed — nothing was checking the launch copy
 
 Caught by the user asking whether the rewritten posts had been run through the skills. They had not, and two layers of blindness met — both self-inflicted.

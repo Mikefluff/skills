@@ -12,6 +12,7 @@
 #   5. New skill folders (since last release tag) must be mentioned in
 #      CHANGELOG.md [Unreleased]
 #   6. docs/SKILL-INDEX.md is up to date with skills.json (auto-generated)
+#   7. Dockerfile + package.json ship every registered skill (distribution drift)
 #
 # Usage:
 #   bash scripts/check-docs-consistency.sh
@@ -46,7 +47,7 @@ skill_dirs_on_disk() {
 
 # ── Check 1 — README table is in sync with skills.json ──────────────────────
 
-echo "[1/6] README skills table ↔ skills.json"
+echo "[1/7] README skills table ↔ skills.json"
 if python3 scripts/gen-skills-table.py --check >/dev/null 2>&1; then
   pass "README table is up to date with skills.json"
 else
@@ -57,7 +58,7 @@ echo
 
 # ── Check 2 — every disk skill folder is in skills.json ─────────────────────
 
-echo "[2/6] skill folders on disk ↔ skills.json"
+echo "[2/7] skill folders on disk ↔ skills.json"
 manifest_set=" $(skills_in_manifest | tr '\n' ' ')"
 unregistered=""
 for dir in $(skill_dirs_on_disk); do
@@ -77,7 +78,7 @@ echo
 
 # ── Check 3 — walkthroughs cite only real skills ────────────────────────────
 
-echo "[3/6] docs/walkthroughs/ frontmatter ↔ skills.json"
+echo "[3/7] docs/walkthroughs/ frontmatter ↔ skills.json"
 if [ -d docs/walkthroughs ]; then
   walked=0
   for w in docs/walkthroughs/*.md; do
@@ -123,7 +124,7 @@ echo
 
 # ── Check 4 — every skill is named somewhere in USER-GUIDE.md ───────────────
 
-echo "[4/6] every skill is mentioned in docs/USER-GUIDE.md"
+echo "[4/7] every skill is mentioned in docs/USER-GUIDE.md"
 if [ -f docs/USER-GUIDE.md ]; then
   guide="$(cat docs/USER-GUIDE.md)"
   missing=""
@@ -152,7 +153,7 @@ echo
 # manually, so a skill shipping in an untagged 2.20.0 belongs under [2.20.0] —
 # scanning [Unreleased] alone would fail every such entry.
 
-echo "[5/6] new skills since last v* tag ↔ CHANGELOG (untagged sections)"
+echo "[5/7] new skills since last v* tag ↔ CHANGELOG (untagged sections)"
 last_tag="$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)"
 if [ -z "$last_tag" ]; then
   info "no v* tag yet — skipping (this check matters only after first release)"
@@ -203,7 +204,7 @@ fi
 echo
 # ── Check 6 — SKILL-INDEX.md is up to date with skills.json ─────────────────
 
-echo "[6/6] docs/SKILL-INDEX.md ↔ skills.json"
+echo "[6/7] docs/SKILL-INDEX.md ↔ skills.json"
 if [ -f scripts/gen-skill-index.py ]; then
   if python3 scripts/gen-skill-index.py --check >/dev/null 2>&1; then
     pass "SKILL-INDEX.md is up to date with skills.json"
@@ -212,6 +213,49 @@ if [ -f scripts/gen-skill-index.py ]; then
   fi
 else
   info "scripts/gen-skill-index.py missing — skipping"
+fi
+echo
+
+echo "[7/7] distribution manifests ↔ skills.json"
+# Nothing checked this, which is how the npm package and the Docker image came
+# to ship a 17-skill v1.x subset while skills.json advertised 42 — install.sh
+# then warned about 25 missing skills inside the very artifacts meant to
+# contain them. A registered skill that reaches neither channel is invisible to
+# everyone who did not install from the git tarball.
+if ! python3 - <<'PY'
+import json, re, sys
+from pathlib import Path
+
+skills = {s["dir"] for s in json.loads(Path("skills.json").read_text(encoding="utf-8"))["skills"]}
+errors = []
+
+dockerfile = Path("Dockerfile")
+if dockerfile.is_file():
+    copied = set(re.findall(r"^COPY ([a-z0-9-]+)/", dockerfile.read_text(encoding="utf-8"), re.M))
+    missing = sorted(skills - copied)
+    if missing:
+        errors.append(f"Dockerfile does not COPY: {', '.join(missing)}")
+    if "common" not in copied:
+        errors.append("Dockerfile does not COPY common/ — the runner layer")
+
+pkg = Path("package.json")
+if pkg.is_file():
+    files = set(json.loads(pkg.read_text(encoding="utf-8")).get("files", []))
+    listed = {f.rstrip("/") for f in files}
+    missing = sorted(skills - listed)
+    if missing:
+        errors.append(f"package.json 'files' omits: {', '.join(missing)}")
+    if "common" not in listed:
+        errors.append("package.json 'files' omits common/")
+
+if errors:
+    for e in errors:
+        print(f"  ✗ {e}")
+    sys.exit(1)
+print(f"  ✓ Dockerfile + package.json ship all {len(skills)} skills")
+PY
+then
+  fail "distribution manifests out of sync with skills.json"
 fi
 echo
 
