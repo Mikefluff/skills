@@ -14,6 +14,7 @@ imprint when only `--genre` is provided.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 
 from .typography import Decoration, TextBlock, TypeLayout
@@ -276,10 +277,18 @@ def resolve_imprint(imprint: str | None, genre: str | None) -> ImprintPreset | N
 
 def apply_text(layout: TypeLayout, title: str, author: str | None,
                subtitle: str | None = None) -> TypeLayout:
-    """Inject runtime text into a preset's layout (which ships with empty text fields)."""
+    """A copy of `layout` with the runtime text filled in.
+
+    Copied, not written into. The presets in IMPRINTS are module-level shared
+    state that ships with empty text fields, and this used to fill them in
+    place: a second cover in the same process started from the first cover's
+    text, and since an empty author skipped the write entirely, book two was
+    published under book one's author. One process per CLI invocation hid it.
+    """
+    layout = copy.deepcopy(layout)
     layout.title.text = title
-    if layout.author is not None and author:
-        layout.author.text = author
-    if subtitle and layout.subtitle is not None:
-        layout.subtitle.text = subtitle
+    if layout.author is not None:
+        layout.author.text = author or ""
+    if layout.subtitle is not None:
+        layout.subtitle.text = subtitle or ""
     return layout

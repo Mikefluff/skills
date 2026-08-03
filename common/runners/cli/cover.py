@@ -62,8 +62,8 @@ def _compose(preset_name: str, plan: dict[str, Any], items: list[batch_mod.Batch
         src_path = Path(item.output_path) if item.output_path else None
         if src_path is None or not src_path.is_file():
             continue
-        # apply_text writes into the preset's own layout object. Every item in a
-        # batch carries the same title and author, so re-applying is a no-op.
+        # apply_text returns a copy, so each variant gets its own layout and
+        # the preset stays the blank template it ships as.
         layout = cover_imprints.apply_text(
             cover_imprints.get_imprint(preset_name).layout, title, author, subtitle
         )
