@@ -72,9 +72,14 @@ echo "─── 8/14 markdownlint (CI-pinned version) ────────�
 # the version is pinned here too. Tracked files only: generated/ is ignored.
 if command -v npx >/dev/null 2>&1; then
   # shellcheck disable=SC2046  # word splitting is the point: one arg per file
-  npx --yes markdownlint-cli2@0.13.0 $(git ls-files '*.md') >/tmp/mdlint.$$ 2>&1 \
-    && green "  ✓ markdownlint clean" \
-    || { red "  ✗ markdownlint failed"; grep -E "MD[0-9]+" /tmp/mdlint.$$ | head -20; rm -f /tmp/mdlint.$$; exit 1; }
+  if npx --yes markdownlint-cli2@0.13.0 $(git ls-files '*.md') >/tmp/mdlint.$$ 2>&1; then
+    green "  ✓ markdownlint clean"
+  else
+    red "  ✗ markdownlint failed"
+    grep -E "MD[0-9]+" /tmp/mdlint.$$ | head -20
+    rm -f /tmp/mdlint.$$
+    exit 1
+  fi
   rm -f /tmp/mdlint.$$
 else
   dim "  · npx not found — skipping markdownlint (CI still runs it)"
@@ -89,8 +94,13 @@ echo
 echo "─── 10/14 launch-thread tweet lengths ────────────────────────"
 # The old draft claimed "all tweets ≤280 (verified)" next to a checker that no
 # longer parsed the file. Two tweets were over.
-python3 scripts/check-tweet-length.py >/dev/null && green "  ✓ all tweets within 280" \
-  || { red "  ✗ a tweet overflows"; python3 scripts/check-tweet-length.py | grep OVER; exit 1; }
+if python3 scripts/check-tweet-length.py >/dev/null; then
+  green "  ✓ all tweets within 280"
+else
+  red "  ✗ a tweet overflows"
+  python3 scripts/check-tweet-length.py | grep OVER
+  exit 1
+fi
 
 echo
 echo "─── 11/14 launch copy ────────────────────────────────────────"
