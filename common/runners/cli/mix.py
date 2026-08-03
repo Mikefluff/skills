@@ -17,7 +17,7 @@ from pathlib import Path
 from .. import ffmpeg as ff_mod
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="common.runners.cli.mix")
     parser.add_argument("--video", type=Path, required=True, help="input video path")
     parser.add_argument("--audio", type=Path, required=True, help="input music/audio path")
@@ -45,7 +45,11 @@ def main() -> int:
         "--duck-amount", type=float, default=0.6,
         help="duck mode: how much music attenuates when speech present (0.0-1.0; default 0.6)",
     )
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> int:
+    args = build_parser().parse_args()
 
     if not args.video.is_file():
         print(f"  ✗ video not found: {args.video}", file=sys.stderr)

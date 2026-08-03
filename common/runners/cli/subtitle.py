@@ -33,44 +33,63 @@ STYLE_PRESETS: dict[str, dict[str, str | int]] = {
 }
 
 
+def _cues_from_file(subtitle: Path, video: Path) -> list[subs_mod.Cue] | None:
+    """Parse a subtitle file. None means the caller should exit 2."""
+    if not subtitle.is_file():
+        print(f"  ✗ subtitle file not found: {subtitle}", file=sys.stderr)
+        return None
+
+    if subtitle.suffix.lower() != ".txt":
+        return subs_mod.parse_file(subtitle)
+
+    # Plain text carries no timings, so they are distributed across the video's
+    # duration. Without a duration there is nothing to distribute over, and
+    # guessing one would desync every cue.
+    duration = ff_mod.get_duration(video)
+    if duration is None:
+        print(
+            "  ✗ couldn't probe video duration (ffprobe missing?). "
+            "Use --inline or .srt / .vtt instead.",
+            file=sys.stderr,
+        )
+        return None
+    return subs_mod.parse_plain_text(
+        subtitle.read_text(encoding="utf-8"), video_duration=duration, gap_seconds=0.2
+    )
+
+
+def _resolve_cues(args: argparse.Namespace) -> list[subs_mod.Cue] | None:
+    """--inline or --subtitle into cues. None means the caller should exit 2."""
+    if args.inline:
+        # One caption spanning the whole video. 9999s is the fallback when the
+        # real duration cannot be probed — ffmpeg clamps it to the video anyway.
+        duration = ff_mod.get_duration(args.video) or 9999.0
+        return [subs_mod.Cue(start=0.0, end=duration, text=args.inline)]
+    return _cues_from_file(args.subtitle, args.video)
+
+
+def _caption_style(args: argparse.Namespace) -> ff_mod.CaptionStyle:
+    """A preset, with any explicit flag overriding its fields."""
+    preset = STYLE_PRESETS.get(args.style, STYLE_PRESETS["modern"])
+    return ff_mod.CaptionStyle(
+        font_size=int(args.font_size or preset["font_size"]),
+        font_color=str(args.font_color or preset["font_color"]),
+        box_color=str(args.box_color or preset["box_color"]),
+    )
+
+
 def _cmd_burn(args: argparse.Namespace) -> int:
     video = args.video
     if not video.is_file():
         print(f"  ✗ video file not found: {video}", file=sys.stderr)
         return 2
 
-    cues: list[subs_mod.Cue]
-    if args.inline:
-        # Use video duration (from ffprobe) or default to 9999s
-        duration = ff_mod.get_duration(video) or 9999.0
-        cues = [subs_mod.Cue(start=0.0, end=duration, text=args.inline)]
-    elif args.subtitle:
-        if not args.subtitle.is_file():
-            print(f"  ✗ subtitle file not found: {args.subtitle}", file=sys.stderr)
-            return 2
-        if args.subtitle.suffix.lower() == ".txt":
-            # Plain text — distribute evenly across video duration
-            duration = ff_mod.get_duration(video)
-            if duration is None:
-                print(
-                    f"  ✗ couldn't probe video duration (ffprobe missing?). "
-                    f"Use --inline or .srt / .vtt instead.",
-                    file=sys.stderr,
-                )
-                return 2
-            text = args.subtitle.read_text(encoding="utf-8")
-            cues = subs_mod.parse_plain_text(text, video_duration=duration, gap_seconds=0.2)
-        else:
-            cues = subs_mod.parse_file(args.subtitle)
-    else:
-        print("  ✗ provide --subtitle <file> or --inline '<text>'", file=sys.stderr)
+    cues = _resolve_cues(args)
+    if cues is None:
         return 2
-
     if not cues:
         print("  ✗ no cues parsed from subtitle source", file=sys.stderr)
         return 2
-
-    output = args.output or video.with_name(f"{video.stem}-subtitled{video.suffix}")
 
     probe = ff_mod.detect_ffmpeg()
     if not probe.found:
@@ -78,22 +97,23 @@ def _cmd_burn(args: argparse.Namespace) -> int:
         print("    Install: 'brew install ffmpeg' (Mac) / 'apt-get install -y ffmpeg' (Debian).", file=sys.stderr)
         return 2
 
-    preset = STYLE_PRESETS.get(args.style, STYLE_PRESETS["modern"])
+    output = args.output or video.with_name(f"{video.stem}-subtitled{video.suffix}")
+    style = _caption_style(args)
 
     print(f"  Burning {len(cues)} cue(s) into {video}", file=sys.stderr)
     print(f"  Output: {output}", file=sys.stderr)
-    print(f"  Style: {args.style} (font_size={preset['font_size']}, color={preset['font_color']})", file=sys.stderr)
+    print(
+        f"  Style: {args.style} "
+        f"(font_size={style.font_size}, color={style.font_color})",
+        file=sys.stderr,
+    )
 
     try:
         ff_mod.burn_captions(
             video,
             subs_mod.cues_to_tuples(cues),
             output,
-            ff_mod.CaptionStyle(
-                font_size=int(args.font_size or preset["font_size"]),
-                font_color=str(args.font_color or preset["font_color"]),
-                box_color=str(args.box_color or preset["box_color"]),
-            ),
+            style,
             ffmpeg_bin=probe.binary or "ffmpeg",
         )
     except Exception as exc:  # noqa: BLE001

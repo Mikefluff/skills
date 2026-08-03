@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +18,7 @@ from ..errors import (
     RunnerError,
     TimeoutError as RunnerTimeoutError,
 )
-from ..providers.base import JobHandle, Modality
+from ..providers.base import JobHandle, Modality, Provider
 
 
 def build_parser(modality: Modality, models_hint: list[str] | None = None) -> argparse.ArgumentParser:
@@ -101,92 +102,82 @@ def read_prompt(args: argparse.Namespace) -> str:
     raise SystemExit("No prompt. Pass --prompt '...' or --prompt-file <path> or pipe via stdin.")
 
 
+# Flags that pass straight through under their own name, included only when the
+# user actually set one. A provider handed size=None forwards a literal null to
+# the vendor and gets a 400 back, so absent must stay absent.
+_PASSTHROUGH = (
+    "image_url", "video_url", "size", "quality",
+    "voice", "voice_id", "lang", "fal_model", "replicate_model",
+)
+
+
 def gather_kwargs(args: argparse.Namespace) -> dict[str, Any]:
     """Pack passthrough kwargs into a dict the provider's generate() accepts."""
     kwargs: dict[str, Any] = {"variants": args.variants}
+
+    # One --duration serves video (seconds) and music (minutes); each provider
+    # reads the unit it understands and ignores the other.
     if args.duration is not None:
         kwargs["duration_seconds"] = args.duration
         kwargs["duration_minutes"] = args.duration
+
+    for name in _PASSTHROUGH:
+        value = getattr(args, name, None)
+        if value:
+            kwargs[name] = value
+
     if args.lyrics is not None:
         kwargs["lyrics"] = args.lyrics
     if args.lyrics_file and not args.lyrics:
         kwargs["lyrics"] = args.lyrics_file.read_text(encoding="utf-8")
     if args.instrumental:
         kwargs["instrumental"] = True
-    if args.image_url:
-        kwargs["image_url"] = args.image_url
-    if args.video_url:
-        kwargs["video_url"] = args.video_url
-    if args.size:
-        kwargs["size"] = args.size
-    if args.quality:
-        kwargs["quality"] = args.quality
-    if args.voice:
-        kwargs["voice"] = args.voice
-    if getattr(args, "voice_id", None):
-        kwargs["voice_id"] = args.voice_id
+    # Guarded on None, not truthiness: 0.0 is a legal speed.
     if getattr(args, "speed", None) is not None:
         kwargs["speed"] = args.speed
-    if getattr(args, "lang", None):
-        kwargs["lang"] = args.lang
-    if args.fal_model:
-        kwargs["fal_model"] = args.fal_model
-    if args.replicate_model:
-        kwargs["replicate_model"] = args.replicate_model
     return kwargs
 
 
-def dispatch(modality: Modality, models_hint: list[str] | None = None) -> int:
-    parser = build_parser(modality, models_hint)
-    args = parser.parse_args()
-
-    if args.list_providers:
-        return list_providers(modality)
-
-    if not args.model:
-        parser.error("missing --model. Use --list-providers to see options.")
-
-    if args.check:
-        return check_provider(args.model, modality)
-
+def resolve_provider(model: str, modality: Modality) -> "Provider | None":
+    """Look up the slug and check it makes this modality. None → exit 2."""
     config.load_all_providers()
     try:
-        provider = config.get_provider(args.model)
+        provider = config.get_provider(model)
     except KeyError as exc:
         print(str(exc), file=sys.stderr)
-        return 2
+        return None
 
     if provider.modality != modality:
         print(
-            f"provider '{args.model}' is {provider.modality}, not {modality}.",
+            f"provider '{model}' is {provider.modality}, not {modality}.",
             file=sys.stderr,
         )
-        return 2
+        return None
+    return provider
 
-    prompt = read_prompt(args)
-    kwargs = gather_kwargs(args)
 
-    estimated = provider.estimate_cost(**kwargs)
-    if args.cost_only:
-        print(f"estimated cost: {cost_mod.format_cost(estimated)}")
-        return 0
+def _keep_prompt(prompt: str, args: argparse.Namespace, modality: Modality, reason: str) -> None:
+    """Persist the prompt when a run cannot produce an asset.
 
-    try:
-        cost_mod.confirm(estimated, yes=args.yes)
-    except CostConfirmationDeclined as exc:
-        print(str(exc), file=sys.stderr)
-        return 3
+    A prompt is the expensive part — it was written by an LLM chain, sometimes
+    over several steps. Losing it to a missing key would be the real cost.
+    """
+    saved = output_mod.save_prompt_only(
+        prompt, modality,
+        output_mod.SaveOptions(slug=args.model, output_dir=args.output),
+        reason=reason,
+    )
+    print(saved.display())
 
+
+def _generate(provider: "Provider", args: argparse.Namespace,
+              prompt: str, kwargs: dict[str, Any], estimated: Decimal | None) -> int:
+    """Everything past the cost gate: call, poll, save. Returns the exit code."""
+    modality = provider.modality
     try:
         provider.ensure_available()
     except KeyMissingError as exc:
-        # fall back to prompt-only
-        saved = output_mod.save_prompt_only(
-            prompt, modality,
-            output_mod.SaveOptions(slug=args.model, output_dir=args.output),
-            reason=str(exc),
-        )
-        print(saved.display())
+        _keep_prompt(prompt, args, modality, str(exc))
         return 4
 
     print(f"Calling {args.model} (est cost {cost_mod.format_cost(estimated)})...", file=sys.stderr)
@@ -198,13 +189,8 @@ def dispatch(modality: Modality, models_hint: list[str] | None = None) -> int:
             sys.stderr.flush()
             result = provider.poll(result, timeout=args.timeout)
     except (ProviderError, RunnerTimeoutError, RunnerError) as exc:
-        saved = output_mod.save_prompt_only(
-            prompt, modality,
-            output_mod.SaveOptions(slug=args.model, output_dir=args.output),
-            reason=str(exc),
-        )
         print(f"FAILED: {exc}", file=sys.stderr)
-        print(saved.display())
+        _keep_prompt(prompt, args, modality, str(exc))
         return 5
 
     saved = output_mod.save(
@@ -215,3 +201,35 @@ def dispatch(modality: Modality, models_hint: list[str] | None = None) -> int:
     )
     print(saved.display())
     return 0
+
+
+def dispatch(modality: Modality, models_hint: list[str] | None = None) -> int:
+    parser = build_parser(modality, models_hint)
+    args = parser.parse_args()
+
+    if args.list_providers:
+        return list_providers(modality)
+    if not args.model:
+        parser.error("missing --model. Use --list-providers to see options.")
+    if args.check:
+        return check_provider(args.model, modality)
+
+    provider = resolve_provider(args.model, modality)
+    if provider is None:
+        return 2
+
+    prompt = read_prompt(args)
+    kwargs = gather_kwargs(args)
+    estimated = provider.estimate_cost(**kwargs)
+
+    if args.cost_only:
+        print(f"estimated cost: {cost_mod.format_cost(estimated)}")
+        return 0
+
+    try:
+        cost_mod.confirm(estimated, yes=args.yes)
+    except CostConfirmationDeclined as exc:
+        print(str(exc), file=sys.stderr)
+        return 3
+
+    return _generate(provider, args, prompt, kwargs, estimated)
