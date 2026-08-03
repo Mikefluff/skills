@@ -33,6 +33,8 @@ import time
 from pathlib import Path
 
 from .. import styles as styles_mod
+from .. import styles_authoring
+from .. import styles_validate
 from ..styles import Modality
 
 
@@ -55,8 +57,8 @@ def _id_arg(parser: argparse.ArgumentParser, *, optional: bool = False) -> None:
 
 def _cmd_list(args: argparse.Namespace) -> int:
     modalities = [args.modality] if args.modality else list(_VALID_MODALITIES)
-    bundled_root = styles_mod.bundled_dir()
-    user_root = styles_mod.user_dir()
+    bundled_root = styles_authoring.bundled_dir()
+    user_root = styles_authoring.user_dir()
     any_printed = False
     for mod in modalities:
         # Discover all ids in both dirs
@@ -81,7 +83,7 @@ def _cmd_list(args: argparse.Namespace) -> int:
         print(f"# {mod}  ({len(all_ids)} style(s))")
         print()
         for sid in all_ids:
-            status = styles_mod.resolution_status(sid, mod)
+            status = styles_authoring.resolution_status(sid, mod)
             marker = {
                 "bundled":   "\033[2m·\033[0m bundled    ",
                 "user-only": "\033[32m+\033[0m user-only ",
@@ -97,22 +99,22 @@ def _cmd_list(args: argparse.Namespace) -> int:
         print()
     if not any_printed:
         if args.user_only:
-            print(f"(no user-override styles in {styles_mod.user_dir()})")
+            print(f"(no user-override styles in {styles_authoring.user_dir()})")
             print()
             print("Add one with:  skills-styles add <modality> <id>")
         elif args.bundled_only:
-            print(f"(no bundled styles in {styles_mod.bundled_dir()})")
+            print(f"(no bundled styles in {styles_authoring.bundled_dir()})")
         else:
             print("(no styles found)")
     return 0
 
 
 def _cmd_show(args: argparse.Namespace) -> int:
-    path = styles_mod.resolved_path(args.style_id, args.modality)
+    path = styles_authoring.resolved_path(args.style_id, args.modality)
     if path is None:
         print(f"  ✗ style not found: {args.modality}/{args.style_id}", file=sys.stderr)
         return 2
-    status = styles_mod.resolution_status(args.style_id, args.modality)
+    status = styles_authoring.resolution_status(args.style_id, args.modality)
     print(f"# {path}  [{status}]")
     print()
     print(path.read_text(encoding="utf-8"), end="")
@@ -122,12 +124,12 @@ def _cmd_show(args: argparse.Namespace) -> int:
 def _cmd_add(args: argparse.Namespace) -> int:
     try:
         if args.source_id:
-            target = styles_mod.copy_existing(
+            target = styles_authoring.copy_existing(
                 args.source_id, args.style_id, args.modality, overwrite=args.force
             )
             origin = f"copy of bundled '{args.source_id}'"
         else:
-            target = styles_mod.copy_template(
+            target = styles_authoring.copy_template(
                 args.modality, args.style_id, overwrite=args.force
             )
             origin = "from template"
@@ -147,10 +149,10 @@ def _cmd_add(args: argparse.Namespace) -> int:
 
 
 def _cmd_edit(args: argparse.Namespace) -> int:
-    user_path = styles_mod.user_dir() / args.modality / f"{args.style_id}.md"
+    user_path = styles_authoring.user_dir() / args.modality / f"{args.style_id}.md"
     if not user_path.is_file():
         # Maybe it's a bundled style — offer to override
-        bundled = styles_mod.bundled_dir() / args.modality / f"{args.style_id}.md"
+        bundled = styles_authoring.bundled_dir() / args.modality / f"{args.style_id}.md"
         if bundled.is_file():
             print(f"  · '{args.style_id}' is currently bundled-only.", file=sys.stderr)
             print(f"    To customize, create a user override:", file=sys.stderr)
@@ -175,11 +177,11 @@ def _cmd_edit(args: argparse.Namespace) -> int:
 
 
 def _cmd_remove(args: argparse.Namespace) -> int:
-    user_path = styles_mod.user_dir() / args.modality / f"{args.style_id}.md"
+    user_path = styles_authoring.user_dir() / args.modality / f"{args.style_id}.md"
     if not user_path.is_file():
         print(f"  · {args.modality}/{args.style_id}: no user-override to remove", file=sys.stderr)
         return 0
-    bundled_path = styles_mod.bundled_dir() / args.modality / f"{args.style_id}.md"
+    bundled_path = styles_authoring.bundled_dir() / args.modality / f"{args.style_id}.md"
     if not args.force:
         # Show what will happen
         if bundled_path.is_file():
@@ -201,8 +203,8 @@ def _cmd_validate(args: argparse.Namespace) -> int:
     except FileNotFoundError as exc:
         print(f"  ✗ {exc}", file=sys.stderr)
         return 2
-    issues = styles_mod.validate_style(style)
-    status = styles_mod.resolution_status(args.style_id, args.modality)
+    issues = styles_validate.validate_style(style)
+    status = styles_authoring.resolution_status(args.style_id, args.modality)
     print(f"# {args.modality}/{args.style_id}  [{status}]  ({style.source_path})")
     print()
     if not issues:
@@ -215,8 +217,8 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 
 
 def _cmd_diff(args: argparse.Namespace) -> int:
-    bundled = styles_mod.bundled_dir() / args.modality / f"{args.style_id}.md"
-    user = styles_mod.user_dir() / args.modality / f"{args.style_id}.md"
+    bundled = styles_authoring.bundled_dir() / args.modality / f"{args.style_id}.md"
+    user = styles_authoring.user_dir() / args.modality / f"{args.style_id}.md"
     if not user.is_file():
         print(f"  · no user-override for {args.modality}/{args.style_id} — nothing to diff", file=sys.stderr)
         return 0
@@ -237,18 +239,18 @@ def _cmd_diff(args: argparse.Namespace) -> int:
 
 def _cmd_path(args: argparse.Namespace) -> int:
     if args.style_id:
-        path = styles_mod.resolved_path(args.style_id, args.modality)
+        path = styles_authoring.resolved_path(args.style_id, args.modality)
         if path is None:
             print(f"  ✗ style not found: {args.modality}/{args.style_id}", file=sys.stderr)
             return 2
         print(path)
         return 0
     if args.modality:
-        print(f"bundled: {styles_mod.bundled_dir() / args.modality}")
-        print(f"user:    {styles_mod.user_dir() / args.modality}")
+        print(f"bundled: {styles_authoring.bundled_dir() / args.modality}")
+        print(f"user:    {styles_authoring.user_dir() / args.modality}")
     else:
-        print(f"bundled: {styles_mod.bundled_dir()}")
-        print(f"user:    {styles_mod.user_dir()}")
+        print(f"bundled: {styles_authoring.bundled_dir()}")
+        print(f"user:    {styles_authoring.user_dir()}")
     return 0
 
 
@@ -259,7 +261,7 @@ def _cmd_submit(args: argparse.Namespace) -> int:
     except FileNotFoundError as exc:
         print(f"  ✗ {exc}", file=sys.stderr)
         return 2
-    issues = styles_mod.validate_style(style)
+    issues = styles_validate.validate_style(style)
     if issues and not args.force:
         print(f"  ✗ style has {len(issues)} validation issue(s):", file=sys.stderr)
         for i in issues:
@@ -269,7 +271,7 @@ def _cmd_submit(args: argparse.Namespace) -> int:
         return 2
 
     # 2. Check this is a user style, not bundled
-    status = styles_mod.resolution_status(args.style_id, args.modality)
+    status = styles_authoring.resolution_status(args.style_id, args.modality)
     if status == "bundled":
         print(f"  · '{args.style_id}' is already in the bundled library — nothing to submit.", file=sys.stderr)
         return 0
@@ -279,7 +281,7 @@ def _cmd_submit(args: argparse.Namespace) -> int:
         if not args.force and not _confirm("    Continue?"):
             return 0
 
-    source = styles_mod.user_dir() / args.modality / f"{args.style_id}.md"
+    source = styles_authoring.user_dir() / args.modality / f"{args.style_id}.md"
     if not source.is_file():
         print(f"  ✗ user-override file not found: {source}", file=sys.stderr)
         return 2

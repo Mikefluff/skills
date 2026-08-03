@@ -8,9 +8,9 @@
     "parameters": 5
   },
   "counts": {
-    "function-size": 13,
-    "complexity": 15,
-    "module-size": 5,
+    "function-size": 12,
+    "complexity": 12,
+    "module-size": 4,
     "parameters": 2
   },
   "frozen": [
@@ -23,9 +23,6 @@
     "complexity|common/runners/proposal_kit.py|write_brief",
     "complexity|common/runners/proposal_parse.py|parse",
     "complexity|common/runners/proposal_render.py|render_html",
-    "complexity|common/runners/styles.py|_parse_value",
-    "complexity|common/runners/styles.py|anchor",
-    "complexity|common/runners/styles.py|validate_style",
     "complexity|common/runners/subtitles.py|parse_vtt",
     "complexity|writer/scripts/lint.py|_structural_hits",
     "complexity|writer/scripts/lint.py|scan",
@@ -38,14 +35,12 @@
     "function-size|common/runners/proposal_kit.py|write_brief",
     "function-size|common/runners/proposal_parse.py|parse",
     "function-size|common/runners/proposal_render.py|render_html",
-    "function-size|common/runners/styles.py|validate_style",
     "function-size|writer/scripts/lint.py|_structural_hits",
     "function-size|writer/scripts/lint.py|main",
     "function-size|writer/scripts/lint.py|scan",
     "module-size|common/runners/cli/styles.py|-",
     "module-size|common/runners/proposal_kit.py|-",
     "module-size|common/runners/proposal_render.py|-",
-    "module-size|common/runners/styles.py|-",
     "module-size|writer/scripts/lint.py|-",
     "parameters|common/runners/proposal_kit.py|fill_missing_photos",
     "parameters|common/runners/proposal_kit.py|write_brief"
