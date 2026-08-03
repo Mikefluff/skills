@@ -2,22 +2,11 @@
   "_comment": "Known structural debt, frozen so the gate gives a hard failure on anything new. This list may only SHRINK. Regenerate with scripts/check-code-quality.py --freeze; the script refuses to grow it.",
   "thresholds": {
     "module_lines": 400,
-    "test_module_lines": 900,
+    "list_module_lines": 900,
     "function_lines": 50,
     "complexity": 12,
     "parameters": 5
   },
-  "counts": {
-    "module-size": 1,
-    "function-size": 3,
-    "complexity": 2
-  },
-  "frozen": [
-    "complexity|writer/scripts/lint.py|_structural_hits",
-    "complexity|writer/scripts/lint.py|scan",
-    "function-size|writer/scripts/lint.py|_structural_hits",
-    "function-size|writer/scripts/lint.py|main",
-    "function-size|writer/scripts/lint.py|scan",
-    "module-size|writer/scripts/lint.py|-"
-  ]
+  "counts": {},
+  "frozen": []
 }
