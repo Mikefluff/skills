@@ -8,6 +8,12 @@ __pycache__/
 generated/
 .runners-venv/
 
+# post-publisher: OAuth tokens for the user's social accounts. Belongs in the
+# home directory, but a stray copy inside the repo would be a live credential
+# for someone's Instagram — ignore it wherever it lands.
+.skills-tokens.json
+posted.json
+
 # proposal-maker: client brand profiles stay local. A saved profile carries a
 # named client's tokens, logo and the authored structure of their real offer —
 # publishing that is their call, not ours. The repo ships only the author's own

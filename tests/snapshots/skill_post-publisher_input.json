@@ -1,0 +1,98 @@
+{
+  "verdict": "borderline",
+  "gate": "fail",
+  "total": 11,
+  "hard_bans": 7,
+  "by_category": {
+    "RHYTHM_MONOTONE": 1,
+    "FILLER_INTRO": 1,
+    "EM_DASH_RU": 4,
+    "NEG_PARALLEL": 1,
+    "GPT_FILLER": 2,
+    "MATH_SIGN_PROSE": 2
+  },
+  "by_severity": {
+    "blocker": 7,
+    "caution": 4,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 0,
+      "col": 0,
+      "category": "RHYTHM_MONOTONE",
+      "severity": "caution",
+      "match": "adjacent sentence lengths differ by 3.8 words on average (live prose: 6+)"
+    },
+    {
+      "line": 5,
+      "col": 1,
+      "category": "FILLER_INTRO",
+      "severity": "caution",
+      "match": "В современном мире"
+    },
+    {
+      "line": 5,
+      "col": 57,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 5,
+      "col": 59,
+      "category": "NEG_PARALLEL",
+      "severity": "blocker",
+      "match": "это не просто"
+    },
+    {
+      "line": 11,
+      "col": 54,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 11,
+      "col": 71,
+      "category": "GPT_FILLER",
+      "severity": "caution",
+      "match": "важно понимать"
+    },
+    {
+      "line": 12,
+      "col": 31,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 15,
+      "col": 1,
+      "category": "GPT_FILLER",
+      "severity": "caution",
+      "match": "Важно отметить"
+    },
+    {
+      "line": 17,
+      "col": 21,
+      "category": "EM_DASH_RU",
+      "severity": "blocker",
+      "match": "—"
+    },
+    {
+      "line": 23,
+      "col": 21,
+      "category": "MATH_SIGN_PROSE",
+      "severity": "blocker",
+      "match": "→"
+    },
+    {
+      "line": 23,
+      "col": 32,
+      "category": "MATH_SIGN_PROSE",
+      "severity": "blocker",
+      "match": "→"
+    }
+  ]
+}

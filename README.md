@@ -6,7 +6,7 @@
 
 AI content toolkit for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) — prose editing without LLM-shaped output, AI media generation (image / video / music) with optional in-line execution, and end-to-end content orchestrators (research → carousel / reel). Russian-first, English-capable.
 
-**Forty-one skills** across five layers: one base + twenty-one wrappers + three linters + thirteen orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning + GIF conversion + audio mixing).
+**Forty-two skills** across five layers: one base + twenty-one wrappers + three linters + fourteen orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning + GIF conversion + audio mixing).
 
 ---
 
@@ -147,6 +147,7 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 | [`transcribe-maker`](transcribe-maker/) | wrapper | en/ru | Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts ISO-639-1 hint. ~$0.006/min. Closes the loop with subtitle-burner — produce captions from video, then burn them in. 25 MB file limit. |
 | [`style-suggest`](style-suggest/) | orchestrator | en/ru | Visual-style generator — turn a text description and/or reference image into a fully-structured style entry that drops into common/visual-prompt-library/styles/. Adapted from figma's StyleSuggestAgent: takes free-form input, checks the existing catalog for duplicates (similarity ≥ 0.72), otherwise produces a new entry with all v2.15.0 schema fields (background / accents / elements / mood / accent_text_color / typography / composition_signature / when_to_use). The new style is immediately usable by every visual-output skill via the shared chain. |
 | [`proposal-maker`](proposal-maker/) | orchestrator | en/ru | Turn a raw, telegram-style commercial offer into a self-contained, brand-faithful HTML proposal whose style is copied from a website. Default flow is LLM-authored: a Python step builds a brand kit (site screenshot + logo + accent/font tokens + per-item catalogue photos + BRIEF.md), then the orchestrator authors bespoke HTML mirroring the brand. Items missing a photo get an on-brand generated image; prices and links stay exact; prints to a Ghostscript-compressed PDF. A --quick mode renders a deterministic theme (editorial/invoice/dark). Output: ./generated/proposal/<slug>/. |
+| [`post-publisher`](post-publisher/) | orchestrator | en/ru | Publish finished assets to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs. Takes a carousel-builder or reel-builder output directory, reads captions.md, runs a per-platform preflight (char limits, media count, file size, posting caps), previews, confirms per platform, then publishes and writes a posted.json receipt so the same content cannot go out twice. Dry-run by default; --yes leaves it; --draft where the platform has drafts. OAuth tokens live in ~/.skills-tokens.json with automatic refresh. |
 
 <!-- END skills-table -->
 
@@ -263,7 +264,7 @@ skills/
 ├── CODE_OF_CONDUCT.md       # short; scales up if the project does
 ├── SECURITY.md              # how to report a vulnerability
 │
-├── <skill-name>/            # 41 skills, one folder each
+├── <skill-name>/            # 42 skills, one folder each
 │
 ├── common/
 │   ├── references/          # shared anti-pattern catalogues (hype words, preambles, …)

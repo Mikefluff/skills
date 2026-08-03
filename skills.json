@@ -694,6 +694,27 @@
         "orchestration"
       ],
       "deps": []
+    },
+    {
+      "name": "post-publisher",
+      "dir": "post-publisher",
+      "layer": "orchestrator",
+      "description": "Publish finished assets to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs. Takes a carousel-builder or reel-builder output directory, reads captions.md, runs a per-platform preflight (char limits, media count, file size, posting caps), previews, confirms per platform, then publishes and writes a posted.json receipt so the same content cannot go out twice. Dry-run by default; --yes leaves it; --draft where the platform has drafts. OAuth tokens live in ~/.skills-tokens.json with automatic refresh.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "social",
+        "marketing",
+        "orchestration",
+        "ops"
+      ],
+      "deps": [
+        "carousel-builder",
+        "reel-builder",
+        "viral-text"
+      ]
     }
   ]
 }

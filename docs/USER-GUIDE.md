@@ -69,7 +69,9 @@ Jump straight to the section for what you want to do.
 | Research a topic with citations | [§ research-brief](#i-want-to-research-a-topic) |
 | Build an N-slide carousel | [§ carousel-builder](#i-want-to-build-a-carousel) |
 | Build a vertical reel | [§ reel-builder](#i-want-to-build-a-reel) |
+| Publish it to a social platform | [§ post-publisher](#i-want-to-publish-a-post) |
 | Full chain (research → carousel + reel) | [walkthrough](walkthroughs/research-to-carousel-reel.md) |
+| Full chain (generate → publish) | [walkthrough](walkthroughs/publish-to-social.md) |
 
 ### Manage the collection
 
@@ -84,12 +86,12 @@ Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ## The collection in one paragraph
 
-Forty-one skills layered on top of one base linter (`writer`):
+Forty-two skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 25 catalogued categories of LLM-prose tells from any text, in RU or EN, plus chatbot copy-paste artifacts and rhythm metrics. Runs as a final pass under every other prose skill.
 - **Wrappers** (21): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`).
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint and AI-detection audits, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
-- **Orchestrators** (13, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; `proposal-maker` turns a raw offer into a brand-faithful HTML proposal; `style-suggest` turns a description or reference image into a new visual-style entry; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
+- **Orchestrators** (14, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; `post-publisher` sends any of that to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs; `proposal-maker` turns a raw offer into a brand-faithful HTML proposal; `style-suggest` turns a description or reference image into a new visual-style entry; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
 - **Meta** (3): `skills-update` (apply a newer release of this collection), `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer), `skills-styles` (manage the local style library).
 
 Skills work on any text file (`.md`, `.tex`, `.txt`, …) — there's no assumed file format or project layout.
@@ -559,6 +561,62 @@ For details: [reel-builder/SKILL.md](../reel-builder/SKILL.md) and [research-to-
 
 ---
 
+### "I want to publish a post" {#i-want-to-publish-a-post}
+
+`/post-publisher <dir>` closes the last mile: it takes a `carousel-builder` or
+`reel-builder` output directory, reads `captions.md`, and sends it to the
+platform. Instagram, Threads, TikTok, X, YouTube, Telegram and LinkedIn, all
+through their official APIs.
+
+**Publishing is irreversible, so dry-run is the default.** Without `--yes`
+nothing leaves the machine; with `--yes` each platform is still confirmed
+separately.
+
+```
+/post-publisher ./generated/carousel/<slug>/ --platform instagram,threads
+/post-publisher ./generated/carousel/<slug>/ --platform instagram --draft --yes
+/post-publisher ./generated/reel/<slug>/ --platform tiktok --draft --yes
+/post-publisher --kind text --text "..." --platform telegram --yes
+/post-publisher --list-platforms                        # what is configured
+```
+
+Before the first post, connect the account once:
+
+```
+python3 -m common.runners.cli.auth --platform threads    # browser OAuth flow
+python3 -m common.runners.cli.auth --status              # what is connected
+skills-keys accounts                                     # the same, from the keys skill
+```
+
+Start with **Telegram** (no OAuth at all — a BotFather token and an admin bot)
+or **Threads** (simplest OAuth, and a text post needs no S3 bucket). Instagram
+is the worst place to start: it needs a Business account, a registered app and
+an S3 bucket before the first post can go out, because Instagram fetches media
+from a URL rather than accepting uploaded bytes.
+
+Two behaviours worth knowing:
+
+- **`--draft` is a promise.** On a platform without drafts (Telegram, X,
+  LinkedIn) the platform is *skipped*, never published live.
+- **Receipts prevent double-posting.** Each success appends to `posted.json` in
+  the source directory. Re-running the identical command is refused; editing the
+  caption counts as new content and goes through. `--force` overrides.
+
+TikTok deserves its own warning: direct publishing requires passing TikTok's app
+audit, and an unaudited app has every post silently forced to SELF_ONLY — the
+API reports success and nobody can see the post. Use `--draft`, which lands it
+in the app inbox and always works.
+
+Setup per platform: [post-publisher/references/oauth-setup.md](../post-publisher/references/oauth-setup.md).
+When the API path is genuinely closed (unaudited TikTok, personal Instagram,
+company LinkedIn pages), [browser-fallback.md](../post-publisher/references/browser-fallback.md)
+covers posting by hand without breaking the receipt trail.
+
+For details: [post-publisher/SKILL.md](../post-publisher/SKILL.md) and
+[publish-to-social](walkthroughs/publish-to-social.md).
+
+---
+
 ### "I want to design a logo / brand mark" {#i-want-to-make-a-logo}
 
 `/logo-maker --brand "<name>"` generates N stochastic logo variants. Defaults to `ideogram-3-quality` for cleanest embedded text. Pick from six style presets: `wordmark` / `minimal` / `illustrated` / `typographic` / `geometric` / `emblem`.
@@ -935,7 +993,7 @@ See [`README.md § What's in the box`](../README.md#whats-in-the-box) for the up
 - [QUICKSTART](QUICKSTART.md) — 5-minute first run
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
-- [COMPOSING](COMPOSING.md) — how the 41 skills compose; recipe library
+- [COMPOSING](COMPOSING.md) — how the 42 skills compose; recipe library
 - [SKILL-INDEX](SKILL-INDEX.md) — every skill indexed by layer / domain / language
 - [walkthroughs/README.md](walkthroughs/README.md) — 19 walkthroughs, categorized
 - [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection

@@ -28,7 +28,7 @@ This skill does NOT:
 - Add a voiceover / TTS narrator (out of scope for v1 — would need ducking/mixing logic; planned v2.4.0)
 - Composite multi-track edits beyond hard cuts (no dissolves, no transitions other than concat)
 - Beat-sync shots to music BPM (would need BPM detection; planned later)
-- Post to platforms — output is an MP4 you upload via the platform's UI
+- Post to platforms — that is `post-publisher`, which takes this skill's output directory (the `final.mp4`) as its input
 - Run editing software (Premiere / DaVinci / CapCut) — uses ffmpeg only
 </objective>
 

@@ -1,6 +1,6 @@
 # Composing skills — workflow recipes
 
-The 41 skills aren't independent — they stack. `writer` is the foundation; wrappers extend it; linters audit without mutating; orchestrators chain multiple wrappers + the execute layer + style libraries; meta-skills manage the collection.
+The 42 skills aren't independent — they stack. `writer` is the foundation; wrappers extend it; linters audit without mutating; orchestrators chain multiple wrappers + the execute layer + style libraries; meta-skills manage the collection.
 
 This file is the **recipe book**: named workflows showing concrete skill chains for typical jobs.
 
@@ -23,11 +23,11 @@ This file is the **recipe book**: named workflows showing concrete skill chains 
 
 ## Core composition rules
 
-1. **`writer` is the base.** 12 of 41 skills run `writer` as their final cleanup pass. You rarely call `writer` directly except for raw clean-up.
+1. **`writer` is the base.** 12 of 42 skills run `writer` as their final cleanup pass. You rarely call `writer` directly except for raw clean-up.
 2. **Linters are read-only.** `style-check`, `translation-sync`, `canon-check` produce reports, never mutate text. Use as quality gates.
 3. **One wrapper per pass.** Don't try to chain `prose-edit` + `essay-write` on the same text in one go. Pick the right one for the genre.
 4. **Linters AFTER wrappers.** Apply rewrites first, then lint. The opposite order tells you what you already know.
-5. **Orchestrators have one upstream feeder.** `research-brief` feeds `carousel-builder` and `reel-builder`. The orchestrator's outputs (manifest.json + style-used.md) are reproducible — keep them.
+5. **Orchestrators have one upstream feeder.** `research-brief` feeds `carousel-builder` and `reel-builder`, which in turn feed `post-publisher` — the only terminal skill, and the only one whose output leaves your machine. The orchestrator's outputs (manifest.json + style-used.md) are reproducible — keep them.
 6. **Meta-skills are operational.** `skills-update` and `skills-keys` don't edit text; they manage the collection and its keys.
 
 ---
@@ -45,6 +45,10 @@ This file is the **recipe book**: named workflows showing concrete skill chains 
 │       ▼                                     │
 │  carousel-builder  ·  reel-builder          │
 │    (consume --research <path> from above)   │
+│       │                                     │
+│       ▼                                     │
+│  post-publisher                             │
+│    (consumes their output dir; sends it)    │
 └─────────────────────────────────────────────┘
 
 ┌─────────────────── linters (read-only) ─────┐
@@ -365,8 +369,9 @@ Checks for newer release, shows CHANGELOG diff, asks confirmation, runs `install
 | `rfc-writer` | RFC/ADR md | `writer` | optional cleanup |
 | `landing-copy` | landing sections | `microcopy` + `writer` | UI strings + cleanup |
 | `research-brief` | markdown brief | `carousel-builder` / `reel-builder` | via `--research <path>` |
-| `carousel-builder` | PNG slides + captions + manifest | (no skill; user posts) | manifest enables --resume |
-| `reel-builder` | final.mp4 + components + manifest | (no skill; user posts) | manifest enables --resume |
+| `carousel-builder` | PNG slides + captions + manifest | `post-publisher` | manifest enables --resume |
+| `reel-builder` | final.mp4 + components + manifest | `post-publisher` | manifest enables --resume |
+| `post-publisher` | live post or platform draft + posted.json | none (terminal) | receipt blocks a repeat publish |
 | `skills-keys` | (writes ~/.skills.env) | runner CLIs | auto-loaded at runner startup |
 | `skills-update` | (re-installs) | none | meta |
 
@@ -396,7 +401,7 @@ Checks for newer release, shows CHANGELOG diff, asks confirmation, runs `install
 
 ## Cross-references
 
-- [All 41 skills (auto-generated table)](../README.md#whats-in-the-box)
+- [All 42 skills (auto-generated table)](../README.md#whats-in-the-box)
 - [Scenario-based picker](USER-GUIDE.md)
 - [Walkthroughs (categorized index)](walkthroughs/)
 - [Quickstart (5-minute first run)](QUICKSTART.md)
