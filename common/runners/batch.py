@@ -20,6 +20,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable
 
+from . import atomicfile
 from . import output as output_mod
 from .errors import KeyMissingError, ProviderError, RunnerError, TimeoutError as RunnerTimeoutError
 from .providers.base import GenerationResult, JobHandle, Modality, Provider
@@ -67,8 +68,12 @@ def write_manifest(manifest_path: Path, items: list[BatchItem], extra: dict[str,
     }
     if extra:
         payload["meta"] = extra
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    # Atomic: this is rewritten after every item so a crash is survivable, and
+    # a crash *during* the write would otherwise leave the half-file that the
+    # next --resume chokes on.
+    atomicfile.write_text(
+        manifest_path, json.dumps(payload, indent=2, ensure_ascii=False)
+    )
 
 
 def load_manifest(manifest_path: Path) -> list[BatchItem]:
