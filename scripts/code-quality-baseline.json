@@ -9,7 +9,7 @@
   },
   "counts": {
     "function-size": 8,
-    "complexity": 11,
+    "complexity": 10,
     "module-size": 3,
     "parameters": 2
   },
@@ -22,7 +22,6 @@
     "complexity|common/runners/proposal_kit.py|write_brief",
     "complexity|common/runners/proposal_parse.py|parse",
     "complexity|common/runners/proposal_render.py|render_html",
-    "complexity|common/runners/subtitles.py|parse_vtt",
     "complexity|writer/scripts/lint.py|_structural_hits",
     "complexity|writer/scripts/lint.py|scan",
     "function-size|common/runners/cli/proposal.py|main",

@@ -39,71 +39,64 @@ def _parse_timecode(s: str) -> tuple[float, float] | None:
     return start, end
 
 
+_TAG_RE = re.compile(r"<[^>]+>")
+
+# VTT blocks that carry metadata rather than a cue.
+_VTT_METADATA = ("NOTE", "STYLE", "REGION")
+
+
+def _split_blocks(text: str) -> list[str]:
+    return re.split(r"\n\s*\n", text.replace("\r\n", "\n").strip())
+
+
+def _cue_from_block(block: str, *, strip_tags: bool = False) -> Cue | None:
+    """One cue from one block, or None if the block has no timecode or no text.
+
+    Both formats allow a line before the timecode — an index in SRT, an
+    optional cue identifier in VTT — so the timecode is found by scanning
+    rather than assumed to sit first.
+    """
+    lines = [ln for ln in block.splitlines() if ln.strip()]
+    if len(lines) < 2:
+        return None
+
+    for index, line in enumerate(lines):
+        span = _parse_timecode(line)
+        if span is not None:
+            break
+    else:
+        return None
+
+    body = lines[index + 1:]
+    if strip_tags:
+        body = [_TAG_RE.sub("", ln) for ln in body]
+    text = " ".join(ln.strip() for ln in body).strip()
+    if not text:
+        return None
+    return Cue(start=span[0], end=span[1], text=text)
+
+
 def parse_srt(text: str) -> list[Cue]:
     """Parse SRT subtitle text. Returns ordered list of Cue."""
-    cues: list[Cue] = []
-    blocks = re.split(r"\n\s*\n", text.replace("\r\n", "\n").strip())
-    for block in blocks:
-        lines = [ln for ln in block.splitlines() if ln.strip()]
-        if len(lines) < 2:
-            continue
-        # First line might be an index (integer). Find the timecode line.
-        timecode_idx = None
-        for i, ln in enumerate(lines):
-            if _TIMECODE_RE.match(ln.strip()):
-                timecode_idx = i
-                break
-        if timecode_idx is None:
-            continue
-        rng = _parse_timecode(lines[timecode_idx])
-        if rng is None:
-            continue
-        start, end = rng
-        text_lines = lines[timecode_idx + 1:]
-        cue_text = " ".join(ln.strip() for ln in text_lines).strip()
-        if not cue_text:
-            continue
-        cues.append(Cue(start=start, end=end, text=cue_text))
-    return cues
+    parsed = (_cue_from_block(block) for block in _split_blocks(text))
+    return [cue for cue in parsed if cue is not None]
 
 
 def parse_vtt(text: str) -> list[Cue]:
     """Parse WebVTT subtitle text. Returns ordered list of Cue."""
-    cues: list[Cue] = []
-    # Strip the WEBVTT header (first line) and any metadata blocks
     content = text.replace("\r\n", "\n").strip()
-    # Remove leading WEBVTT header + optional NOTE/STYLE blocks
     if content.startswith("WEBVTT"):
-        # Find the first cue block
+        # The header block is not a cue; everything after the first blank line is.
         parts = re.split(r"\n\s*\n", content, maxsplit=1)
         content = parts[1] if len(parts) > 1 else ""
-    blocks = re.split(r"\n\s*\n", content.strip())
-    for block in blocks:
-        if block.strip().startswith("NOTE") or block.strip().startswith("STYLE") or block.strip().startswith("REGION"):
-            continue
-        lines = [ln for ln in block.splitlines() if ln.strip()]
-        if len(lines) < 2:
-            continue
-        # Cue identifier (optional) may be on the first line; timecode is on
-        # the first line that matches the timecode regex.
-        timecode_idx = None
-        for i, ln in enumerate(lines):
-            if _TIMECODE_RE.match(ln.strip()):
-                timecode_idx = i
-                break
-        if timecode_idx is None:
-            continue
-        rng = _parse_timecode(lines[timecode_idx])
-        if rng is None:
-            continue
-        start, end = rng
-        text_lines = lines[timecode_idx + 1:]
-        # Strip VTT inline tags (<c>, <i>, <b>, <v>, <ruby>, etc.)
-        cue_text = " ".join(re.sub(r"<[^>]+>", "", ln).strip() for ln in text_lines).strip()
-        if not cue_text:
-            continue
-        cues.append(Cue(start=start, end=end, text=cue_text))
-    return cues
+
+    parsed = (
+        # Inline tags (<c>, <i>, <b>, <v>, <ruby>) would be drawn literally.
+        _cue_from_block(block, strip_tags=True)
+        for block in _split_blocks(content)
+        if not block.strip().startswith(_VTT_METADATA)
+    )
+    return [cue for cue in parsed if cue is not None]
 
 
 def parse_file(path: Path) -> list[Cue]:
