@@ -9,6 +9,8 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.22.0] — 2026-08-03
+
 ### Added — structural gates, and the publishing layer refactored to pass them
 
 Two new smoke gates. `check-code-quality.py` enforces module ≤400 lines, function
