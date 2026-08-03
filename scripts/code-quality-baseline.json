@@ -8,26 +8,22 @@
     "parameters": 5
   },
   "counts": {
-    "function-size": 8,
-    "complexity": 10,
+    "function-size": 7,
+    "complexity": 7,
     "module-size": 3,
     "parameters": 2
   },
   "frozen": [
     "complexity|common/runners/cli/proposal.py|main",
-    "complexity|common/runners/proposal_brand.py|_pick_fonts",
-    "complexity|common/runners/proposal_brand.py|_pick_palette",
     "complexity|common/runners/proposal_kit.py|compress_html_images",
     "complexity|common/runners/proposal_kit.py|print_pdf",
     "complexity|common/runners/proposal_kit.py|write_brief",
-    "complexity|common/runners/proposal_parse.py|parse",
     "complexity|common/runners/proposal_render.py|render_html",
     "complexity|writer/scripts/lint.py|_structural_hits",
     "complexity|writer/scripts/lint.py|scan",
     "function-size|common/runners/cli/proposal.py|main",
     "function-size|common/runners/proposal_kit.py|print_pdf",
     "function-size|common/runners/proposal_kit.py|write_brief",
-    "function-size|common/runners/proposal_parse.py|parse",
     "function-size|common/runners/proposal_render.py|render_html",
     "function-size|writer/scripts/lint.py|_structural_hits",
     "function-size|writer/scripts/lint.py|main",

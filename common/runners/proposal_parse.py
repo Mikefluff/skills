@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from dataclasses import dataclass, field
 from typing import Any
 
 SCHEMA = "skills.proposal.plan.v1"
@@ -215,133 +216,168 @@ def _is_footer_line(line: str) -> bool:
     return False
 
 
-def parse(text: str) -> dict[str, Any]:
-    """Parse a raw offer into a ``skills.proposal.plan.v1`` dict."""
-    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+def _is_total_key(key: str) -> bool:
+    return any(key == k or key.startswith(k) for k in _TOTAL_KEYS)
 
-    client: dict[str, str] = {}
-    extra: dict[str, str] = {}
-    items: list[dict[str, Any]] = []
+
+@dataclass
+class _Scan:
+    """What one pass over the offer's lines found."""
+
+    client: dict[str, str] = field(default_factory=dict)
+    extra: dict[str, str] = field(default_factory=dict)
+    items: list[dict[str, Any]] = field(default_factory=list)
     total_stated: float | None = None
     total_currency: str | None = None
-    footer: dict[str, str | None] = {"catalog_url": None, "site_url": None}
+    footer_lines: list[str] = field(default_factory=list)
+    in_order: bool = False
+    seen_total: bool = False
 
-    in_order = False
-    seen_total = False
-    footer_lines: list[str] = []
+    def take_total(self, value: str) -> None:
+        """The grand total also closes the order section."""
+        match = _AMOUNT_RE.search(value)
+        if match:
+            self.total_stated = _parse_amount(match.group("price"))
+            self.total_currency = _norm_currency(match.group("cur2") or match.group("cur1"))
+        self.seen_total = True
+        self.in_order = False
 
+    def take_field(self, key: str, value: str) -> None:
+        """A known label goes to the client block; anything else is kept aside."""
+        canon = _FIELD_ALIASES.get(key)
+        if canon:
+            self.client[canon] = value
+        elif value:
+            self.extra[key] = value
+
+
+def _scan_lines(lines: list[str]) -> _Scan:
+    scan = _Scan()
     for raw_line in lines:
         line = raw_line.rstrip()
         stripped = _strip_lead_emoji(line).strip()
-        low = stripped.lower()
-
         if not stripped:
             continue
 
         # Everything after the grand total is footer material.
-        if seen_total:
-            footer_lines.append(line)
+        if scan.seen_total:
+            scan.footer_lines.append(line)
             continue
 
         kv = _split_key_value(line)
-
-        # Total line — also closes the order section.
-        if kv and any(kv[0] == k or kv[0].startswith(k) for k in _TOTAL_KEYS):
-            pm = _AMOUNT_RE.search(kv[1])
-            if pm:
-                total_stated = _parse_amount(pm.group("price")) if pm else None
-                total_currency = _norm_currency(pm.group("cur2") or pm.group("cur1")) if pm else None
-            seen_total = True
-            in_order = False
+        if kv and _is_total_key(kv[0]):
+            scan.take_total(kv[1])
             continue
 
         # Order section header (e.g. "🧾 Order:", "Заказ:").
-        if not in_order and _is_order_header(low):
-            in_order = True
+        if not scan.in_order and _is_order_header(stripped.lower()):
+            scan.in_order = True
             continue
 
-        # Inside the order: try item first — product URLs contain 'catalogue',
-        # so item-parse MUST win over footer heuristics.
-        if in_order:
+        # Inside the order, item-parse MUST win over the footer heuristics —
+        # product URLs contain 'catalogue', which the footer check matches on.
+        if scan.in_order:
             item = _parse_item_line(line)
             if item:
-                items.append(item)
+                scan.items.append(item)
                 continue
 
-        # Narrow footer detection (bare URL / "сайт" / catalogue label).
         if _is_footer_line(line):
-            footer_lines.append(line)
-            in_order = False
+            scan.footer_lines.append(line)
+            scan.in_order = False
             continue
 
-        # Header key:value.
         if kv:
-            key, val = kv
-            canon = _FIELD_ALIASES.get(key)
-            if canon:
-                client[canon] = val
-            elif val:
-                extra[key] = val
-            continue
+            scan.take_field(*kv)
+    return scan
 
-    # Footer extraction
-    footer_blob = "\n".join(footer_lines)
-    urls = _BARE_URL_RE.findall(footer_blob)
-    if urls:
-        footer["catalog_url"] = urls[0]
-    # site domain: token after 'сайт'/'site', or a www.* host, or derive from catalog
-    sm = re.search(r"(?:сайт|site)\s*:?\s*((?:https?://)?[\w.-]+\.\w{2,})", footer_blob, re.IGNORECASE)
-    if not sm:
-        sm = re.search(r"\b((?:https?://)?www\.[\w.-]+\.\w{2,})", footer_blob)
-    if sm:
-        host = sm.group(1)
-        footer["site_url"] = host if host.startswith("http") else "https://" + host
-    elif footer["catalog_url"]:
-        m = re.match(r"(https?://[^/]+)", footer["catalog_url"])
-        footer["site_url"] = m.group(1) if m else None
 
-    # Currency resolution: majority vote across items, fallback to total's.
-    item_currencies = [it["currency"] for it in items if it["currency"]]
-    if item_currencies:
-        currency = max(set(item_currencies), key=item_currencies.count)
-    else:
-        currency = total_currency or "THB"
-    for it in items:
-        if not it["currency"]:
-            it["currency"] = currency
-
-    subtotal = round(sum(it["price"] for it in items if it["price"]), 2)
-    mismatch = (
-        total_stated is not None
-        and abs(total_stated - subtotal) > max(1.0, subtotal * 0.001)
+def _site_url(blob: str, catalog_url: str | None) -> str | None:
+    """A labelled 'сайт:' host, else a bare www host, else the catalogue's origin."""
+    match = re.search(
+        r"(?:сайт|site)\s*:?\s*((?:https?://)?[\w.-]+\.\w{2,})", blob, re.IGNORECASE
     )
+    if not match:
+        match = re.search(r"\b((?:https?://)?www\.[\w.-]+\.\w{2,})", blob)
+    if match:
+        host = match.group(1)
+        return host if host.startswith("http") else "https://" + host
+    if catalog_url:
+        origin = re.match(r"(https?://[^/]+)", catalog_url)
+        return origin.group(1) if origin else None
+    return None
 
-    # Outliers: a single line dominating the subtotal usually means a typo
-    # (the seed offer's 5 000 000 logistics line is 97% of the total). We flag,
-    # never auto-correct — the orchestrator decides.
-    outliers: list[dict[str, Any]] = []
-    if subtotal > 0 and len(items) >= 4:
-        for idx, it in enumerate(items):
-            if it["price"] and it["price"] / subtotal >= 0.6:
-                outliers.append({
-                    "index": idx,
-                    "name": it["name"],
-                    "price": it["price"],
-                    "share": round(it["price"] / subtotal, 4),
-                })
+
+def _extract_footer(footer_lines: list[str]) -> dict[str, str | None]:
+    blob = "\n".join(footer_lines)
+    urls = _BARE_URL_RE.findall(blob)
+    catalog_url = urls[0] if urls else None
+    return {"catalog_url": catalog_url, "site_url": _site_url(blob, catalog_url)}
+
+
+def _resolve_currency(items: list[dict[str, Any]], total_currency: str | None) -> str:
+    """Majority vote across the items; the total's currency is the fallback.
+
+    A vote rather than first-wins: one line typed ฿ where the rest say THB
+    should not decide the whole document.
+    """
+    seen = [it["currency"] for it in items if it["currency"]]
+    if seen:
+        return max(set(seen), key=seen.count)
+    return total_currency or "THB"
+
+
+def _find_outliers(items: list[dict[str, Any]], subtotal: float) -> list[dict[str, Any]]:
+    """Flag a line that dominates the subtotal — usually a typo.
+
+    The seed offer's 5 000 000 logistics line is 95% of its total. Flagged,
+    never auto-corrected: the orchestrator decides. Below four items a large
+    share is ordinary, so the check does not run.
+    """
+    if subtotal <= 0 or len(items) < 4:
+        return []
+    return [
+        {
+            "index": index,
+            "name": item["name"],
+            "price": item["price"],
+            "share": round(item["price"] / subtotal, 4),
+        }
+        for index, item in enumerate(items)
+        if item["price"] and item["price"] / subtotal >= 0.6
+    ]
+
+
+def parse(text: str) -> dict[str, Any]:
+    """Parse a raw offer into a ``skills.proposal.plan.v1`` dict."""
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    scan = _scan_lines(lines)
+
+    currency = _resolve_currency(scan.items, scan.total_currency)
+    for item in scan.items:
+        if not item["currency"]:
+            item["currency"] = currency
+
+    subtotal = round(sum(it["price"] for it in scan.items if it["price"]), 2)
+    # A stated total is reported, never trusted: the computed subtotal is what
+    # the proposal charges, and a disagreement is surfaced rather than resolved.
+    mismatch = (
+        scan.total_stated is not None
+        and abs(scan.total_stated - subtotal) > max(1.0, subtotal * 0.001)
+    )
 
     return {
         "schema": SCHEMA,
-        "client": client,
-        "extra_fields": extra,
-        "items": items,
+        "client": scan.client,
+        "extra_fields": scan.extra,
+        "items": scan.items,
         "currency": currency,
         "subtotal_computed": subtotal,
-        "total_stated": total_stated,
-        "total_currency": total_currency or currency,
+        "total_stated": scan.total_stated,
+        "total_currency": scan.total_currency or currency,
         "total_mismatch": bool(mismatch),
-        "price_outliers": outliers,
-        "footer": footer,
+        "price_outliers": _find_outliers(scan.items, subtotal),
+        "footer": _extract_footer(scan.footer_lines),
     }
 
 

@@ -116,68 +116,92 @@ def _collect_colors(html_text: str) -> list[tuple[str, int]]:
     return sorted(counts.items(), key=lambda kv: kv[1], reverse=True)
 
 
+DEFAULT_ACCENT = "#1f6feb"
+
+# A brand colour is saturated and neither near-white nor near-black — those are
+# background and text, and every site has more of them than of its own colour.
+MIN_ACCENT_SATURATION = 0.25
+ACCENT_LUMA_RANGE = (25, 235)
+NEAR_WHITE_LUMA = 240
+NEAR_BLACK_LUMA = 24
+
+
+def _accents(colors: list[tuple[str, int]]) -> tuple[str | None, str | None]:
+    """The two most-used saturated colours, ranked by frequency then vividness."""
+    saturated: list[tuple[str, int, float]] = []
+    low, high = ACCENT_LUMA_RANGE
+    for hexv, count in colors:
+        rgb = _rgb(hexv)
+        luma, sat = _luma(rgb), _saturation(rgb)
+        if sat >= MIN_ACCENT_SATURATION and low <= luma <= high:
+            saturated.append((hexv, count, sat))
+
+    saturated.sort(key=lambda t: (t[1], t[2]), reverse=True)
+    if not saturated:
+        return None, None
+
+    accent = saturated[0][0]
+    second = next((hexv for hexv, _n, _s in saturated[1:] if hexv != accent), None)
+    return accent, second
+
+
+def _background(colors: list[tuple[str, int]]) -> str:
+    """Most frequent near-white, unless the site is clearly dark-dominant."""
+    light = [(h, n) for h, n in colors if _luma(_rgb(h)) >= NEAR_WHITE_LUMA]
+    dark = [(h, n) for h, n in colors if _luma(_rgb(h)) <= NEAR_BLACK_LUMA]
+    if dark and light and dark[0][1] > light[0][1] * 1.5:
+        return dark[0][0]
+    return light[0][0] if light else "#ffffff"
+
+
 def _pick_palette(colors: list[tuple[str, int]]) -> dict[str, str]:
     """Choose accent + secondary (saturated, not near-white/black), plus bg/text."""
-    accent = accent2 = None
-    saturated: list[tuple[str, int, float]] = []
-    for hexv, n in colors:
-        rgb = _rgb(hexv)
-        l, s = _luma(rgb), _saturation(rgb)
-        if s >= 0.25 and 25 <= l <= 235:
-            saturated.append((hexv, n, s))
-    # rank saturated colours by frequency, then vividness
-    saturated.sort(key=lambda t: (t[1], t[2]), reverse=True)
-    if saturated:
-        accent = saturated[0][0]
-        for hexv, _n, _s in saturated[1:]:
-            if hexv != accent:
-                accent2 = hexv
-                break
-
-    # background: most frequent near-white (or near-black for dark sites)
-    light = [(h, n) for h, n in colors if _luma(_rgb(h)) >= 240]
-    dark = [(h, n) for h, n in colors if _luma(_rgb(h)) <= 24]
-    bg = (light[0][0] if light else "#ffffff")
-    # If the site is clearly dark-dominant, flip.
-    if dark and light and dark[0][1] > light[0][1] * 1.5:
-        bg = dark[0][0]
-    text = "#111111" if _luma(_rgb(bg)) >= 128 else "#f5f5f5"
+    accent, accent2 = _accents(colors)
+    bg = _background(colors)
+    is_dark = _luma(_rgb(bg)) < 128
 
     return {
-        "accent": accent or "#1f6feb",
-        "accent2": accent2 or accent or "#1f6feb",
+        "accent": accent or DEFAULT_ACCENT,
+        "accent2": accent2 or accent or DEFAULT_ACCENT,
         "bg": bg,
-        "text": text,
-        "is_dark": _luma(_rgb(bg)) < 128,
+        "text": "#f5f5f5" if is_dark else "#111111",
+        "is_dark": is_dark,
     }
 
 
 # ----------------------------------------------------------------------------- fonts
 
+MAX_FONT_NAME_CHARS = 40
+
+
+def _google_families(google_url: str) -> list[str]:
+    """Family names out of a fonts.googleapis.com URL, in the order declared."""
+    names = []
+    for family in _GF_FAMILY_RE.findall(google_url):
+        name = family.split(":")[0].replace("+", " ").strip()
+        if name and name.lower() not in _GENERIC_FONTS:
+            names.append(name)
+    return names
+
+
+def _declared_families(html_text: str) -> list[str]:
+    """Families from font-family declarations, most frequently used first."""
+    counts: dict[str, int] = {}
+    for match in _FONT_DECL_RE.finditer(html_text):
+        first = match.group(1).split(",")[0].strip().strip("'\"")
+        if first and first.lower() not in _GENERIC_FONTS and len(first) <= MAX_FONT_NAME_CHARS:
+            counts[first] = counts.get(first, 0) + 1
+    return [f for f, _ in sorted(counts.items(), key=lambda kv: kv[1], reverse=True)]
+
+
 def _pick_fonts(html_text: str) -> dict[str, str | None]:
-    google_url = None
-    gm = _GF_RE.search(html_text)
-    families: list[str] = []
-    if gm:
-        google_url = "https://" + gm.group(0)
-        for fam in _GF_FAMILY_RE.findall(google_url):
-            name = fam.split(":")[0].replace("+", " ").strip()
-            if name and name.lower() not in _GENERIC_FONTS:
-                families.append(name)
+    """Heading and body faces. A linked Google font outranks a CSS declaration —
+    a site that bothered to load a face is using it for its headings."""
+    found = _GF_RE.search(html_text)
+    google_url = "https://" + found.group(0) if found else None
+    families = _google_families(google_url) if google_url else []
 
-    # also scan font-family declarations, ranked by frequency
-    decl_counts: dict[str, int] = {}
-    for m in _FONT_DECL_RE.finditer(html_text):
-        first = m.group(1).split(",")[0].strip().strip("'\"")
-        if first and first.lower() not in _GENERIC_FONTS and len(first) <= 40:
-            decl_counts[first] = decl_counts.get(first, 0) + 1
-    ranked = [f for f, _ in sorted(decl_counts.items(), key=lambda kv: kv[1], reverse=True)]
-
-    ordered: list[str] = []
-    for f in families + ranked:
-        if f not in ordered:
-            ordered.append(f)
-
+    ordered = list(dict.fromkeys(families + _declared_families(html_text)))
     heading = ordered[0] if ordered else None
     body = ordered[1] if len(ordered) > 1 else heading
     return {"font_heading": heading, "font_body": body, "google_fonts_url": google_url}
