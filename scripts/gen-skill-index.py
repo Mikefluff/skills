@@ -142,63 +142,66 @@ def replace_block(index_text: str, new_block: str) -> str | None:
     return pattern.sub(new_block, index_text)
 
 
+def check_index(rendered: str) -> int:
+    """Exit non-zero if SKILL-INDEX.md no longer matches skills.json."""
+    if not INDEX.exists():
+        print(f"ERROR: {INDEX} does not exist. Run `make gen-index`.", file=sys.stderr)
+        return 2
+    index_text = INDEX.read_text(encoding="utf-8")
+    updated = replace_block(index_text, rendered)
+    if updated is None:
+        print(f"ERROR: {INDEX} is missing BEGIN/END markers.", file=sys.stderr)
+        return 2
+    if updated != index_text:
+        print(
+            "ERROR: docs/SKILL-INDEX.md is out of date.\n"
+            "Regenerate with: python3 scripts/gen-skill-index.py --write\n"
+            "Or: make gen-index",
+            file=sys.stderr,
+        )
+        return 1
+    print("docs/SKILL-INDEX.md is up to date.")
+    return 0
+
+
+def write_index(rendered: str) -> int:
+    """Replace the generated block in place, bootstrapping the file if absent."""
+    if not INDEX.exists():
+        INDEX.parent.mkdir(parents=True, exist_ok=True)
+        INDEX.write_text(_bootstrap_header() + rendered, encoding="utf-8")
+        print(f"Created {INDEX}")
+        return 0
+
+    index_text = INDEX.read_text(encoding="utf-8")
+    updated = replace_block(index_text, rendered)
+    if updated is None:
+        # Without markers there is no way to tell generated body from hand-written
+        # prose, and overwriting the file would eat the latter.
+        print(
+            f"ERROR: {INDEX} is missing BEGIN/END markers — refusing to write.",
+            file=sys.stderr,
+        )
+        return 2
+    if updated != index_text:
+        INDEX.write_text(updated, encoding="utf-8")
+        print(f"Updated {INDEX}")
+    else:
+        print(f"{INDEX} already up to date — no changes.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--write", action="store_true", help="update SKILL-INDEX.md in place")
     p.add_argument("--check", action="store_true", help="exit 1 if SKILL-INDEX.md is out of date")
     args = p.parse_args(argv)
 
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    rendered = render_block(manifest)
+    rendered = render_block(json.loads(MANIFEST.read_text(encoding="utf-8")))
 
     if args.check:
-        if not INDEX.exists():
-            print(f"ERROR: {INDEX} does not exist. Run `make gen-index`.", file=sys.stderr)
-            return 2
-        index_text = INDEX.read_text(encoding="utf-8")
-        updated = replace_block(index_text, rendered)
-        if updated is None:
-            print(
-                f"ERROR: {INDEX} is missing BEGIN/END markers.",
-                file=sys.stderr,
-            )
-            return 2
-        if updated != index_text:
-            print(
-                "ERROR: docs/SKILL-INDEX.md is out of date.\n"
-                "Regenerate with: python3 scripts/gen-skill-index.py --write\n"
-                "Or: make gen-index",
-                file=sys.stderr,
-            )
-            return 1
-        print("docs/SKILL-INDEX.md is up to date.")
-        return 0
-
+        return check_index(rendered)
     if args.write:
-        if not INDEX.exists():
-            # Bootstrap a fresh file with markers + the block
-            INDEX.parent.mkdir(parents=True, exist_ok=True)
-            INDEX.write_text(
-                _bootstrap_header() + rendered,
-                encoding="utf-8",
-            )
-            print(f"Created {INDEX}")
-            return 0
-        index_text = INDEX.read_text(encoding="utf-8")
-        updated = replace_block(index_text, rendered)
-        if updated is None:
-            print(
-                f"ERROR: {INDEX} is missing BEGIN/END markers — refusing to write.",
-                file=sys.stderr,
-            )
-            return 2
-        if updated != index_text:
-            INDEX.write_text(updated, encoding="utf-8")
-            print(f"Updated {INDEX}")
-        else:
-            print(f"{INDEX} already up to date — no changes.")
-        return 0
-
+        return write_index(rendered)
     print(rendered, end="")
     return 0
 

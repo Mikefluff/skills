@@ -100,36 +100,40 @@ def extract_description(skill_md: Path) -> str | None:
     return " ".join(desc_lines).strip().strip('"')
 
 
-def lint(desc: str) -> list[dict]:
-    findings: list[dict] = []
-    n = len(desc)
-
+def length_finding(n: int) -> dict | None:
+    """At most one finding — the length bands are ordered, not independent."""
     if n < MIN_LEN:
-        findings.append({
+        return {
             "level": "WARN",
             "code": "too_short",
             "msg": f"description is {n} chars (< {MIN_LEN}) — too short to disambiguate from sibling skills",
-        })
-    elif n < SOFT_MIN:
-        findings.append({
+        }
+    if n < SOFT_MIN:
+        return {
             "level": "INFO",
             "code": "borderline_short",
             "msg": f"description is {n} chars — borderline; sweet spot is {SOFT_MIN}-{SOFT_MAX}",
-        })
-    elif n > MAX_LEN:
-        findings.append({
+        }
+    if n > MAX_LEN:
+        return {
             "level": "WARN",
             "code": "too_long",
             "msg": f"description is {n} chars (> {MAX_LEN}) — verbosity dilutes matching signal",
-        })
-    elif n > SOFT_MAX:
-        findings.append({
+        }
+    if n > SOFT_MAX:
+        return {
             "level": "INFO",
             "code": "borderline_long",
             "msg": f"description is {n} chars — borderline; sweet spot is {SOFT_MIN}-{SOFT_MAX}",
-        })
+        }
+    return None
 
+
+def style_findings(desc: str) -> list[dict]:
+    """Opening phrase, invocation hint, internal-path bleed. One finding each."""
+    findings: list[dict] = []
     low = desc.lower().lstrip()
+
     for bad in BAD_PREFIXES:
         if low.startswith(bad):
             findings.append({
@@ -155,6 +159,15 @@ def lint(desc: str) -> list[dict]:
             })
             break
 
+    return findings
+
+
+def lint(desc: str) -> list[dict]:
+    findings: list[dict] = []
+    length = length_finding(len(desc))
+    if length is not None:
+        findings.append(length)
+    findings += style_findings(desc)
     return findings
 
 

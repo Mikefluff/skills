@@ -8,8 +8,8 @@
     "parameters": 5
   },
   "counts": {
-    "function-size": 41,
-    "complexity": 36,
+    "function-size": 36,
+    "complexity": 34,
     "parameters": 13,
     "module-size": 6
   },
@@ -46,8 +46,6 @@
     "complexity|common/runners/styles.py|anchor",
     "complexity|common/runners/styles.py|validate_style",
     "complexity|common/runners/subtitles.py|parse_vtt",
-    "complexity|scripts/check-links.py|main",
-    "complexity|scripts/gen-pricing.py|render",
     "complexity|writer/scripts/lint.py|_structural_hits",
     "complexity|writer/scripts/lint.py|scan",
     "function-size|common/runners/batch.py|run_batch",
@@ -83,11 +81,6 @@
     "function-size|common/runners/providers/suno.py|generate",
     "function-size|common/runners/styles.py|validate_style",
     "function-size|common/runners/typography.py|_render_block",
-    "function-size|scripts/coverage.py|main",
-    "function-size|scripts/coverage.py|render_markdown",
-    "function-size|scripts/gen-pricing.py|render",
-    "function-size|scripts/gen-skill-index.py|main",
-    "function-size|scripts/lint-description.py|lint",
     "function-size|writer/scripts/lint.py|_structural_hits",
     "function-size|writer/scripts/lint.py|main",
     "function-size|writer/scripts/lint.py|scan",

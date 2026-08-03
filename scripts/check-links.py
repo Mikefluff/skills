@@ -48,6 +48,46 @@ def tracked_markdown(subtree: str | None) -> list[pathlib.Path]:
     return [pathlib.Path(p) for p in out]
 
 
+def _line_of(text: str, offset: int) -> int:
+    return text[:offset].count("\n") + 1
+
+
+def scan_markdown_links(path: pathlib.Path, text: str) -> tuple[int, list[str]]:
+    """`[label](target)` links, resolved against the file's own directory."""
+    checked = 0
+    broken: list[str] = []
+    for m in LINK.finditer(text):
+        target = m.group(1)
+        if target.startswith(SKIP_SCHEME):
+            continue
+        path_part = target.split("#", 1)[0]
+        if not path_part or PLACEHOLDER.search(path_part):
+            continue
+        checked += 1
+        if not (path.parent / path_part).exists():
+            broken.append(f"  {path}:{_line_of(text, m.start())}  ->  {target}")
+    return checked, broken
+
+
+def scan_backticked_refs(path: pathlib.Path, text: str, root: pathlib.Path) -> tuple[int, list[str]]:
+    """Backticked `<skill>/references/<file>.md` — always repo-root-relative."""
+    # CHANGELOG is exempt: a log records what was true when written, and its
+    # entries legitimately name files that were later renamed or removed
+    # (including the entry documenting these very fixes).
+    if path.name == "CHANGELOG.md":
+        return 0, []
+    checked = 0
+    broken: list[str] = []
+    for m in BACKTICK_REF.finditer(text):
+        target = m.group(1)
+        checked += 1
+        if not (root / target).exists():
+            broken.append(
+                f"  {path}:{_line_of(text, m.start())}  ->  `{target}`  (backticked ref)"
+            )
+    return checked, broken
+
+
 def main() -> int:
     root = pathlib.Path(
         subprocess.run(["git", "rev-parse", "--show-toplevel"],
@@ -62,29 +102,10 @@ def main() -> int:
             text = f.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        for m in LINK.finditer(text):
-            target = m.group(1)
-            if target.startswith(SKIP_SCHEME):
-                continue
-            path_part = target.split("#", 1)[0]
-            if not path_part or PLACEHOLDER.search(path_part):
-                continue
-            checked += 1
-            if not (f.parent / path_part).exists():
-                line = text[: m.start()].count("\n") + 1
-                broken.append(f"  {f}:{line}  ->  {target}")
-        # Backticked `<skill>/references/<file>.md` — always repo-root-relative.
-        # CHANGELOG is exempt: a log records what was true when written, and its
-        # entries legitimately name files that were later renamed or removed
-        # (including the entry documenting these very fixes).
-        if f.name == "CHANGELOG.md":
-            continue
-        for m in BACKTICK_REF.finditer(text):
-            target = m.group(1)
-            checked += 1
-            if not (root / target).exists():
-                line = text[: m.start()].count("\n") + 1
-                broken.append(f"  {f}:{line}  ->  `{target}`  (backticked ref)")
+        for count, hits in (scan_markdown_links(f, text),
+                            scan_backticked_refs(f, text, root)):
+            checked += count
+            broken += hits
     if broken:
         print(f"links: FAILED — {len(broken)} broken of {checked} relative links\n")
         print("\n".join(broken))
