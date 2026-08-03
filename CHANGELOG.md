@@ -9,6 +9,8 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.21.0] — 2026-08-03
+
 ### Added — new skills
 
 - **`post-publisher`** (orchestrator). Publishes finished assets to Instagram, Threads, TikTok, X, YouTube, Telegram and LinkedIn through the official APIs. Composes with `carousel-builder` / `reel-builder` — it takes their output directory, reads `captions.md`, and sends it.
