@@ -35,13 +35,21 @@ _LIST_RE = re.compile(r"^\[(.*)\]$")
 _KV_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$")
 
 
-def _starts_new_field(line: str) -> bool:
-    """A `**Field**:` line on its own, or a `## ` heading, ends the block above.
+_FIELD_MARKER_RE = re.compile(r"^\*\*[^*]+\*\*\s*:")
 
-    Note this only catches a marker that ends the line — a field written inline
-    as `**Field**: value` does not terminate the block, and is absorbed into it.
+
+def _starts_new_field(line: str) -> bool:
+    """A `**Field**:` marker at the start of a line, or a `## ` heading.
+
+    Both spellings of a field end the block above it: the block form on its own
+    line, and the inline `**Field**: value`. Matching only the block form meant
+    an inline field was absorbed into whatever preceded it.
+
+    "At the start of the line" is what keeps this from firing on prose. Anchor
+    bodies are blockquoted (`> ...`), and emphasis mid-sentence is not in
+    column one, so neither is mistaken for a field.
     """
-    return (line.startswith("**") and line.endswith(":")) or line.startswith("## ")
+    return bool(_FIELD_MARKER_RE.match(line)) or line.startswith("## ")
 
 
 def _field_lines(body: str, name: str) -> list[str] | None:
@@ -126,9 +134,9 @@ class Style:
         lines: list[str] = []
         for raw in rest.lstrip().splitlines():
             line = raw.rstrip()
-            if line.startswith("**") and line.endswith(":"):
-                break
-            if line.startswith("## "):
+            # Same stop condition as anchor(); it used to be spelled out again
+            # here, which is why fixing the helper once left this copy broken.
+            if _starts_new_field(line):
                 break
             lines.append(line)
         while lines and not lines[-1].strip():

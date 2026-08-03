@@ -216,13 +216,52 @@ class Anchor(unittest.TestCase):
         # None and "" mean different things to the caller: absent vs blank.
         self.assertIsNone(self.anchor_of("**A**:\n\n**B**:\n> x"))
 
-    def test_inline_field_does_not_terminate_the_anchor(self):
-        # Current behaviour, pinned rather than endorsed: the walk stops at a
-        # line that starts with ** AND ends with ":", so a field written inline
-        # as `**B**: value` is swallowed into the anchor above it. Every shipped
-        # style writes the field after an anchor in block form, so nothing is
-        # affected today — but a user-authored style could be.
-        self.assertEqual(self.anchor_of("**A**:\n> mine\n\n**B**: theirs\n"), "mine **B**: theirs")
+    def test_an_inline_field_terminates_the_anchor(self):
+        # Was pinned as "does not terminate": the walk stopped only on a line
+        # that started with ** AND ended with ":", so `**B**: theirs` was
+        # swallowed into the anchor above it. Both forms are fields.
+        self.assertEqual(self.anchor_of("**A**:\n> mine\n\n**B**: theirs\n"), "mine")
+
+    def test_bold_prose_inside_an_anchor_is_not_mistaken_for_a_field(self):
+        # A field marker is bold-then-colon at the very start of the line.
+        # Blockquoted prose is prefixed with "> " and emphasis mid-sentence is
+        # not at the start, so neither ends the block.
+        self.assertEqual(
+            self.anchor_of("**A**:\n> **bold** opening\n> ends **like this**: really\n"),
+            "**bold** opening ends **like this**: really",
+        )
+
+    def test_a_colon_without_bold_does_not_terminate(self):
+        self.assertEqual(self.anchor_of("**A**:\n> mine\nNote: still mine\n"), "mine Note: still mine")
+
+
+class Section(unittest.TestCase):
+    """section() had anchor()'s stop condition copied out by hand.
+
+    Because it was a copy, fixing the shared helper left it broken, and because
+    it has no callers the breakage was invisible: every bundled style's
+    section("Vibe") returned the Vibe *and every field after it*. It now shares
+    the helper, so there is one rule and one place to change it.
+    """
+
+    def section_of(self, body, name="A"):
+        return styles.Style("s", "carousel", {}, body, Path("/tmp/s.md")).section(name)
+
+    def test_absent_field_returns_none(self):
+        self.assertIsNone(self.section_of("**B**: text"))
+
+    def test_inline_field_stops_at_the_next_inline_field(self):
+        self.assertEqual(self.section_of("**A**: mine\n**B**: theirs\n"), "mine")
+
+    def test_inline_field_stops_at_a_block_field(self):
+        self.assertEqual(self.section_of("**A**: mine\n\n**B**:\n> theirs\n"), "mine")
+
+    def test_newlines_inside_the_block_survive(self):
+        # The difference from anchor(), which joins onto one line.
+        self.assertEqual(self.section_of("**A**:\none\ntwo\n\n**B**: x\n"), "one\ntwo")
+
+    def test_stops_at_a_heading(self):
+        self.assertEqual(self.section_of("**A**: mine\n\n## Next\n\nother\n"), "mine")
 
 
 class ParseValue(unittest.TestCase):
