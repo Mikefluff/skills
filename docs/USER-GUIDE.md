@@ -212,7 +212,7 @@ Targets supported: `midjourney-v6`, `dalle-3`, `flux-pro`, `nano-banana`, `sdxl`
 
 ```
 /image-prompt a confident founder leaning on marble countertop --model gpt-image-2 --execute
-/image-prompt minimalist product shot --model imagen-4-ultra --execute --yes
+/image-prompt minimalist product shot --model nano-banana-pro --execute --yes
 ```
 
 Asset lands in `./generated/image/`. Cost confirmation prompts for anything above $0.10 unless `--yes`. Missing key → falls back to prompt-only. Setup: `install.sh` auto-creates the runners venv and installs deps; you only need to export `OPENAI_API_KEY` / `GEMINI_API_KEY` / `BFL_API_KEY` / `FAL_KEY` / `REPLICATE_API_TOKEN` / `IDEOGRAM_API_KEY`. Full provider matrix in `skills/image-prompt/references/execute.md`.

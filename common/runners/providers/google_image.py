@@ -1,5 +1,12 @@
-"""Google image providers — Imagen 4 family + Nano Banana Pro (Gemini 3 Pro Image).
-Uses the google-genai SDK; reads GEMINI_API_KEY lazily inside generate()."""
+"""Google image providers — the Gemini image family, marketed as "Nano Banana".
+
+Uses the google-genai SDK; reads GEMINI_API_KEY lazily inside generate().
+
+The Imagen 4 family that used to live here was shut down by Google on
+2026-06-30. Its slugs still resolve — see the deprecation aliases at the bottom
+of this file — but they route to the Gemini replacements Google names in its own
+migration table, because the Imagen endpoints no longer answer.
+"""
 
 from __future__ import annotations
 
@@ -19,7 +26,7 @@ from .base import GenerationResult, JobHandle, Provider
 def _read_image_bytes_and_mime(value: str | bytes) -> tuple[bytes, str]:
     """Resolve an image reference (path / URL / raw bytes) → (bytes, mime).
 
-    Used by NanoBananaProProvider to embed a reference image as a multimodal Part.
+    Used to embed a reference image as a multimodal Part.
     """
     if isinstance(value, bytes):
         return value, "image/png"
@@ -38,12 +45,6 @@ def _read_image_bytes_and_mime(value: str | bytes) -> tuple[bytes, str]:
     mime, _ = mimetypes.guess_type(str(path))
     return path.read_bytes(), mime or "image/png"
 
-_IMAGEN_MODEL_IDS: dict[str, str] = {
-    "imagen-4": "imagen-4.0-generate-001",
-    "imagen-4-ultra": "imagen-4.0-ultra-generate-001",
-    "imagen-4-fast": "imagen-4.0-fast-generate-001",
-}
-
 
 def _wrap_error(name: str, exc: Exception) -> ProviderError:
     msg = str(exc)
@@ -53,66 +54,40 @@ def _wrap_error(name: str, exc: Exception) -> ProviderError:
     return ProviderError(name, status, msg)
 
 
-class _ImagenProvider(Provider):
-    """Imagen 4 / 4 Ultra / 4 Fast."""
+class _GeminiImageProvider(Provider):
+    """One Gemini image model. Tiers differ by model id and price, not by call shape."""
 
     modality = "image"
     requires_env = ("GEMINI_API_KEY",)
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, model_id: str) -> None:
         self.name = name
-        self._model_id = _IMAGEN_MODEL_IDS[name]
+        self._model_id = model_id
 
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         return estimate(self.name, **kwargs)
 
-    def generate(self, prompt: str, **kwargs: Any) -> GenerationResult | JobHandle:
-        self.ensure_available()
+    def _image_config(self, types: Any, kwargs: dict[str, Any]) -> Any | None:
+        """Build ImageConfig if this SDK version has it; otherwise skip it.
+
+        Pinning the SDK is not our call — an older google-genai simply ignores
+        aspect ratio rather than crashing on an unknown kwarg.
+        """
+        image_config_cls = getattr(types, "ImageConfig", None)
+        if image_config_cls is None:
+            return None
+        fields: dict[str, Any] = {"aspect_ratio": str(kwargs.get("aspect_ratio", "1:1"))}
+        resolution = kwargs.get("resolution")
+        if resolution:
+            fields["image_size"] = str(resolution).upper()
         try:
-            from google import genai
-            from google.genai import types
-        except ImportError as exc:
-            raise ProviderError(self.name, None, "google-genai SDK not installed") from exc
-
-        variants = int(kwargs.get("variants", 1) or 1)
-        aspect_ratio = str(kwargs.get("aspect_ratio", "1:1"))
-
-        try:
-            client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-            response = client.models.generate_images(
-                model=self._model_id,
-                prompt=prompt,
-                config=types.GenerateImagesConfig(
-                    number_of_images=variants,
-                    aspect_ratio=aspect_ratio,
-                ),
-            )
-        except Exception as exc:  # noqa: BLE001
-            raise _wrap_error(self.name, exc) from exc
-
-        images = getattr(response, "generated_images", None) or []
-        if not images:
-            raise ProviderError(self.name, None, "no images returned")
-        first = images[0]
-        image_bytes = first.image.image_bytes
-        return GenerationResult(
-            content=image_bytes,
-            mime="image/png",
-            extension="png",
-            extra={"variants_returned": len(images), "model_id": self._model_id},
-        )
-
-
-class _NanoBananaProProvider(Provider):
-    """Gemini 3 Pro Image (a.k.a. Nano Banana Pro)."""
-
-    name = "nano-banana-pro"
-    modality = "image"
-    requires_env = ("GEMINI_API_KEY",)
-    _model_id = "gemini-3-pro-image-preview"
-
-    def estimate_cost(self, **kwargs: Any) -> Decimal | None:
-        return estimate(self.name, **kwargs)
+            return image_config_cls(**fields)
+        except TypeError:
+            # Field names drifted between SDK versions — aspect ratio alone is safer.
+            try:
+                return image_config_cls(aspect_ratio=fields["aspect_ratio"])
+            except TypeError:
+                return None
 
     def generate(self, prompt: str, **kwargs: Any) -> GenerationResult | JobHandle:
         self.ensure_available()
@@ -133,14 +108,17 @@ class _NanoBananaProProvider(Provider):
                 prompt,
             ]
 
+        config_fields: dict[str, Any] = {"response_modalities": ["TEXT", "IMAGE"]}
+        image_config = self._image_config(types, kwargs)
+        if image_config is not None:
+            config_fields["image_config"] = image_config
+
         try:
             client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
             response = client.models.generate_content(
                 model=self._model_id,
                 contents=contents,
-                config=types.GenerateContentConfig(
-                    response_modalities=["TEXT", "IMAGE"],
-                ),
+                config=types.GenerateContentConfig(**config_fields),
             )
         except Exception as exc:  # noqa: BLE001
             raise _wrap_error(self.name, exc) from exc
@@ -152,7 +130,11 @@ class _NanoBananaProProvider(Provider):
             content=image_bytes,
             mime="image/png",
             extension="png",
-            extra={"model_id": self._model_id, "had_input_image": image_ref is not None},
+            extra={
+                "model_id": self._model_id,
+                "had_input_image": image_ref is not None,
+                "resolution": kwargs.get("resolution"),
+            },
         )
 
     @staticmethod
@@ -173,9 +155,14 @@ class _NanoBananaProProvider(Provider):
         return None
 
 
-from ..config import register  # noqa: E402
+from ..config import register, register_deprecated  # noqa: E402
 
-register(_ImagenProvider("imagen-4"))
-register(_ImagenProvider("imagen-4-ultra"))
-register(_ImagenProvider("imagen-4-fast"))
-register(_NanoBananaProProvider())
+# Model ids verified against ai.google.dev/gemini-api/docs/nanobanana on 2026-08-03.
+register(_GeminiImageProvider("nano-banana-pro", "gemini-3-pro-image"))
+register(_GeminiImageProvider("nano-banana-2", "gemini-3.1-flash-image"))
+register(_GeminiImageProvider("nano-banana-2-lite", "gemini-3.1-flash-lite-image"))
+
+_IMAGEN_SHUTDOWN = "Google shut the Imagen 4 endpoints down on 2026-06-30"
+register_deprecated("imagen-4", "nano-banana-2", _IMAGEN_SHUTDOWN)
+register_deprecated("imagen-4-ultra", "nano-banana-pro", _IMAGEN_SHUTDOWN)
+register_deprecated("imagen-4-fast", "nano-banana-2-lite", _IMAGEN_SHUTDOWN)

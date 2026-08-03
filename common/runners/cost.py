@@ -9,23 +9,31 @@ from typing import Any
 
 from .errors import CostConfirmationDeclined
 
-# Per-unit USD pricing as of 2026-05. Source: vendor pricing pages (snapshotted).
+# Per-unit USD pricing as of 2026-08-03. Source: vendor pricing pages (snapshotted).
 # Values are conservative — actual cost may be slightly lower; never higher.
+#
+# A `_4k` suffix is the same unit charged at 4K output, which several vendors now
+# bill separately. estimate() picks it only when the caller passes resolution="4k";
+# the bare key is the price at every resolution below that.
 PRICE_TABLE: dict[str, dict[str, Decimal]] = {
     # OpenAI
     "gpt-image-2": {"low": Decimal("0.02"), "medium": Decimal("0.05"), "high": Decimal("0.10")},
     "gpt-4o-mini-tts": {"per_minute": Decimal("0.015")},
     "whisper-1": {"per_minute": Decimal("0.006")},
+    "gpt-4o-transcribe": {"per_minute": Decimal("0.006")},
+    "gpt-4o-mini-transcribe": {"per_minute": Decimal("0.003")},
+    # Retired from the API on 2026-09-24 along with the whole Videos API.
     "sora-2": {"per_second": Decimal("0.10")},
-    "sora-2-pro": {"per_second": Decimal("0.30")},
-    # Google
-    "imagen-4": {"per_image": Decimal("0.04")},
-    "imagen-4-ultra": {"per_image": Decimal("0.06")},
-    "imagen-4-fast": {"per_image": Decimal("0.02")},
-    "nano-banana-pro": {"per_image": Decimal("0.05")},
-    "veo-3-1": {"per_second": Decimal("0.40")},
-    "veo-3-1-fast": {"per_second": Decimal("0.15")},
+    "sora-2-pro": {"per_second": Decimal("0.50")},
+    # Google — Gemini image family ("Nano Banana"). Imagen 4 shut down 2026-06-30.
+    "nano-banana-pro": {"per_image": Decimal("0.134"), "per_image_4k": Decimal("0.24")},
+    "nano-banana-2": {"per_image": Decimal("0.101"), "per_image_4k": Decimal("0.151")},
+    "nano-banana-2-lite": {"per_image": Decimal("0.034")},
+    "veo-3-1": {"per_second": Decimal("0.40"), "per_second_4k": Decimal("0.60")},
+    "veo-3-1-fast": {"per_second": Decimal("0.12"), "per_second_4k": Decimal("0.30")},
+    "veo-3-1-lite": {"per_second": Decimal("0.08")},
     "lyria-3-pro": {"per_minute": Decimal("0.10")},
+    "lyria-3-clip": {"per_minute": Decimal("0.10")},
     # BFL
     "flux-1-1-pro": {"per_image": Decimal("0.04")},
     "flux-2-pro": {"per_image": Decimal("0.06")},
@@ -38,21 +46,35 @@ PRICE_TABLE: dict[str, dict[str, Decimal]] = {
     # Runway
     "gen-4": {"per_second": Decimal("0.10")},
     "gen-4-turbo": {"per_second": Decimal("0.05")},
+    "gen-4-5": {"per_second": Decimal("0.12")},
     "aleph": {"per_second": Decimal("0.18")},
-    # Kling
-    "kling-3": {"per_second": Decimal("0.10")},
+    # Kling — standard runs $0.084/sec, Pro with video input up to $0.168.
+    "kling-3": {"per_second": Decimal("0.12")},
     # Suno
     "suno-v5-5": {"per_song": Decimal("0.10")},
     # ElevenLabs
-    "eleven-music": {"per_minute": Decimal("0.30")},
-    "eleven-tts": {"per_1k_chars": Decimal("0.15")},
-    # Ideogram
+    "eleven-music": {"per_minute": Decimal("0.20")},
+    "eleven-tts": {"per_1k_chars": Decimal("0.12")},
+    # Ideogram. Ideogram 4.0 shipped 2026-06-03 at $0.03/$0.06/$0.10, but the public
+    # API still exposes only the v3 generate endpoint — priced here when we can call it.
+    "ideogram-3-flash": {"per_image": Decimal("0.02")},
     "ideogram-3-turbo": {"per_image": Decimal("0.02")},
     "ideogram-3": {"per_image": Decimal("0.04")},
     "ideogram-3-quality": {"per_image": Decimal("0.08")},
 }
 
 CONFIRMATION_THRESHOLD = Decimal("0.10")
+
+_4K_ALIASES = {"4k", "4K", "3840", "4096", "2160p", "uhd"}
+
+
+def _wants_4k(kwargs: dict[str, Any]) -> bool:
+    """True when the caller asked for 4K output, under any of the spellings callers use."""
+    for key in ("resolution", "image_size", "size", "quality"):
+        value = kwargs.get(key)
+        if value is not None and str(value).strip().lower() in {a.lower() for a in _4K_ALIASES}:
+            return True
+    return False
 
 
 def estimate(provider: str, **kwargs: Any) -> Decimal | None:
@@ -63,15 +85,21 @@ def estimate(provider: str, **kwargs: Any) -> Decimal | None:
 
     variants = int(kwargs.get("variants", 1) or 1)
 
+    def unit(key: str) -> Decimal:
+        """Price for `key`, upgraded to its 4K tier when the caller asked for 4K."""
+        if _wants_4k(kwargs) and f"{key}_4k" in entry:
+            return entry[f"{key}_4k"]
+        return entry[key]
+
     if "per_image" in entry:
-        return entry["per_image"] * variants
+        return unit("per_image") * variants
     if "per_edit" in entry:
         return entry["per_edit"] * variants
     if "per_song" in entry:
         return entry["per_song"] * variants
     if "per_second" in entry:
         duration = float(kwargs.get("duration_seconds", 8))
-        return entry["per_second"] * Decimal(str(duration)) * variants
+        return unit("per_second") * Decimal(str(duration)) * variants
     if "per_minute" in entry:
         minutes = float(kwargs.get("duration_minutes", 1))
         return entry["per_minute"] * Decimal(str(minutes)) * variants

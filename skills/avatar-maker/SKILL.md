@@ -45,7 +45,7 @@ Read user photo + optional style preference → pick a ref-capable identity-pres
 
 3. **Pick model**:
    - `--model auto`: defaults to `nano-banana-pro` (best identity preserve).
-     - If identity preserve isn't the priority (style transfer first) → `flux-2-pro` or `seedream-4.5`.
+     - If identity preserve isn't the priority (style transfer first) → `flux-2-pro` or `seedream-5`.
      - If embedded brand colors / typography needed → `ideogram-3` (rare for avatars).
    - `--model <slug>`: override.
    - ONE model across all aspects + variants.

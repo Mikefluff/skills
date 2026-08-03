@@ -162,7 +162,7 @@ To extend the bundled set: add a new entry to `IMPRINTS` dict in `cover_imprints
 
 ## Why this works
 
-AI image models (gpt-image-2, Imagen 4, Flux) render text **into** images — they don't typeset. The result feels like a magazine illustration with a caption overlay, not like a designed book. By separating:
+AI image models (gpt-image-2, Nano Banana 2, Flux) render text **into** images — they don't typeset. The result feels like a magazine illustration with a caption overlay, not like a designed book. By separating:
 
 1. **Background art** — what AI is good at (atmospheric visuals, photoreal subjects, painterly style)
 2. **Typography** — what AI is bad at (consistent letterforms, baseline grids, exact kerning, designer-grade hierarchy)

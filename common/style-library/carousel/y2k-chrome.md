@@ -30,6 +30,6 @@ photoreal: false
 
 **Avoid for**: serious B2B, healthcare, financial services, anything earnest.
 
-**Suggested models**: Flux 2 Pro (material), Imagen 4 Ultra, Nano Banana Pro, gpt-image-2 (text).
+**Suggested models**: Flux 2 Pro (material), Nano Banana 2, Nano Banana Pro, gpt-image-2 (text).
 
 **Caption tone**: Glossy, lowercase, ironic-sincere. Star and sparkle symbols welcome. Short bursts.

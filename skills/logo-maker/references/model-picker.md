@@ -54,7 +54,7 @@ Do NOT use for logos:
 - **flux-schnell** — too low quality for production logos
 - **sdxl-1.0** — older, text rendering is poor
 - **veo / sora** — these are video models
-- **Imagen 4** — strong for photoreal but inconsistent on vector aesthetics
+- **Nano Banana 2** — strong for photoreal but inconsistent on vector aesthetics
 
 ---
 

@@ -73,7 +73,7 @@ When the avatar doesn't come out right.
    - Fix: usually fine for 1:1 — both 1024×1024 and 1080×1080 are accepted by most platforms. If exact size matters, resize in image editor.
 
 2. **Wrong model for size honoring.** `flux-schnell` defaults to 1024×1024 regardless.
-   - Fix: use `nano-banana-pro`, `gpt-image-2`, `imagen-4-ultra`, or `flux-2-pro` — all honor requested sizes.
+   - Fix: use `nano-banana-pro`, `gpt-image-2`, `nano-banana-2`, or `flux-2-pro` — all honor requested sizes.
 
 ---
 

@@ -107,7 +107,7 @@ Each medium has typography + composition + size conventions. Pick the right `--m
 
 **Style hints**: `photo-editorial-bw`, `retro-magazine-70s`, `swiss-grid-poster`, `art-deco-gold`. Magazine aesthetics lean editorial.
 
-**Recommended models**: `gpt-image-2` (best for multi-text + photo combined), `imagen-4-ultra` (photoreal cover), `nano-banana-pro` (identity-preserve for cover-star portraits).
+**Recommended models**: `gpt-image-2` (best for multi-text + photo combined), `nano-banana-2` (photoreal cover), `nano-banana-pro` (identity-preserve for cover-star portraits).
 
 ---
 

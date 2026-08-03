@@ -256,7 +256,7 @@ For Nano Banana Pro the same edit is multi-turn in Gemini chat: generate base im
 
 ---
 
-## Example 9 — Multi-reference composite (Seedream 4.5)
+## Example 9 — Multi-reference composite (Seedream 5.0)
 
 ### Before (weak)
 
@@ -269,7 +269,7 @@ What's wrong:
 - No weights
 - No description of what the final scene IS
 
-### After (Seedream 4.5)
+### After (Seedream 5.0)
 
 References attached:
 - `ref:character` — portrait of a woman in her thirties (weight 1.0)
@@ -284,7 +284,7 @@ References attached:
 ### Deltas applied
 
 - Each ref assigned an explicit role (character / product / style / palette)
-- Weights set per Seedream 4.5's role hierarchy (Character 1.0 — non-negotiable identity; Style 0.7 — guide, not lock)
+- Weights set per Seedream 5.0's role hierarchy (Character 1.0 — non-negotiable identity; Style 0.7 — guide, not lock)
 - Prompt describes what the refs do NOT carry: action ("holding"), composition ("editorial product portrait"), lens, lighting
 - Prompt does NOT re-describe the character's face / hair (locked by ref) or the product's metal (locked by ref)
 - See `references/editing-prompting.md` § Multi-reference composition

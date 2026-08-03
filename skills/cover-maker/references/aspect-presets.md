@@ -37,7 +37,7 @@ Some providers don't honor arbitrary dimensions:
 - **nano-banana-pro**: honors most sizes, may round
 - **gpt-image-2**: honors documented sizes (1024², 1024×1536, 1536×1024, etc.) — non-standard requests get the nearest match
 - **ideogram-3-quality**: honors most aspect ratios
-- **imagen-4-ultra**: honors common aspects (1:1, 4:3, 3:4, 16:9, 9:16)
+- **nano-banana-pro**: honors common aspects (1:1, 4:3, 3:4, 16:9, 9:16)
 
 If the output is off-spec by a few pixels, resize in your image editor.
 

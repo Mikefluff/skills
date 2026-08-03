@@ -25,10 +25,21 @@ def _wrap_error(name: str, exc: Exception) -> ProviderError:
 
 
 class _LyriaProvider(Provider):
-    name = "lyria-3-pro"
+    """Lyria 3. Model ids verified against ai.google.dev on 2026-08-03.
+
+    Google's newer surface for these models is the Interactions API. The legacy
+    generate_music() path is what the SDK exposes today, so that is what we call;
+    switch when the SDK grows interactions.create().
+    """
+
     modality = "music"
     requires_env = ("GEMINI_API_KEY",)
-    _model_id = "lyria-3.0-pro-preview"
+    max_minutes: float = 3.0
+
+    def __init__(self, name: str, model_id: str, max_minutes: float) -> None:
+        self.name = name
+        self._model_id = model_id
+        self.max_minutes = max_minutes
 
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         return estimate(self.name, **kwargs)
@@ -38,14 +49,13 @@ class _LyriaProvider(Provider):
             raise ProviderError(
                 self.name,
                 None,
-                "Lyria 3 Pro API is in limited preview; set LYRIA_API_ENABLED=1 "
+                "Lyria 3 is in paid preview; set LYRIA_API_ENABLED=1 "
                 "once your project is allowlisted to enable this provider.",
             )
 
-    @staticmethod
-    def _config(kwargs: dict[str, Any]) -> tuple[dict[str, Any], float]:
-        """(SDK config, clamped minutes). Lyria takes 6 seconds to 3 minutes."""
-        minutes = max(0.1, min(float(kwargs.get("duration_minutes", 1.0) or 1.0), 3.0))
+    def _config(self, kwargs: dict[str, Any]) -> tuple[dict[str, Any], float]:
+        """(SDK config, clamped minutes). Pro caps at 3 minutes, Clip at 30 seconds."""
+        minutes = max(0.1, min(float(kwargs.get("duration_minutes", 1.0) or 1.0), self.max_minutes))
         config: dict[str, Any] = {"duration_seconds": int(minutes * 60)}
         if kwargs.get("lyrics"):
             config["lyrics"] = str(kwargs["lyrics"])
@@ -139,4 +149,5 @@ class _LyriaProvider(Provider):
 
 from ..config import register  # noqa: E402
 
-register(_LyriaProvider())
+register(_LyriaProvider("lyria-3-pro", "lyria-3-pro-preview", max_minutes=3.0))
+register(_LyriaProvider("lyria-3-clip", "lyria-3-clip-preview", max_minutes=0.5))

@@ -18,6 +18,7 @@ from .google_image import _read_image_bytes_and_mime
 _VEO_MODEL_IDS: dict[str, str] = {
     "veo-3-1": "veo-3.1-generate-preview",
     "veo-3-1-fast": "veo-3.1-fast-generate-preview",
+    "veo-3-1-lite": "veo-3.1-lite-generate-preview",
 }
 
 # Module-level cache of in-flight operations keyed by operation.name so poll()
@@ -194,3 +195,4 @@ from ..config import register  # noqa: E402
 
 register(_VeoProvider("veo-3-1"))
 register(_VeoProvider("veo-3-1-fast"))
+register(_VeoProvider("veo-3-1-lite"))

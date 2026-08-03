@@ -41,16 +41,33 @@ python3 ~/.claude/skills/video-prompt/scripts/run.py --list-providers
 
 | Slug | Vendor | Env var(s) | Max duration | Est cost/sec | Notes |
 |---|---|---|---|---|---|
-| `veo-3-1` | Google | `GEMINI_API_KEY` | 8s native | $0.40 | Native audio + dialogue + lip-sync. 4K. Scene-extend to 148s via chained generations. |
-| `veo-3-1-fast` | Google | `GEMINI_API_KEY` | 8s | $0.15 | Cheaper tier; same audio capability. |
-| `sora-2` | OpenAI | `OPENAI_API_KEY` + `OPENAI_SORA_API_ENABLED=1` | 12s | $0.10 | Native audio + cameos + multi-shot. 1080p ceiling. Gated until public API. |
-| `sora-2-pro` | OpenAI | same | 25s | $0.30 | Higher fidelity. |
-| `kling-3` | Kuaishou | `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET` | 15s | $0.10 | Cheapest premium tier. Native audio (Omni). AI Director multi-shot up to 6 shots. Multi-speaker via `<<<voice_1>>>`. |
+| `veo-3-1` | Google | `GEMINI_API_KEY` | 8s native | $0.40 ($0.60 4K) | Native audio + dialogue + lip-sync. 4K. Scene-extend to 148s via chained generations. |
+| `veo-3-1-fast` | Google | `GEMINI_API_KEY` | 8s | $0.12 ($0.30 4K) | Cheaper tier; same audio capability. |
+| `veo-3-1-lite` | Google | `GEMINI_API_KEY` | 8s | $0.08 | Cheapest tier with audio. 1080p ceiling. |
+| `kling-3` | Kuaishou | `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET` | 15s | $0.12 | Cheapest premium tier. Native audio (Omni). AI Director multi-shot up to 6 shots. Multi-speaker via `<<<voice_1>>>`. |
 | `gen-4` | Runway | `RUNWAY_API_KEY` | 10s native | $0.10 | I2V (needs `--image-url`). 4K via upscale. |
 | `gen-4-turbo` | Runway | `RUNWAY_API_KEY` | 10s | $0.05 | Faster, cheaper, less detail. |
+| `gen-4-5` | Runway | `RUNWAY_API_KEY` | 10s native | $0.12 | Sharper motion and prompt adherence than gen-4; extend to 60s. |
 | `aleph` | Runway | `RUNWAY_API_KEY` | 5s | $0.18 | V2V (needs `--video-url`). One action verb per pass. |
+| `sora-2` | OpenAI | `OPENAI_API_KEY` + `OPENAI_SORA_API_ENABLED=1` | 12s | $0.10 | **Retired 2026-09-24** — see below. |
+| `sora-2-pro` | OpenAI | same | 25s | $0.50 | **Retired 2026-09-24** — see below. |
 | `fal-video` | fal.ai | `FAL_KEY` | varies | ~$0.15 | Router. Default `fal-ai/kling-video/v1.6/pro/text-to-video`. Override via `--fal-model <id>`. Hosts most frontier video models. |
 | `replicate-video` | Replicate | `REPLICATE_API_TOKEN` | varies | ~$0.10 | Router. Default `kwaivgi/kling-v1.6-pro`. Override via `--replicate-model`. |
+
+### Sora 2 is being removed from the API
+
+OpenAI announced on 2026-03-24 that the Videos API and every Sora 2 alias and
+snapshot are deleted on **2026-09-24**, and named no successor model. The
+providers stay callable until that date and print a countdown on every run.
+
+Migrate by capability, not by price:
+
+| What you used Sora for | Go to |
+|---|---|
+| Native audio + dialogue | `veo-3-1` (48 kHz synced dialogue) |
+| Multi-shot in one prompt | `kling-3` (AI Director, up to 6 shots) |
+| Cheapest clip with sound | `veo-3-1-lite` or `kling-3` |
+| Cameo / identity lock | `kling-3` refs, or `gen-4-5` reference images |
 
 **Prompt-only**: Hailuo 02 / 02 Pro (use fal-video with a Hailuo model alias), Pika 2.2 (use fal/replicate), Luma Ray 3 / Ray 3 Modify (Luma's API is in private beta — try fal-video), LTX-2 / HunyuanVideo 1.5 / Wan 2.2 (open weights — self-host or via Replicate), Seedance 2.0 (use fal-video with Seedance model), Higgsfield (no API — aggregator UI only), Pika 2.2 Pikaswaps / Ray 3 Modify (V2V — use Aleph as the closest API-accessible analog).
 

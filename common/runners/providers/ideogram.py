@@ -64,6 +64,13 @@ class _IdeogramBase(Provider):
         )
 
 
+class IdeogramFlashProvider(_IdeogramBase):
+    """Cheapest v3 tier. Priced at TURBO's rate — FLASH bills lower, never higher."""
+
+    name = "ideogram-3-flash"
+    rendering_speed = "FLASH"
+
+
 class IdeogramTurboProvider(_IdeogramBase):
     name = "ideogram-3-turbo"
     rendering_speed = "TURBO"
@@ -81,6 +88,7 @@ class IdeogramQualityProvider(_IdeogramBase):
 
 from ..config import register
 
+register(IdeogramFlashProvider())
 register(IdeogramTurboProvider())
 register(IdeogramDefaultProvider())
 register(IdeogramQualityProvider())

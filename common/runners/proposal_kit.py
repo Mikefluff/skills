@@ -266,8 +266,8 @@ def _fmt_price(it: dict[str, Any]) -> str:
     return f"{int(p):,}".replace(",", " ") if p == int(p) else f"{p:,.2f}".replace(",", " ")
 
 
-_IMG_PROVIDER_PREF = ["gpt-image-2", "imagen-4-fast", "imagen-4",
-                      "nano-banana-pro", "imagen-4-ultra"]
+_IMG_PROVIDER_PREF = ["gpt-image-2", "nano-banana-2-lite", "nano-banana-2",
+                      "nano-banana-pro"]
 
 
 def _brand_mood(brand: dict[str, Any]) -> str:

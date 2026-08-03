@@ -30,6 +30,6 @@ photoreal: false
 
 **Avoid for**: B2B enterprise, healthcare, anything serious or analog.
 
-**Suggested models**: Flux 2 Pro (material), Imagen 4 Ultra, Nano Banana Pro, gpt-image-2 (foil text).
+**Suggested models**: Flux 2 Pro (material), Nano Banana 2, Nano Banana Pro, gpt-image-2 (foil text).
 
 **Caption tone**: Cool, lowercase, slightly mysterious. Short bursts. One sensory adjective per slide max.

@@ -9,6 +9,99 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.23.0] — 2026-08-03
+
+A vendor-drift release. Nothing in the collection knew the difference between a
+model that works and a string that used to, so five models had quietly stopped
+resolving and two flags had quietly stopped doing anything. The fixes matter
+less than the guard added alongside them.
+
+### Fixed — three image models had been dead for five weeks
+
+Google shut the Imagen 4 endpoints down on 2026-06-30. `google_image.py` went on
+mapping `imagen-4`, `imagen-4-ultra` and `imagen-4-fast` to those exact retired
+ids, priced them, documented them across thirty files, and listed them in
+`--help`. Nothing in the suite could tell a live model from a string that used to
+resolve, so the breakage survived twelve releases.
+
+- **Gemini image family replaces Imagen.** `nano-banana-pro` (`gemini-3-pro-image`),
+  `nano-banana-2` (`gemini-3.1-flash-image`) and `nano-banana-2-lite`
+  (`gemini-3.1-flash-lite-image`). Nano Banana Pro also loses its `-preview`
+  suffix, which was the GA id drifting out from under it.
+- **The retired slugs still resolve.** `config.register_deprecated()` aliases each
+  one onto its successor and prints a single warning line. A vendor shutting a
+  model down does not get to break a user's script.
+- **`nano-banana-pro` was underpriced by 2.7×.** The table said $0.05/image;
+  Google charges $0.134 at 1K/2K and $0.24 at 4K. Estimates below the real bill
+  are the one direction this table must never round, since they also decide
+  whether the confirmation prompt fires. `estimate()` now understands 4K tiers.
+
+### Added — a guard so this class of rot is loud next time
+
+`tests/unit/test_model_registry.py` pins every vendor model id, asserts that each
+registered provider is priced and each priced entry is reachable, checks that
+deprecation aliases resolve, and fails after 120 days without a manual
+re-verification. It found an unpinned `lyria-3-pro` id on its first run.
+
+### Added — install as a Claude Code plugin
+
+`.claude-plugin/marketplace.json` + `plugin.json`, so
+`/plugin marketplace add Mikefluff/skills` works alongside the curl installer.
+`tests/unit/test_plugin_manifest.py` validates the schema, checks the declared
+skill path actually holds skills, and pins the version across `VERSION`,
+`package.json`, `skills.json` and both manifests — `package.json` had drifted to
+1.9.0 while `VERSION` reached 2.22.0. `scripts/bump.sh` now syncs all of them.
+
+### Changed — Sora 2 is on a countdown
+
+OpenAI announced on 2026-03-24 that the Videos API and both Sora slugs are
+removed on **2026-09-24**, with no successor. The providers warn on every call
+with the days remaining, `video-prompt` carries a migrate-by-capability table,
+and `reel-builder` routes long shots to Kling 3.0 (15s) instead.
+
+### Fixed — the music layer had the same rot, plus two live bugs
+
+- **Lyria pointed at a model id that does not exist.** `lyria-3.0-pro-preview`
+  vs the published `lyria-3-pro-preview`. Same failure shape as Imagen, caught by
+  the new registry guard the moment the provider was touched. Added
+  `lyria-3-clip` (`lyria-3-clip-preview`, 30-second tier) alongside it.
+- **Eleven Music ignored `--duration`.** The provider sent `duration_seconds`;
+  the API field is `music_length_ms`. Every run came back at the vendor default
+  length regardless of what was asked for.
+- **Eleven Music dropped lyrics.** A top-level `lyrics` key was sent, which is
+  not in the request schema, so "sing these words" produced instrumentals or
+  invented words. Lyrics are now folded into the prompt, which is how that API
+  takes them. Also defaults to `music_v2` (the API still defaults to `music_v1`)
+  and passes `force_instrumental`.
+- **Suno is honest now.** There is still no public self-serve API — no console,
+  no key page, no endpoints. The provider pointed at `api.suno.com` while the
+  docs promised `api.suno.ai`; neither answers. `SUNO_API_URL` is now documented
+  as required rather than optional, and the gate message names `eleven-music` and
+  `lyria-3-pro` as the first-party alternatives.
+- **Udio was listed as having an API.** It never has. Documented as prompt-only,
+  along with the UMG/WMG walled-garden transition that gates exports.
+- `reel-builder` no longer defaults music to Suno, since that default could not
+  run without third-party infrastructure.
+
+### Changed — audio stack caught up
+
+- ElevenLabs TTS defaults to `eleven_v3` (70+ languages) instead of
+  `eleven_multilingual_v2`. v3 rejects the v2 `similarity_boost` knob, so
+  `voice_settings` is now built per model family rather than sent blindly.
+- `gpt-4o-transcribe` and `gpt-4o-mini-transcribe` join `whisper-1`. They are
+  more accurate and up to half the price, but emit json/text only — asking one
+  for SRT fails with a message instead of handing `subtitle-burner` something it
+  cannot burn.
+
+### Changed — model registry refreshed
+
+Veo 3.1 Lite ($0.08/sec), Runway Gen-4.5 (`gen4.5`), Ideogram 3 Flash. Docs
+updated for Midjourney V8.1, Seedream 5.0 Pro/Lite (layered PNG output),
+Ideogram 4.0 (open weights, JSON-first prompting — no v4 API endpoint yet, so
+execution stays on v3), FLUX 3 and Muse Image (no public API, documented only).
+`docs/ROADMAP.md` was twelve releases stale and claimed six shipped skills were
+still planned.
+
 ## [2.22.0] — 2026-08-03
 
 ### Added — structural gates, and the publishing layer refactored to pass them

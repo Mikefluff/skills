@@ -16,7 +16,7 @@ Decision tree + capability matrix for `--model auto`.
      yes → text-friendly model only:
        (a) brand-colored / specific typography → ideogram-3-quality
        (b) Latin + CJK text required → gpt-image-2
-       (c) photorealistic + text → imagen-4-ultra (limited but works)
+       (c) photorealistic + text → nano-banana-pro (limited but works)
        Default: ideogram-3-quality
      no → continue
 
@@ -29,7 +29,7 @@ Decision tree + capability matrix for `--model auto`.
      no → continue
 
 3. style category from library frontmatter?
-     - photoreal: true → flux-2-pro OR imagen-4-ultra
+     - photoreal: true → flux-2-pro OR nano-banana-pro
      - illustration / 3D / abstract → nano-banana-pro OR flux-2-pro
      - heavy text + brand-clean → ideogram-3
      Default: flux-2-pro
@@ -43,14 +43,14 @@ Decision tree + capability matrix for `--model auto`.
 
 ## Capability matrix
 
-Updated 2026-05.
+Updated 2026-08.
 
 | Slug | Provider | Modality | Text-in-image | Multi-ref | Identity preserve | Style transfer | Avg cost/slide | Latency |
 |---|---|---|---|---|---|---|---|---|
 | `gpt-image-2` | OpenAI | image | excellent (Latin + CJK) | yes (16) | medium | medium | $0.05-0.10 | 6-10s |
-| `nano-banana-pro` | Google | image | good | yes (8) | excellent | good | $0.05 | 4-8s |
-| `imagen-4-ultra` | Google | image | good | limited (1) | good | good | $0.06 | 5-9s |
-| `imagen-4` | Google | image | fair | no | fair | fair | $0.04 | 4-7s |
+| `nano-banana-pro` | Google | image | good | yes (14) | excellent | good | $0.134 | 4-8s |
+| `nano-banana-2` | Google | image | good | yes | good | good | $0.101 | 4-8s |
+| `nano-banana-2-lite` | Google | image | fair | limited | fair | fair | $0.034 | 2-5s |
 | `flux-2-pro` | BFL | image | fair | yes (4) | good | excellent | $0.06 | 5-12s |
 | `flux-1-1-pro` | BFL | image | fair | no | good | excellent | $0.04 | 4-8s |
 | `flux-kontext` | BFL | image | fair | yes (1, edit-mode) | good | excellent for edits | $0.05 | 5-10s |
@@ -82,17 +82,21 @@ For Schnell / router-based models: pass `--seed <int>` if your --style-mod can i
 |---|---|
 | flux-schnell | $0.024 |
 | ideogram-3-turbo | $0.16 |
+| nano-banana-2-lite | $0.27 |
 | flux-1-1-pro | $0.32 |
 | ideogram-3 | $0.32 |
-| imagen-4 | $0.32 |
-| nano-banana-pro | $0.40 |
 | gpt-image-2 (medium) | $0.40 |
 | flux-2-pro | $0.48 |
-| imagen-4-ultra | $0.48 |
 | ideogram-3-quality | $0.64 |
 | gpt-image-2 (high) | $0.80 |
+| nano-banana-2 | $0.81 |
+| nano-banana-pro | $1.07 |
 
 `SKILLS_CAROUSEL_BUDGET` default cap: $1.50. Beyond that → warn + require `--yes` to proceed.
+
+Google's tiers got a lot more expensive when Imagen retired and Gemini took over.
+An 8-slide run on `nano-banana-pro` now lands at $1.07 — still inside the cap, but
+a 4K run doubles to $1.92 and will trip it. Iterate on `nano-banana-2-lite`.
 
 ---
 

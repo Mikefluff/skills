@@ -30,6 +30,6 @@ photoreal: false
 
 **Avoid for**: handmade brands, children's products, anything warm or analog.
 
-**Suggested models**: gpt-image-2 (gradient + text), Flux 2 Pro, Imagen 4 Ultra, Nano Banana Pro.
+**Suggested models**: gpt-image-2 (gradient + text), Flux 2 Pro, Nano Banana 2, Nano Banana Pro.
 
 **Caption tone**: Concise, technical-confident, present tense. Numbers and benchmarks. Lowercase function names welcome.

@@ -45,7 +45,7 @@ These skills write paste-ready prompts. With API keys + `--execute`, they also g
 
 | Walkthrough | Skills | What you'll do |
 |---|---|---|
-| [Generate an image prompt + cover](image-prompt-cover.md) | `image-prompt` (+ `--execute`) | Write a per-model prompt for Midjourney / Flux 2 / Imagen 4 / Nano Banana Pro / gpt-image-2 / Ideogram / Seedream — character lock, multi-ref, text-in-image |
+| [Generate an image prompt + cover](image-prompt-cover.md) | `image-prompt` (+ `--execute`) | Write a per-model prompt for Midjourney / Flux 2 / Nano Banana 2 / Nano Banana Pro / gpt-image-2 / Ideogram / Seedream — character lock, multi-ref, text-in-image |
 | [Generate a video prompt + reel](video-prompt-reel.md) | `video-prompt` (+ `--execute`) | Write a per-model prompt for Veo 3.1 / Sora 2 / Kling 3.0 / Runway Gen-4 — T2V / I2V / V2V / multi-shot / dialogue+audio |
 | [Execute end-to-end (image + video + music API)](execute-end-to-end.md) | `image-prompt` / `video-prompt` / `music-prompt` + `--execute` | Full execution layer demo: prompt → API → real PNG/MP4/MP3 on disk + optional S3 mirror |
 

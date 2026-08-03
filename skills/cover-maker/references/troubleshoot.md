@@ -10,7 +10,7 @@ When the cover doesn't come out right.
 
 **Causes + fixes**:
 
-1. **Wrong model.** Imagen 4 / Flux render text wrong 30-60% of the time.
+1. **Wrong model.** Nano Banana 2 / Flux render text wrong 30-60% of the time.
    - Fix: `--model ideogram-3-quality` (default) or `--model gpt-image-2`.
 
 2. **Title too long.** >6 words = high failure rate.

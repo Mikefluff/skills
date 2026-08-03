@@ -98,7 +98,7 @@
 
 ### User request
 
-> reel-builder --research ./generated/research/vertical-ai-veterinary-20260521.md --shots 4 --shot-duration 5 --style fincher-cold-lowkey --music-style cinematic-orchestral --aspect vertical --video-provider kling-3-0 --music-provider lyria-3-pro --execute --yes
+> reel-builder --research ./generated/research/vertical-ai-veterinary-20260521.md --shots 4 --shot-duration 5 --style fincher-cold-lowkey --music-style cinematic-orchestral --aspect vertical --video-provider kling-3 --music-provider lyria-3-pro --execute --yes
 
 ### What happens
 
@@ -114,7 +114,7 @@
 
 4. **Music style**: cinematic-orchestral — Lyria field-driven prompt with brass swell building under 22s duration.
 
-5. **Provider**: kling-3-0 (identity carry-over via Elements — vet character consistent across all 4 shots) + lyria-3-pro.
+5. **Provider**: kling-3 (identity carry-over via Elements — vet character consistent across all 4 shots) + lyria-3-pro.
 
 6. **Cost**: 4 × 5s × $0.10 = $2.00 (Kling) + $0.10/min × 22s ≈ $0.04 = $2.04 total. Under $4.00 budget, but `--yes` was passed anyway.
 

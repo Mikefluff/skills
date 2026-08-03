@@ -29,7 +29,7 @@ Every style file is Markdown with YAML frontmatter. Required frontmatter keys:
 - `text_friendly` — boolean, true if the style holds up with text rendered inside the image
 - `photoreal` — boolean, true for photographic styles
 
-The body must include two prompt anchors — one for image-only generation and one tuned for text-in-image models (Ideogram, gpt-image-2, Imagen 4). The carousel-builder picks the right anchor based on which provider it routes to.
+The body must include two prompt anchors — one for image-only generation and one tuned for text-in-image models (Ideogram, gpt-image-2, Nano Banana 2). The carousel-builder picks the right anchor based on which provider it routes to.
 
 ## Adding a custom style
 

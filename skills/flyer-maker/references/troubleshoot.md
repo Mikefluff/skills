@@ -10,7 +10,7 @@ When the flyer doesn't come out right.
 
 **Causes + fixes**:
 
-1. **Wrong model.** Imagen 4 / Flux generate broken text 30-60% of the time. Even Nano Banana Pro can wobble on long headlines.
+1. **Wrong model.** Nano Banana 2 / Flux generate broken text 30-60% of the time. Even Nano Banana Pro can wobble on long headlines.
    - Fix: `--model ideogram-3-quality` (best for text) OR `--model gpt-image-2` (best for text + photo combined).
 
 2. **Headline too long.** >8 words = high failure rate.
@@ -33,7 +33,7 @@ When the flyer doesn't come out right.
 
 **Causes + fixes**:
 
-1. **Model isn't ref-capable.** `Imagen 4` (non-ultra), `flux-schnell`, `flux-1-1-pro` (single-image, no ref input) can't use `--photo`.
+1. **Model isn't ref-capable.** `Nano Banana 2` (non-ultra), `flux-schnell`, `flux-1-1-pro` (single-image, no ref input) can't use `--photo`.
    - Fix: the skill should auto-substitute. If you passed `--strict`, drop it and re-run.
 
 2. **Photo wasn't passed through.** Check manifest.json — does the item's `kwargs.image_url` contain the path?

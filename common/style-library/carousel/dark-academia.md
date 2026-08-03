@@ -30,6 +30,6 @@ photoreal: true
 
 **Avoid for**: tech launches, kids products, summer / beach contexts.
 
-**Suggested models**: Flux 2 Pro (chiaroscuro), Midjourney v7 (atmosphere), Nano Banana Pro, gpt-image-2 (text-in-image).
+**Suggested models**: Flux 2 Pro (chiaroscuro), Midjourney V8.1 (atmosphere), Nano Banana Pro, gpt-image-2 (text-in-image).
 
 **Caption tone**: Slightly literary, full sentences, semicolons welcome. Vocabulary one notch above conversational. Quote attributions in italic.

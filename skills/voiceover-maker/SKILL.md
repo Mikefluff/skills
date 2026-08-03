@@ -1,6 +1,6 @@
 ---
 name: voiceover-maker
-description: "Text-to-speech — script in, MP3 out. Wraps ElevenLabs eleven-tts + OpenAI gpt-4o-mini-tts. Voice picker, multilingual, speed control, long-form. --execute calls the API; without it returns script + provider notes. Use when: 'voiceover for X', 'narration for this script', 'TTS this', 'озвучь', 'голосовая дорожка', 'диктор для видео'."
+description: "Text-to-speech — script in, MP3 out. Wraps ElevenLabs eleven-tts (Eleven v3) + OpenAI gpt-4o-mini-tts. Voice picker, multilingual, speed control, long-form. --execute calls the API; without it returns script + provider notes. Use when: 'voiceover for X', 'narration for this script', 'TTS this', 'озвучь', 'голосовая дорожка', 'диктор для видео'."
 
 license: MIT
 allowed-tools:
@@ -42,7 +42,7 @@ Read the script text + optional voice + optional language → pick provider (Ele
 
 2. **Pick provider** — see `references/voice-picker.md`:
    - `--model auto`:
-     - Multilingual (RU / DE / FR / JP / etc.) → `eleven-tts` (multilingual v2 by default)
+     - Multilingual (RU / DE / FR / JP / etc.) → `eleven-tts` (Eleven v3, 70+ languages)
      - Long-form (>2 min) → `eleven-tts` (better at sustained pacing)
      - English short-form quick demo → `gpt-4o-mini-tts` (cheaper, faster, but English-strong only)
      - Brand-voice consistency → `eleven-tts` with a specific voice_id
@@ -75,6 +75,8 @@ Read the script text + optional voice + optional language → pick provider (Ele
 - `--model auto|gpt-4o-mini-tts|eleven-tts` — TTS provider (default auto)
 - `--voice <name>` — for OpenAI: `alloy` / `echo` / `fable` / `onyx` / `nova` / `shimmer`. Fallback for Eleven (uses as voice_id if `--voice-id` not set).
 - `--voice-id <eleven-id>` — explicit ElevenLabs voice_id
+- `--model-id <eleven-model>` — ElevenLabs model. Default `eleven_v3`. Use `eleven_multilingual_v2` for the previous behaviour, `eleven_flash_v2_5` when latency beats expressiveness.
+- `--stability N` — 0-1. Lower is more expressive, higher is more consistent. Left unset, the voice's own default stands.
 - `--speed N` — speech speed multiplier (0.5-2.0, provider-dependent)
 - `--lang en|ru|de|...` — language hint (Eleven multilingual auto-detects; OpenAI is English-strong but handles others passably)
 

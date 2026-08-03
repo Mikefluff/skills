@@ -30,6 +30,6 @@ photoreal: false
 
 **Avoid for**: enterprise tech, luxury, anything requiring polished perfection.
 
-**Suggested models**: Flux 2 Pro (texture), Recraft V3, Imagen 4 Ultra, gpt-image-2 (text + misregistration).
+**Suggested models**: Flux 2 Pro (texture), Recraft V3, Nano Banana Pro, gpt-image-2 (text + misregistration).
 
 **Caption tone**: Confident, direct, lowercase. One opinion per slide. Sentence fragments welcome.

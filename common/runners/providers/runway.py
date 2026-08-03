@@ -164,6 +164,12 @@ class Gen4TurboProvider(_RunwayI2V):
     default_duration = 5
 
 
+class Gen45Provider(_RunwayI2V):
+    name = "gen-4-5"
+    model_id = "gen4.5"
+    default_duration = 5
+
+
 class AlephProvider(_RunwayBase):
     name = "aleph"
     model_id = "aleph"
@@ -190,4 +196,5 @@ from ..config import register
 
 register(Gen4Provider())
 register(Gen4TurboProvider())
+register(Gen45Provider())
 register(AlephProvider())

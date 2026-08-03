@@ -10,11 +10,11 @@ Ranked best → worst:
 
 1. **Ideogram 3 Quality** — paragraph-length, typographic control, kerning holds
 2. **Nano Banana Pro** — paragraph-length, strong layout, multi-turn refinement
-3. **Imagen 4 Ultra** — paragraph-length, strong across major scripts
+3. **Nano Banana 2** — paragraph-length, strong across major scripts
 4. **gpt-image-2** — paragraph-length, ~99% character accuracy
 5. **Qwen-Image 2.0** — paragraph-length, best for CJK + Hindi + Bengali + mixed multilingual
 6. **Flux 2 Pro** — ~60% accuracy on complex typography; one short phrase reliable
-7. **Midjourney v7** — avoid > 5 words; tagline-tier only
+7. **Midjourney V8.1** — avoid > 5 words; tagline-tier only
 8. **SDXL / SD 3.5** — avoid for any legible text; overlay in a design tool instead
 
 ---
@@ -49,11 +49,11 @@ Ranked best → worst:
 |---|---|
 | Ideogram 3 Quality | paragraph+ |
 | Nano Banana Pro | paragraph+ |
-| Imagen 4 Ultra | paragraph+ |
+| Nano Banana 2 | paragraph+ |
 | gpt-image-2 | paragraph+ (~99% char accuracy) |
 | Qwen-Image 2.0 | paragraph+ (best for CJK + multilingual) |
 | Flux 2 Pro | ~1 short phrase |
-| Midjourney v7 | ≤ 5 words |
+| Midjourney V8.1 | ≤ 5 words |
 | SD 3.5 | avoid — overlay in Figma / Photoshop |
 
 ---
@@ -62,11 +62,11 @@ Ranked best → worst:
 
 - **Qwen-Image 2.0** — leader for Chinese (Simplified + Traditional), Japanese, Korean, Hindi, Bengali, and mixed CJK + Latin. Apache-2.0, self-hostable.
 - **gpt-image-2** — strong across Latin, CJK, Hindi, Bengali. Best closed-source multilingual option.
-- **Imagen 4 Ultra** — strong on major scripts (Latin, Cyrillic, CJK, Arabic).
+- **Nano Banana 2** — strong on major scripts (Latin, Cyrillic, CJK, Arabic).
 - **Ideogram 3 Quality** — strong on Latin + Cyrillic; weaker on CJK.
-- **Avoid for non-Latin**: Midjourney v7, SDXL, Flux 2 Pro — output is hallucinated glyphs.
+- **Avoid for non-Latin**: Midjourney V8.1, SDXL, Flux 2 Pro — output is hallucinated glyphs.
 
-For Cyrillic specifically: Ideogram 3 and Imagen 4 are both reliable. Test before committing.
+For Cyrillic specifically: Ideogram 3 and the Nano Banana tiers are both reliable. Test before committing.
 
 ---
 
@@ -147,7 +147,7 @@ Two-color palette: deep navy + warm copper.
 Clean SVG-ready geometry, no gradients, no shadows.
 ```
 
-### Newspaper headline (Imagen 4 Ultra)
+### Newspaper headline (Nano Banana 2)
 
 ```
 1950s newspaper front page, top-of-fold composition.

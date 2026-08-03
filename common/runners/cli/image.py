@@ -8,9 +8,9 @@ from ._shared import dispatch
 
 MODELS_HINT = [
     "gpt-image-2",
-    "imagen-4",
-    "imagen-4-ultra",
     "nano-banana-pro",
+    "nano-banana-2",
+    "nano-banana-2-lite",
     "flux-1-1-pro",
     "flux-2-pro",
     "flux-kontext",

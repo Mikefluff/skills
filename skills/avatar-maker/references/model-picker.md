@@ -24,7 +24,7 @@ Decision tree + capability matrix for identity-preserving portrait generation.
         nano-banana-pro is ideal
 
 3. Need extreme palette / texture transfer (move the photo into a specific era/aesthetic)?
-     nano-banana-pro is OK but flux-2-pro / seedream-4.5 may transfer harder palette shifts at some identity cost.
+     nano-banana-pro is OK but flux-2-pro / seedream-5 may transfer harder palette shifts at some identity cost.
      Trade-off: pick what the user prioritizes.
 
 4. Photo has multiple people?
@@ -52,12 +52,12 @@ Fallbacks (in order):
 
 | Slug | Provider | Identity preserve | Style transfer | Cost/variant | Latency | Best for avatar |
 |---|---|---|---|---|---|---|
-| `nano-banana-pro` | Google | excellent (industry-best) | good | $0.05 | 4-8s | DEFAULT pick |
+| `nano-banana-pro` | Google | excellent (industry-best) | good | $0.134 | 4-8s | DEFAULT pick |
 | `gpt-image-2` | OpenAI | medium | medium | $0.05-0.10 | 6-10s | When NBP unavailable |
 | `flux-2-pro` | BFL | good | excellent | $0.06 | 5-12s | When palette transfer matters more than exact identity |
 | `flux-kontext` | BFL | good | excellent for edits | $0.05 | 5-10s | Edit-mode (e.g., "make this exact photo more polished") |
-| `seedream-4.5` (via fal) | ByteDance | good | excellent for photoreal | $0.04 | 6-12s | Photoreal stylization |
-| `imagen-4-ultra` | Google | good | good | $0.06 | 5-9s | Limited multi-ref but works for single portrait |
+| `seedream-5` (via fal) | ByteDance | good | excellent for photoreal | $0.04 | 6-12s | Photoreal stylization |
+| `nano-banana-2` | Google | good | good | $0.101 | 4-8s | Cheaper Gemini tier; solid for a single portrait |
 
 ### Anti-recommendations for avatars
 
@@ -65,7 +65,7 @@ Fallbacks (in order):
 |---|---|
 | `flux-schnell` | Too low fidelity for portrait detail |
 | `ideogram-3` (any) | Text-rendering specialty; weaker on identity preserve |
-| `imagen-4` (non-ultra) | No multi-ref support — can't accept your photo as input |
+| `nano-banana-2-lite` | Softest tier — identity drifts; preview only |
 
 ---
 
@@ -73,9 +73,9 @@ Fallbacks (in order):
 
 | Aspects × variants | Model | Total |
 |---|---|---|
-| 1 × 3 (default) | nano-banana-pro | $0.15 |
-| 1 × 5 | nano-banana-pro | $0.25 |
-| 3 × 3 (cross-platform) | nano-banana-pro | $0.45 |
+| 1 × 3 (default) | nano-banana-pro | $0.40 |
+| 1 × 5 | nano-banana-pro | $0.67 |
+| 3 × 3 (cross-platform) | nano-banana-pro | $1.21 |
 | 1 × 3 | gpt-image-2 (medium) | $0.15-0.30 |
 | 1 × 3 | flux-2-pro | $0.18 |
 
@@ -130,7 +130,7 @@ Things that help:
 | `nano-banana-pro` | `GEMINI_API_KEY` |
 | `gpt-image-2` | `OPENAI_API_KEY` |
 | `flux-2-pro` / `flux-kontext` | `BFL_API_KEY` |
-| `seedream-4.5` (via fal) | `FAL_KEY` |
-| `imagen-4-ultra` | `GEMINI_API_KEY` |
+| `seedream-5` (via fal) | `FAL_KEY` |
+| `nano-banana-pro` | `GEMINI_API_KEY` |
 
 Run `/skills-keys verify` to confirm all configured providers are reachable.

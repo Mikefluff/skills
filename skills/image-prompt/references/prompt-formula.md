@@ -253,12 +253,12 @@ See [`model-picker.md`](model-picker.md) and the per-vendor files in [`models/`]
 
 ## 7. (conditional) References / multi-ref
 
-This block fires only when the target model supports **image references** — Flux 2 Pro (≤10 refs), Flux Kontext (edit), Nano Banana Pro (14 refs, 5-people consistency), gpt-image-2 (≤16 refs), Seedream 4.5 (6 weighted refs), Midjourney v7 (`--sref` style, `--oref` Omni / identity).
+This block fires only when the target model supports **image references** — Flux 2 Pro (≤10 refs), Flux Kontext (edit), Nano Banana Pro (14 refs, 5-people consistency), gpt-image-2 (≤16 refs), Seedream 5.0 (6 weighted refs), Midjourney V8.1 (`--sref` style, `--oref` Omni / identity).
 
 When refs are attached, the prompt body changes:
 
 - **Don't re-describe what the ref already shows.** If `[ref:Sarah]` carries her appearance, the prompt should NOT say "long brown hair, green eyes" — that overrides the ref and causes drift.
-- **Name each ref by role.** Pattern: `[ref:character@1.0] [ref:style@0.9] [ref:palette@0.7] [ref:layout@0.6]` (Seedream 4.5 weighted-role syntax) or `--sref <url-or-code>` / `--oref <url>` (Midjourney v7).
+- **Name each ref by role.** Pattern: `[ref:character@1.0] [ref:style@0.9] [ref:palette@0.7] [ref:layout@0.6]` (Seedream 5.0 weighted-role syntax) or `--sref <url-or-code>` / `--oref <url>` (Midjourney V8.1).
 - **Describe only what changes / what's new.** Wardrobe, action, expression, environment. Identity/style come from the ref.
 
 ### Pattern: identity-locked portrait
@@ -267,7 +267,7 @@ When refs are attached, the prompt body changes:
 [ref:character@1.0] in a sunlit Brooklyn loft kitchen, wearing a linen apron, leaning on the marble countertop, gaze toward the window. Editorial photo. Soft directional key light from upper-left. 85mm f/1.8. Natural skin texture.
 ```
 
-### Pattern: multi-ref composite (Seedream 4.5)
+### Pattern: multi-ref composite (Seedream 5.0)
 
 ```
 [ref:character@1.0] holding [ref:product@0.85], styled per [ref:style@0.7], on [ref:palette@0.7] background. Studio lighting, 50mm f/8, product-shot composition.

@@ -30,6 +30,6 @@ photoreal: true
 
 **Avoid for**: party promos, kids brands, gaming, anything cheerful.
 
-**Suggested models**: Flux 2 Pro (grain handling), Nano Banana Pro (identity-preserve), Midjourney v7 (composition), gpt-image-2 (text-in-image).
+**Suggested models**: Flux 2 Pro (grain handling), Nano Banana Pro (identity-preserve), Midjourney V8.1 (composition), gpt-image-2 (text-in-image).
 
 **Caption tone**: Past tense, third person, observational. Specific details over abstractions. No marketing verbs.

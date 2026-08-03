@@ -1,5 +1,14 @@
-"""Suno music provider — suno-v5-5 via official or gateway Suno API.
-Vendor: Suno (https://api.suno.com), gated behind SUNO_API_ENABLED=1.
+"""Suno music provider — suno-v5-5 through a gateway.
+
+Suno has no public self-serve API. As of 2026-08 there is no developer console,
+no key page and no published endpoints; the company has said only that it is
+exploring an API with a closed set of partners. Everything reaching Suno today
+goes through a third-party gateway that wraps the web app.
+
+So SUNO_API_URL is not an optional override — it is the whole configuration. The
+default below is where an official API would live if it existed, kept so the
+shape of the provider stays obvious, but it will not answer. Point the variable
+at your gateway. Gated behind SUNO_API_ENABLED=1.
 """
 
 from __future__ import annotations
@@ -29,8 +38,9 @@ class SunoV55Provider(Provider):
             raise ProviderError(
                 self.name,
                 None,
-                "Suno API surface varies between official and third-party gateways. "
-                "Set SUNO_API_ENABLED=1 and (optionally) SUNO_API_URL to opt in.",
+                "Suno has no public API — reaching it needs a third-party gateway. "
+                "Set SUNO_API_ENABLED=1 and SUNO_API_URL=<your gateway>/v1 to opt in. "
+                "For a first-party alternative use eleven-music or lyria-3-pro.",
             )
 
     def _base_url(self) -> str:

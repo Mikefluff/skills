@@ -26,6 +26,11 @@ from .base import GenerationResult, Provider
 FORMATS = ("srt", "vtt", "json", "text", "verbose_json")
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # Whisper API limit
 
+# The GPT-4o transcribe models are cheaper and more accurate, but they only speak
+# json/text — no subtitle formats, no word-level timestamps. Anything feeding
+# subtitle-burner therefore still has to go through whisper-1.
+_SUBTITLE_FORMATS = ("srt", "vtt", "verbose_json")
+
 
 def _decode(resp: requests.Response, response_format: str) -> tuple[bytes, str, str]:
     """(content, mime, extension). SRT/VTT/text arrive as a text body, JSON as JSON."""
@@ -39,6 +44,8 @@ class WhisperTranscribeProvider(Provider):
     name = "whisper-1"
     modality = "audio"
     requires_env = ("OPENAI_API_KEY",)
+    model_id = "whisper-1"
+    formats: tuple[str, ...] = FORMATS
 
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         duration_min = kwargs.get("duration_minutes")
@@ -68,11 +75,17 @@ class WhisperTranscribeProvider(Provider):
         response_format: str = kwargs.get("response_format", "srt")
         if response_format not in FORMATS:
             raise ProviderError(self.name, None, f"unsupported response_format: {response_format}")
+        if response_format not in self.formats:
+            raise ProviderError(
+                self.name, None,
+                f"{self.name} cannot emit '{response_format}' — it returns json/text only. "
+                "Use whisper-1 for subtitles and word-level timestamps.",
+            )
 
         language: str | None = kwargs.get("language")
         headers = {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"}
         data = {
-            "model": "whisper-1",
+            "model": self.model_id,
             "response_format": response_format,
             "temperature": str(float(kwargs.get("temperature", 0.0))),
         }
@@ -98,6 +111,23 @@ class WhisperTranscribeProvider(Provider):
         )
 
 
+class Gpt4oTranscribeProvider(WhisperTranscribeProvider):
+    """Higher accuracy than whisper-1 at the same per-minute rate — but json/text only."""
+
+    name = "gpt-4o-transcribe"
+    model_id = "gpt-4o-transcribe"
+    formats = tuple(f for f in FORMATS if f not in _SUBTITLE_FORMATS)
+
+
+class Gpt4oMiniTranscribeProvider(Gpt4oTranscribeProvider):
+    """Half the price of whisper-1. The default choice for bulk plain-text transcripts."""
+
+    name = "gpt-4o-mini-transcribe"
+    model_id = "gpt-4o-mini-transcribe"
+
+
 from ..config import register
 
 register(WhisperTranscribeProvider())
+register(Gpt4oTranscribeProvider())
+register(Gpt4oMiniTranscribeProvider())

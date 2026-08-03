@@ -18,7 +18,7 @@ Decision tree for `--model auto` + capability matrix.
            yes → nano-banana-pro  (best identity preserve)
            no  → continue
         Photo is a brand asset (logo / palette / texture ref)?
-           yes → flux-2-pro or seedream-4.5  (best style/palette transfer)
+           yes → flux-2-pro or seedream-5  (best style/palette transfer)
         Photo is a generic theme image (mood-board / environmental)?
            → flux-2-pro
         Heavy embedded text required AND photo?
@@ -33,9 +33,9 @@ Decision tree for `--model auto` + capability matrix.
      Latin AND non-Latin scripts mixed (CJK / Cyrillic) AND no photo?
         → gpt-image-2  (best multilingual text)
      Standard Latin text only AND no photo?
-        → ideogram-3-quality  OR  imagen-4-ultra
+        → ideogram-3-quality  OR  nano-banana-pro
      Photoreal style required AND no photo?
-        → imagen-4-ultra
+        → nano-banana-pro
 
 3. Available env vars?
      drop candidates whose env vars aren't set
@@ -61,20 +61,20 @@ With `--photo`:
 
 ## Capability matrix
 
-Updated 2026-05.
+Updated 2026-08.
 
 | Slug | Provider | Text-in-image | Multi-ref | Identity preserve | Style transfer | Cost/flyer | Latency |
 |---|---|---|---|---|---|---|---|
 | `ideogram-3-quality` | Ideogram | excellent (cleanest) | yes (1 style-ref) | medium | medium | $0.08 | 6-12s |
 | `ideogram-3` | Ideogram | excellent | yes (1 style-ref) | medium | medium | $0.04 | 4-8s |
 | `gpt-image-2` | OpenAI | excellent (Latin + CJK) | yes (up to 16) | medium | medium | $0.05-0.10 | 6-10s |
-| `nano-banana-pro` | Google | good | yes (8) | excellent | good | $0.05 | 4-8s |
-| `imagen-4-ultra` | Google | good | limited (1) | good | good | $0.06 | 5-9s |
-| `imagen-4` | Google | fair | no | fair | fair | $0.04 | 4-7s |
+| `nano-banana-pro` | Google | good | yes (14) | excellent | good | $0.134 | 4-8s |
+| `nano-banana-2` | Google | good | yes | good | good | $0.101 | 4-8s |
+| `nano-banana-2-lite` | Google | fair | limited | fair | fair | $0.034 | 2-5s |
 | `flux-2-pro` | BFL | fair | yes (4) | good | excellent | $0.06 | 5-12s |
 | `flux-kontext` | BFL | fair | yes (1, edit-mode) | good | excellent for edits | $0.05 | 5-10s |
 | `flux-1-1-pro` | BFL | fair | no | good | excellent | $0.04 | 4-8s |
-| `seedream-4.5` (via fal) | ByteDance | fair | yes (4) | good | excellent for photoreal | $0.04 (fal router) | 6-12s |
+| `seedream-5` (via fal) | ByteDance | fair | yes (4) | good | excellent for photoreal | $0.04 (fal router) | 6-12s |
 | `flux-schnell` | BFL | poor | no | fair | fair | $0.003 | 1-3s |
 
 ### Cost preview by aspect count
@@ -82,15 +82,15 @@ Updated 2026-05.
 | Model | 3 aspects (default) | 5 aspects (full set) |
 |---|---|---|
 | flux-schnell | $0.009 | $0.015 |
+| nano-banana-2-lite | $0.10 | $0.17 |
 | ideogram-3 | $0.12 | $0.20 |
 | flux-1-1-pro | $0.12 | $0.20 |
-| nano-banana-pro | $0.15 | $0.25 |
 | gpt-image-2 (medium) | $0.15 | $0.25 |
-| imagen-4 | $0.12 | $0.20 |
 | flux-2-pro | $0.18 | $0.30 |
-| imagen-4-ultra | $0.18 | $0.30 |
 | ideogram-3-quality | $0.24 | $0.40 |
 | gpt-image-2 (high) | $0.30 | $0.50 |
+| nano-banana-2 | $0.30 | $0.51 |
+| nano-banana-pro | $0.40 | $0.67 |
 
 All under the default `SKILLS_CAROUSEL_BUDGET=$1.50` (flyer-maker uses the carousel budget since the modality is shared). No confirmation prompt under that.
 
@@ -115,15 +115,15 @@ All under the default `SKILLS_CAROUSEL_BUDGET=$1.50` (flyer-maker uses the carou
 - Best when you want to EDIT an existing image (e.g., "take this venue photo and add the event title overlay"). Different from text-to-image-with-ref.
 - Less ideal when you want to compose a NEW image with the photo as a sub-element.
 
-### Flux 2 Pro / Seedream 4.5
+### Flux 2 Pro / Seedream 5.0
 
 - Excellent for palette + texture + composition transfer.
 - Weaker on identity preserve — face may shift.
 
-### Imagen 4 Ultra
+### Nano Banana 2
 
-- Photoreal style very strong.
-- Limited multi-ref (1 image).
+- Photoreal style very strong, at a quarter of Pro's price.
+- Multi-reference works, but Pro holds identity better across a set.
 - Decent text rendering, not as clean as Ideogram.
 
 ---
@@ -150,5 +150,5 @@ If `--model auto` and no candidate has env vars set:
 - **Speaker headshot critical**: force `--model nano-banana-pro` regardless of text needs.
 - **RU / Cyrillic text**: force `--model gpt-image-2` (best non-Latin support).
 - **Iterating quickly to validate copy / composition**: force `--model flux-schnell` for cheap fast preview, then re-run final with `--model ideogram-3-quality`.
-- **A4 print preview**: force `--model imagen-4-ultra` for photoreal layout (handles dense detail at 1240×1754).
+- **A4 print preview**: force `--model nano-banana-pro` for photoreal layout (handles dense detail at 1240×1754).
 - **Editing existing event poster**: use `image-prompt --execute --model flux-kontext --image-url <existing.png>` directly — `flyer-maker` is for creating from scratch.

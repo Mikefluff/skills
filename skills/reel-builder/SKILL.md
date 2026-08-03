@@ -60,7 +60,7 @@ Topic / research / script → build 1-4 shot screenplay with timing → resolve 
    - One music track for the whole reel.
 
 5. **Pick providers** — see `references/model-picker.md`:
-   - Video: `--video-provider auto|veo-3-1|sora-2|kling-3-0|runway-gen-4|fal-video`. Auto-pick by style requirements.
+   - Video: `--video-provider auto|veo-3-1|veo-3-1-fast|veo-3-1-lite|kling-3|runway-gen-4-5|fal-video`. Auto-pick by style requirements.
    - Music: `--music-provider auto|suno-v5-5|stable-audio-2-5|eleven-music|lyria-3-pro`. Auto by genre/instrumental.
 
 6. **Build per-shot video prompts via the shared chain** — DO NOT hand-write prompts per shot. Instead, spawn ONE Agent with the canonical SYSTEM_PROMPT at [`../common/video-prompt-library/system-prompt.md`](../../common/video-prompt-library/system-prompt.md):
@@ -138,7 +138,7 @@ Topic / research / script → build 1-4 shot screenplay with timing → resolve 
 
 ### Providers
 
-- `--video-provider auto|veo-3-1|sora-2|kling-3-0|runway-gen-4|fal-video` — video API
+- `--video-provider auto|veo-3-1|veo-3-1-fast|veo-3-1-lite|kling-3|runway-gen-4-5|fal-video` — video API
 - `--music-provider auto|suno-v5-5|stable-audio-2-5|eleven-music|lyria-3-pro` — music API
 - `--video-instrumental on|off` — for music: pure instrumental (default on for reels — voiceover is out of scope v1)
 

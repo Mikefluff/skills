@@ -93,6 +93,34 @@ fi
 printf '%s\n' "$NEXT" > VERSION
 green "VERSION -> $NEXT"
 
+# Every other file that carries the version number. package.json drifted to 1.9.0
+# while VERSION reached 2.22.0 because nothing here kept them together; the plugin
+# manifests are user-facing (the version pins plugin updates), so they matter more.
+python3 - "$NEXT" <<'PY'
+import json, pathlib, re, sys
+
+version = sys.argv[1]
+
+pkg = pathlib.Path("package.json")
+if pkg.is_file():
+    text = pkg.read_text(encoding="utf-8")
+    patched = re.sub(r'("version"\s*:\s*)"[^"]*"', rf'\g<1>"{version}"', text, count=1)
+    if patched != text:
+        pkg.write_text(patched, encoding="utf-8")
+        print(f"package.json -> {version}")
+
+for name in (".claude-plugin/plugin.json", ".claude-plugin/marketplace.json", "skills.json"):
+    path = pathlib.Path(name)
+    if not path.is_file():
+        continue
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["version"] = version
+    for entry in data.get("plugins", []):
+        entry["version"] = version
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"{name} -> {version}")
+PY
+
 if [ "$NEEDS_SECTION" = "true" ]; then
   python3 - "$NEXT" "$TODAY" <<'PY'
 import pathlib, sys

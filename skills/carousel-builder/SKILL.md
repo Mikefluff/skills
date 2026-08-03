@@ -134,7 +134,7 @@ Topic / research → split content into N slides → pick style + model → asse
 
 - `--animate` — after slides render, animate each slide via the video-chain SYSTEM_PROMPT + reel CLI (one command, no manual plan assembly)
 - `--animate-duration 4|8` — seconds per shot (default 4)
-- `--animate-provider veo-3-1-fast|veo-3-1|kling-3-0|runway-gen-4` — default veo-3-1-fast
+- `--animate-provider veo-3-1-fast|veo-3-1|kling-3|runway-gen-4` — default veo-3-1-fast
 - `--animate-stitch on|off` — ffmpeg-concat into one reel (on, default) or N independent clips (off)
 
 ### Inspection / dry-run
@@ -186,7 +186,7 @@ With `--animate`, the skill continues past the static deck into a stitched anima
 
 5. **Verify against the source slides** — spot-check first frames of each shot mp4 against the slide PNGs (index ↔ content match). If a shot fails on Veo's safety filter (`no videos`), soften the PROMPT body per SYSTEM_PROMPT rule 10 and `--resume`.
 
-Flags: `--animate` (off by default) · `--animate-duration 4|8` (default 4) · `--animate-provider veo-3-1-fast|veo-3-1|kling-3-0|runway-gen-4` (default veo-3-1-fast; pick non-Fast Veo when `last_frame` drift-lock matters more than cost) · `--animate-stitch on|off` (default on).
+Flags: `--animate` (off by default) · `--animate-duration 4|8` (default 4) · `--animate-provider veo-3-1-fast|veo-3-1|kling-3|runway-gen-4` (default veo-3-1-fast; pick non-Fast Veo when `last_frame` drift-lock matters more than cost) · `--animate-stitch on|off` (default on).
 
 Cost (Veo 3.1 fast, $0.15/s): 3×4s = $1.80 · 5×4s = $3.00 · 8×4s = $4.80. Veo 3.1 standard ($0.40/s) is ~2.7× — use for publication-grade text stability (`last_frame` supported).
 
@@ -220,7 +220,7 @@ Cost (Kling 3 / Runway Gen-4 / Sora 2) — see `common/runners/cost.py` for per-
 
 - **Slug = kebab-case-of-topic, max 40 chars.** Same convention as research-brief. Date suffix if collision.
 
-- **Text-mode embedded ONLY with text-friendly models.** Ideogram 3 / gpt-image-2 / Imagen 4 — others get a warning + automatic fallback to overlay mode. List enforced in `references/model-picker.md`.
+- **Text-mode embedded ONLY with text-friendly models.** Ideogram 3 / gpt-image-2 / Nano Banana 2 — others get a warning + automatic fallback to overlay mode. List enforced in `references/model-picker.md`.
 
 - **No copyrighted living artist names in prompts.** Style library entries never reference artists by name in their anchor text (already enforced by the library schema).
 

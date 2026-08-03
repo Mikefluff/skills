@@ -110,7 +110,7 @@ Reference image — passed to the chosen model as `image_url` kwarg.
 
 Use for:
 - Speaker headshots (Nano Banana Pro preserves identity best)
-- Venue shots (any multi-ref model — Flux 2 Pro / Seedream 4.5 work well)
+- Venue shots (any multi-ref model — Flux 2 Pro / Seedream 5.0 work well)
 - Theme images (mood-board reference)
 - Brand assets (logo / color palette reference)
 

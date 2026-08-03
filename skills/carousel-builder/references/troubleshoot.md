@@ -33,7 +33,7 @@ Things that go wrong with carousel-builder and how to fix them.
 
 **Causes + fixes**:
 
-1. **Wrong model.** Imagen 4 + Flux generate broken text 30-60% of the time.
+1. **Wrong model.** Nano Banana 2 + Flux generate broken text 30-60% of the time.
    - Fix: `--model ideogram-3-quality` (best for clean text) OR `--model gpt-image-2`.
 
 2. **Headline too long.** >8 words = high failure rate.

@@ -56,7 +56,7 @@ Using the subject from image 1 and the lighting style from image 3,
 generate a new shot in a sunlit kitchen. Preserve facial identity exactly.
 ```
 
-### Seedream 4.5
+### Seedream 5.0
 
 - Weighted-role reference syntax. Each ref is named by role + weight.
 
@@ -74,11 +74,11 @@ Prompt: editorial portrait, soft window light, 85mm
 
 | Model | Mechanism | Limit |
 |---|---|---|
-| Midjourney v7 | `--oref <url>` flag | 2× GPU cost; not available on Fast / Draft / Conv / `--q 4` |
+| Midjourney V8.1 | `--oref <url>` flag | 2× GPU cost; not available on Fast / Draft / Conv / `--q 4` |
 | Flux Kontext | Input source image + "preserve face / identity" | 1 source per call |
 | Nano Banana Pro | Multi-image input | Up to 5 people; 14 input images total |
 | gpt-image-2 | Reference image array | Up to 16 references |
-| Seedream 4.5 | Weighted `Character` role | Weight 1.0 = full lock |
+| Seedream 5.0 | Weighted `Character` role | Weight 1.0 = full lock |
 
 Use cases:
 - Single hero, many shots → Midjourney `--oref` or Flux Kontext
@@ -91,7 +91,7 @@ Use cases:
 
 When you need to blend multiple inputs — character + product + style + palette:
 
-- **Seedream 4.5** weighted roles (Character 1.0 / Style 0.9 / Palette 0.7 / Layout 0.6) — most controllable.
+- **Seedream 5.0** weighted roles (Character 1.0 / Style 0.9 / Palette 0.7 / Layout 0.6) — most controllable.
 - **Flux 2 Pro** multi-ref: up to 10 images, no explicit weights, ordering implies priority.
 - **gpt-image-2**: up to 16 images, agentic prompt naming each by role.
 
@@ -116,8 +116,8 @@ soft window light, 85mm, magazine-spread composition.
 | Flux Kontext | ✓ | ✓ (single source) | 1 | no |
 | Nano Banana Pro | ✓ | ✓ (5 people) | 14 | ✓ |
 | gpt-image-2 | ✓ | ✓ | 16 | ✓ |
-| Seedream 4.5 | ✓ | ✓ (weight 1.0) | weighted, many | partial |
-| Midjourney v7 | partial | ✓ (`--oref`) | 1 (oref) | no |
+| Seedream 5.0 | ✓ | ✓ (weight 1.0) | weighted, many | partial |
+| Midjourney V8.1 | partial | ✓ (`--oref`) | 1 (oref) | no |
 | Flux 2 Pro | partial | ✓ | 10 | no |
 
 ---

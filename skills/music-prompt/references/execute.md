@@ -19,11 +19,11 @@ Music generations are async (~30s-3min). The runner polls vendor APIs and prints
 2. Export keys for the providers you have:
 
 ```
-export SUNO_API_KEY=...           # Suno Pro/Premier API (also accepts gateway tokens)
-export SUNO_API_ENABLED=1         # gates Suno until you confirm your account
-export SUNO_API_URL=https://api.suno.ai/v1   # optional — official is default; set for a gateway
-export ELEVENLABS_API_KEY=...     # Eleven Music
-export GEMINI_API_KEY=...         # Lyria 3 Pro (limited preview)
+export SUNO_API_KEY=...           # gateway token — Suno has no public API of its own
+export SUNO_API_ENABLED=1         # gates Suno until you confirm your gateway
+export SUNO_API_URL=https://<your-gateway>/v1   # REQUIRED — there is no official endpoint
+export ELEVENLABS_API_KEY=...     # Eleven Music (music_v2)
+export GEMINI_API_KEY=...         # Lyria 3 Pro / Clip (paid preview)
 export LYRIA_API_ENABLED=1        # gates Lyria until access confirmed
 export FAL_KEY=...                # fal-music router
 export REPLICATE_API_TOKEN=...    # replicate-music router (MusicGen + many open-source)
@@ -41,9 +41,10 @@ python3 ~/.claude/skills/music-prompt/scripts/run.py --list-providers
 
 | Slug | Vendor | Env var(s) | Max length | Est cost/song | Notes |
 |---|---|---|---|---|---|
-| `suno-v5-5` | Suno | `SUNO_API_KEY` + `SUNO_API_ENABLED=1` | ~4 min default, ~8 min Pro | $0.10 | Pass Style box via `--prompt`, Lyrics box via `--lyrics` or `--lyrics-file`. Brackets in Lyrics box only. `--instrumental` flips lyrics-off. |
-| `lyria-3-pro` | Google | `GEMINI_API_KEY` + `LYRIA_API_ENABLED=1` | 3 min hard cap | $0.30 per 3min ($0.10 per min) | Field-driven — NL prompt + optional `--lyrics` (EN/ES/FR/JP) + `--duration` (minutes). No brackets. Watermarked. Label-safe. |
-| `eleven-music` | ElevenLabs | `ELEVENLABS_API_KEY` | variable (specify in prompt) | ~$0.30 per minute | Single prompt with bracketed style cues + timing markers. Exclude-styles via `--prompt` text. |
+| `suno-v5-5` | Suno (gateway) | `SUNO_API_KEY` + `SUNO_API_ENABLED=1` + `SUNO_API_URL` | ~4 min default, ~8 min Pro | $0.10 | **No official API** — needs a gateway URL. Pass Style box via `--prompt`, Lyrics box via `--lyrics` or `--lyrics-file`. Brackets in Lyrics box only. `--instrumental` flips lyrics-off. |
+| `lyria-3-pro` | Google | `GEMINI_API_KEY` + `LYRIA_API_ENABLED=1` | 3 min hard cap | $0.30 per 3min ($0.10 per min) | Field-driven — NL prompt + optional `--lyrics` + `--duration` (minutes). 44.1 kHz stereo. No brackets. Watermarked. Label-safe. |
+| `lyria-3-clip` | Google | `GEMINI_API_KEY` + `LYRIA_API_ENABLED=1` | 30 sec | $0.05 per clip | Speed tier for high-volume work — stings, loops, bumpers. Same grammar as Pro. |
+| `eleven-music` | ElevenLabs | `ELEVENLABS_API_KEY` | 3 sec - 10 min via `--duration` | ~$0.20 per minute | Runs `music_v2`. Single prompt with bracketed style cues + timing markers; `--lyrics` is folded into the prompt (no separate field). `--instrumental` maps to `force_instrumental`. |
 | `fal-music` | fal.ai | `FAL_KEY` | varies | ~$0.05 - $0.30 | Router. Default `fal-ai/cassetteai/music-generator`. Override via `--fal-model <id>`. Hosts MusicGen / open-source music models. |
 | `replicate-music` | Replicate | `REPLICATE_API_TOKEN` | varies | ~$0.05 - $0.20 | Router. Default `meta/musicgen`. Override via `--replicate-model`. |
 
@@ -102,7 +103,8 @@ Single prompt. Bracketed cues inside the prompt text:
 ## Troubleshooting
 
 - `[suno-v5-5 ...] Suno API access is currently gated` → set `SUNO_API_ENABLED=1`. If using a gateway, set `SUNO_API_URL` to the gateway base URL.
-- `[lyria-3-pro ...] Lyria 3 Pro API is in limited preview` → set `LYRIA_API_ENABLED=1` once your account has access.
+- `[lyria-3-pro ...] Lyria 3 is in paid preview` → set `LYRIA_API_ENABLED=1` once your project is allowlisted.
+- `[suno-v5-5 ...] Suno has no public API` → set `SUNO_API_URL` to your gateway, or switch to `eleven-music` / `lyria-3-pro`.
 - `[eleven-music 401] ...` → check `ELEVENLABS_API_KEY` is correct.
 - `429` → vendor quota; wait or use a different provider.
 - Mute / instrumental output when lyrics expected → for Suno, ensure brackets are in Lyrics box; for Eleven, include lyric text inside the prompt.

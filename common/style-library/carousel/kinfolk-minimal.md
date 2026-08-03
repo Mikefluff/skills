@@ -30,6 +30,6 @@ photoreal: true
 
 **Avoid for**: loud sales pitches, fast promo, sports brands, gaming, anything with urgency.
 
-**Suggested models**: Flux 2 Pro (best for grain and light), Nano Banana Pro (identity-preserve across slides), Imagen 4 Ultra, gpt-image-2 (text mode).
+**Suggested models**: Flux 2 Pro (best for grain and light), Nano Banana Pro (identity-preserve across slides), Nano Banana 2, gpt-image-2 (text mode).
 
 **Caption tone**: First-person, declarative, single-clause sentences. No exclamation marks. Lower-case opening word.

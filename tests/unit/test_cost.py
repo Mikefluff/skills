@@ -23,26 +23,47 @@ class TestEstimate(unittest.TestCase):
         # None means "unknown", which callers must not confuse with "free".
         self.assertIsNone(cost.estimate("no-such-model"))
 
+    # Expected values are derived from PRICE_TABLE rather than typed in. These tests
+    # pin the arithmetic; a vendor price refresh is not supposed to turn them red.
+
     def test_per_image_scales_with_variants(self):
-        self.assertEqual(cost.estimate("nano-banana-pro"), Decimal("0.05"))
-        self.assertEqual(cost.estimate("nano-banana-pro", variants=4), Decimal("0.20"))
+        unit = cost.PRICE_TABLE["nano-banana-pro"]["per_image"]
+        self.assertEqual(cost.estimate("nano-banana-pro"), unit)
+        self.assertEqual(cost.estimate("nano-banana-pro", variants=4), unit * 4)
 
     def test_variants_zero_or_none_treated_as_one(self):
         # `int(kwargs.get("variants", 1) or 1)` — a falsy variants must not zero the bill.
-        self.assertEqual(cost.estimate("imagen-4", variants=0), Decimal("0.04"))
-        self.assertEqual(cost.estimate("imagen-4", variants=None), Decimal("0.04"))
+        unit = cost.PRICE_TABLE["nano-banana-2"]["per_image"]
+        self.assertEqual(cost.estimate("nano-banana-2", variants=0), unit)
+        self.assertEqual(cost.estimate("nano-banana-2", variants=None), unit)
 
     def test_per_second_uses_duration_and_defaults_to_eight(self):
-        self.assertEqual(cost.estimate("veo-3-1", duration_seconds=10), Decimal("4.0"))
+        rate = cost.PRICE_TABLE["veo-3-1"]["per_second"]
+        self.assertEqual(cost.estimate("veo-3-1", duration_seconds=10), rate * 10)
         # Default duration is 8s — a caller that forgets the kwarg still gets a real number.
-        self.assertEqual(cost.estimate("veo-3-1-fast"), Decimal("1.20"))
+        fast = cost.PRICE_TABLE["veo-3-1-fast"]["per_second"]
+        self.assertEqual(cost.estimate("veo-3-1-fast"), fast * 8)
 
     def test_per_minute_uses_duration_minutes(self):
-        self.assertEqual(cost.estimate("whisper-1", duration_minutes=10), Decimal("0.060"))
+        rate = cost.PRICE_TABLE["whisper-1"]["per_minute"]
+        self.assertEqual(cost.estimate("whisper-1", duration_minutes=10), rate * 10)
 
     def test_per_1k_chars_is_fractional_not_rounded_up(self):
         # 500 chars must cost half of 1k, not a full unit.
-        self.assertEqual(cost.estimate("eleven-tts", char_count=500), Decimal("0.075"))
+        rate = cost.PRICE_TABLE["eleven-tts"]["per_1k_chars"]
+        self.assertEqual(cost.estimate("eleven-tts", char_count=500), rate / 2)
+
+    def test_four_k_tier_is_charged_only_when_asked_for(self):
+        base = cost.PRICE_TABLE["nano-banana-pro"]["per_image"]
+        premium = cost.PRICE_TABLE["nano-banana-pro"]["per_image_4k"]
+        self.assertEqual(cost.estimate("nano-banana-pro"), base)
+        self.assertEqual(cost.estimate("nano-banana-pro", resolution="4k"), premium)
+        self.assertEqual(cost.estimate("nano-banana-pro", resolution="2K"), base)
+
+    def test_four_k_tier_falls_back_when_the_model_has_no_premium(self):
+        # nano-banana-2-lite has no 4K tier — asking for one must not KeyError.
+        unit = cost.PRICE_TABLE["nano-banana-2-lite"]["per_image"]
+        self.assertEqual(cost.estimate("nano-banana-2-lite", resolution="4k"), unit)
 
     def test_quality_tier_selection(self):
         self.assertEqual(cost.estimate("gpt-image-2", quality="low"), Decimal("0.02"))

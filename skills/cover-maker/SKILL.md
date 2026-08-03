@@ -62,7 +62,7 @@ Read metadata + medium + optional photo + style → pick aspect from medium → 
    - Heavy embedded text (covers always have text) → `ideogram-3-quality` (default) or `gpt-image-2`.
    - Photo reference + identity → `nano-banana-pro`.
    - Photo reference + brand palette → `flux-2-pro`.
-   - Photoreal magazine-style cover → `imagen-4-ultra`.
+   - Photoreal magazine-style cover → `nano-banana-pro`.
 
 5. **Compose ONE LLM call** — load [`common/visual-prompt-library/system-prompt.md`](../../common/visual-prompt-library/system-prompt.md) (the shared SYSTEM_PROMPT) and `buildUserMessage(opts)` with:
    ```

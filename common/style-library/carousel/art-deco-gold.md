@@ -30,6 +30,6 @@ photoreal: false
 
 **Avoid for**: budget brands, casual DTC, anything that wants to feel fast or disposable.
 
-**Suggested models**: Imagen 4 Ultra (metallic rendering), Flux 2 Pro, Nano Banana Pro, gpt-image-2 (text-in-image).
+**Suggested models**: Nano Banana 2 (metallic rendering), Flux 2 Pro, Nano Banana Pro, gpt-image-2 (text-in-image).
 
 **Caption tone**: Formal, third person, ceremonial register. Long elegant sentences. Names and dates.

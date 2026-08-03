@@ -10,6 +10,7 @@ No company-DB layer — single-user CLI reads from os.environ only.
 from __future__ import annotations
 
 import os
+import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -19,12 +20,31 @@ if TYPE_CHECKING:
 _REGISTRY: dict[str, "Provider"] = {}
 _PUBLISHERS: dict[str, "Publisher"] = {}
 
+# Retired slugs → (successor slug, why). A vendor shutting a model down does not
+# get to break a user's script: the old name keeps resolving, prints one line to
+# stderr, and routes upward. Mirrors the "Deprecations" tables the model-picker
+# references already publish.
+_DEPRECATED: dict[str, tuple[str, str]] = {}
+
 
 def register(provider: "Provider") -> None:
     _REGISTRY[provider.name] = provider
 
 
+def register_deprecated(old: str, new: str, reason: str) -> None:
+    """Alias a retired provider slug onto its successor."""
+    _DEPRECATED[old] = (new, reason)
+
+
+def deprecations() -> dict[str, tuple[str, str]]:
+    return dict(_DEPRECATED)
+
+
 def get_provider(name: str) -> "Provider":
+    if name in _DEPRECATED and name not in _REGISTRY:
+        successor, reason = _DEPRECATED[name]
+        sys.stderr.write(f"warning: '{name}' is retired ({reason}). Routing to '{successor}'.\n")
+        name = successor
     try:
         return _REGISTRY[name]
     except KeyError as exc:

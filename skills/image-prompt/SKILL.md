@@ -1,6 +1,6 @@
 ---
 name: image-prompt
-description: "Write prompts for 14+ frontier AI image generators (Midjourney v7, Flux 2/Kontext, Imagen 4, Nano Banana Pro, gpt-image-2, Ideogram 3, Recraft V3, Seedream, Qwen, HiDream, Krea, SDXL). Modes: T2I, edit, multi-ref, text-in-image. Use when: 'prompt for an image', 'Midjourney prompt', 'edit with Kontext', 'character consistency', 'poster with text'."
+description: "Write prompts for 14+ frontier AI image generators (Midjourney V8.1, Flux 2/Kontext, Nano Banana Pro/2, gpt-image-2, Ideogram 3, Recraft V3, Seedream 5, Qwen, HiDream, Krea, SDXL). Modes: T2I, edit, multi-ref, text-in-image. Use when: 'prompt for an image', 'Midjourney prompt', 'edit with Kontext', 'character consistency', 'poster with text'."
 
 license: MIT
 allowed-tools:
@@ -38,13 +38,13 @@ Read the request → identify subject + intent (generate / edit / multi-ref / te
    - `text-heavy` — legible text is the subject (poster, book cover, signage).
 
 3. **Pick model.** Default by intent — see `references/model-picker.md`:
-   - Editorial / fashion / "vibes" → Midjourney v7
-   - Photoreal portrait / product → Flux 2 Pro or Imagen 4 Ultra
+   - Editorial / fashion / "vibes" → Midjourney V8.1
+   - Photoreal portrait / product → Flux 2 Pro or Nano Banana Pro
    - Text-heavy → Ideogram 3 Quality or Nano Banana Pro
    - Edit → Flux Kontext or Nano Banana Pro or gpt-image-2
-   - Multi-ref composite → Seedream 4.5 (weighted roles) or Flux 2 Pro or gpt-image-2
+   - Multi-ref composite → Seedream 5.0 (weighted roles, layered output) or Flux 2 Pro or gpt-image-2
    - Self-host / open-weights → Flux 2 [dev], SD 3.5, Qwen-Image 2.0 (CJK), HiDream-O1
-   - Cheap iteration → Flux Schnell / Imagen 4 Fast / Ideogram 3 Turbo
+   - Cheap iteration → Flux Schnell / Nano Banana 2 Lite / Ideogram 3 Turbo
 
 4. **Build the prompt** — see `references/prompt-formula.md`:
    ```
@@ -68,7 +68,7 @@ Read the request → identify subject + intent (generate / edit / multi-ref / te
 ## MODES
 
 - `image-prompt <topic-or-scene>` — generate default prompt (intent-routed model)
-- `image-prompt <scene> --model <name>` — target a specific model. Valid: `midjourney-v7`, `flux-2-pro`, `flux-2-dev`, `flux-1-1-pro-ultra`, `flux-kontext`, `flux-schnell`, `flux-krea`, `imagen-4`, `imagen-4-ultra`, `imagen-4-fast`, `nano-banana-pro`, `gpt-image-2`, `ideogram-3`, `recraft-v3`, `seedream-4-5`, `qwen-image`, `hidream-o1`, `krea-1`, `sd-3-5`, `sdxl`
+- `image-prompt <scene> --model <name>` — target a specific model. Valid: `midjourney-v8`, `flux-2-pro`, `flux-2-dev`, `flux-1-1-pro-ultra`, `flux-kontext`, `flux-schnell`, `flux-krea`, `nano-banana-pro`, `nano-banana-2`, `nano-banana-2-lite`, `gpt-image-2`, `ideogram-3`, `recraft-v3`, `seedream-5`, `qwen-image`, `hidream-o1`, `krea-1`, `sd-3-5`, `sdxl`
 - `image-prompt <scene> --style <style>` — force a style (`photorealistic`, `editorial`, `3d-render`, `illustration`, `product-shot`, `cinematic`, `minimalist`, `no-ai-look`)
 - `image-prompt <scene> --edit` — edit mode; expects a source image (URL or path). Generates preserve/change instruction.
 - `image-prompt <scene> --reference <path-or-url>[@<role>:<weight>]` — attach a reference. Repeatable. Roles: `character`, `style`, `palette`, `layout`. Weights 0-1. Triggers multi-ref mode.
@@ -90,26 +90,26 @@ Read the request → identify subject + intent (generate / edit / multi-ref / te
 | [references/camera-vocabulary.md](references/camera-vocabulary.md) | When the image should look photographic — lens/sensor/quality-tag dictionary |
 | [references/editing-prompting.md](references/editing-prompting.md) | Mode `edit` or `multi-ref` — preserve/change grammar, identity locks, weighted refs |
 | [references/text-in-image.md](references/text-in-image.md) | Mode `text-heavy` — per-model rules for legible text + multilingual |
-| [references/models/midjourney.md](references/models/midjourney.md) | Midjourney v7 (and v8 preview) — `--sref`, `--oref`, `--raw`, `--ar`, `--s`, `--c`, `--no`, `--p`, `--w` |
+| [references/models/midjourney.md](references/models/midjourney.md) | Midjourney V8.1 (v7 legacy flags) — `--sref`, `--oref`, `--raw`, `--ar`, `--s`, `--c`, `--no`, `--p`, `--w` |
 | [references/models/flux.md](references/models/flux.md) | Flux 2 Pro/Dev, 1.1 Pro Ultra (Raw), Kontext, Schnell, Krea |
-| [references/models/google.md](references/models/google.md) | Imagen 4 / 4 Ultra / 4 Fast + Nano Banana Pro (Gemini 3 Pro Image) |
+| [references/models/google.md](references/models/google.md) | Nano Banana Pro / 2 / 2 Lite (Gemini image family) + the Imagen 4 shutdown |
 | [references/models/openai.md](references/models/openai.md) | gpt-image-2 (DALL-E 3 retirement note) |
-| [references/models/ideogram-recraft.md](references/models/ideogram-recraft.md) | Ideogram 3 Turbo/Default/Quality + Recraft V3 (SVG) |
-| [references/models/bytedance-seedream.md](references/models/bytedance-seedream.md) | Seedream 4.5 / 5.0 (weighted multi-ref) |
+| [references/models/ideogram-recraft.md](references/models/ideogram-recraft.md) | Ideogram 3 Flash/Turbo/Default/Quality, Ideogram 4 (open weights, JSON prompting) + Recraft V3 (SVG) |
+| [references/models/bytedance-seedream.md](references/models/bytedance-seedream.md) | Seedream 5.0 Pro / Lite (weighted multi-ref, layered PNG output) |
 | [references/models/open-source.md](references/models/open-source.md) | SD 3.5 + SDXL legacy + Qwen-Image 2.0 + HiDream-O1 |
 | [references/execute.md](references/execute.md) | `--execute` mode — env var matrix, provider availability check, cost preview, troubleshooting, fall-back behaviour |
 
 ## EXAMPLES
 
-See [examples/before-after.md](examples/before-after.md) — calibration pairs covering portrait, product, scene, abstract, illustration, text-in-image (Ideogram 3), edit (Flux Kontext), multi-reference composite (Seedream 4.5), open-weights (Qwen-Image).
+See [examples/before-after.md](examples/before-after.md) — calibration pairs covering portrait, product, scene, abstract, illustration, text-in-image (Ideogram 3), edit (Flux Kontext), multi-reference composite (Seedream 5.0), open-weights (Qwen-Image).
 
 ## CONSTRAINTS
 
 - **Don't name real people.** Use role descriptors ("a confident business person") not real names.
-- **Don't promise reliable text > 1 short phrase outside text-tier models.** Reliable text: Ideogram 3 Quality, Nano Banana Pro, Imagen 4 Ultra, gpt-image-2, Qwen-Image. Avoid > 5 words in Midjourney / Flux 2 Pro (≈60%); avoid entirely in SD 3.5 / SDXL. For exact typography: render in a design tool, not the generator.
-- **For character consistency across multiple images** — use a model that supports identity locks: Midjourney v7 (`--oref`), Flux Kontext, Nano Banana Pro (up to 5 people), gpt-image-2 (16 refs), Seedream 4.5 (Character weight 1.0).
+- **Don't promise reliable text > 1 short phrase outside text-tier models.** Reliable text: Ideogram 3 Quality, Nano Banana Pro, Nano Banana 2, gpt-image-2, Qwen-Image. Avoid > 5 words in Midjourney / Flux 2 Pro (≈60%); avoid entirely in SD 3.5 / SDXL. For exact typography: render in a design tool, not the generator.
+- **For character consistency across multiple images** — use a model that supports identity locks: Midjourney V8.1 (`--oref`), Flux Kontext, Nano Banana Pro (up to 5 people), gpt-image-2 (16 refs), Seedream 5.0 (Character weight 1.0).
 - **Don't re-describe the ref's appearance in the prompt.** When `--reference` is attached as Character, the prompt should describe wardrobe / action / expression / environment — NOT face / hair / body. Re-describing overrides the ref and causes drift.
-- **Don't mix Midjourney `--` flags into NL-only models.** Imagen / gpt-image-2 / Nano Banana Pro / Flux NL prompts ignore (or break on) `--ar`, `--s`, `--style raw`, etc. Use API params or NL phrasing instead.
+- **Don't mix Midjourney `--` flags into NL-only models.** Nano Banana / gpt-image-2 / Flux NL prompts ignore (or break on) `--ar`, `--s`, `--style raw`, etc. Use API params or NL phrasing instead.
 - **SD 3.5 weight syntax `(word:1.3)` is a no-op.** Despite accepting the syntax, SD 3.5 ignores weights. Use keyword priority order. Weights DO work on SDXL / SD 1.5.
 - **One subject per prompt** unless explicitly multi-subject. The model can't render "a cat, a dog, a horse, and a fox" cleanly.
 - **Specific lighting beats abstract.** "Soft directional key light from upper left" > "good lighting".

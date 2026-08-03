@@ -33,9 +33,11 @@ TARGET = ROOT / "common" / "references" / "model-pricing.md"
 
 UNIT_LABEL = {
     "per_image": "per image",
+    "per_image_4k": "per image (4K)",
     "per_edit": "per edit",
     "per_song": "per song",
     "per_second": "per second",
+    "per_second_4k": "per second (4K)",
     "per_minute": "per minute",
     "per_1k_chars": "per 1 000 characters",
     "low": "quality: low",
@@ -44,12 +46,14 @@ UNIT_LABEL = {
 }
 
 VENDOR_ORDER = [
-    ("OpenAI", ("gpt-image-2", "gpt-4o-mini-tts", "whisper-1", "sora-2", "sora-2-pro")),
-    ("Google", ("imagen-4", "imagen-4-ultra", "imagen-4-fast", "nano-banana-pro",
-                "veo-3-1", "veo-3-1-fast", "lyria-3-pro")),
+    ("OpenAI", ("gpt-image-2", "gpt-4o-mini-tts", "whisper-1", "gpt-4o-transcribe",
+                "gpt-4o-mini-transcribe", "sora-2", "sora-2-pro")),
+    ("Google", ("nano-banana-pro", "nano-banana-2", "nano-banana-2-lite",
+                "veo-3-1", "veo-3-1-fast", "veo-3-1-lite", "lyria-3-pro")),
     ("Black Forest Labs", ("flux-1-1-pro", "flux-2-pro", "flux-kontext", "flux-schnell")),
-    ("Ideogram", ("ideogram-3-turbo", "ideogram-3", "ideogram-3-quality")),
-    ("Runway", ("gen-4", "gen-4-turbo", "aleph")),
+    ("Ideogram", ("ideogram-4-turbo", "ideogram-4", "ideogram-4-quality",
+                  "ideogram-3-turbo", "ideogram-3", "ideogram-3-quality")),
+    ("Runway", ("gen-4", "gen-4-turbo", "gen-4-5", "aleph")),
     ("Kling", ("kling-3",)),
     ("Suno", ("suno-v5-5",)),
     ("ElevenLabs", ("eleven-music", "eleven-tts")),

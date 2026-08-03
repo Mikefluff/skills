@@ -30,6 +30,6 @@ photoreal: true
 
 **Avoid for**: enterprise tech, sports performance, anything urgent.
 
-**Suggested models**: Flux 2 Pro (film simulation), Nano Banana Pro (identity across slides), Midjourney v7, gpt-image-2 (handwritten text).
+**Suggested models**: Flux 2 Pro (film simulation), Nano Banana Pro (identity across slides), Midjourney V8.1, gpt-image-2 (handwritten text).
 
 **Caption tone**: First person, past tense, fragmented memory. Specific dates and places. No marketing voice.

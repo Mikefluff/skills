@@ -30,6 +30,6 @@ photoreal: false
 
 **Avoid for**: enterprise software, financial services, anything cold or technical.
 
-**Suggested models**: Flux 2 Pro (texture), Nano Banana Pro, Imagen 4 Ultra, Recraft V3.
+**Suggested models**: Flux 2 Pro (texture), Nano Banana Pro, Nano Banana 2, Recraft V3.
 
 **Caption tone**: Warm, second-person, gentle imperatives. Use concrete sensory nouns. Short sentences.

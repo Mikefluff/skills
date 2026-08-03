@@ -44,7 +44,7 @@ Read the event details + optional photo + optional style → pick a model (text-
 
 2. **Resolve photo** (optional):
    - `--photo <path-or-url>`: passed as reference image to the chosen model.
-   - Multi-ref capable models needed (Nano Banana Pro / Flux Kontext / gpt-image-2 / Ideogram 3 / Seedream 4.5).
+   - Multi-ref capable models needed (Nano Banana Pro / Flux Kontext / gpt-image-2 / Ideogram 3 / Seedream 5.0).
    - If `--photo` provided AND `--model auto`: skill picks a ref-capable model.
    - If `--photo` provided AND `--model <slug>` that can't handle refs: warn + auto-substitute, or exit if user passed `--strict`.
 
@@ -56,10 +56,10 @@ Read the event details + optional photo + optional style → pick a model (text-
 4. **Pick model** — see `references/model-picker.md`:
    - `--model auto`:
      - Photo provided + identity preserve critical (named speaker) → `nano-banana-pro`
-     - Photo provided + brand-style transfer needed → `flux-2-pro` or `seedream-4.5`
+     - Photo provided + brand-style transfer needed → `flux-2-pro` or `seedream-5`
      - Photo provided + Latin/CJK text needed → `gpt-image-2`
      - No photo + text-heavy → `ideogram-3-quality`
-     - No photo + photoreal style → `imagen-4-ultra` or `flux-2-pro`
+     - No photo + photoreal style → `nano-banana-pro` or `flux-2-pro`
    - `--model <slug>`: explicit override.
    - ONE model for all aspects (consistency across the family).
 

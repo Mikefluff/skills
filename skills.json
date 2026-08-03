@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Mikefluff/skills/main/docs/skills.schema.json",
   "collection": "Mikefluff/skills",
-  "version": "2.19.0",
+  "version": "2.23.0",
   "repo": "https://github.com/Mikefluff/skills",
   "license": "MIT",
   "skills": [
@@ -218,7 +218,7 @@
       "name": "image-prompt",
       "dir": "skills/image-prompt",
       "layer": "wrapper",
-      "description": "Write prompts for 14+ frontier AI image generators (Midjourney v7, Flux 2 / Flux Kontext, Imagen 4 Ultra, Nano Banana Pro / Gemini 3 Image, gpt-image-2, Ideogram 3, Recraft V3, Seedream 4.5, Qwen-Image, HiDream-O1, Krea-1, SD 3.5, SDXL). Modes: text-to-image, edit (preserve/change), multi-reference, text-in-image. 6-part formula + per-model deltas, character/identity locks, weighted multi-ref.",
+      "description": "Write prompts for 14+ frontier AI image generators (Midjourney V8.1, Flux 2 / Flux Kontext, Nano Banana Pro / 2 / 2 Lite (Gemini image family), gpt-image-2, Ideogram 3, Recraft V3, Seedream 5.0, Qwen-Image, HiDream-O1, Krea-1, SD 3.5, SDXL). Modes: text-to-image, edit (preserve/change), multi-reference, text-in-image. 6-part formula + per-model deltas, character/identity locks, weighted multi-ref.",
       "languages": [
         "en",
         "ru"
@@ -233,7 +233,7 @@
       "name": "video-prompt",
       "dir": "skills/video-prompt",
       "layer": "wrapper",
-      "description": "Write prompts for 20+ frontier AI video generators (Veo 3.1 + native audio, Sora 2 + cameos, Kling 3.0 / Elements, Runway Gen-4 / Aleph V2V / Act-One, Luma Ray 3 / Modify, Pika 2.2 / Pikaframes, Hailuo 02, Higgsfield, LTX-2, HunyuanCustom, Wan 2.2, Seedance). Modes: T2V / I2V / V2V / extend / multi-shot / dialogue+audio. CHARACTER FIRST law, beat structure, exact camera vocabulary, identity-reference grammar, pacing modes (incl. dialogue-scene + music-video).",
+      "description": "Write prompts for 20+ frontier AI video generators (Veo 3.1 + Fast + Lite with native audio, Kling 3.0 / Elements, Runway Gen-4 / Gen-4.5 / Aleph V2V / Act-One, Luma Ray 3 / Modify, Pika 2.2 / Pikaframes, Hailuo 02, Higgsfield, LTX-2, HunyuanCustom, Wan 2.2, Seedance). Modes: T2V / I2V / V2V / extend / multi-shot / dialogue+audio. CHARACTER FIRST law, beat structure, exact camera vocabulary, identity-reference grammar, pacing modes (incl. dialogue-scene + music-video).",
       "languages": [
         "en",
         "ru"
@@ -440,7 +440,7 @@
       "name": "voiceover-maker",
       "dir": "skills/voiceover-maker",
       "layer": "wrapper",
-      "description": "Text-to-speech skill — script in, MP3 out. Wraps the runner's audio modality (ElevenLabs eleven-tts + OpenAI gpt-4o-mini-tts). Supports voice picker, multilingual TTS (Eleven), speed control, long-form scripts. Auto-picks provider based on language + script length + brand-voice needs. Saves to ./generated/audio/<timestamp>-<model>.mp3.",
+      "description": "Text-to-speech skill — script in, MP3 out. Wraps the runner's audio modality (ElevenLabs eleven-tts on Eleven v3 + OpenAI gpt-4o-mini-tts). Supports voice picker, multilingual TTS across 70+ languages, speed control, long-form scripts. Auto-picks provider based on language + script length + brand-voice needs. Saves to ./generated/audio/<timestamp>-<model>.mp3.",
       "languages": [
         "en",
         "ru"
@@ -651,7 +651,7 @@
       "name": "transcribe-maker",
       "dir": "skills/transcribe-maker",
       "layer": "wrapper",
-      "description": "Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts ISO-639-1 hint. ~$0.006/min. Closes the loop with subtitle-burner — produce captions from video, then burn them in. 25 MB file limit.",
+      "description": "Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper or the GPT-4o transcribe models. Auto-detects language or accepts ISO-639-1 hint. $0.003-0.006/min. Closes the loop with subtitle-burner — produce captions from video, then burn them in. 25 MB file limit.",
       "languages": [
         "en",
         "ru"

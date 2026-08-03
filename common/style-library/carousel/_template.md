@@ -24,13 +24,13 @@ photoreal: false
 > <80-150 word, model-agnostic prompt fragment appended to every slide prompt to lock the style. Single descriptive paragraph, NOT bullets. Must include: medium descriptor + palette + typography hint + composition rule + 1-2 era/cultural cues. This is the most important field.>
 
 **Style anchor (text-in-image mode)**:
-> <variant of above tuned for models that put text INSIDE the image — gpt-image-2 / Ideogram 3 / Imagen 4. Include explicit typography spec, example "headline 'HEADLINE TEXT HERE' in <font-style>", layout hint. ~60-100 words.>
+> <variant of above tuned for models that put text INSIDE the image — gpt-image-2 / Ideogram 3 / Nano Banana 2. Include explicit typography spec, example "headline 'HEADLINE TEXT HERE' in <font-style>", layout hint. ~60-100 words.>
 
 **Best for**: <2-4 use cases — e.g. "thought-leadership posts, founder narratives, brand storytelling">.
 
 **Avoid for**: <2-3 mismatches — e.g. "loud sales pitches, quick promo, sports brands">.
 
-**Suggested models**: <comma list ranked by fit — e.g. "Nano Banana Pro (best identity-preserve), Flux 2 Pro, Imagen 4 Ultra, gpt-image-2 (text mode)">.
+**Suggested models**: <comma list ranked by fit — e.g. "Nano Banana Pro (best identity-preserve), Flux 2 Pro, Nano Banana 2, gpt-image-2 (text mode)">.
 
 **Caption tone**: <one-line guidance for the post copy that pairs with this aesthetic>.
 

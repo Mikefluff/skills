@@ -1,20 +1,20 @@
 # Midjourney models
 
-Aesthetic-first generator. v7 is GA, v8 in early access.
+Aesthetic-first generator. V8.1 became the default in June 2026; v7 remains selectable.
 
 ---
 
-## Midjourney v7
+## Midjourney V8.1
 
-**Strengths**: best aesthetic / editorial / "vibes" / brand-design output; strongest "wow" factor; refined coherence over v6.
-**Weaknesses**: text-in-image still poor; multi-subject compositions still drift; weaker at strict instruction-following than gpt-image-2 or Imagen 4.
+**Strengths**: best aesthetic / editorial / "vibes" / brand-design output; strongest "wow" factor; faster than v7 with tighter prompt following.
+**Weaknesses**: text-in-image still poor; multi-subject compositions still drift; weaker at strict instruction-following than gpt-image-2 or Nano Banana 2.
 **Execute via**: prompt-only — no public API. Web / Discord only.
 
 ### Syntax
 
 Parameters use `--` flags:
 - `--ar 16:9` — aspect ratio (default 1:1). Common: `16:9`, `9:16`, `4:5`, `2:3`, `3:2`
-- `--s 250` — stylization 0-1000, default 100. Lower in v7 than v6.
+- `--s 250` — stylization 0-1000, default 100. Lower in V8 / v7 than v6.
 - `--c 50` — chaos 0-100, higher = more variation between grid tiles
 - `--w 0-3000` — weirdness, pushes unusual aesthetics
 - `--no text, watermark` — negative prompt (comma-separated)
@@ -50,15 +50,14 @@ With character lock:
 
 ---
 
-## Midjourney v8 (preview)
+## Midjourney v7 (legacy)
 
-**Execute via**: prompt-only — no public API. Web / Discord early-access only.
+**Execute via**: prompt-only — no public API. Web / Discord only.
 
-- In early access at time of writing, not GA.
-- Mostly aesthetic refinement over v7; same flag system.
-- No production use yet — outputs are subject to change.
-- Wait for GA before locking brand workflows on it.
-- Knowledge of v8-specific flags is still thin; treat as v7 + better aesthetics.
+- Still selectable, and still the better-documented model.
+- Same flag system as V8.1 — `--oref`, `--sref`, `--raw`, `--ar`, `--s`, `--c`, `--no` all carry over.
+- Pin to v7 when an existing brand set was built on it; V8.1 renders the same prompt
+  a little differently, which is exactly the drift you do not want mid-campaign.
 
 ---
 

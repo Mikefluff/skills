@@ -4,13 +4,22 @@ Identified gaps where the collection is functional but UX-painful. Tracked here 
 
 Not all of these will be built. They're sorted by user-likely-to-want vs. effort, with notes on what could ship as a skill vs. what's better left as a one-liner in `image-prompt --execute` / `video-prompt --execute`.
 
-Last updated: 2026-05-21 (post v2.10.0).
+Last updated: 2026-08-03 (post v2.22.0).
 
 ---
 
 ## What landed in recent releases
 
-- v2.10.0 — `audio-mix-maker` + `style-transfer` + `transcribe-maker` (closes active ROADMAP — ffmpeg audio mixing, Flux-Kontext stylization, Whisper transcription)
+- v2.22.0 — structural gates + the publishing layer refactored to pass them
+- v2.21.0 — `post-publisher` (Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn via official APIs)
+- v2.20.0 — `proposal-maker` + `style-suggest` promoted; copy-paste artifact gate
+- v2.19.0 — `carousel-builder --animate`; text-stability kwargs across Kling + Runway
+- v2.18.0 — canonical video-prompt SYSTEM_PROMPT chain; Veo 3.1 text-overlay preservation
+- v2.17.0 — `proposal-maker` (brand-copying commercial proposals)
+- v2.16.0 — `style-suggest` (visual-style generator)
+- v2.14.0-2.15.0 — shared `visual-prompt-library`, style library split per file
+- v2.11.0-2.13.0 — two-pass typography for book covers; carousel prompt chain rewritten
+- v2.10.0 — `audio-mix-maker` + `style-transfer` + `transcribe-maker` (ffmpeg audio mixing, Flux-Kontext stylization, Whisper transcription)
 - v2.9.0 — `banner-maker` + `meme-card-maker` + `upscaler` (display ads / meme graphics / image super-resolution)
 - v2.8.0 — `logo-maker` + `quote-card-maker` + `gif-maker` (brand mark / aphorism graphic / short looping animation)
 - v2.7.0 — `cover-maker` + `thumbnail-maker` + `bg-remover` (album/book/podcast covers, 16:9 thumbnails, transparent PNG utility)
@@ -23,11 +32,53 @@ Last updated: 2026-05-21 (post v2.10.0).
 
 ---
 
+## Open — model platform
+
+Found by the 2026-08-03 registry audit. These are not new skills; they are the
+execution layer keeping pace with vendors who move faster than the release
+cadence.
+
+### Sora 2 removal — hard deadline 2026-09-24
+
+OpenAI deletes the Videos API and both Sora slugs on that date, with no
+successor. The providers warn on every call and the pickers already route
+elsewhere. What remains: delete the providers and the price entries once the
+date passes, and drop the migration table from
+[`skills/video-prompt/references/execute.md`](../skills/video-prompt/references/execute.md)
+after it stops being useful.
+
+### Ideogram 4 — wire it when the endpoint appears
+
+Shipped 2026-06-03 with open weights and JSON-first prompting. The hosted API
+still exposes only the v3 generate path, so `--execute` stays on v3. Two things
+to do when v4 lands:
+
+1. Register `ideogram-4-turbo` / `-4` / `-4-quality` at $0.03 / $0.06 / $0.10.
+2. Teach `banner-maker` / `flyer-maker` / `logo-maker` to emit layout as JSON
+   instead of flattening their internal structure into a prose sentence. This is
+   the larger of the two — it is a second prompt mode, not a new slug.
+
+### Seedream 5 Pro — layered output
+
+One render decomposes into 10+ editable PNG layers. That changes the retry loop
+for every text-in-image skill: a typo becomes a layer edit rather than a
+regeneration, which is currently the main cause of style drift across a
+carousel set. Needs a host that exposes the layered response — fal and Replicate
+both mirror Seedream but not yet that field.
+
+### FLUX 3 / Meta Muse Image — watch only
+
+FLUX 3 (2026-07-23) generates image, video and audio from one set of weights but
+is early-access with no API and no published pricing. Muse Image (2026-07-07)
+has no public API. Documented in the model references, not wired.
+
+---
+
 ## High value · low effort (single-image siblings of flyer-maker)
 
 Each of these reuses 90% of the flyer-maker / carousel-builder infrastructure: structured event-style input → composition zones → multi-aspect batch → existing style library.
 
-### `cover-maker`
+### `cover-maker` ✅ SHIPPED v2.7.0
 
 **For**: album / book / podcast / report / deck-cover / LinkedIn-banner covers.
 
@@ -37,7 +88,7 @@ Each of these reuses 90% of the flyer-maker / carousel-builder infrastructure: s
 
 **Effort**: 1 day.
 
-### `avatar-maker`
+### `avatar-maker` ✅ SHIPPED v2.6.0
 
 **For**: profile pictures, headshots, social-media avatars from a user photo.
 
@@ -45,7 +96,7 @@ Each of these reuses 90% of the flyer-maker / carousel-builder infrastructure: s
 
 **Effort**: 1 day.
 
-### `thumbnail-maker`
+### `thumbnail-maker` ✅ SHIPPED v2.7.0
 
 **For**: YouTube / blog / podcast-episode thumbnails. Face + bold title.
 
@@ -91,7 +142,7 @@ Each of these reuses 90% of the flyer-maker / carousel-builder infrastructure: s
 
 These extend the runner's audio capabilities beyond music-prompt.
 
-### `voiceover-maker`
+### `voiceover-maker` ✅ SHIPPED v2.6.0
 
 **For**: text → narration MP3 via ElevenLabs TTS (or OpenAI TTS).
 
@@ -105,7 +156,7 @@ These extend the runner's audio capabilities beyond music-prompt.
 
 **Effort**: 1 day.
 
-### `subtitle-burner`
+### `subtitle-burner` ✅ SHIPPED v2.6.0
 
 **For**: take an existing MP4 + a subtitle file (SRT or VTT or plain text) → output MP4 with burned-in captions.
 
@@ -159,7 +210,7 @@ These call existing third-party providers (Replicate / fal). Pattern: thin wrapp
 
 **Effort**: 0.5 day. Simple wrapper.
 
-### `bg-remover`
+### `bg-remover` ✅ SHIPPED v2.7.0
 
 **For**: remove background from a photo (for product shots, profile pics, ID photos).
 
@@ -221,9 +272,9 @@ These are NOT planned:
 
 - **AI-driven prompt-engineering for content moderation** — bypassing AI safety filters is out of scope.
 - **Stock-photo generation at scale** — that's what stock photo sites are for.
-- **DALL-E 3 integration** — superseded by gpt-image-2 (which we have).
-- **Midjourney API integration** — no public API exists as of 2026-05.
-- **Removing/replacing background of generated images** — handled by `bg-remover` (planned) on USER photos, not generated ones (just regenerate with a different background prompt).
+- **DALL-E 3 integration** — OpenAI removed dall-e-2 and dall-e-3 from the API on 2026-05-12. gpt-image-2 is the replacement, and we have it.
+- **Midjourney API integration** — still no public API as of 2026-08, V8.1 included.
+- **Removing/replacing background of generated images** — handled by `bg-remover` on USER photos, not generated ones (just regenerate with a different background prompt).
 - **Real-time chat/streaming AI features** — out of scope for a Claude Code skill collection.
 
 ---

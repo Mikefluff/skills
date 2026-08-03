@@ -21,19 +21,25 @@ count, not separate prices.
 | `gpt-image-2` | quality: high | $0.10 |
 | `gpt-4o-mini-tts` | per minute | $0.015 |
 | `whisper-1` | per minute | $0.006 |
+| `gpt-4o-transcribe` | per minute | $0.006 |
+| `gpt-4o-mini-transcribe` | per minute | $0.003 |
 | `sora-2` | per second | $0.10 |
-| `sora-2-pro` | per second | $0.30 |
+| `sora-2-pro` | per second | $0.50 |
 
 ## Google
 
 | Model | Unit | USD |
 |---|---|---|
-| `imagen-4` | per image | $0.04 |
-| `imagen-4-ultra` | per image | $0.06 |
-| `imagen-4-fast` | per image | $0.02 |
-| `nano-banana-pro` | per image | $0.05 |
+| `nano-banana-pro` | per image | $0.134 |
+| `nano-banana-pro` | per image (4K) | $0.24 |
+| `nano-banana-2` | per image | $0.101 |
+| `nano-banana-2` | per image (4K) | $0.151 |
+| `nano-banana-2-lite` | per image | $0.034 |
 | `veo-3-1` | per second | $0.40 |
-| `veo-3-1-fast` | per second | $0.15 |
+| `veo-3-1` | per second (4K) | $0.60 |
+| `veo-3-1-fast` | per second | $0.12 |
+| `veo-3-1-fast` | per second (4K) | $0.30 |
+| `veo-3-1-lite` | per second | $0.08 |
 | `lyria-3-pro` | per minute | $0.10 |
 
 ## Black Forest Labs
@@ -59,13 +65,14 @@ count, not separate prices.
 |---|---|---|
 | `gen-4` | per second | $0.10 |
 | `gen-4-turbo` | per second | $0.05 |
+| `gen-4-5` | per second | $0.12 |
 | `aleph` | per second | $0.18 |
 
 ## Kling
 
 | Model | Unit | USD |
 |---|---|---|
-| `kling-3` | per second | $0.10 |
+| `kling-3` | per second | $0.12 |
 
 ## Suno
 
@@ -77,8 +84,8 @@ count, not separate prices.
 
 | Model | Unit | USD |
 |---|---|---|
-| `eleven-music` | per minute | $0.30 |
-| `eleven-tts` | per 1 000 characters | $0.15 |
+| `eleven-music` | per minute | $0.20 |
+| `eleven-tts` | per 1 000 characters | $0.12 |
 
 ## Aggregators (median estimate)
 
@@ -88,6 +95,13 @@ count, not separate prices.
 | `fal/any` | per second | $0.15 |
 | `replicate/any` | per image | $0.03 |
 | `replicate/any` | per second | $0.10 |
+
+## Other
+
+| Model | Unit | USD |
+|---|---|---|
+| `ideogram-3-flash` | per image | $0.02 |
+| `lyria-3-clip` | per minute | $0.10 |
 
 ## Confirmation thresholds
 

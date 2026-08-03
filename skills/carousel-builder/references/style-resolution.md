@@ -81,11 +81,11 @@ The chosen model MUST support image-ref input. As of 2026:
 - Nano Banana Pro: yes (best identity preservation)
 - Flux Kontext: yes (text-edit on existing image)
 - Flux 2 Pro: yes (multi-ref + style transfer)
-- Seedream 4.5: yes
+- Seedream 5.0: yes
 - Ideogram 3: yes (style-ref mode)
 - gpt-image-2: yes (up to 16 refs)
-- Imagen 4 Ultra: limited (single ref)
-- Imagen 4 / 4 Fast: no — falls back to text-only
+- Nano Banana Pro: limited (single ref)
+- Nano Banana 2 / 4 Fast: no — falls back to text-only
 
 If user passed `--style-ref` AND `--model <model-without-ref>`: warn + auto-switch to a ref-capable model, OR exit if the chosen model can't be substituted.
 
@@ -125,9 +125,9 @@ Avoid:
 | Nano Banana Pro | 5-8 | Identity, face/character preserve | Best for "make 8 slides featuring this person" |
 | Flux 2 Pro | 4 | Style + palette transfer | Best general-purpose ref-capable model |
 | Flux Kontext | 1 | Text-prompted edit of one image | Good for "carousel from one photo + variations" |
-| Seedream 4.5 | 4 | Photographic style transfer | Strong at brand-asset matching |
+| Seedream 5.0 | 4 | Photographic style transfer | Strong at brand-asset matching |
 | Ideogram 3 | 1 (style-ref) | Embedded text + brand colors | Best for text-heavy carousels with brand consistency |
-| Imagen 4 Ultra | 1 | Limited ref support | Mostly for text-to-image; ref is secondary |
+| Nano Banana Pro | 1 | Limited ref support | Mostly for text-to-image; ref is secondary |
 
 ---
 

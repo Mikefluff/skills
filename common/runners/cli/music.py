@@ -9,6 +9,7 @@ from ._shared import dispatch
 MODELS_HINT = [
     "suno-v5-5",
     "lyria-3-pro",
+    "lyria-3-clip",
     "eleven-music",
     "fal-music",
     "replicate-music",

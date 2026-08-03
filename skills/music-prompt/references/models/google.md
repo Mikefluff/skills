@@ -8,7 +8,9 @@ Google's label-safe music model. Field-driven, 48 kHz stereo, watermarked.
 
 **Strengths**: 48 kHz stereo, SynthID-watermarked (label-safe), longest individual sections, available across Vertex AI / Gemini API / AI Studio / Google Vids / Gemini app / ProducerAI.
 **Weaknesses**: 3 min max hard cap; lyric languages limited to EN/ES/FR/JP; no formal bracket taxonomy; refuses artist-mimicry prompts.
-**Execute via**: `--execute --model lyria-3-pro` (env: `GEMINI_API_KEY` + `LYRIA_API_ENABLED=1`) — Gemini / Vertex AI API.
+**Execute via**: `--execute --model lyria-3-pro` (env: `GEMINI_API_KEY` + `LYRIA_API_ENABLED=1`) — Gemini API, paid preview.
+
+**Model ids**: `lyria-3-pro-preview` (full song, ~3 min) and `lyria-3-clip-preview` (30-second clip, reachable as `--model lyria-3-clip`). Both emit 44.1 kHz stereo. The Clip tier is the one to reach for when you need many short pieces — stings, loops, bumpers — rather than one track.
 
 Released March 25 2026.
 

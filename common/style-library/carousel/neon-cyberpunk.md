@@ -30,6 +30,6 @@ photoreal: true
 
 **Avoid for**: wellness, parenting, healthcare, anything calm.
 
-**Suggested models**: Flux 2 Pro (light handling), Midjourney v7 (atmosphere), Nano Banana Pro, gpt-image-2 (text-in-image).
+**Suggested models**: Flux 2 Pro (light handling), Midjourney V8.1 (atmosphere), Nano Banana Pro, gpt-image-2 (text-in-image).
 
 **Caption tone**: Short, declarative, slightly menacing. Numbers and timestamps. Lowercase or all-caps, never sentence case.

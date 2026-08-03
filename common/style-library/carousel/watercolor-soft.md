@@ -30,6 +30,6 @@ photoreal: false
 
 **Avoid for**: enterprise SaaS, sports, anything urgent or aggressive.
 
-**Suggested models**: Flux 2 Pro (paper texture), Imagen 4 Ultra, Nano Banana Pro, Recraft V3.
+**Suggested models**: Flux 2 Pro (paper texture), Nano Banana 2, Nano Banana Pro, Recraft V3.
 
 **Caption tone**: Reflective, first person, present tense. Sensory verbs. One quiet observation per slide.

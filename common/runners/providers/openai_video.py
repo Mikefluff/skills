@@ -1,10 +1,17 @@
 """OpenAI video providers — sora-2 and sora-2-pro.
 Vendor: OpenAI Sora 2 API (gated behind OPENAI_SORA_API_ENABLED=1).
+
+Sunset: OpenAI announced on 2026-03-24 that the Videos API and every Sora 2 alias
+and snapshot are removed from the API on 2026-09-24. OpenAI named no successor.
+These providers stay callable until then and warn on every call; the migration
+target is Veo 3.1 for native audio and Kling 3.0 for cheap multi-shot.
 """
 
 from __future__ import annotations
 
+import datetime as _dt
 import os
+import sys
 import time
 from decimal import Decimal
 from typing import Any
@@ -16,6 +23,10 @@ from . import _http
 from .base import GenerationResult, JobHandle, Provider
 
 
+SUNSET_DATE = _dt.date(2026, 9, 24)
+SUNSET_SUCCESSORS = "veo-3-1 (native audio) or kling-3 (cheap multi-shot)"
+
+
 class _SoraBase(Provider):
     modality = "video"
     requires_env = ("OPENAI_API_KEY",)
@@ -23,11 +34,27 @@ class _SoraBase(Provider):
     default_resolution: str = "720p"
     model_id: str = ""
 
+    def _warn_sunset(self) -> None:
+        """One line per call. A silent 404 in September is a worse way to find out."""
+        today = _dt.date.today()
+        if today >= SUNSET_DATE:
+            sys.stderr.write(
+                f"warning: {self.name} was removed from the OpenAI API on {SUNSET_DATE}. "
+                f"This call will fail — switch to {SUNSET_SUCCESSORS}.\n",
+            )
+            return
+        days = (SUNSET_DATE - today).days
+        sys.stderr.write(
+            f"warning: {self.name} is retired from the OpenAI API on {SUNSET_DATE} "
+            f"({days} days away). No successor from OpenAI — plan on {SUNSET_SUCCESSORS}.\n",
+        )
+
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         duration = float(kwargs.get("duration_seconds", self.default_duration))
         return cost.estimate(self.name, duration_seconds=duration, variants=kwargs.get("variants", 1))
 
     def _gate(self) -> None:
+        self._warn_sunset()
         if os.environ.get("OPENAI_SORA_API_ENABLED") != "1":
             raise ProviderError(
                 self.name,

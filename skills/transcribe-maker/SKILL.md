@@ -1,6 +1,6 @@
 ---
 name: transcribe-maker
-description: "Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts --lang ISO-639-1. ~$0.006/min. Pairs with subtitle-burner. Whisper API limit 25 MB/call. Use when: 'transcribe this video', 'subtitles from audio', 'speech to text', 'распознай речь', 'сделай субтитры из видео', 'whisper'."
+description: "Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper or the GPT-4o transcribe models. Auto-detects language or accepts --lang ISO-639-1. $0.003-0.006/min. Pairs with subtitle-burner. API limit 25 MB/call. Use when: 'transcribe this video', 'subtitles from audio', 'speech to text', 'распознай речь', 'сделай субтитры из видео', 'whisper'."
 
 license: MIT
 allowed-tools:
@@ -70,12 +70,29 @@ Read audio/video input → call OpenAI Whisper API with the requested format →
 ### Optional
 
 - `--format srt|vtt|json|text|verbose_json` (default `srt`)
+- `--model whisper-1|gpt-4o-transcribe|gpt-4o-mini-transcribe` (default `whisper-1`)
 - `--lang <ISO-639-1>` — language hint (default: auto-detect)
 - `--temperature <0-1>` — Whisper sampling temp (default 0; deterministic)
 - `--output <path>` — explicit output path
 - `--yes` — skip cost confirmation
 - `--check` — verify env + connectivity
 - `--cost-only` — print estimated cost + exit
+
+## PICKING A MODEL
+
+The choice is decided by the output format, not by quality — only `whisper-1`
+emits subtitles.
+
+| Need | Model | Cost/min |
+|---|---|---|
+| SRT / VTT / word-level timestamps | `whisper-1` | $0.006 |
+| Plain transcript, highest accuracy | `gpt-4o-transcribe` | $0.006 |
+| Plain transcript, bulk / cheapest | `gpt-4o-mini-transcribe` | $0.003 |
+
+The GPT-4o transcribe models return json/text only. Asking one of them for `srt`
+fails fast with a message rather than handing `subtitle-burner` something it
+cannot burn. So anything feeding the subtitle pipeline stays on `whisper-1`; the
+GPT-4o tiers are for transcripts a human or an LLM will read.
 
 ## REFERENCES (load on demand)
 

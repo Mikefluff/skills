@@ -30,6 +30,6 @@ photoreal: true
 
 **Avoid for**: enterprise B2B, healthcare, anything earnest or minimal.
 
-**Suggested models**: Flux 2 Pro (CMYK handling), Nano Banana Pro, Midjourney v7, gpt-image-2 (text-in-image).
+**Suggested models**: Flux 2 Pro (CMYK handling), Nano Banana Pro, Midjourney V8.1, gpt-image-2 (text-in-image).
 
 **Caption tone**: Deadpan, slightly arch, full sentences with periods. One absurd specific detail per slide.
