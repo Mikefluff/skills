@@ -20,6 +20,8 @@ import time
 from typing import Any
 from urllib.parse import urlparse
 
+from .proposal_css import _BASE_CSS, _THEMES, _theme_vars
+
 try:
     import requests
 except ImportError:  # pragma: no cover
@@ -117,125 +119,16 @@ def _resolve_images(plan: dict[str, Any], brand: dict[str, Any], embed: bool) ->
             it["thumb"] = _data_uri(it["thumb"])
 
 
-# --------------------------------------------------------------------------- CSS
-
-_BASE_CSS = """
-*{box-sizing:border-box}
-html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{margin:0;background:var(--page);color:var(--text);
-  font-family:var(--font-body);line-height:1.5;font-size:15px}
-a{color:inherit;text-decoration:none}
-.page{max-width:840px;margin:0 auto;background:var(--bg);
-  padding:56px 60px 40px}
-.masthead{display:flex;align-items:center;justify-content:space-between;
-  gap:24px;padding-bottom:24px;border-bottom:1px solid var(--hair)}
-.brand{display:flex;align-items:center;gap:14px;min-width:0}
-.brand img{height:42px;width:auto;max-width:220px;object-fit:contain}
-.brand .brand-name{font-family:var(--font-heading);font-weight:700;
-  font-size:19px;letter-spacing:-.01em}
-.doc-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--accent);font-weight:600;white-space:nowrap}
-.hero{padding:40px 0 28px}
-.hero .event-title{font-family:var(--font-heading);font-weight:700;
-  font-size:40px;line-height:1.05;letter-spacing:-.02em;margin:0}
-.hero .prepared{margin:10px 0 0;color:var(--muted);font-size:16px}
-.hero .tagline{margin:18px 0 0;color:var(--muted);max-width:60ch}
-.meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:2px 28px;margin:28px 0 0;padding:0}
-.meta .row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--hair)}
-.meta dt{color:var(--muted);font-size:12px;letter-spacing:.06em;
-  text-transform:uppercase;min-width:96px;margin:0;padding-top:2px}
-.meta dd{margin:0;font-weight:500}
-.items{margin:36px 0 0;display:flex;flex-direction:column;gap:12px}
-.item{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
-  padding:14px;border:1px solid var(--hair);border-radius:14px;
-  background:var(--card);page-break-inside:avoid;break-inside:avoid}
-.item.no-thumb{grid-template-columns:1fr auto}
-.item .thumb{width:84px;height:84px;border-radius:10px;overflow:hidden;
-  background:var(--hair);flex:none}
-.item .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.item .body{min-width:0}
-.item .item-name{font-family:var(--font-heading);font-weight:600;font-size:17px;
-  margin:0;letter-spacing:-.01em}
-.item .item-name a{border-bottom:1.5px solid var(--accent);padding-bottom:1px}
-.item .item-desc{margin:5px 0 0;color:var(--muted);font-size:13.5px;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.item .qty{display:inline-block;margin-top:7px;font-size:12px;font-weight:600;
-  color:var(--accent);background:var(--accent-soft);border-radius:999px;
-  padding:2px 10px}
-.item .item-price{font-family:var(--font-heading);font-weight:700;font-size:18px;
-  white-space:nowrap;text-align:right}
-.totals{margin:30px 0 0;padding-top:22px;border-top:2px solid var(--text)}
-.totals .grand{display:flex;align-items:baseline;justify-content:space-between}
-.totals .grand .label{font-family:var(--font-heading);font-weight:700;
-  font-size:20px;letter-spacing:.02em;text-transform:uppercase}
-.totals .grand .amount{font-family:var(--font-heading);font-weight:800;
-  font-size:30px;color:var(--accent)}
-.totals .note{margin:10px 0 0;font-size:12.5px;color:var(--muted)}
-.colophon{margin:42px 0 0;padding-top:20px;border-top:1px solid var(--hair);
-  display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;
-  font-size:12.5px;color:var(--muted)}
-.colophon a{color:var(--accent);font-weight:600}
-.colophon .sep{opacity:.4}
-@media (max-width:680px){.page{padding:32px 22px}.meta{grid-template-columns:1fr}
-  .hero .event-title{font-size:30px}}
-@media print{.page{padding:24px 0;max-width:none}body{font-size:12.5px}
-  .item{border-color:var(--hair)}}
-"""
-
-_THEMES = {
-    "editorial": """
-:root{--page:#f2f1ec;--card:#ffffff;--hair:#e6e3da;--muted:#6c6a63}
-.page{box-shadow:0 1px 40px rgba(0,0,0,.06)}
-""",
-    "invoice": """
-:root{--page:#ffffff;--card:#ffffff;--hair:#e7e9ee;--muted:#697086}
-.items{gap:0}
-.item{border-radius:0;border-left:none;border-right:none;border-top:none}
-.item:first-child{border-top:1px solid var(--hair)}
-.item .thumb{width:60px;height:60px}
-.hero .event-title{font-size:32px}
-""",
-    "dark": """
-:root{--page:#0c0d10;--card:#16181d;--hair:#262a33;--muted:#9aa1ad}
-.item .item-name a{border-bottom-color:var(--accent)}
-.totals .grand .amount{text-shadow:0 0 28px var(--accent-soft)}
-""",
-}
-
-
-def _theme_vars(brand: dict[str, Any], theme: str) -> str:
-    accent = brand.get("accent") or "#1f6feb"
-    accent2 = brand.get("accent2") or accent
-    bg = "#16181d" if theme == "dark" else (brand.get("bg") if not brand.get("is_dark") else "#ffffff") or "#ffffff"
-    text = "#f4f5f7" if theme == "dark" else "#16181d"
-    fh = brand.get("font_heading") or "Inter"
-    fb = brand.get("font_body") or fh or "Inter"
-    # soft accent for chips/glows
-    soft = _hex_alpha(accent, 0.14)
-    return (
-        f"--accent:{accent};--accent2:{accent2};--accent-soft:{soft};"
-        f"--bg:{bg};--text:{text};"
-        f"--font-heading:'{fh}',system-ui,sans-serif;"
-        f"--font-body:'{fb}',system-ui,sans-serif;"
-    )
-
-
-def _hex_alpha(hexv: str, a: float) -> str:
-    h = hexv.lstrip("#")
-    if len(h) == 3:
-        h = "".join(c * 2 for c in h)
-    try:
-        r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
-    except Exception:
-        return f"rgba(31,111,235,{a})"
-    return f"rgba({r},{g},{b},{a})"
-
-
 # --------------------------------------------------------------------------- render
 
 def pick_theme(brand: dict[str, Any]) -> str:
     return "dark" if brand.get("is_dark") else "editorial"
+
+
+def _resolve_theme(brand: dict[str, Any], template: str) -> str:
+    """An unknown --template falls back rather than rendering an unstyled page."""
+    theme = pick_theme(brand) if template == "auto" else template
+    return theme if theme in _THEMES else "editorial"
 
 
 def _render_meta(client: dict[str, str], L: dict[str, Any]) -> str:
@@ -279,6 +172,118 @@ def _render_item(it: dict[str, Any], currency: str, L: dict[str, Any]) -> str:
     )
 
 
+def _render_brand(brand: dict[str, Any], L: dict[str, Any]) -> str:
+    """Masthead identity.
+
+    Logo AND name together: many logos are monochrome SVGs that vanish on a
+    light canvas, so the name is the theme-independent identity anchor.
+    """
+    name = brand.get("name") or ""
+    logo = brand.get("logo_url")
+    parts = []
+    if logo:
+        parts.append(f'<img src="{_esc(logo)}" alt="{_esc(name)}">')
+    if name:
+        parts.append(f'<span class="brand-name">{_esc(name)}</span>')
+    if not parts:
+        parts.append(f'<span class="brand-name">{_esc(L["proposal"])}</span>')
+    return "".join(parts)
+
+
+def _hero_title(client: dict[str, str], brand: dict[str, Any], L: dict[str, Any]) -> str:
+    """What the document is about, in descending order of specificity."""
+    return (
+        (client.get("event") or "").strip()
+        or (client.get("name") or "").strip()
+        or (brand.get("name") or "")
+        or L["proposal"]
+    )
+
+
+def _hero_lines(title: str, client: dict[str, str], brand: dict[str, Any],
+                theme: str, L: dict[str, Any]) -> tuple[str, str]:
+    """(prepared-for line, tagline line). Either may be empty."""
+    name = (client.get("name") or "").strip()
+    event = (client.get("event") or "").strip()
+    prepared = ""
+    # Skip it when the title already IS the client's name — no point saying
+    # "Acme Events / prepared for Acme Events".
+    if name and (event or title != name):
+        prepared = f'<p class="prepared">{_esc(L["prepared_for"])} {_esc(name)}</p>'
+
+    tagline = (brand.get("tagline") or "").strip()
+    # An invoice is a record, not a brochure; a tagline reads as noise on one.
+    tagline_html = (
+        f'<p class="tagline">{_esc(tagline)}</p>'
+        if tagline and theme != "invoice" else ""
+    )
+    return prepared, tagline_html
+
+
+def _totals_note(plan: dict[str, Any], currency: str, L: dict[str, Any]) -> str:
+    """Surface a stated total that disagrees with the computed one."""
+    if not (plan.get("total_mismatch") and plan.get("total_stated") is not None):
+        return ""
+    stated = fmt_money(plan["total_stated"], plan.get("total_currency") or currency)
+    return f'<p class="note">{_esc(L["stated_note"].format(stated=stated))}</p>'
+
+
+def _render_colophon(plan: dict[str, Any], brand: dict[str, Any], L: dict[str, Any]) -> str:
+    footer = plan.get("footer", {})
+    links = []
+    if footer.get("catalog_url"):
+        links.append(
+            f'<a href="{_esc(footer["catalog_url"])}" target="_blank" rel="noopener">'
+            f'{_esc(L["catalogue"])}</a>'
+        )
+    site = footer.get("site_url") or brand.get("url")
+    if site:
+        host = urlparse(site).netloc or site
+        links.append(f'<a href="{_esc(site)}" target="_blank" rel="noopener">{_esc(host)}</a>')
+    links.append(f'<span>{_esc(L["generated"])} {time.strftime("%d.%m.%Y")}</span>')
+    return '<span class="sep">·</span>'.join(links)
+
+
+# The page itself. Every hole is filled by one of the helpers above, so the
+# document's shape can be read without stepping through the code that builds it.
+_PAGE = """\
+<!doctype html>
+<html lang="{lang}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{title} — {proposal}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+{gfonts_link}
+<style>{css}</style>
+</head>
+<body class="theme-{theme}">
+<main class="page">
+  <header class="masthead">
+    <div class="brand">{brand_block}</div>
+    <div class="doc-kicker">{proposal}</div>
+  </header>
+  <section class="hero">
+    <h1 class="event-title">{title}</h1>
+    {prepared}
+    {tagline_html}
+    {meta_html}
+  </section>
+  <section class="items">
+    {items_html}
+  </section>
+  <section class="totals">
+    <div class="grand"><span class="label">{subtotal_label}</span><span class="amount">{grand_amount}</span></div>
+    {note}
+  </section>
+  <footer class="colophon">{colophon}</footer>
+</main>
+</body>
+</html>
+"""
+
+
 def render_html(
     plan: dict[str, Any],
     brand: dict[str, Any],
@@ -290,9 +295,7 @@ def render_html(
     if lang == "auto":
         lang = detect_lang(plan)
     L = _LABELS.get(lang, _LABELS["en"])
-    theme = pick_theme(brand) if template == "auto" else template
-    if theme not in _THEMES:
-        theme = "editorial"
+    theme = _resolve_theme(brand, template)
 
     _resolve_images(plan, brand, embed_images)
 
@@ -300,92 +303,36 @@ def render_html(
     items = plan.get("items", [])
     currency = plan.get("currency", "THB")
 
-    # masthead
-    # Show logo AND name together: many logos are monochrome SVGs that vanish on
-    # a light canvas, so the name is the theme-independent identity anchor.
-    logo = brand.get("logo_url")
-    brand_name = brand.get("name") or ""
-    parts = []
-    if logo:
-        parts.append(f'<img src="{_esc(logo)}" alt="{_esc(brand_name)}">')
-    if brand_name:
-        parts.append(f'<span class="brand-name">{_esc(brand_name)}</span>')
-    if not parts:
-        parts.append(f'<span class="brand-name">{_esc(L["proposal"])}</span>')
-    brand_block = "".join(parts)
-
-    # hero
-    event = (client.get("event") or "").strip()
-    name = (client.get("name") or "").strip()
-    title = event or name or brand_name or L["proposal"]
-    prepared = ""
-    if name and (event or title != name):
-        prepared = f'<p class="prepared">{_esc(L["prepared_for"])} {_esc(name)}</p>'
-    tagline = (brand.get("tagline") or "").strip()
-    tagline_html = f'<p class="tagline">{_esc(tagline)}</p>' if tagline and theme != "invoice" else ""
-
+    brand_block = _render_brand(brand, L)
+    title = _hero_title(client, brand, L)
+    prepared, tagline_html = _hero_lines(title, client, brand, theme, L)
     meta_html = _render_meta(client, L)
     items_html = "".join(_render_item(it, currency, L) for it in items)
 
-    # totals
-    subtotal = plan.get("subtotal_computed") or 0
-    grand_amount = fmt_money(subtotal, currency)
-    note = ""
-    if plan.get("total_mismatch") and plan.get("total_stated") is not None:
-        stated = fmt_money(plan["total_stated"], plan.get("total_currency") or currency)
-        note = f'<p class="note">{_esc(L["stated_note"].format(stated=stated))}</p>'
-
-    # colophon
-    footer = plan.get("footer", {})
-    links = []
-    if footer.get("catalog_url"):
-        links.append(f'<a href="{_esc(footer["catalog_url"])}" target="_blank" rel="noopener">{_esc(L["catalogue"])}</a>')
-    site = footer.get("site_url") or brand.get("url")
-    if site:
-        host = urlparse(site).netloc or site
-        links.append(f'<a href="{_esc(site)}" target="_blank" rel="noopener">{_esc(host)}</a>')
-    links.append(f'<span>{_esc(L["generated"])} {time.strftime("%d.%m.%Y")}</span>')
-    colophon = ('<span class="sep">·</span>'.join(links))
+    grand_amount = fmt_money(plan.get("subtotal_computed") or 0, currency)
+    note = _totals_note(plan, currency, L)
+    colophon = _render_colophon(plan, brand, L)
 
     gfonts = brand.get("google_fonts_url")
     gfonts_link = f'<link rel="stylesheet" href="{_esc(gfonts)}">' if gfonts else ""
-    css = ":root{" + _theme_vars(brand, theme) + "}" + _BASE_CSS + _THEMES.get(theme, "")
 
-    return f"""<!doctype html>
-<html lang="{_esc(lang)}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{_esc(title)} — {_esc(L["proposal"])}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-{gfonts_link}
-<style>{css}</style>
-</head>
-<body class="theme-{_esc(theme)}">
-<main class="page">
-  <header class="masthead">
-    <div class="brand">{brand_block}</div>
-    <div class="doc-kicker">{_esc(L["proposal"])}</div>
-  </header>
-  <section class="hero">
-    <h1 class="event-title">{_esc(title)}</h1>
-    {prepared}
-    {tagline_html}
-    {meta_html}
-  </section>
-  <section class="items">
-    {items_html}
-  </section>
-  <section class="totals">
-    <div class="grand"><span class="label">{_esc(L["subtotal"])}</span><span class="amount">{_esc(grand_amount)}</span></div>
-    {note}
-  </section>
-  <footer class="colophon">{colophon}</footer>
-</main>
-</body>
-</html>
-"""
+    return _PAGE.format(
+        lang=_esc(lang),
+        title=_esc(title),
+        proposal=_esc(L["proposal"]),
+        gfonts_link=gfonts_link,
+        css=":root{" + _theme_vars(brand, theme) + "}" + _BASE_CSS + _THEMES.get(theme, ""),
+        theme=_esc(theme),
+        brand_block=brand_block,
+        prepared=prepared,
+        tagline_html=tagline_html,
+        meta_html=meta_html,
+        items_html=items_html,
+        subtotal_label=_esc(L["subtotal"]),
+        grand_amount=_esc(grand_amount),
+        note=note,
+        colophon=colophon,
+    )
 
 
 def to_pdf(html_str: str, out_path) -> bool:
