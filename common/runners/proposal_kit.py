@@ -292,8 +292,7 @@ def generate_photo(item_name: str, brand: dict[str, Any], out_path: Path,
         from .providers.base import JobHandle
         res = provider.generate(prompt, size=size, quality="medium")
         if isinstance(res, JobHandle):
-            from . import poll
-            res = poll.poll_until(provider, res, timeout=180)
+            res = provider.poll(res, timeout=180)
         content = getattr(res, "content", None)
         if not content:
             return False
