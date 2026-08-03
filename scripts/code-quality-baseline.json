@@ -8,27 +8,18 @@
     "parameters": 5
   },
   "counts": {
-    "function-size": 6,
-    "complexity": 6,
-    "module-size": 2,
-    "parameters": 2
+    "function-size": 4,
+    "complexity": 3,
+    "module-size": 1
   },
   "frozen": [
     "complexity|common/runners/cli/proposal.py|main",
-    "complexity|common/runners/proposal_kit.py|compress_html_images",
-    "complexity|common/runners/proposal_kit.py|print_pdf",
-    "complexity|common/runners/proposal_kit.py|write_brief",
     "complexity|writer/scripts/lint.py|_structural_hits",
     "complexity|writer/scripts/lint.py|scan",
     "function-size|common/runners/cli/proposal.py|main",
-    "function-size|common/runners/proposal_kit.py|print_pdf",
-    "function-size|common/runners/proposal_kit.py|write_brief",
     "function-size|writer/scripts/lint.py|_structural_hits",
     "function-size|writer/scripts/lint.py|main",
     "function-size|writer/scripts/lint.py|scan",
-    "module-size|common/runners/proposal_kit.py|-",
-    "module-size|writer/scripts/lint.py|-",
-    "parameters|common/runners/proposal_kit.py|fill_missing_photos",
-    "parameters|common/runners/proposal_kit.py|write_brief"
+    "module-size|writer/scripts/lint.py|-"
   ]
 }

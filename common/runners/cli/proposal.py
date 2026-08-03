@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 from .. import proposal_brand as brand_mod
+from .. import proposal_brief as brief_mod
 from .. import proposal_kit as kit_mod
 from .. import proposal_parse as parse_mod
 from .. import proposal_render as render_mod
@@ -221,8 +222,14 @@ def main() -> int:
         if brand.get("logo_url"):
             logo_local = kit_mod.download_asset(brand["logo_url"], out_dir, stem="logo")
         brief = out_dir / "BRIEF.md"
-        kit_mod.write_brief(brief, plan, brand, screenshot=(shot if shot_ok else None),
-                            logo_local=logo_local, lang=lang)
+        brief_mod.write_brief(
+            brief, plan, brand,
+            brief_mod.BriefContext(
+                screenshot=shot if shot_ok else None,
+                logo_local=logo_local,
+                lang=lang,
+            ),
+        )
 
         files = ["BRIEF.md", "brand.json", "offer.json", "manifest.json"]
         if shot_ok:
