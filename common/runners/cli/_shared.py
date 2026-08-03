@@ -182,7 +182,9 @@ def dispatch(modality: Modality, models_hint: list[str] | None = None) -> int:
     except KeyMissingError as exc:
         # fall back to prompt-only
         saved = output_mod.save_prompt_only(
-            prompt, modality, slug=args.model, output_dir=args.output, reason=str(exc)
+            prompt, modality,
+            output_mod.SaveOptions(slug=args.model, output_dir=args.output),
+            reason=str(exc),
         )
         print(saved.display())
         return 4

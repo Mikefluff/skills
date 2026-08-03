@@ -163,9 +163,11 @@ def main() -> int:
             result.content,
             "image",
             "png",
-            slug=f"{stem}-{args.style}",
-            output_dir=Path("./generated/stylized"),
-            mime="image/png",
+            output_mod.SaveOptions(
+                slug=f"{stem}-{args.style}",
+                output_dir=Path("./generated/stylized"),
+                mime="image/png",
+            ),
         )
         print(f"  ✓ Stylized → {saved.local_path}", file=sys.stderr)
         print(saved.display())
