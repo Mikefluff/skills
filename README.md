@@ -4,9 +4,92 @@
 [![version](https://img.shields.io/github/v/release/Mikefluff/skills?label=version)](https://github.com/Mikefluff/skills/releases/latest)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-AI content toolkit for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) — prose editing without LLM-shaped output, AI media generation (image / video / music) with optional in-line execution, and end-to-end content orchestrators (research → carousel / reel). Russian-first, English-capable.
+**42 skills for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) that make content — and refuse to let it read like a machine made it.**
 
-**Forty-two skills** across five layers: one base + twenty-one wrappers + three linters + fourteen orchestrators + three meta. Plain markdown, MIT-licensed, no required external deps (ffmpeg is optional for reel stitching + subtitle burning + GIF conversion + audio mixing).
+Prose editing that strips the tells. Prompt engineering for 40+ image, video and
+music models, with optional one-command execution against the real APIs. And
+orchestrators that carry a job the whole way: research question → carousel →
+published post; raw price list → a proposal styled from the client's own website.
+
+Russian-first, English throughout. Plain markdown, MIT, no required dependencies.
+
+## What it actually does
+
+The same cold email, before and after `cold-email` → `writer`:
+
+<table>
+<tr><th align="left" width="50%">Before — 175 words</th><th align="left" width="50%">After — 98 words</th></tr>
+<tr valign="top"><td>
+
+> **Subject: Quick question**
+>
+> Hi Patricia,
+>
+> I hope this email finds you well! My name is David Kim and I'm the co-founder
+> and CEO of Nimbus, a B2B SaaS startup that's been disrupting the
+> developer-tools space for the past 22 months.
+>
+> I've been a longtime admirer of your work at Magnet Ventures, and I was
+> incredibly impressed by your recent investment in DevForge. Given the
+> synergies I see between our work and your portfolio, I wanted to reach out
+> personally to introduce myself.
+>
+> We've been growing rapidly — we now have a number of enterprise customers and
+> significant ARR. […]
+
+</td><td>
+
+> **Subject: $2.1M ARR in dev tools — fit for Magnet?**
+>
+> Hi Patricia,
+>
+> Saw the DevForge round — congrats on leading. We're in an adjacent wedge:
+> pre-merge code-review automation for engineering teams of 20-200. $2.1M ARR
+> over 22 months, 12 enterprise customers including Stripe, Datadog, and
+> Cloudflare.
+>
+> Raising A in Q3. Worth 20 min next week to see if Magnet would be a fit?
+>
+> Happy to send the deck cold either way.
+>
+> Best,
+> David Kim
+> Co-founder, Nimbus · nimbus.dev
+
+</td></tr>
+</table>
+
+Every cut is attributable to a rule, not to taste — "I hope this email finds you
+well" to `banned-patterns.md §Ceremony openers`, the 24-word bio to
+`structure.md §Block 1`. The [full pair with every delta](skills/cold-email/examples/before-after.md)
+is in the repo, along with three more.
+
+There is also an offline linter, so the same rules can gate a commit with no API
+call and no model in the loop:
+
+```console
+$ python3 ~/.claude/skills/writer/scripts/lint.py draft.md
+writer-lint: borderline (3 hits)
+gate passed: no hard bans.
+
+Hits:
+  L1:42  [caution] GPT_FILLER   "it's important to note"
+  L2:30  [caution] GPT_FILLER   "Let's dive into"
+  L6:1   [caution] AI_BRIDGE    'Moreover'
+```
+
+Exit codes are hook-shaped, so `style-check` can run it on staged files and stop
+the commit — [pre-commit walkthrough](docs/walkthroughs/pre-commit-hook.md).
+
+## How it fits together
+
+One skill does the prose work — [`writer`](skills/writer/) — and eleven others
+route through it rather than restating its rules. `viral-text` knows about hooks
+and platforms; it does not know about em-dashes, because `writer` does. The same
+shape holds for media: nine skills build on [`image-prompt`](skills/image-prompt/).
+
+That is the whole architecture. 42 skills: 1 base, 21 wrappers, 3 linters,
+14 orchestrators, 3 meta.
 
 ---
 
@@ -33,7 +116,7 @@ The full doc hub: [`docs/`](docs/README.md). Most-used pages:
 |---|---|
 | [QUICKSTART](docs/QUICKSTART.md) | 5-minute first run — install → first prose edit → first AI image → first end-to-end |
 | [USER-GUIDE](docs/USER-GUIDE.md) | The scenarios index — pick what you want to do |
-| [walkthroughs/](docs/walkthroughs/README.md) | 19 step-by-step recipes, categorized |
+| [walkthroughs/](docs/walkthroughs/README.md) | 20 step-by-step recipes, categorized |
 | [CONTRIBUTING](CONTRIBUTING.md) · [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) | Adding a skill, reporting a bug, house rules |
 | [SKILL-INDEX](docs/SKILL-INDEX.md) | Every skill by layer / domain / language |
 | [COMPOSING](docs/COMPOSING.md) | Named workflows for chaining skills + data flow + anti-patterns |
@@ -264,7 +347,12 @@ skills/
 ├── CODE_OF_CONDUCT.md       # short; scales up if the project does
 ├── SECURITY.md              # how to report a vulnerability
 │
-├── <skill-name>/            # 42 skills, one folder each
+├── skills/                  # the 42 skills, one folder each
+│   └── <skill-name>/
+│       ├── SKILL.md         # frontmatter + the rules; this IS the skill
+│       ├── references/      # deep material loaded on demand
+│       ├── examples/        # before/after calibration pairs
+│       └── scripts/         # only where a skill ships code (writer's linter)
 │
 ├── common/
 │   ├── references/          # shared anti-pattern catalogues (hype words, preambles, …)
@@ -292,7 +380,7 @@ skills/
 │   ├── LAUNCH-POST.md       # frozen v1.9 launch copy
 │   └── walkthroughs/
 │       ├── README.md        # categorized index
-│       └── *.md             # 19 detailed flows
+│       └── *.md             # 20 detailed flows
 │
 ├── scripts/                 # validate + smoke + doc generators
 ├── hooks/                   # ambient update banner (opt-in)
@@ -308,10 +396,12 @@ skills/
 ```bash
 make help                       # list all targets
 make install                    # install from this checkout into ~/.claude/skills/
-make smoke                      # 12 gates: validate, linter, snapshots, samples, links, unit tests, pricing, markdownlint, coverage, tweets, launch copy, imports
+make smoke                      # 14 gates: validate, linter, snapshots, samples, links,
+                                #           unit tests, pricing, markdownlint, coverage, tweets,
+                                #           launch copy, imports, code quality, CLI surface
 make test-unit                  # runner unit tests alone
 make check-docs                 # docs-consistency gate
-make gen-readme                 # regenerate the skills table
+make gen                        # regenerate every derived file (README table, indexes, coverage)
 make new-skill NAME=foo-bar DESC="..."
 ```
 
