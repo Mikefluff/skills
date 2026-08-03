@@ -8,15 +8,13 @@
     "parameters": 5
   },
   "counts": {
-    "function-size": 4,
-    "complexity": 3,
-    "module-size": 1
+    "module-size": 1,
+    "function-size": 3,
+    "complexity": 2
   },
   "frozen": [
-    "complexity|common/runners/cli/proposal.py|main",
     "complexity|writer/scripts/lint.py|_structural_hits",
     "complexity|writer/scripts/lint.py|scan",
-    "function-size|common/runners/cli/proposal.py|main",
     "function-size|writer/scripts/lint.py|_structural_hits",
     "function-size|writer/scripts/lint.py|main",
     "function-size|writer/scripts/lint.py|scan",
