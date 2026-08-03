@@ -120,28 +120,35 @@ class _FluxProvider(Provider):
             extra={"endpoint": self._endpoint},
         )
 
+    def _status(self, polling_url: str, headers: dict[str, str]) -> dict[str, Any] | None:
+        """One poll tick: None means still running, a dict means ready.
+
+        Moderation refusals arrive as a status, not an error code — treat them
+        as a terminal failure rather than polling until the timeout.
+        """
+        try:
+            r = requests.get(polling_url, headers=headers, timeout=30)
+        except requests.RequestException as exc:
+            raise ProviderError(self.name, None, f"network error: {exc}") from exc
+        if not r.ok:
+            raise _wrap_status(self.name, r)
+        payload = r.json()
+        status = str(payload.get("status", "")).lower()
+        if status == "ready":
+            return payload
+        if status in {"error", "failed", "content_moderated", "request_moderated"}:
+            raise ProviderError(self.name, None, f"BFL status={status}")
+        return None
+
     def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
         polling_url = handle.poll_url or _POLLING_URLS.get(handle.job_id)
         if polling_url is None:
             polling_url = f"{_BFL_BASE}/v1/get_result?id={handle.job_id}"
         headers = {"x-key": os.environ["BFL_API_KEY"]}
 
-        def _check() -> dict[str, Any] | None:
-            try:
-                r = requests.get(polling_url, headers=headers, timeout=30)
-            except requests.RequestException as exc:
-                raise ProviderError(self.name, None, f"network error: {exc}") from exc
-            if not r.ok:
-                raise _wrap_status(self.name, r)
-            payload = r.json()
-            status = str(payload.get("status", "")).lower()
-            if status == "ready":
-                return payload
-            if status in {"error", "failed", "content_moderated", "request_moderated"}:
-                raise ProviderError(self.name, None, f"BFL status={status}")
-            return None
-
-        payload = poll_until(_check, provider=self.name, timeout=timeout)
+        payload = poll_until(
+            lambda: self._status(polling_url, headers), provider=self.name, timeout=timeout
+        )
         result = payload.get("result") or {}
         sample = result.get("sample")
         if not sample:

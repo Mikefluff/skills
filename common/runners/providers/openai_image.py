@@ -9,10 +9,9 @@ import os
 from decimal import Decimal
 from typing import Any, Literal
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
+from . import _http
 from .base import GenerationResult, Provider
 
 
@@ -41,25 +40,18 @@ class GptImage2Provider(Provider):
             "n": variants,
             "output_format": output_format,
         }
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-
-        try:
-            resp = requests.post(
-                "https://api.openai.com/v1/images/generations",
-                json=body,
-                headers=headers,
-                timeout=300,
-            )
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        # Synchronous endpoint — it renders before answering, so it needs far
+        # longer than a job submission would.
+        resp = _http.post(
+            self.name,
+            "https://api.openai.com/v1/images/generations",
+            json=body,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            timeout=300,
+        )
 
         payload = resp.json()
         data = payload.get("data") or []

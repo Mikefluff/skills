@@ -13,11 +13,10 @@ import time
 from decimal import Decimal
 from typing import Any
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
 from ..poll import poll_until
+from . import _http
 from .base import GenerationResult, JobHandle, Provider
 
 
@@ -75,23 +74,13 @@ class Kling3Provider(Provider):
             "Content-Type": "application/json",
         }
 
-    def generate(self, prompt: str, **kwargs: Any) -> JobHandle:
-        self.ensure_available()
-
-        image_url = kwargs.get("image_url")
-        if not image_url:
-            raise ProviderError(self.name, None, "image_url is required for Kling image-to-video")
-
-        duration = str(int(kwargs.get("duration", self.default_duration)))
-        mode = kwargs.get("mode", "std")
-        model_name = kwargs.get("model_name", "kling-v3")
-
+    def _body(self, prompt: str, image_url: str, kwargs: dict[str, Any]) -> dict[str, Any]:
         body: dict[str, Any] = {
-            "model_name": model_name,
+            "model_name": kwargs.get("model_name", "kling-v3"),
             "image": _image_payload(image_url),
             "prompt": prompt,
-            "duration": duration,
-            "mode": mode,
+            "duration": str(int(kwargs.get("duration", self.default_duration))),
+            "mode": kwargs.get("mode", "std"),
         }
         if "negative_prompt" in kwargs:
             body["negative_prompt"] = kwargs["negative_prompt"]
@@ -106,19 +95,23 @@ class Kling3Provider(Provider):
             tail_ref = image_url
         if tail_ref:
             body["image_tail"] = _image_payload(tail_ref)
+        return body
 
+    def generate(self, prompt: str, **kwargs: Any) -> JobHandle:
+        self.ensure_available()
+
+        image_url = kwargs.get("image_url")
+        if not image_url:
+            raise ProviderError(self.name, None, "image_url is required for Kling image-to-video")
+
+        body = self._body(prompt, image_url, kwargs)
         host = self._host()
-        url = f"{host}/v1/videos/image2video"
-
-        try:
-            resp = requests.post(url, json=body, headers=self._headers(), timeout=60)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        resp = _http.post(
+            self.name,
+            f"{host}/v1/videos/image2video",
+            json=body,
+            headers=self._headers(),
+        )
 
         payload = resp.json()
         data = payload.get("data") or {}
@@ -131,31 +124,28 @@ class Kling3Provider(Provider):
             job_id=str(task_id),
             started_at=time.time(),
             poll_url=f"{host}/v1/videos/image2video/{task_id}",
-            extra={"duration": int(duration), "mode": mode, "model_name": model_name},
+            extra={
+                "duration": int(body["duration"]),
+                "mode": body["mode"],
+                "model_name": body["model_name"],
+            },
         )
 
-    def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
-        def _check() -> dict[str, Any] | None:
-            # JWT short-lived; refresh headers per poll.
-            try:
-                r = requests.get(handle.poll_url, headers=self._headers(), timeout=30)
-            except requests.RequestException as exc:
-                raise ProviderError(self.name, None, f"network error during poll: {exc}") from exc
-            if r.status_code == 429:
-                raise QuotaError(self.name, 429, r.text[:500])
-            if r.status_code >= 400:
-                raise ProviderError(self.name, r.status_code, r.text[:500])
-            body = r.json()
-            data = body.get("data") or {}
-            status = (data.get("task_status") or body.get("status") or "").lower()
-            if status in {"failed", "error"}:
-                msg = data.get("task_status_msg") or body.get("message") or "failed"
-                raise ProviderError(self.name, None, f"task {handle.job_id} failed: {msg}")
-            if status in {"succeed", "succeeded", "completed"}:
-                return data
-            return None
+    def _status(self, handle: JobHandle) -> dict[str, Any] | None:
+        """One poll tick: None means still running, a dict means done."""
+        # JWT is short-lived, so headers are rebuilt on every tick.
+        payload = _http.poll_get(self.name, handle.poll_url, headers=self._headers()).json()
+        data = payload.get("data") or {}
+        status = (data.get("task_status") or payload.get("status") or "").lower()
+        if status in {"failed", "error"}:
+            msg = data.get("task_status_msg") or payload.get("message") or "failed"
+            raise ProviderError(self.name, None, f"task {handle.job_id} failed: {msg}")
+        if status in {"succeed", "succeeded", "completed"}:
+            return data
+        return None
 
-        final = poll_until(_check, provider=self.name, timeout=timeout)
+    def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
+        final = poll_until(lambda: self._status(handle), provider=self.name, timeout=timeout)
 
         videos = (final.get("task_result") or {}).get("videos") or []
         if not videos:
@@ -164,15 +154,8 @@ class Kling3Provider(Provider):
         if not video_url:
             raise ProviderError(self.name, None, "video entry missing url")
 
-        try:
-            asset = requests.get(video_url, timeout=180)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"download failed: {exc}") from exc
-        if asset.status_code >= 400:
-            raise ProviderError(self.name, asset.status_code, "asset download failed")
-
         return GenerationResult(
-            content=asset.content,
+            content=_http.download(self.name, video_url),
             mime="video/mp4",
             extension="mp4",
             extra=handle.extra,

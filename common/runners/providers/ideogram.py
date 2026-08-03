@@ -8,10 +8,9 @@ import os
 from decimal import Decimal
 from typing import Any
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
+from . import _http
 from .base import GenerationResult, Provider
 
 
@@ -36,25 +35,13 @@ class _IdeogramBase(Provider):
             "num_images": num_images,
             "aspect_ratio": aspect_ratio,
         }
-        headers = {
-            "Api-Key": api_key,
-            "Content-Type": "application/json",
-        }
-
-        try:
-            resp = requests.post(
-                "https://api.ideogram.ai/v1/ideogram-v3/generate",
-                json=body,
-                headers=headers,
-                timeout=120,
-            )
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        resp = _http.post(
+            self.name,
+            "https://api.ideogram.ai/v1/ideogram-v3/generate",
+            json=body,
+            headers={"Api-Key": api_key, "Content-Type": "application/json"},
+            timeout=120,
+        )
 
         payload = resp.json()
         data = payload.get("data") or []
@@ -65,15 +52,8 @@ class _IdeogramBase(Provider):
         if not image_url:
             raise ProviderError(self.name, resp.status_code, "missing url in response")
 
-        try:
-            download = requests.get(image_url, timeout=120)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"download failed: {exc}") from exc
-        if download.status_code >= 400:
-            raise ProviderError(self.name, download.status_code, "download failed")
-
         return GenerationResult(
-            content=download.content,
+            content=_http.download(self.name, image_url, timeout=120),
             mime="image/png",
             extension="png",
             extra={

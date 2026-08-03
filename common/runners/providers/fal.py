@@ -9,11 +9,10 @@ import time
 from decimal import Decimal
 from typing import Any
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
 from ..poll import poll_until
+from . import _http
 from .base import GenerationResult, JobHandle, Provider
 
 _QUEUE_BASE = "https://queue.fal.run"
@@ -51,20 +50,12 @@ class _FalBase(Provider):
                 continue
             body[k] = v
 
-        try:
-            resp = requests.post(
-                f"{_QUEUE_BASE}/{model_id}",
-                json=body,
-                headers=self._headers(),
-                timeout=60,
-            )
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        resp = _http.post(
+            self.name,
+            f"{_QUEUE_BASE}/{model_id}",
+            json=body,
+            headers=self._headers(),
+        )
 
         payload = resp.json()
         request_id = payload.get("request_id") or payload.get("requestId")
@@ -82,51 +73,39 @@ class _FalBase(Provider):
             extra={"model_id": model_id, "response_url": response_url},
         )
 
+    def _status(self, handle: JobHandle, status_url: str, headers: dict[str, str]) -> dict[str, Any] | None:
+        """One poll tick: None means still queued or running, a dict means done."""
+        data = _http.poll_get(self.name, status_url, headers=headers).json()
+        status = (data.get("status") or "").upper()
+        if status in {"FAILED", "ERROR", "CANCELED"}:
+            raise ProviderError(self.name, None, f"job {handle.job_id} {status}")
+        if status == "COMPLETED":
+            return data
+        return None
+
     def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
         headers = self._headers()
         status_url = handle.poll_url
         response_url = handle.extra.get("response_url")
 
-        def _check() -> dict[str, Any] | None:
-            try:
-                r = requests.get(status_url, headers=headers, timeout=30)
-            except requests.RequestException as exc:
-                raise ProviderError(self.name, None, f"network error during poll: {exc}") from exc
-            if r.status_code == 429:
-                raise QuotaError(self.name, 429, r.text[:500])
-            if r.status_code >= 400:
-                raise ProviderError(self.name, r.status_code, r.text[:500])
-            data = r.json()
-            status = (data.get("status") or "").upper()
-            if status in {"FAILED", "ERROR", "CANCELED"}:
-                raise ProviderError(self.name, None, f"job {handle.job_id} {status}")
-            if status == "COMPLETED":
-                return data
-            return None
+        poll_until(
+            lambda: self._status(handle, status_url, headers),
+            provider=self.name,
+            timeout=timeout,
+        )
 
-        poll_until(_check, provider=self.name, timeout=timeout)
-
-        try:
-            final = requests.get(response_url, headers=headers, timeout=60)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error fetching response: {exc}") from exc
-        if final.status_code >= 400:
-            raise ProviderError(self.name, final.status_code, final.text[:500])
-        payload = final.json()
+        # fal's queue separates "is it done" from "what did it produce": the
+        # status endpoint never carries the result, so fetch it once at the end.
+        payload = _http.get(
+            self.name, response_url, headers=headers, what="network error fetching response"
+        ).json()
 
         url = self._extract_url(payload)
         if not url:
             raise ProviderError(self.name, None, f"completed job missing {self.output_key} url")
 
-        try:
-            asset = requests.get(url, timeout=180)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"download failed: {exc}") from exc
-        if asset.status_code >= 400:
-            raise ProviderError(self.name, asset.status_code, "asset download failed")
-
         return GenerationResult(
-            content=asset.content,
+            content=_http.download(self.name, url),
             mime=self.output_mime,
             extension=self.output_extension,
             extra={"model_id": handle.extra.get("model_id")},

@@ -9,11 +9,10 @@ import time
 from decimal import Decimal
 from typing import Any
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
 from ..poll import poll_until
+from . import _http
 from .base import GenerationResult, JobHandle, Provider
 
 DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"  # "Rachel" — ElevenLabs default preset.
@@ -51,20 +50,12 @@ class ElevenMusicProvider(Provider):
         if composition_plan is not None:
             body["composition_plan"] = composition_plan
 
-        try:
-            resp = requests.post(
-                "https://api.elevenlabs.io/v1/music",
-                json=body,
-                headers=self._headers(),
-                timeout=60,
-            )
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        resp = _http.post(
+            self.name,
+            "https://api.elevenlabs.io/v1/music",
+            json=body,
+            headers=self._headers(),
+        )
 
         # If response is audio bytes directly (small/quick gen), wrap as completed handle.
         content_type = resp.headers.get("Content-Type", "")
@@ -90,6 +81,16 @@ class ElevenMusicProvider(Provider):
             extra={"duration_seconds": duration_seconds},
         )
 
+    def _status(self, handle: JobHandle, headers: dict[str, str]) -> dict[str, Any] | None:
+        """One poll tick: None means still running, a dict means done."""
+        data = _http.poll_get(self.name, handle.poll_url, headers=headers).json()
+        status = (data.get("status") or "").lower()
+        if status in {"failed", "error", "canceled"}:
+            raise ProviderError(self.name, None, f"job {handle.job_id} {status}")
+        if status in {"completed", "succeeded", "ready", "done"}:
+            return data
+        return None
+
     def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
         if handle.job_id == "inline":
             return GenerationResult(
@@ -100,38 +101,16 @@ class ElevenMusicProvider(Provider):
             )
 
         headers = self._headers()
+        final = poll_until(
+            lambda: self._status(handle, headers), provider=self.name, timeout=timeout
+        )
 
-        def _check() -> dict[str, Any] | None:
-            try:
-                r = requests.get(handle.poll_url, headers=headers, timeout=30)
-            except requests.RequestException as exc:
-                raise ProviderError(self.name, None, f"network error during poll: {exc}") from exc
-            if r.status_code == 429:
-                raise QuotaError(self.name, 429, r.text[:500])
-            if r.status_code >= 400:
-                raise ProviderError(self.name, r.status_code, r.text[:500])
-            data = r.json()
-            status = (data.get("status") or "").lower()
-            if status in {"failed", "error", "canceled"}:
-                raise ProviderError(self.name, None, f"job {handle.job_id} {status}")
-            if status in {"completed", "succeeded", "ready", "done"}:
-                return data
-            return None
-
-        final = poll_until(_check, provider=self.name, timeout=timeout)
         audio_url = final.get("audio_url") or final.get("output_url") or final.get("url")
         if not audio_url:
             raise ProviderError(self.name, None, "completed job missing audio_url")
 
-        try:
-            download = requests.get(audio_url, timeout=180)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"download failed: {exc}") from exc
-        if download.status_code >= 400:
-            raise ProviderError(self.name, download.status_code, "download failed")
-
         return GenerationResult(
-            content=download.content,
+            content=_http.download(self.name, audio_url),
             mime="audio/mpeg",
             extension="mp3",
             extra=handle.extra,
@@ -167,20 +146,15 @@ class ElevenTtsProvider(Provider):
             "Accept": "audio/mpeg",
         }
 
-        try:
-            resp = requests.post(
-                f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
-                json=body,
-                headers=headers,
-                timeout=120,
-            )
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        # TTS is synchronous and returns the audio inline, so it gets a longer
+        # timeout than a job submission.
+        resp = _http.post(
+            self.name,
+            f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
+            json=body,
+            headers=headers,
+            timeout=120,
+        )
 
         return GenerationResult(
             content=resp.content,

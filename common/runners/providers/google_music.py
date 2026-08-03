@@ -33,8 +33,7 @@ class _LyriaProvider(Provider):
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         return estimate(self.name, **kwargs)
 
-    def generate(self, prompt: str, **kwargs: Any) -> GenerationResult | JobHandle:
-        self.ensure_available()
+    def _require_preview_access(self) -> None:
         if os.environ.get("LYRIA_API_ENABLED") != "1":
             raise ProviderError(
                 self.name,
@@ -42,24 +41,29 @@ class _LyriaProvider(Provider):
                 "Lyria 3 Pro API is in limited preview; set LYRIA_API_ENABLED=1 "
                 "once your project is allowlisted to enable this provider.",
             )
+
+    @staticmethod
+    def _config(kwargs: dict[str, Any]) -> tuple[dict[str, Any], float]:
+        """(SDK config, clamped minutes). Lyria takes 6 seconds to 3 minutes."""
+        minutes = max(0.1, min(float(kwargs.get("duration_minutes", 1.0) or 1.0), 3.0))
+        config: dict[str, Any] = {"duration_seconds": int(minutes * 60)}
+        if kwargs.get("lyrics"):
+            config["lyrics"] = str(kwargs["lyrics"])
+        if kwargs.get("key"):
+            config["key"] = str(kwargs["key"])
+        if kwargs.get("bpm"):
+            config["bpm"] = int(kwargs["bpm"])
+        return config, minutes
+
+    def generate(self, prompt: str, **kwargs: Any) -> GenerationResult | JobHandle:
+        self.ensure_available()
+        self._require_preview_access()
         try:
             from google import genai
         except ImportError as exc:
             raise ProviderError(self.name, None, "google-genai SDK not installed") from exc
 
-        duration_minutes = float(kwargs.get("duration_minutes", 1.0) or 1.0)
-        duration_minutes = max(0.1, min(duration_minutes, 3.0))
-        lyrics = kwargs.get("lyrics")
-        key = kwargs.get("key")
-        bpm = kwargs.get("bpm")
-
-        config: dict[str, Any] = {"duration_seconds": int(duration_minutes * 60)}
-        if lyrics:
-            config["lyrics"] = str(lyrics)
-        if key:
-            config["key"] = str(key)
-        if bpm:
-            config["bpm"] = int(bpm)
+        config, duration_minutes = self._config(kwargs)
 
         try:
             client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])

@@ -9,11 +9,10 @@ import time
 from decimal import Decimal
 from typing import Any
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
 from ..poll import poll_until
+from . import _http
 from .base import GenerationResult, JobHandle, Provider
 
 
@@ -43,50 +42,37 @@ class SunoV55Provider(Provider):
             "Content-Type": "application/json",
         }
 
+    @staticmethod
+    def _job_id(payload: Any) -> str | None:
+        """Official Suno and the gateways each name the job differently."""
+        if isinstance(payload, list):
+            return payload[0].get("id") if payload else None
+        return (
+            payload.get("id")
+            or payload.get("task_id")
+            or (payload.get("data") or {}).get("id")
+        )
+
     def generate(self, prompt: str, **kwargs: Any) -> JobHandle:
         self.ensure_available()
         self._gate()
 
-        lyrics: str | None = kwargs.get("lyrics")
-        instrumental: bool = bool(kwargs.get("instrumental", False))
-
+        instrumental = bool(kwargs.get("instrumental", False))
         body: dict[str, Any] = {
             "prompt": prompt,
             "make_instrumental": instrumental,
             "model_version": kwargs.get("model_version", "v5.5"),
         }
-        if lyrics:
-            body["lyrics"] = lyrics
-        if "title" in kwargs:
-            body["title"] = kwargs["title"]
-        if "tags" in kwargs:
-            body["tags"] = kwargs["tags"]
+        if kwargs.get("lyrics"):
+            body["lyrics"] = kwargs["lyrics"]
+        for optional in ("title", "tags"):
+            if optional in kwargs:
+                body[optional] = kwargs[optional]
 
         base = self._base_url()
-        try:
-            resp = requests.post(
-                f"{base}/generate",
-                json=body,
-                headers=self._headers(),
-                timeout=60,
-            )
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
+        resp = _http.post(self.name, f"{base}/generate", json=body, headers=self._headers())
 
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
-
-        payload = resp.json()
-        # Handle multiple known response shapes (official + gateways).
-        job_id = (
-            payload.get("id")
-            or payload.get("task_id")
-            or (payload.get("data") or {}).get("id")
-        )
-        if not job_id and isinstance(payload, list) and payload:
-            job_id = payload[0].get("id")
+        job_id = self._job_id(resp.json())
         if not job_id:
             raise ProviderError(self.name, resp.status_code, "no job id in response")
 
@@ -98,32 +84,29 @@ class SunoV55Provider(Provider):
             extra={"instrumental": instrumental},
         )
 
+    def _status(self, handle: JobHandle, headers: dict[str, str]) -> dict[str, Any] | None:
+        """One poll tick: None means still running, a dict means done."""
+        data = _http.poll_get(self.name, handle.poll_url, headers=headers).json()
+        node = data.get("data") if isinstance(data.get("data"), dict) else data
+        status = (node.get("status") or "").lower()
+        if status in {"failed", "error"}:
+            raise ProviderError(
+                self.name, None, f"job {handle.job_id} failed: {node.get('error', '')}"
+            )
+        if status in {"complete", "completed", "succeeded", "done"}:
+            return node
+        # Some gateways never set a terminal status and just start serving audio.
+        if node.get("audio_url") or node.get("audio"):
+            return node
+        return None
+
     def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
         self._gate()
         headers = self._headers()
 
-        def _check() -> dict[str, Any] | None:
-            try:
-                r = requests.get(handle.poll_url, headers=headers, timeout=30)
-            except requests.RequestException as exc:
-                raise ProviderError(self.name, None, f"network error during poll: {exc}") from exc
-            if r.status_code == 429:
-                raise QuotaError(self.name, 429, r.text[:500])
-            if r.status_code >= 400:
-                raise ProviderError(self.name, r.status_code, r.text[:500])
-            data = r.json()
-            node = data.get("data") if isinstance(data.get("data"), dict) else data
-            status = (node.get("status") or "").lower()
-            if status in {"failed", "error"}:
-                raise ProviderError(self.name, None, f"job {handle.job_id} failed: {node.get('error', '')}")
-            if status in {"complete", "completed", "succeeded", "done"}:
-                return node
-            audio_url = node.get("audio_url") or node.get("audio")
-            if audio_url:
-                return node
-            return None
-
-        final = poll_until(_check, provider=self.name, timeout=timeout)
+        final = poll_until(
+            lambda: self._status(handle, headers), provider=self.name, timeout=timeout
+        )
 
         audio_url = (
             final.get("audio_url")
@@ -133,15 +116,8 @@ class SunoV55Provider(Provider):
         if not audio_url:
             raise ProviderError(self.name, None, "completed job missing audio_url")
 
-        try:
-            asset = requests.get(audio_url, timeout=180)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"download failed: {exc}") from exc
-        if asset.status_code >= 400:
-            raise ProviderError(self.name, asset.status_code, "asset download failed")
-
         return GenerationResult(
-            content=asset.content,
+            content=_http.download(self.name, audio_url),
             mime="audio/mpeg",
             extension="mp3",
             extra=handle.extra,

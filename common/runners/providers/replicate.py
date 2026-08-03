@@ -9,11 +9,10 @@ import time
 from decimal import Decimal
 from typing import Any
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
 from ..poll import poll_until
+from . import _http
 from .base import GenerationResult, JobHandle, Provider
 
 _API_BASE = "https://api.replicate.com/v1"
@@ -59,15 +58,7 @@ class _ReplicateBase(Provider):
             url = f"{_API_BASE}/models/{model_id}/predictions"
             body = {"input": input_payload}
 
-        try:
-            resp = requests.post(url, json=body, headers=self._headers(), timeout=60)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        resp = _http.post(self.name, url, json=body, headers=self._headers())
 
         payload = resp.json()
         prediction_id = payload.get("id")
@@ -84,42 +75,30 @@ class _ReplicateBase(Provider):
             extra={"model_id": model_id},
         )
 
+    def _status(self, handle: JobHandle, headers: dict[str, str]) -> dict[str, Any] | None:
+        """One poll tick: None means still running, a dict means done."""
+        data = _http.poll_get(self.name, handle.poll_url, headers=headers).json()
+        status = (data.get("status") or "").lower()
+        if status in {"failed", "canceled"}:
+            raise ProviderError(
+                self.name, None, f"job {handle.job_id} {status}: {data.get('error', '')}"
+            )
+        if status == "succeeded":
+            return data
+        return None
+
     def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
         headers = self._headers()
+        final = poll_until(
+            lambda: self._status(handle, headers), provider=self.name, timeout=timeout
+        )
 
-        def _check() -> dict[str, Any] | None:
-            try:
-                r = requests.get(handle.poll_url, headers=headers, timeout=30)
-            except requests.RequestException as exc:
-                raise ProviderError(self.name, None, f"network error during poll: {exc}") from exc
-            if r.status_code == 429:
-                raise QuotaError(self.name, 429, r.text[:500])
-            if r.status_code >= 400:
-                raise ProviderError(self.name, r.status_code, r.text[:500])
-            data = r.json()
-            status = (data.get("status") or "").lower()
-            if status in {"failed", "canceled"}:
-                raise ProviderError(self.name, None, f"job {handle.job_id} {status}: {data.get('error', '')}")
-            if status == "succeeded":
-                return data
-            return None
-
-        final = poll_until(_check, provider=self.name, timeout=timeout)
-
-        output = final.get("output")
-        url = self._extract_url(output)
+        url = self._extract_url(final.get("output"))
         if not url:
             raise ProviderError(self.name, None, "completed prediction has no output URL")
 
-        try:
-            asset = requests.get(url, timeout=180)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"download failed: {exc}") from exc
-        if asset.status_code >= 400:
-            raise ProviderError(self.name, asset.status_code, "asset download failed")
-
         return GenerationResult(
-            content=asset.content,
+            content=_http.download(self.name, url),
             mime=self.output_mime,
             extension=self.output_extension,
             extra={"model_id": handle.extra.get("model_id")},

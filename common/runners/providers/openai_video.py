@@ -9,11 +9,10 @@ import time
 from decimal import Decimal
 from typing import Any
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
 from ..poll import poll_until
+from . import _http
 from .base import GenerationResult, JobHandle, Provider
 
 
@@ -65,20 +64,12 @@ class _SoraBase(Provider):
         if image_ref:
             body["input_reference"] = image_ref
 
-        try:
-            resp = requests.post(
-                "https://api.openai.com/v1/videos",
-                json=body,
-                headers=self._headers(),
-                timeout=60,
-            )
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        resp = _http.post(
+            self.name,
+            "https://api.openai.com/v1/videos",
+            json=body,
+            headers=self._headers(),
+        )
 
         payload = resp.json()
         job_id = payload.get("id") or payload.get("video_id")
@@ -93,28 +84,25 @@ class _SoraBase(Provider):
             extra={"duration_seconds": duration_seconds, "resolution": resolution},
         )
 
+    def _status(self, handle: JobHandle, headers: dict[str, str]) -> dict[str, Any] | None:
+        """One poll tick: None means still running, a dict means done."""
+        data = _http.poll_get(self.name, handle.poll_url, headers=headers).json()
+        status = (data.get("status") or "").lower()
+        if status in {"failed", "error", "canceled"}:
+            raise ProviderError(
+                self.name, None, f"job {handle.job_id} {status}: {data.get('error', '')}"
+            )
+        if status in {"completed", "succeeded", "ready"}:
+            return data
+        return None
+
     def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
         self._gate()
         headers = self._headers()
 
-        def _check() -> dict[str, Any] | None:
-            try:
-                r = requests.get(handle.poll_url, headers=headers, timeout=30)
-            except requests.RequestException as exc:
-                raise ProviderError(self.name, None, f"network error during poll: {exc}") from exc
-            if r.status_code == 429:
-                raise QuotaError(self.name, 429, r.text[:500])
-            if r.status_code >= 400:
-                raise ProviderError(self.name, r.status_code, r.text[:500])
-            data = r.json()
-            status = (data.get("status") or "").lower()
-            if status in {"failed", "error", "canceled"}:
-                raise ProviderError(self.name, None, f"job {handle.job_id} {status}: {data.get('error', '')}")
-            if status in {"completed", "succeeded", "ready"}:
-                return data
-            return None
-
-        final = poll_until(_check, provider=self.name, timeout=timeout)
+        final = poll_until(
+            lambda: self._status(handle, headers), provider=self.name, timeout=timeout
+        )
 
         video_url = (
             final.get("video_url")
@@ -124,15 +112,8 @@ class _SoraBase(Provider):
         if not video_url:
             raise ProviderError(self.name, None, "completed job missing video_url")
 
-        try:
-            download = requests.get(video_url, timeout=180)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"download failed: {exc}") from exc
-        if download.status_code >= 400:
-            raise ProviderError(self.name, download.status_code, "download failed")
-
         return GenerationResult(
-            content=download.content,
+            content=_http.download(self.name, video_url),
             mime="video/mp4",
             extension="mp4",
             extra=handle.extra,

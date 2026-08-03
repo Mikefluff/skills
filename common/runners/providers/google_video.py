@@ -4,6 +4,7 @@ Async long-running operation pattern via google-genai client.operations.get().""
 from __future__ import annotations
 
 import os
+import sys
 import time
 from decimal import Decimal
 from typing import Any
@@ -22,6 +23,14 @@ _VEO_MODEL_IDS: dict[str, str] = {
 # Module-level cache of in-flight operations keyed by operation.name so poll()
 # can recover the original operation object (the SDK refreshes it via .get()).
 _OPERATIONS: dict[str, Any] = {}
+
+
+_LAST_FRAME_REFUSALS = ("last_frame", "400", "invalid_argument", "not supported", "use case")
+
+
+def _is_last_frame_refusal(exc: Exception) -> bool:
+    msg = str(exc).lower()
+    return any(key in msg for key in _LAST_FRAME_REFUSALS)
 
 
 def _wrap_error(name: str, exc: Exception) -> ProviderError:
@@ -43,6 +52,50 @@ class _VeoProvider(Provider):
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         return estimate(self.name, **kwargs)
 
+    @staticmethod
+    def _as_image(types_mod: Any, ref: str) -> Any:
+        image_bytes, mime = _read_image_bytes_and_mime(ref)
+        return types_mod.Image(image_bytes=image_bytes, mime_type=mime)
+
+    def _frames(self, types_mod: Any, kwargs: dict[str, Any]) -> tuple[Any, Any]:
+        """(first frame, last frame); either may be None. Aliases accepted.
+
+        Pinning the last frame is Veo's only documented lever against drift in
+        image-to-video: setting last_frame == image forces start == end, which
+        is what collapses overlay-text wobble. `lock_first_last=True` asks for
+        exactly that without naming the same file twice.
+        """
+        image_ref = kwargs.get("image_url") or kwargs.get("input_image")
+        last_ref = kwargs.get("last_frame") or kwargs.get("last_frame_image")
+        if last_ref is None and kwargs.get("lock_first_last") and image_ref:
+            last_ref = image_ref
+        return (
+            self._as_image(types_mod, image_ref) if image_ref else None,
+            self._as_image(types_mod, last_ref) if last_ref else None,
+        )
+
+    def _submit(self, client: Any, types_mod: Any, gen_kwargs: dict, config_kwargs: dict) -> Any:
+        """Submit the job, retrying once without last_frame if it is refused."""
+        try:
+            return client.models.generate_videos(**gen_kwargs)
+        except Exception as exc:  # noqa: BLE001
+            # Some preview model IDs (notably veo-3.1-fast-generate-preview) reject
+            # last_frame with a 400 whose wording varies — "use case is currently
+            # not supported", "Parameter Not Supported". Matching the message is a
+            # losing game, so retry on any error while last_frame is set: the shot
+            # still ships, with the drift-lock weakened but negative_prompt and
+            # prompt-side discipline still in force.
+            if "last_frame" not in config_kwargs or not _is_last_frame_refusal(exc):
+                raise
+            config_kwargs.pop("last_frame", None)
+            gen_kwargs["config"] = types_mod.GenerateVideosConfig(**config_kwargs)
+            print(
+                f"  ⚠ {self.name}: last_frame rejected, retrying without it "
+                f"(text-lock weakened; negative_prompt + prompt-side discipline still active)",
+                file=sys.stderr,
+            )
+            return client.models.generate_videos(**gen_kwargs)
+
     def generate(self, prompt: str, **kwargs: Any) -> GenerationResult | JobHandle:
         self.ensure_available()
         try:
@@ -51,75 +104,31 @@ class _VeoProvider(Provider):
         except ImportError as exc:
             raise ProviderError(self.name, None, "google-genai SDK not installed") from exc
 
-        duration_seconds = int(kwargs.get("duration_seconds", 8) or 8)
-        aspect_ratio = str(kwargs.get("aspect_ratio", "16:9"))
-        variants = int(kwargs.get("variants", 1) or 1)
+        image_part, last_frame_part = self._frames(types, kwargs)
 
-        # Optional first-frame image (image-to-video) — accept cross-provider aliases
-        image_ref = kwargs.get("image_url") or kwargs.get("input_image")
-        image_part = None
-        if image_ref:
-            image_bytes, image_mime = _read_image_bytes_and_mime(image_ref)
-            image_part = types.Image(image_bytes=image_bytes, mime_type=image_mime)
+        config_kwargs: dict[str, Any] = dict(
+            number_of_videos=int(kwargs.get("variants", 1) or 1),
+            aspect_ratio=str(kwargs.get("aspect_ratio", "16:9")),
+            duration_seconds=str(int(kwargs.get("duration_seconds", 8) or 8)),
+        )
+        # Comma-separated phrase list; the text-stability default comes from the
+        # Veo text-preservation field guide.
+        if kwargs.get("negative_prompt"):
+            config_kwargs["negative_prompt"] = kwargs["negative_prompt"]
+        if last_frame_part is not None:
+            config_kwargs["last_frame"] = last_frame_part
 
-        # Optional last-frame image — Veo's only documented mechanism for constraining
-        # drift in i2v. Setting image == last_frame forces start=end, which dramatically
-        # reduces overlay text wobble. Accept "last_frame" / "last_frame_image" / a magic
-        # "same-as-first" sentinel via kwargs.get("lock_first_last") == True.
-        last_frame_ref = kwargs.get("last_frame") or kwargs.get("last_frame_image")
-        if last_frame_ref is None and kwargs.get("lock_first_last") and image_ref:
-            last_frame_ref = image_ref
-        last_frame_part = None
-        if last_frame_ref:
-            lf_bytes, lf_mime = _read_image_bytes_and_mime(last_frame_ref)
-            last_frame_part = types.Image(image_bytes=lf_bytes, mime_type=lf_mime)
-
-        # Optional negative prompt — comma-separated phrase list for Veo. The text-stability
-        # default below comes from the Veo text-preservation field guide; callers can pass
-        # their own via kwargs["negative_prompt"] or extend via kwargs["negative_prompt_extra"].
-        negative_prompt = kwargs.get("negative_prompt")
+        gen_kwargs: dict[str, Any] = dict(
+            model=self._model_id,
+            prompt=prompt,
+            config=types.GenerateVideosConfig(**config_kwargs),
+        )
+        if image_part is not None:
+            gen_kwargs["image"] = image_part
 
         try:
             client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-            config_kwargs: dict[str, Any] = dict(
-                number_of_videos=variants,
-                aspect_ratio=aspect_ratio,
-                duration_seconds=str(duration_seconds),
-            )
-            if negative_prompt:
-                config_kwargs["negative_prompt"] = negative_prompt
-            if last_frame_part is not None:
-                config_kwargs["last_frame"] = last_frame_part
-            gen_kwargs: dict[str, Any] = dict(
-                model=self._model_id,
-                prompt=prompt,
-                config=types.GenerateVideosConfig(**config_kwargs),
-            )
-            if image_part is not None:
-                gen_kwargs["image"] = image_part
-            try:
-                operation = client.models.generate_videos(**gen_kwargs)
-            except Exception as exc:  # noqa: BLE001
-                # Some preview model IDs (notably veo-3.1-fast-generate-preview) reject
-                # last_frame with a 400 "use case is currently not supported" or
-                # "Parameter Not Supported". The error message format varies, so trigger
-                # the fallback on any error when last_frame is set. Retry without
-                # last_frame so the shot still ships; other levers (negative_prompt,
-                # prompt-side discipline) still apply. Surface a stderr note so callers
-                # know the drift-lock didn't activate.
-                msg = str(exc).lower()
-                fallback_keys = ("last_frame", "400", "invalid_argument", "not supported", "use case")
-                if last_frame_part is not None and any(k in msg for k in fallback_keys):
-                    config_kwargs.pop("last_frame", None)
-                    gen_kwargs["config"] = types.GenerateVideosConfig(**config_kwargs)
-                    print(
-                        f"  ⚠ {self.name}: last_frame rejected, retrying without it "
-                        f"(text-lock weakened; negative_prompt + prompt-side discipline still active)",
-                        file=__import__("sys").stderr,
-                    )
-                    operation = client.models.generate_videos(**gen_kwargs)
-                else:
-                    raise
+            operation = self._submit(client, types, gen_kwargs, config_kwargs)
         except Exception as exc:  # noqa: BLE001
             raise _wrap_error(self.name, exc) from exc
 

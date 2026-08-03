@@ -9,11 +9,10 @@ import time
 from decimal import Decimal
 from typing import Any
 
-import requests
-
 from .. import cost
-from ..errors import ProviderError, QuotaError
+from ..errors import ProviderError
 from ..poll import poll_until
+from . import _http
 from .base import GenerationResult, JobHandle, Provider
 
 _API_BASE = "https://api.dev.runwayml.com/v1"
@@ -60,17 +59,12 @@ class _RunwayBase(Provider):
     def generate(self, prompt: str, **kwargs: Any) -> JobHandle:
         self.ensure_available()
         body = self._build_body(prompt, **kwargs)
-        url = f"{_API_BASE}/{self.endpoint_path}"
-
-        try:
-            resp = requests.post(url, json=body, headers=self._headers(), timeout=60)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"network error: {exc}") from exc
-
-        if resp.status_code == 429:
-            raise QuotaError(self.name, 429, resp.text[:500])
-        if resp.status_code >= 400:
-            raise ProviderError(self.name, resp.status_code, resp.text[:500])
+        resp = _http.post(
+            self.name,
+            f"{_API_BASE}/{self.endpoint_path}",
+            json=body,
+            headers=self._headers(),
+        )
 
         payload = resp.json()
         task_id = payload.get("id") or payload.get("task_id")
@@ -85,49 +79,41 @@ class _RunwayBase(Provider):
             extra={"duration": body.get("duration", self.default_duration)},
         )
 
+    def _status(self, handle: JobHandle, headers: dict[str, str]) -> dict[str, Any] | None:
+        """One poll tick: None means still running, a dict means done."""
+        data = _http.poll_get(self.name, handle.poll_url, headers=headers).json()
+        status = (data.get("status") or "").upper()
+        if status in {"FAILED", "ERROR", "CANCELLED", "CANCELED"}:
+            raise ProviderError(
+                self.name, None, f"task {handle.job_id} {status}: {data.get('failure', '')}"
+            )
+        if status == "SUCCEEDED":
+            return data
+        return None
+
+    @staticmethod
+    def _output_url(output: Any) -> str | None:
+        """Runway has returned all three of these shapes across API revisions."""
+        if isinstance(output, list) and output:
+            return output[0] if isinstance(output[0], str) else output[0].get("url")
+        if isinstance(output, str):
+            return output
+        if isinstance(output, dict):
+            return output.get("url")
+        return None
+
     def poll(self, handle: JobHandle, timeout: float = 600.0) -> GenerationResult:
         headers = self._headers()
+        final = poll_until(
+            lambda: self._status(handle, headers), provider=self.name, timeout=timeout
+        )
 
-        def _check() -> dict[str, Any] | None:
-            try:
-                r = requests.get(handle.poll_url, headers=headers, timeout=30)
-            except requests.RequestException as exc:
-                raise ProviderError(self.name, None, f"network error during poll: {exc}") from exc
-            if r.status_code == 429:
-                raise QuotaError(self.name, 429, r.text[:500])
-            if r.status_code >= 400:
-                raise ProviderError(self.name, r.status_code, r.text[:500])
-            data = r.json()
-            status = (data.get("status") or "").upper()
-            if status in {"FAILED", "ERROR", "CANCELLED", "CANCELED"}:
-                raise ProviderError(self.name, None, f"task {handle.job_id} {status}: {data.get('failure', '')}")
-            if status == "SUCCEEDED":
-                return data
-            return None
-
-        final = poll_until(_check, provider=self.name, timeout=timeout)
-
-        output = final.get("output")
-        url = None
-        if isinstance(output, list) and output:
-            url = output[0] if isinstance(output[0], str) else output[0].get("url")
-        elif isinstance(output, str):
-            url = output
-        elif isinstance(output, dict):
-            url = output.get("url")
-
+        url = self._output_url(final.get("output"))
         if not url:
             raise ProviderError(self.name, None, "completed task has no output URL")
 
-        try:
-            asset = requests.get(url, timeout=180)
-        except requests.RequestException as exc:
-            raise ProviderError(self.name, None, f"download failed: {exc}") from exc
-        if asset.status_code >= 400:
-            raise ProviderError(self.name, asset.status_code, "asset download failed")
-
         return GenerationResult(
-            content=asset.content,
+            content=_http.download(self.name, url),
             mime="video/mp4",
             extension="mp4",
             extra=handle.extra,
