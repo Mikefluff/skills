@@ -299,9 +299,11 @@ class Subtitle(ToolCase):
         self.assertIn("not found", err)
 
     def test_no_subtitle_source_is_rejected_by_the_parser(self):
-        # --subtitle / --inline are a required mutually-exclusive group, so this
-        # never reaches _cmd_burn. Its own "provide --subtitle or --inline"
-        # branch is therefore unreachable.
+        # --subtitle / --inline are a required mutually-exclusive group, so
+        # this never reaches _cmd_burn. _cmd_burn used to carry its own
+        # "provide --subtitle or --inline" branch for a case the parser had
+        # already refused; extracting _resolve_cues took it out. This test is
+        # what keeps it out — the parser's message is the real one.
         with self.assertRaises(SystemExit) as caught:
             self.burn([str(self.video())])
         self.assertEqual(caught.exception.code, 2)
@@ -459,6 +461,96 @@ class GatherKwargs(unittest.TestCase):
     def test_instrumental_only_appears_when_set(self):
         self.assertNotIn("instrumental", self.gather())
         self.assertIs(self.gather(instrumental=True)["instrumental"], True)
+
+
+# ── gif Mode B: the one generating CLI that had no cost gate ────────────────
+
+
+class CountingVideoProvider(Provider):
+    """A video provider that records whether it was ever asked to generate."""
+
+    modality = "video"
+
+    def __init__(self, cost="1.20"):
+        from decimal import Decimal
+
+        self.name = "veo-3-1-fast"
+        self.requires_env = ()
+        self._cost = Decimal(cost)
+        self.calls = 0
+
+    def estimate_cost(self, **kwargs):
+        return self._cost
+
+    def generate(self, prompt, **kwargs):
+        self.calls += 1
+        return GenerationResult(content=b"\x00\x00\x00\x18ftypmp42", mime="video/mp4", extension="mp4")
+
+    def poll(self, handle, timeout=600.0):
+        return GenerationResult(content=b"\x00\x00\x00\x18ftypmp42", mime="video/mp4", extension="mp4")
+
+
+class GifCostGate(ToolCase):
+    """--yes advertised "skip cost confirmation (Mode B)" and skipped nothing.
+
+    Mode B calls a video provider directly. veo-3-1 is $0.40 a second, so a
+    three-second clip is $1.20 — twelve times the threshold every other
+    generating CLI stops at.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # gif writes its intermediate MP4 to a relative ./generated/... path,
+        # which Path.cwd patching does not redirect. Actually change directory
+        # so a run of the suite leaves nothing behind.
+        import os
+
+        origin = os.getcwd()
+        os.chdir(self.dir)
+        self.addCleanup(os.chdir, origin)
+
+    def args(self):
+        return ["--prompt", "кот в очках", "--model", "veo-3-1-fast", "--duration", "3"]
+
+    def test_declining_the_cost_stops_before_the_provider_is_called(self):
+        provider = CountingVideoProvider()
+        with mock.patch.object(sys, "stdin", io.StringIO("n\n")):
+            code, _out, err = invoke("gif", self.args(), provider)
+        self.assertEqual(code, 3, err)
+        self.assertEqual(provider.calls, 0, "provider was called despite a declined confirmation")
+
+    def test_yes_skips_the_prompt_and_generates(self):
+        provider = CountingVideoProvider()
+        with mock.patch.object(ff_mod, "detect_ffmpeg", return_value=ff_mod.FfmpegProbe(found=False)):
+            code, _out, err = invoke("gif", [*self.args(), "--yes"], provider)
+        # ffmpeg is absent, so conversion fails — but generation must have run,
+        # which is the half of the flow this test is about.
+        self.assertEqual(provider.calls, 1, err)
+
+    def test_accepting_the_cost_proceeds(self):
+        provider = CountingVideoProvider()
+        with mock.patch.object(sys, "stdin", io.StringIO("y\n")), \
+                mock.patch.object(ff_mod, "detect_ffmpeg", return_value=ff_mod.FfmpegProbe(found=False)):
+            invoke("gif", self.args(), provider)
+        self.assertEqual(provider.calls, 1)
+
+    def test_a_cheap_clip_is_not_gated_at_all(self):
+        # Below the threshold there is no question to answer, so an empty
+        # stdin must not deadlock or decline.
+        provider = CountingVideoProvider(cost="0.01")
+        with mock.patch.object(sys, "stdin", io.StringIO("")), \
+                mock.patch.object(ff_mod, "detect_ffmpeg", return_value=ff_mod.FfmpegProbe(found=False)):
+            invoke("gif", self.args(), provider)
+        self.assertEqual(provider.calls, 1)
+
+    def test_mode_a_never_asks_about_cost(self):
+        # Converting an existing MP4 costs nothing; the gate must not appear.
+        src = self.dir / "clip.mp4"
+        src.write_bytes(b"\x00\x00\x00\x18ftypmp42")
+        with mock.patch.object(sys, "stdin", io.StringIO("")), \
+                mock.patch.object(ff_mod, "detect_ffmpeg", return_value=ff_mod.FfmpegProbe(found=False)):
+            code, _out, err = invoke("gif", ["--input", str(src)])
+        self.assertNotEqual(code, 3, err)
 
 
 if __name__ == "__main__":

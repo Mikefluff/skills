@@ -27,9 +27,11 @@ import tempfile
 from pathlib import Path
 
 from . import _shared
+from .. import cost as cost_mod
 from .. import ffmpeg as ff_mod
 from .. import output as output_mod
 from ..errors import (
+    CostConfirmationDeclined,
     KeyMissingError,
     ProviderError,
     RunnerError,
@@ -182,17 +184,47 @@ def _video_provider(args: argparse.Namespace):
     return provider
 
 
-def _generate(args: argparse.Namespace) -> tuple[int, Path | None]:
-    provider = _video_provider(args)
-    if provider is None:
-        return 2, None
-
+def _generate_kwargs(args: argparse.Namespace) -> dict:
     kwargs: dict = {}
     if args.duration:
         kwargs["duration"] = float(args.duration)
     if args.aspect and args.aspect in ASPECT_RATIOS:
         # The provider may or may not honour it; we center-crop post-hoc anyway.
         kwargs["aspect"] = args.aspect
+    return kwargs
+
+
+def _save_source(content: bytes) -> Path:
+    """Keep the generated MP4 — the GIF is lossy and the source is not."""
+    saved = output_mod.save(
+        content,
+        "video",
+        "mp4",
+        output_mod.SaveOptions(
+            slug="gif-source",
+            output_dir=Path("./generated/gif/_source"),
+            mime="video/mp4",
+        ),
+    )
+    print(f"  ✓ source MP4 → {saved.local_path}", file=sys.stderr)
+    return Path(saved.local_path)
+
+
+def _generate(args: argparse.Namespace) -> tuple[int, Path | None]:
+    provider = _video_provider(args)
+    if provider is None:
+        return 2, None
+
+    kwargs = _generate_kwargs(args)
+
+    # Mode B calls a video provider, and video is the expensive modality —
+    # veo-3-1 is $0.40 a second. Every other generating CLI stops here; this
+    # one advertised --yes and never asked the question it skipped.
+    try:
+        cost_mod.confirm(provider.estimate_cost(**kwargs), yes=args.yes)
+    except CostConfirmationDeclined as exc:
+        print(str(exc), file=sys.stderr)
+        return 3, None
 
     print(
         f"Generating short clip via {args.model} (duration ~{args.duration or '?'}s) ...",
@@ -211,19 +243,7 @@ def _generate(args: argparse.Namespace) -> tuple[int, Path | None]:
         print(f"  ✗ {exc}", file=sys.stderr)
         return 5, None
 
-    # Save intermediate MP4
-    saved = output_mod.save(
-        result.content,
-        "video",
-        "mp4",
-        output_mod.SaveOptions(
-            slug="gif-source",
-            output_dir=Path("./generated/gif/_source"),
-            mime="video/mp4",
-        ),
-    )
-    print(f"  ✓ source MP4 → {saved.local_path}", file=sys.stderr)
-    return 0, Path(saved.local_path)
+    return 0, _save_source(result.content)
 
 
 def build_parser() -> argparse.ArgumentParser:
