@@ -48,10 +48,10 @@ Resolve a source directory → build one platform-neutral `Post` → preflight i
 |---|---|---|---|
 | `telegram` | text, image, carousel, video | — | Caption on media caps at 1024 chars (text-only gets 4096). Video ≤50 MB. **The only one testable end-to-end without OAuth — start here.** |
 | `threads` | text, image, carousel, video | container | 500 chars. Text-only posts need no S3 — the easiest real connection. |
-| `instagram` | image, carousel, video | container | Business/Creator account required. Media is fetched by URL, so **S3 is mandatory**. Video publishes as a Reel. 25 posts/24h. |
+| `instagram` | image, carousel, video | container | Business/Creator account required. Media is fetched by URL, so **S3 is mandatory**. Video publishes as a Reel (≤300 MB, ≤15 min). 100 posts/24h. |
 | `tiktok` | video, image, carousel | **inbox** | Direct publishing needs an audited app; without one, posts are silently forced to SELF_ONLY. **Use `--draft`.** |
-| `x` | text, image, carousel, video | — | 280 chars. Free tier ~17 posts/24h. Threads publish incrementally — a failure mid-chain leaves earlier posts live. |
-| `youtube` | video | `private` | 1600 quota units per upload out of 10,000/day ≈ 6 uploads, drafts included. Cleanest draft of the seven. |
+| `x` | text, image, carousel, video | — | 280 chars. 10,000/24h per app, 100/15min per user; what you may spend depends on the plan. Threads publish incrementally — a failure mid-chain leaves earlier posts live. |
+| `youtube` | video | `private` | 100 uploads/day on their own allocation, drafts included. Cleanest draft of the seven. |
 | `linkedin` | text, image, carousel, video | — | 3000 chars. Member posts work with `w_member_social`; company pages need the partner-gated Community Management API. |
 
 ## MODES

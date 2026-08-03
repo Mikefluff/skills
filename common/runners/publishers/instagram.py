@@ -37,7 +37,18 @@ CAPTION_LIMIT = 2200
 HASHTAG_LIMIT = 30
 CAROUSEL_MIN = 2
 CAROUSEL_MAX = 10
-DAILY_POST_CAP = 25
+
+# 100, not the 25 this was first written with. Meta raised the API publishing
+# cap and the old figure would have blocked three quarters of a legitimate day.
+# Verified 2026-08-03 against developers.facebook.com/docs/instagram-platform/
+# content-publishing — "limited to 100 API-published posts within a 24-hour
+# moving period".
+DAILY_POST_CAP = 100
+
+# Reels cap at 300 MB and 15 minutes; 1 GB was wrong.
+REELS_MAX_MB = 300.0
+REELS_MAX_SECONDS = 15 * 60
+REELS_MIN_SECONDS = 3
 
 
 class InstagramPublisher(MetaPublisher):
@@ -48,7 +59,7 @@ class InstagramPublisher(MetaPublisher):
 
     api_root = API_ROOT
     api_version_env = "INSTAGRAM_API_VERSION"
-    default_api_version = "v21.0"
+    default_api_version = "v25.0"
     container_path = "media"
     publish_path = "media_publish"
     status_field = "status_code"
@@ -61,7 +72,7 @@ class InstagramPublisher(MetaPublisher):
     min_media = 1
     max_media = CAROUSEL_MAX
     max_image_mb = 8.0
-    max_video_mb = 1024.0
+    max_video_mb = REELS_MAX_MB
 
     oauth_scopes = ("instagram_business_basic", "instagram_business_content_publish")
     exchange_url = f"{API_ROOT}/access_token"

@@ -9,6 +9,48 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.21.1] — 2026-08-03
+
+### Fixed — four platform constants were written from memory and were wrong
+
+v2.21.0 shipped with a note in `platform-limits.md` reading "last verified: not
+yet". Verifying it against the vendors' live documentation found four numbers
+wrong, each in the direction that hurts:
+
+- **Instagram's publishing cap is 100 posts per 24h, not 25.** Preflight would
+  have blocked three quarters of a legitimate posting day, and the block was
+  phrased as certainty.
+- **Instagram Reels cap at 300 MB, not 1 GB.** A 700 MB reel would have passed
+  preflight, been staged to S3, been fetched by Meta, and only then failed.
+- **YouTube gives 100 `videos.insert` calls per day on their own allocation**,
+  not 1600 units out of a shared 10,000/day pool. The old model is why the
+  warning said "~6 uploads/day" — off by a factor of sixteen, in the direction
+  that makes people ration something they have plenty of.
+- **LinkedIn's pinned API version, 202401, had already aged out.** LinkedIn
+  rejects versions older than roughly a year; the current moniker is 202607.
+
+Also corrected: Telegram photos are held to sendPhoto's 10 MB rather than the
+general 50 MB upload ceiling, and X's docstring no longer asserts a "17 posts
+per 24h free tier" that appears nowhere in X's documentation — the verifiable
+ceilings are 10,000/24h per app and 100/15min per user, and X has moved to
+pay-per-usage pricing.
+
+What was verified and found **correct**: every endpoint path and request shape
+across all seven platforms; TikTok's chunking rules including the 5–64 MB range,
+the floor-division chunk count and the single-chunk-equals-file-size rule;
+X's `POST /2/media/upload` with INIT/APPEND/FINALIZE/STATUS on a Bearer token;
+LinkedIn's `content.multiImage.images[]` shape with `id` + `altText`, its
+`x-restli-id` response header and both required version headers; Threads'
+container flow, 500-character limit, 2–20 carousel and 250/day cap; Instagram's
+2200-character caption, 30 hashtags, 8 MB images, 10-item carousel and
+`status_code` polling field.
+
+Thirteen tests now pin the verified constants, because a plausible-looking wrong
+number is invisible in review. `platform-limits.md` marks every row with whether
+it was read off live documentation or carried from a parameter table, lists the
+document behind each platform, and each corrected constant carries a comment
+naming its source and date.
+
 ## [2.21.0] — 2026-08-03
 
 ### Added — new skills

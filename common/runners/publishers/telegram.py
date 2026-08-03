@@ -32,7 +32,12 @@ API_ROOT = "https://api.telegram.org"
 
 CAPTION_LIMIT = 1024
 MESSAGE_LIMIT = 4096
+
+# Verified 2026-08-03 against core.telegram.org/bots/faq — bots may upload files
+# up to 50 MB through the public Bot API. sendPhoto documents a tighter 10 MB
+# ceiling of its own, so photos are held to that rather than to the general cap.
 UPLOAD_LIMIT_MB = 50.0
+PHOTO_LIMIT_MB = 10.0
 
 
 class TelegramPublisher(Publisher):
@@ -48,7 +53,7 @@ class TelegramPublisher(Publisher):
     max_hashtags = 10
     min_media = 0
     max_media = 10
-    max_image_mb = UPLOAD_LIMIT_MB
+    max_image_mb = PHOTO_LIMIT_MB
     max_video_mb = UPLOAD_LIMIT_MB
 
     # ── preflight ───────────────────────────────────────────────────────────

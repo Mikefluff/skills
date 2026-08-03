@@ -7,13 +7,17 @@ returned by the previous call. That also means a thread cannot be rolled back
 halfway — if post 4 of 6 fails, posts 1-3 are already public. The result
 records how far it got instead of pretending the whole thing failed.
 
-Cost of entry is a real constraint rather than a footnote: the free tier
-allows on the order of 17 posts per 24h and 500 per month, shared across
-everything the app does. A daily thread will exhaust it.
+Rate limiting is a real constraint rather than a footnote. The documented
+ceilings on POST /2/tweets are 10,000 per 24h per app and 100 per 15 minutes
+per user (verified 2026-08-03 against docs.x.com/x-api/fundamentals/rate-limits).
+What an account may actually spend on top of that depends on the plan, and X
+has moved to pay-per-usage pricing — check current pricing before budgeting a
+posting cadence around this. An earlier draft of this file asserted a "17 posts
+per 24h free tier" from memory; it was not in the docs and is not repeated here.
 
-Media upload endpoints have moved between API versions more than once. The
-upload host is env-overridable (X_UPLOAD_URL) so a move does not require a
-code change, and the reference doc says to verify it before first use.
+Media upload runs through POST /2/media/upload with INIT/APPEND/FINALIZE/STATUS
+and a Bearer user token — not the legacy upload.twitter.com host. That endpoint
+has moved before, so it stays env-overridable via X_UPLOAD_URL.
 """
 
 from __future__ import annotations

@@ -28,7 +28,12 @@ from ..errors import PublishError, RateLimitError, RunnerError
 from .base import IMAGE_EXTS, Post, Publisher, PublishResult, Violation, mime_for
 
 API_ROOT = "https://api.linkedin.com"
-DEFAULT_VERSION = "202401"
+
+# LinkedIn sunsets versions on a rolling schedule and rejects anything older
+# than roughly a year. 202401 was already past that. Verified 2026-08-03 against
+# learn.microsoft.com/.../shares/posts-api, whose current moniker is
+# li-lms-2026-07. Bump this, or set LINKEDIN_API_VERSION, when it ages out.
+DEFAULT_VERSION = "202607"
 
 TEXT_LIMIT = 3000
 

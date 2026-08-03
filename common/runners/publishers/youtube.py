@@ -5,11 +5,11 @@ video on the real channel that only the owner can see, editable and publishable
 from YouTube Studio. So --draft here means something a user can actually act on,
 unlike the 24h staging containers Meta calls drafts.
 
-The constraint that surprises people is quota, not file size. A single
-videos.insert costs 1600 units against a default daily allowance of 10,000 —
-six uploads a day, and that is shared with every other call the project makes.
-Preflight cannot read the remaining quota (there is no endpoint for it), so it
-says so rather than implying a check happened.
+The constraint that surprises people is the upload allowance, not file size.
+A project gets 100 videos.insert calls per day, on their own meter rather than
+charged against the 10,000-unit pool that everything else shares. Preflight
+cannot read what is left of it (there is no endpoint for that), so it says so
+rather than implying a check happened.
 
 Shorts are not a separate API: a vertical video under about three minutes is
 classified as a Short by YouTube itself.
@@ -35,8 +35,14 @@ UPLOAD_ROOT = "https://www.googleapis.com/upload/youtube/v3"
 TITLE_LIMIT = 100
 DESCRIPTION_LIMIT = 5000
 TAGS_TOTAL_LIMIT = 500  # characters across all tags
-QUOTA_PER_UPLOAD = 1600
-DEFAULT_DAILY_QUOTA = 10_000
+
+# Uploads have their own daily allocation and are NOT charged against the
+# 10,000-unit pool. This was first written as "1600 units of 10,000/day ≈ 6
+# uploads", which is the old model and understated the real allowance by 16×.
+# Verified 2026-08-03 against developers.google.com/youtube/v3/getting-started —
+# "a default quota allocation of 100 search.list calls, 100 videos.insert
+# calls, and 10,000 units per day combined for all other endpoints".
+DAILY_UPLOAD_ALLOWANCE = 100
 UPLOAD_CHUNK = 8 * MB
 
 
@@ -75,8 +81,8 @@ class YouTubePublisher(Publisher):
             raise RateLimitError(
                 self.name,
                 resp.status_code,
-                f"{message} — videos.insert costs {QUOTA_PER_UPLOAD} units of the "
-                f"{DEFAULT_DAILY_QUOTA}/day default allowance",
+                f"{message} — a project gets {DAILY_UPLOAD_ALLOWANCE} videos.insert calls "
+                f"per day by default; request more in the Cloud console",
             )
         raise PublishError(self.name, resp.status_code, message)
 
@@ -111,7 +117,7 @@ class YouTubePublisher(Publisher):
             note=(
                 "uploaded as private — publish it from YouTube Studio when ready"
                 if draft
-                else f"{QUOTA_PER_UPLOAD} quota units spent"
+                else f"1 of the {DAILY_UPLOAD_ALLOWANCE} daily uploads used"
             ),
         )
 
@@ -212,16 +218,15 @@ class YouTubePublisher(Publisher):
         if tag_chars > TAGS_TOTAL_LIMIT:
             v.append(Violation("block", "hashtags", f"tags total {tag_chars} chars (max {TAGS_TOTAL_LIMIT})"))
 
-        # Warned on drafts too: a private upload costs exactly the same 1600
-        # units as a public one. Suppressing it there would teach people that
-        # --draft is free, which is the opposite of true.
+        # Warned on drafts too: a private upload spends one of the day's
+        # uploads exactly like a public one. Suppressing it there would teach
+        # people that --draft is free, which is the opposite of true.
         v.append(
             Violation(
                 "warn",
                 "quota",
-                f"this upload costs {QUOTA_PER_UPLOAD} of the {DEFAULT_DAILY_QUOTA}/day default "
-                f"quota (~6 uploads/day, private ones included). There is no API to check "
-                f"what is left.",
+                f"a project gets {DAILY_UPLOAD_ALLOWANCE} uploads per day by default, private "
+                f"ones included. There is no API to check what is left of that allowance.",
             )
         )
 

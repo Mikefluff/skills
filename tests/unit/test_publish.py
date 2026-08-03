@@ -595,6 +595,80 @@ class TestLinkedInPreflight(MediaCase):
         self.assertFalse(self.pub.supports_draft)
 
 
+class TestVerifiedPlatformNumbers(unittest.TestCase):
+    """Constants read off the vendors' live documentation on 2026-08-03.
+
+    These exist because the first version of this layer was written from
+    memory and four numbers were wrong, each in the direction that hurts: a
+    cap four times too low, a file limit three times too high, an upload
+    allowance sixteen times too low, and an API version already sunset. A
+    plausible-looking wrong constant is invisible in review, so it gets a test.
+
+    Sources are listed in post-publisher/references/platform-limits.md.
+    """
+
+    def test_instagram_publishes_100_per_day_not_25(self):
+        from common.runners.publishers.instagram import DAILY_POST_CAP
+
+        self.assertEqual(DAILY_POST_CAP, 100)
+
+    def test_instagram_reels_cap_at_300mb_not_1gb(self):
+        self.assertEqual(InstagramPublisher.max_video_mb, 300.0)
+
+    def test_instagram_caption_and_hashtag_limits(self):
+        self.assertEqual(InstagramPublisher.max_text_chars, 2200)
+        self.assertEqual(InstagramPublisher.max_hashtags, 30)
+        self.assertEqual(InstagramPublisher.max_image_mb, 8.0)
+
+    def test_instagram_carousel_holds_ten(self):
+        self.assertEqual(InstagramPublisher.max_media, 10)
+
+    def test_youtube_allows_100_uploads_per_day(self):
+        # Not "1600 units of a 10,000/day pool" — uploads have their own meter.
+        from common.runners.publishers.youtube import DAILY_UPLOAD_ALLOWANCE
+
+        self.assertEqual(DAILY_UPLOAD_ALLOWANCE, 100)
+
+    def test_linkedin_api_version_is_not_stale(self):
+        # LinkedIn rejects versions older than roughly a year.
+        from common.runners.publishers.linkedin import DEFAULT_VERSION
+
+        self.assertGreaterEqual(int(DEFAULT_VERSION), 202600, "LinkedIn version has aged out")
+
+    def test_threads_limits(self):
+        self.assertEqual(ThreadsPublisher.max_text_chars, 500)
+        self.assertEqual(ThreadsPublisher.max_media, 20)
+        self.assertEqual(ThreadsPublisher.max_image_mb, 8.0)
+
+    def test_x_accepts_at_most_four_images(self):
+        # media_ids is documented as accepting 1-4 items.
+        self.assertEqual(XPublisher.max_media, 4)
+        self.assertEqual(XPublisher.max_text_chars, 280)
+
+    def test_x_uploads_via_the_v2_endpoint_not_the_legacy_host(self):
+        url = XPublisher().upload_url()
+        self.assertEqual(url, "https://api.x.com/2/media/upload")
+        self.assertNotIn("upload.twitter.com", url)
+
+    def test_telegram_photo_limit_is_tighter_than_the_general_upload_cap(self):
+        self.assertEqual(TelegramPublisher.max_image_mb, 10.0)
+        self.assertEqual(TelegramPublisher.max_video_mb, 50.0)
+
+    def test_tiktok_title_limit_and_max_size(self):
+        self.assertEqual(TikTokPublisher.max_text_chars, 2200)
+        self.assertEqual(TikTokPublisher.max_video_mb, 4096.0)
+
+    def test_tiktok_chunk_bounds_match_the_documented_range(self):
+        from common.runners.publishers.tiktok import MAX_CHUNK, MB, MIN_CHUNK
+
+        self.assertEqual(MIN_CHUNK, 5 * MB)
+        self.assertEqual(MAX_CHUNK, 64 * MB)
+
+    def test_linkedin_multiimage_caps_at_twenty(self):
+        self.assertEqual(LinkedInPublisher.max_media, 20)
+        self.assertEqual(LinkedInPublisher.max_text_chars, 3000)
+
+
 class TestDraftGating(MediaCase):
     def test_draft_on_a_platform_without_drafts_blocks(self):
         pub = TelegramPublisher()

@@ -63,7 +63,7 @@ refresh. `--status` shows which.
 | Message | Meaning |
 |---|---|
 | `PARTIAL: 3/6 posts published` | A thread failed part way. The earlier posts are live. Delete them by hand, or continue the thread manually — re-running would duplicate the root. |
-| 429 | Free tier is ~17 posts/24h and 500/month across the whole app. |
+| 429 | Documented ceilings are 10,000/24h per app and 100/15min per user; your plan may cap it lower. |
 | `Unsupported Authentication` | The endpoint wants OAuth 1.0a rather than the OAuth 2.0 user token. Check `X_UPLOAD_URL` against current docs. |
 | `duplicate content` | X refuses identical text posted twice in quick succession. |
 
@@ -71,7 +71,7 @@ refresh. `--status` shows which.
 
 | Message | Meaning |
 |---|---|
-| `quotaExceeded` | 1600 units per upload, 10,000/day default ≈ 6 uploads, private ones included. Resets at midnight Pacific. Request more in the Cloud console. |
+| `quotaExceeded` | 100 uploads/day by default, private ones included, on an allocation separate from the 10,000-unit pool. Resets at midnight Pacific. Request more in the Cloud console. |
 | `no refresh_token` | Google issues one only on first consent. Revoke at myaccount.google.com/permissions and authorise again. |
 | `youtubeSignupRequired` | The Google account has no YouTube channel. |
 | `uploadLimitExceeded` | Per-account daily upload cap, separate from API quota. |

@@ -134,8 +134,10 @@ skills-keys add X_CLIENT_SECRET <client-secret>
 python3 -m common.runners.cli.auth --platform x
 ```
 
-Check which tier you are on before relying on this: the free tier allows roughly
-17 posts per 24h and 500 per month across the whole app.
+Documented ceilings are 10,000 posts per 24h per app and 100 per 15 minutes per
+user. What your account may actually spend on top of that depends on the plan,
+and X has moved to pay-per-usage pricing — check current pricing before
+budgeting a cadence around this.
 
 ---
 
@@ -159,8 +161,9 @@ refresh_token", revoke the app at
 [myaccount.google.com/permissions](https://myaccount.google.com/permissions)
 and authorise again.
 
-Quota: 1600 units per upload against 10,000/day ≈ six uploads, private ones
-included.
+Uploads have their own allocation: 100 videos.insert calls per day by default,
+private ones included, separate from the 10,000-unit pool everything else
+shares.
 
 ---
 
