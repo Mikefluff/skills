@@ -59,6 +59,132 @@ failure printed all 116 findings, which is a wall nobody reads.
 largest cluster is the twenty `-maker` CLI `main()` functions, which share a
 shape and want a common skeleton rather than twenty separate edits.
 
+### Changed — the baseline is empty
+
+The 114 are gone. Twenty commits of extraction took the frozen baseline to zero,
+so every threshold is now live: a new violation is a hard failure with nothing
+to hide behind. The largest cluster went the way it was always going to — one
+skeleton for the nine maker CLIs, one HTTP layer for the vendor adapters, one
+procedure for the single-call tools.
+
+Five bugs surfaced during those refactors, three of which no test could have
+caught because nothing executed a `main()`. Each got its own commit and its own
+test.
+
+### Changed — repository layout: the 42 skills live under `skills/`
+
+The root listed fifty directories — forty-two skills and eight pieces of
+machinery, undifferentiated. It now lists nine.
+
+**Nothing changes for anyone installing.** `install.sh`, the npm package and the
+Docker image all still produce the flat `~/.claude/skills/<name>/` layout, which
+is what Claude Code expects; verified with a real install rather than a dry run.
+Only the source tree moved.
+
+What it buys: three manifests each enumerated all forty-two skills by hand, and
+a gate existed purely to catch them drifting apart. The Dockerfile drops from 42
+`COPY` lines to 1, `package.json` from 49 `files` entries to 8, and that gate
+now checks the claim that makes one `COPY` safe instead of maintaining a list.
+`skills.json` already carried a `dir` field distinct from `name` — precisely
+this seam — so `validate.sh` needed no change at all.
+
+If you reference repo paths directly (a submodule, a bookmarked
+`github.com/…/tree/main/viral-text`), add `skills/`. `CHANGELOG.md` is
+deliberately untouched: it records what was true when written.
+
+### Fixed — YouTube counted characters where the API counts bytes
+
+`snippet.description` is documented as "a maximum length of 5000 **bytes**"
+while `snippet.title` on the same page is 100 *characters*. Preflight counted
+code points for both, so a 3000-character Russian description — 6000 bytes —
+passed the gate and was rejected by the API. CJK is worse.
+
+The send path was truncating by characters too, so a fix to preflight alone
+would have left a description it had approved being cut to 5000 characters and
+posted as 10000 bytes.
+
+### Fixed — TikTok photo posts have two caption fields, and neither is the video's
+
+Photos are a different endpoint from video, with a different field table: a
+`title` capped at **90** UTF-16 runes and a `description` capped at 4000, where
+video has one `title` of 2200. One constant covered both, so the entire rendered
+caption went into `title` for every post kind — and any carousel caption over 90
+characters was a guaranteed rejection that preflight waved through at 2200.
+
+The caption now goes in `description`; `title` becomes a headline taken from
+`--title` or the first caption line. `disable_duet` / `disable_stitch` are
+dropped from the photo body, being video-only fields.
+
+Not fixed, and written down instead: TikTok documents `brand_content_toggle` and
+`brand_organic_toggle` as required on *both* endpoints and this repo sends
+neither. Whether the API actually refuses without them cannot be established
+without publishing a real post, so it is recorded in
+`skills/post-publisher/references/platform-limits.md` rather than guessed at.
+
+### Fixed — four defects found by reading, left alone mid-refactor
+
+- **`styles.anchor()` swallowed an inline field.** The walk stopped only on a
+  line starting with `**` *and* ending in `:`, so `**Best for**: weddings`
+  written under an anchor was absorbed into it. Users are invited to author
+  styles and the anchor goes into every generated prompt. The larger find was
+  that `section()` had the same stop condition copied out by hand — fixing the
+  helper would have left the copy broken. Measured across all 48 bundled styles
+  before and after: `anchor()` and `validate_style()` byte-identical, `section()`
+  different on every one (it had been silently running on; no callers).
+- **`cover_imprints.apply_text` consumed the preset it read from.** It filled the
+  shared `TypeLayout` in place, so a second cover in one process started from the
+  first cover's text — and because an empty author skipped the write, a book with
+  no author was published under the previous book's author.
+- **`cli/gif.py --yes` had no confirmation to skip.** Mode B calls a video
+  provider directly; veo-3-1 is $0.40 a second against a $0.10 threshold. Every
+  other generating CLI stops to ask. Now wired to `cost_mod.confirm`, exit 3 on
+  decline.
+- **`subtitle._cmd_burn`'s unreachable branch** was already deleted by the
+  `_resolve_cues` extraction. No change needed; the test that documents it no
+  longer describes code that is gone.
+
+### Fixed — the batch manifest could lose the run it exists to protect
+
+`write_manifest` used a plain `write_text`. The manifest is rewritten after every
+item *so that a crash is survivable*, and a crash during that write left a
+truncated file that the next `--resume` could not parse — the feature defeating
+itself in the one situation it exists for. Now atomic, via a new
+`atomicfile.write_text` that shares the replace-in-place guarantee without
+forcing the 0600 the credential stores need.
+
+### Added — the twelve unverified platform limits, read
+
+Rows in `platform-limits.md` marked `~` were ones nobody had found in the
+vendor's own documentation. Ten are now verified and marked ✅ — Telegram's
+4096/1024 split and 10 MB `sendPhoto`, X's 280 characters and 5 MB / 512 MB,
+YouTube's 100-character title and 256 GB / 12 h, LinkedIn's 500 MB video and
+4,086-character altText, Threads' 1 GB video, TikTok's 20 MB image.
+
+Two survive as `~` with the reason recorded: LinkedIn documents neither a
+`commentary` length nor an image file size anywhere in its API reference.
+
+Four constraints that are documented, real and *unenforced* are now listed
+rather than silently omitted — three video-duration limits and Telegram's photo
+dimension ceiling. Duration is the one most likely to bite: a 3-minute reel is
+well inside X's 512 MB and will still be rejected.
+
+### Added — tests for the eight modules that had none
+
+The three refactors the paydown proved byte-identical with throwaway scripts now
+carry those proofs as committed tests: `compose_book_cover` across all five
+imprints, `render_html` across 36 language × theme × brand combinations, and
+`write_brief` across 8. The cover hashes are recorded per Pillow major version
+and skip on an unrecorded one — rasterisation is FreeType's, and a hash that
+fails for somebody else's font renderer gets deleted rather than investigated.
+
+Also: the proposal CLI driven end to end through both output modes (gate 14
+proves it imports; it does not execute a line of `main()`), the brand palette
+and font pickers from both sides of every threshold, the styles `submit` package
+a human carries to GitHub, `batch.py` resume semantics, and the reel stitch
+pipeline's three degradation points.
+
+The suite goes from 403 to 599 tests.
+
 ## [2.21.1] — 2026-08-03
 
 ### Fixed — four platform constants were written from memory and were wrong
