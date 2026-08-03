@@ -222,38 +222,47 @@ echo "[7/7] distribution manifests ↔ skills.json"
 # then warned about 25 missing skills inside the very artifacts meant to
 # contain them. A registered skill that reaches neither channel is invisible to
 # everyone who did not install from the git tarball.
-if ! python3 - <<'PY'
+#
+# The per-skill enumeration this used to do is gone: both manifests now ship
+# skills/ wholesale, so there is no list left to drift. What remains is the
+# claim that makes that safe — every registered skill really is inside the
+# directory the manifests ship, and both manifests really do ship it.
+if ! python3 - <<'GATE7'
 import json, re, sys
 from pathlib import Path
 
-skills = {s["dir"] for s in json.loads(Path("skills.json").read_text(encoding="utf-8"))["skills"]}
+registered = json.loads(Path("skills.json").read_text(encoding="utf-8"))["skills"]
 errors = []
+
+for entry in registered:
+    d = Path(entry["dir"])
+    if not d.is_dir():
+        errors.append(f"skills.json points at a missing directory: {entry['dir']}")
+    elif d.parts[0] != "skills":
+        errors.append(f"{entry['name']} lives outside skills/ ({entry['dir']}) - nothing ships it")
+    elif not (d / "SKILL.md").is_file():
+        errors.append(f"{entry['dir']}/SKILL.md is missing")
 
 dockerfile = Path("Dockerfile")
 if dockerfile.is_file():
-    copied = set(re.findall(r"^COPY ([a-z0-9-]+)/", dockerfile.read_text(encoding="utf-8"), re.M))
-    missing = sorted(skills - copied)
-    if missing:
-        errors.append(f"Dockerfile does not COPY: {', '.join(missing)}")
-    if "common" not in copied:
-        errors.append("Dockerfile does not COPY common/ — the runner layer")
+    copied = set(re.findall(r"^COPY (\S+?)/", dockerfile.read_text(encoding="utf-8"), re.M))
+    for need in ("skills", "common"):
+        if need not in copied:
+            errors.append(f"Dockerfile does not COPY {need}/")
 
 pkg = Path("package.json")
 if pkg.is_file():
-    files = set(json.loads(pkg.read_text(encoding="utf-8")).get("files", []))
-    listed = {f.rstrip("/") for f in files}
-    missing = sorted(skills - listed)
-    if missing:
-        errors.append(f"package.json 'files' omits: {', '.join(missing)}")
-    if "common" not in listed:
-        errors.append("package.json 'files' omits common/")
+    listed = {f.rstrip("/") for f in json.loads(pkg.read_text(encoding="utf-8")).get("files", [])}
+    for need in ("skills", "common"):
+        if need not in listed:
+            errors.append(f"package.json 'files' omits {need}/")
 
 if errors:
     for e in errors:
         print(f"  ✗ {e}")
     sys.exit(1)
-print(f"  ✓ Dockerfile + package.json ship all {len(skills)} skills")
-PY
+print(f"  ✓ Dockerfile + package.json ship skills/ + common/ ({len(registered)} skills registered)")
+GATE7
 then
   fail "distribution manifests out of sync with skills.json"
 fi

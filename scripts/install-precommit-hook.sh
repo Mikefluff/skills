@@ -84,7 +84,7 @@ EOF
   done <<<"$staged_md"
   if [ -n "$hard_ban_files" ]; then
     echo "pre-commit: hard bans present (not blocking):$hard_ban_files"
-    echo "  run  python3 writer/scripts/lint.py <file>  to see them"
+    echo "  run  python3 skills/writer/scripts/lint.py <file>  to see them"
   fi
   if [ "$fail" = "1" ]; then
     exit 1

@@ -156,8 +156,18 @@ enumerate_skills() {
 
   if have_cmd jq; then
     ALL_SKILLS="$(jq -r '.skills[].name' "$manifest" | tr '\n' ' ')"
+    # name:dir pairs. The skill's folder in this repo is not its installed
+    # name — sources live under skills/, destinations stay flat because that
+    # is the layout ~/.claude/skills expects.
+    ALL_PAIRS="$(jq -r '.skills[] | "\(.name):\(.dir)"' "$manifest" | tr '\n' ' ')"
   else
     ALL_SKILLS="$(grep -oE '"name": *"[^"]+"' "$manifest" | sed -E 's/.*"name": *"([^"]+)".*/\1/' | tr '\n' ' ')"
+    # Same pairing without jq: both keys appear once per skill and in the same
+    # order, so lining the two lists up reproduces the mapping.
+    ALL_PAIRS="$(paste -d: \
+      <(grep -oE '"name": *"[^"]+"' "$manifest" | sed -E 's/.*"name": *"([^"]+)".*/\1/') \
+      <(grep -oE '"dir": *"[^"]+"' "$manifest" | sed -E 's/.*"dir": *"([^"]+)".*/\1/') \
+      | tr '\n' ' ')"
   fi
 
   if [ -n "$SKILLS_FILTER" ]; then
@@ -176,9 +186,21 @@ enumerate_skills() {
 
 # ---- Install ---------------------------------------------------------------
 
+# Where a skill lives in this repo. Falls back to the bare name so an older
+# manifest without a "dir" still installs.
+skill_dir() {
+  local name="$1" pair
+  for pair in $ALL_PAIRS; do
+    case "$pair" in
+      "$name":*) printf '%s' "${pair#*:}"; return ;;
+    esac
+  done
+  printf '%s' "$name"
+}
+
 install_one() {
   local name="$1"
-  local src="$SRC_DIR/$name"
+  local src="$SRC_DIR/$(skill_dir "$name")"
   local dst="$PREFIX/$name"
 
   if [ ! -d "$src" ] || [ ! -f "$src/SKILL.md" ]; then

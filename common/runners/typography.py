@@ -21,7 +21,7 @@ output size). Title at `size=0.10` means title cap-height = 10% of cover height.
 Font weight: variable fonts auto-pick by `weight` int (100-900). Static fonts ignore
 the parameter.
 
-Imprint presets (see cover-maker/references/imprints.md) compose into TypeLayout
+Imprint presets (see skills/cover-maker/references/imprints.md) compose into TypeLayout
 instances and pass through unchanged — the composer doesn't know about imprints,
 only about layout dicts.
 """

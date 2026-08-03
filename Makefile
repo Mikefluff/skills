@@ -77,7 +77,7 @@ lint: ## Run writer offline linter on every skill's examples/
 	    for f in $$skill/examples/*.md; do \
 	      [ -f "$$f" ] || continue; \
 	      echo "── $$f ──"; \
-	      python3 writer/scripts/lint.py "$$f" || true; \
+	      python3 skills/writer/scripts/lint.py "$$f" || true; \
 	      echo; \
 	    done; \
 	  fi; \
@@ -85,11 +85,11 @@ lint: ## Run writer offline linter on every skill's examples/
 
 lint-all: ## Run writer linter across every reference, example, and doc file (quiet)
 	@echo "Linting references…"
-	@find . -path './node_modules' -prune -o -path './.git' -prune -o -type f -name '*.md' -path '*/references/*' -print 2>/dev/null | xargs -n1 python3 writer/scripts/lint.py --quiet || true
+	@find . -path './node_modules' -prune -o -path './.git' -prune -o -type f -name '*.md' -path '*/references/*' -print 2>/dev/null | xargs -n1 python3 skills/writer/scripts/lint.py --quiet || true
 	@echo "Linting examples…"
-	@find . -path './node_modules' -prune -o -path './.git' -prune -o -type f -name '*.md' -path '*/examples/*' -print 2>/dev/null | xargs -n1 python3 writer/scripts/lint.py --quiet || true
+	@find . -path './node_modules' -prune -o -path './.git' -prune -o -type f -name '*.md' -path '*/examples/*' -print 2>/dev/null | xargs -n1 python3 skills/writer/scripts/lint.py --quiet || true
 	@echo "Linting docs…"
-	@find docs -type f -name '*.md' 2>/dev/null | xargs -n1 python3 writer/scripts/lint.py --quiet || true
+	@find docs -type f -name '*.md' 2>/dev/null | xargs -n1 python3 skills/writer/scripts/lint.py --quiet || true
 	@echo "lint-all: done (advisory; non-clean reports printed above)"
 
 install-precommit-hook: ## Install local .git/hooks/pre-commit (writer linter on staged .md files)

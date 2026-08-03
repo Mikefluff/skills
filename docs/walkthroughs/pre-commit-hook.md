@@ -111,11 +111,11 @@ chmod +x .git/hooks/pre-commit
 
 ## Variant B — offline-linter-only fallback
 
-This variant calls the offline regex linter directly (`writer/scripts/lint.py`) — no Claude Code roundtrip. Much faster (~50ms), much narrower coverage (regex-only, no LLM reasoning). Use this if you're committing often and don't want the latency, or if you don't have `claude` in the commit-time environment.
+This variant calls the offline regex linter directly (`skills/writer/scripts/lint.py`) — no Claude Code roundtrip. Much faster (~50ms), much narrower coverage (regex-only, no LLM reasoning). Use this if you're committing often and don't want the latency, or if you don't have `claude` in the commit-time environment.
 
 ```bash
 #!/usr/bin/env bash
-# pre-commit hook — offline-only neuroslop check via writer/scripts/lint.py.
+# pre-commit hook — offline-only neuroslop check via skills/writer/scripts/lint.py.
 #
 # Faster but narrower than Variant A. Catches regex-detectable patterns;
 # misses voice drift, structural synthesis nuance, canon issues.
@@ -129,7 +129,7 @@ set -uo pipefail
 LINTER="$HOME/.claude/skills/writer/scripts/lint.py"
 
 if [ ! -f "$LINTER" ]; then
-  echo "[pre-commit] writer/scripts/lint.py not found at $LINTER — skipping"
+  echo "[pre-commit] skills/writer/scripts/lint.py not found at $LINTER — skipping"
   exit 0
 fi
 
@@ -193,7 +193,7 @@ If you want WARNING to also block (no prompt), replace the `1)` case in Variant 
 
 ## Configuring routing for your project
 
-`style-check` decides which rule layer (fiction / non-fiction / generic) to apply by file path. The default patterns are illustrative — adapt to your project's directory layout. Full table and override pattern: [style-check/references/routing.md](../../style-check/references/routing.md).
+`style-check` decides which rule layer (fiction / non-fiction / generic) to apply by file path. The default patterns are illustrative — adapt to your project's directory layout. Full table and override pattern: [skills/style-check/references/routing.md](../../skills/style-check/references/routing.md).
 
 Quick example: if your fiction lives in `novels/**/*.tex` instead of `fiction/**/*.md`, you tell the skill that once (per-project config) and the hook picks it up automatically.
 
@@ -230,7 +230,7 @@ If `/usr/bin/env` doesn't find a bash, replace with `/bin/bash`. If you need bas
 
 `style-check` shouldn't false-positive on staccato or inversions that are intentionally part of your voice — the fiction layer (`prose-edit`) knows about that. But the offline linter (Variant B) is regex-only and can false-positive on, e.g., a deliberate three-word sentence.
 
-If it's a one-off — `--no-verify` and move on. If it's a pattern: see [style-check/references/severity.md](../../style-check/references/severity.md) for how to demote a category from BLOCKING to WARNING (or to silence) for your project.
+If it's a one-off — `--no-verify` and move on. If it's a pattern: see [skills/style-check/references/severity.md](../../skills/style-check/references/severity.md) for how to demote a category from BLOCKING to WARNING (or to silence) for your project.
 
 ### Hook doesn't run
 
@@ -247,5 +247,5 @@ If not executable: `chmod +x .git/hooks/pre-commit`. If the file isn't there at 
 
 - [translation-parity.md](translation-parity.md) — wire `translation-sync` the same way for multilingual books
 - [fiction-chapter.md](fiction-chapter.md) — the manual workflow this hook automates
-- [style-check/references/pre-commit-hook.md](../../style-check/references/pre-commit-hook.md) — additional snippets and patterns
+- [skills/style-check/references/pre-commit-hook.md](../../skills/style-check/references/pre-commit-hook.md) — additional snippets and patterns
 - [docs/FAQ.md](../FAQ.md) — common questions

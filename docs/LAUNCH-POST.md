@@ -55,7 +55,7 @@ Two paths: (a) local override of `references/*.md` files (survives until `--upda
 
 **Q: Can I run this without Claude Code?**
 
-The linter, yes. `python3 writer/scripts/lint.py file.md` works standalone. The wrappers require Claude Code (they're LLM-driven by design). Docker image (`ghcr.io/mikefluff/skills`) exposes the linter for CI without any Python install.
+The linter, yes. `python3 skills/writer/scripts/lint.py file.md` works standalone. The wrappers require Claude Code (they're LLM-driven by design). Docker image (`ghcr.io/mikefluff/skills`) exposes the linter for CI without any Python install.
 
 **Q: Why MIT?**
 

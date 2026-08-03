@@ -170,7 +170,7 @@ If your chapter is a hypothesis chapter (claim isn't established fact), the skil
 <paste research abstract>
 ```
 
-Use cases: turning a casual brain-dump into an exec memo, rewriting an academic paragraph for a general audience, softening corporate-speak to friendly-professional. Preserves facts, structure, and information — shifts vocabulary, sentence length, contractions, hedges, jargon level. See `tone-shifter/references/registers.md` for the full taxonomy.
+Use cases: turning a casual brain-dump into an exec memo, rewriting an academic paragraph for a general audience, softening corporate-speak to friendly-professional. Preserves facts, structure, and information — shifts vocabulary, sentence length, contractions, hedges, jargon level. See `skills/tone-shifter/references/registers.md` for the full taxonomy.
 
 ---
 
@@ -188,7 +188,7 @@ Use cases: turning a casual brain-dump into an exec memo, rewriting an academic 
 /cold-email intro-request via=Marcus to="CISO at MegaCorp" why="audit-log compression"
 ```
 
-Modes: `first-touch`, `follow-up`, `intro-request` (produces both the email to the intro-giver and the forwardable block), `re-engage`, `forwardable`. See `cold-email/references/structure.md` for the per-variant template.
+Modes: `first-touch`, `follow-up`, `intro-request` (produces both the email to the intro-giver and the forwardable block), `re-engage`, `forwardable`. See `skills/cold-email/references/structure.md` for the per-variant template.
 
 ---
 
@@ -206,7 +206,7 @@ Modes: `first-touch`, `follow-up`, `intro-request` (produces both the email to t
 /image-prompt minimalist product shot of wireless earbuds --model flux-pro --variants 3
 ```
 
-Targets supported: `midjourney-v6`, `dalle-3`, `flux-pro`, `nano-banana`, `sdxl`. Default style is photorealistic; `--style illustration` / `editorial` / `cinematic` overrides. Lighting and camera vocabulary live in `image-prompt/references/`.
+Targets supported: `midjourney-v6`, `dalle-3`, `flux-pro`, `nano-banana`, `sdxl`. Default style is photorealistic; `--style illustration` / `editorial` / `cinematic` overrides. Lighting and camera vocabulary live in `skills/image-prompt/references/`.
 
 **Execute via API** (v2.2+, optional). When an API key is set in env, add `--execute` to actually generate the image and save it:
 
@@ -215,7 +215,7 @@ Targets supported: `midjourney-v6`, `dalle-3`, `flux-pro`, `nano-banana`, `sdxl`
 /image-prompt minimalist product shot --model imagen-4-ultra --execute --yes
 ```
 
-Asset lands in `./generated/image/`. Cost confirmation prompts for anything above $0.10 unless `--yes`. Missing key → falls back to prompt-only. Setup: `install.sh` auto-creates the runners venv and installs deps; you only need to export `OPENAI_API_KEY` / `GEMINI_API_KEY` / `BFL_API_KEY` / `FAL_KEY` / `REPLICATE_API_TOKEN` / `IDEOGRAM_API_KEY`. Full provider matrix in `image-prompt/references/execute.md`.
+Asset lands in `./generated/image/`. Cost confirmation prompts for anything above $0.10 unless `--yes`. Missing key → falls back to prompt-only. Setup: `install.sh` auto-creates the runners venv and installs deps; you only need to export `OPENAI_API_KEY` / `GEMINI_API_KEY` / `BFL_API_KEY` / `FAL_KEY` / `REPLICATE_API_TOKEN` / `IDEOGRAM_API_KEY`. Full provider matrix in `skills/image-prompt/references/execute.md`.
 
 ---
 
@@ -239,7 +239,7 @@ Targets: `kling`, `veo`, `sora`, `runway`, `pika`, `hailuo`, `luma`. Each parses
 /video-prompt add snowfall to dusk --model aleph --video-url ./clip.mp4 --execute
 ```
 
-Setup adds `RUNWAY_API_KEY`, `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET`, `OPENAI_SORA_API_ENABLED=1` (once Sora API is available). Full matrix in `video-prompt/references/execute.md`.
+Setup adds `RUNWAY_API_KEY`, `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET`, `OPENAI_SORA_API_ENABLED=1` (once Sora API is available). Full matrix in `skills/video-prompt/references/execute.md`.
 
 ---
 
@@ -255,7 +255,7 @@ Setup adds `RUNWAY_API_KEY`, `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET`, 
 /music-prompt indie folk ballad, breathy female vocal --model eleven-music --exclude "abrupt ending, electronic drums"
 ```
 
-Targets: `suno-v5-5`, `udio-v4`, `lyria-3-pro`, `eleven-music`, `stable-audio-2-5`, `musicgen`, `tencent-song-generation`, `sonauto-v2`, `riffusion`, `mubert`. Genre recipes (`hyperpop`, `drill`, `country`, `lo-fi`, `ambient`, `orchestral`, `k-pop`, `afrobeats`, `jazz-fusion`, `hardcore-punk`, `synthwave`, `gospel`) live in `music-prompt/references/genre-recipes.md`. For Suno: brackets go in the Lyrics box ONLY; the Style of Music box accepts natural language only.
+Targets: `suno-v5-5`, `udio-v4`, `lyria-3-pro`, `eleven-music`, `stable-audio-2-5`, `musicgen`, `tencent-song-generation`, `sonauto-v2`, `riffusion`, `mubert`. Genre recipes (`hyperpop`, `drill`, `country`, `lo-fi`, `ambient`, `orchestral`, `k-pop`, `afrobeats`, `jazz-fusion`, `hardcore-punk`, `synthwave`, `gospel`) live in `skills/music-prompt/references/genre-recipes.md`. For Suno: brackets go in the Lyrics box ONLY; the Style of Music box accepts natural language only.
 
 **Execute via API** (v2.2+, optional). Suno's two-box workflow maps to `--prompt` (style box) + `--lyrics-file` (lyrics box):
 
@@ -265,7 +265,7 @@ Targets: `suno-v5-5`, `udio-v4`, `lyria-3-pro`, `eleven-music`, `stable-audio-2-
 /music-prompt indie folk ballad --model eleven-music --execute
 ```
 
-Setup adds `SUNO_API_KEY` + `SUNO_API_ENABLED=1`, `ELEVENLABS_API_KEY`, `LYRIA_API_ENABLED=1`. Full matrix in `music-prompt/references/execute.md`.
+Setup adds `SUNO_API_KEY` + `SUNO_API_ENABLED=1`, `ELEVENLABS_API_KEY`, `LYRIA_API_ENABLED=1`. Full matrix in `skills/music-prompt/references/execute.md`.
 
 ---
 
@@ -382,7 +382,7 @@ Default cost: $0.32-0.80 per 8-slide carousel depending on model. Budget cap: `S
 
 **Animate it** (v2.19.0+): add `--animate` and the deck continues into an animated reel — each slide becomes a 4s image-to-video shot (subtle character micro-gesture, all overlay text frozen via the video-chain discipline), ffmpeg-stitched into one final.mp4. `--animate-provider veo-3-1-fast` (default, $0.15/s) or `veo-3-1` for publication-grade text stability. 5 slides × 4s ≈ $3.00 on Fast. The motion prompts are written by the shared [video chain](../common/video-prompt-library/system-prompt.md) — not by hand.
 
-For details: [carousel-builder/SKILL.md](../carousel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
+For details: [skills/carousel-builder/SKILL.md](../skills/carousel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
 
 ---
 
@@ -396,7 +396,7 @@ For details: [carousel-builder/SKILL.md](../carousel-builder/SKILL.md) and [rese
 /cover-maker --title "Slow Software Podcast" --creator "Hosted by Alex" --medium podcast --style swiss-grid-poster --execute
 ```
 
-For details: [cover-maker/SKILL.md](../cover-maker/SKILL.md).
+For details: [skills/cover-maker/SKILL.md](../skills/cover-maker/SKILL.md).
 
 ---
 
@@ -410,7 +410,7 @@ For details: [cover-maker/SKILL.md](../cover-maker/SKILL.md).
 /thumbnail-maker --title "Why We Killed Our Roadmap" --photo ./guest.jpg --type podcast-episode --variants 2 --execute
 ```
 
-For details: [thumbnail-maker/SKILL.md](../thumbnail-maker/SKILL.md).
+For details: [skills/thumbnail-maker/SKILL.md](../skills/thumbnail-maker/SKILL.md).
 
 ---
 
@@ -424,7 +424,7 @@ For details: [thumbnail-maker/SKILL.md](../thumbnail-maker/SKILL.md).
 /bg-remover --image ./portrait.jpg --replicate-model pollinations/modnet --execute
 ```
 
-For details: [bg-remover/SKILL.md](../bg-remover/SKILL.md).
+For details: [skills/bg-remover/SKILL.md](../skills/bg-remover/SKILL.md).
 
 ---
 
@@ -450,7 +450,7 @@ Style library: reuses the 24 carousel styles, filtered to photoreal-friendly (`-
 
 Cost: $0.15-0.45 per typical run (1-3 aspects × 3 variants × $0.05 NBP). Under default budget.
 
-For details: [avatar-maker/SKILL.md](../avatar-maker/SKILL.md) · [model-picker](../avatar-maker/references/model-picker.md).
+For details: [skills/avatar-maker/SKILL.md](../skills/avatar-maker/SKILL.md) · [model-picker](../skills/avatar-maker/references/model-picker.md).
 
 ---
 
@@ -474,7 +474,7 @@ Auto-pick:
 
 Outputs `./generated/audio/<timestamp>-<model>.mp3`. Cost preview built in; confirmation past $0.10.
 
-For details: [voiceover-maker/SKILL.md](../voiceover-maker/SKILL.md) · [voice-picker](../voiceover-maker/references/voice-picker.md) · [script-format](../voiceover-maker/references/script-format.md).
+For details: [skills/voiceover-maker/SKILL.md](../skills/voiceover-maker/SKILL.md) · [voice-picker](../skills/voiceover-maker/references/voice-picker.md) · [script-format](../skills/voiceover-maker/references/script-format.md).
 
 ---
 
@@ -501,7 +501,7 @@ Output: `<video>-subtitled<ext>` (or `--output <path>`).
 
 ffmpeg required. install.sh offers auto-install. No per-run cost.
 
-For details: [subtitle-burner/SKILL.md](../subtitle-burner/SKILL.md) · [subtitle-formats](../subtitle-burner/references/subtitle-formats.md) · [ffmpeg-styling](../subtitle-burner/references/ffmpeg-styling.md).
+For details: [skills/subtitle-burner/SKILL.md](../skills/subtitle-burner/SKILL.md) · [subtitle-formats](../skills/subtitle-burner/references/subtitle-formats.md) · [ffmpeg-styling](../skills/subtitle-burner/references/ffmpeg-styling.md).
 
 ---
 
@@ -529,7 +529,7 @@ Outputs `./generated/flyer/<event-slug>/`:
 
 Default cost: $0.15-0.50 per 3-aspect run depending on model. Budget cap inherits from `SKILLS_CAROUSEL_BUDGET=1.50`.
 
-For details: [flyer-maker/SKILL.md](../flyer-maker/SKILL.md) and [flyer-maker/examples/before-after.md](../flyer-maker/examples/before-after.md).
+For details: [skills/flyer-maker/SKILL.md](../skills/flyer-maker/SKILL.md) and [skills/flyer-maker/examples/before-after.md](../skills/flyer-maker/examples/before-after.md).
 
 ---
 
@@ -557,7 +557,7 @@ Cost: $2-6 per 15s reel depending on video provider. Default budget cap: `SKILLS
 
 ffmpeg required for final stitch. install.sh offers to `brew install ffmpeg` / `apt-get install -y ffmpeg` automatically. Without ffmpeg, shots + music save separately and the skill prints the manual stitch command.
 
-For details: [reel-builder/SKILL.md](../reel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
+For details: [skills/reel-builder/SKILL.md](../skills/reel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
 
 ---
 
@@ -607,12 +607,12 @@ audit, and an unaudited app has every post silently forced to SELF_ONLY — the
 API reports success and nobody can see the post. Use `--draft`, which lands it
 in the app inbox and always works.
 
-Setup per platform: [post-publisher/references/oauth-setup.md](../post-publisher/references/oauth-setup.md).
+Setup per platform: [skills/post-publisher/references/oauth-setup.md](../skills/post-publisher/references/oauth-setup.md).
 When the API path is genuinely closed (unaudited TikTok, personal Instagram,
-company LinkedIn pages), [browser-fallback.md](../post-publisher/references/browser-fallback.md)
+company LinkedIn pages), [browser-fallback.md](../skills/post-publisher/references/browser-fallback.md)
 covers posting by hand without breaking the receipt trail.
 
-For details: [post-publisher/SKILL.md](../post-publisher/SKILL.md) and
+For details: [skills/post-publisher/SKILL.md](../skills/post-publisher/SKILL.md) and
 [publish-to-social](walkthroughs/publish-to-social.md).
 
 ---
@@ -631,7 +631,7 @@ Single image output (no aspect multiplexing — logos work the same at all sizes
 
 To get transparent BG: chain with `bg-remover`. To get SVG: pick best variant → vector tool → auto-trace.
 
-For details: [logo-maker/SKILL.md](../logo-maker/SKILL.md) · [style-presets](../logo-maker/references/style-presets.md).
+For details: [skills/logo-maker/SKILL.md](../skills/logo-maker/SKILL.md) · [style-presets](../skills/logo-maker/references/style-presets.md).
 
 ---
 
@@ -649,7 +649,7 @@ Style presets: `minimal-serif` (literary/philosophical), `swiss-grid-poster` (ma
 
 ≤20 words per quote. Past that, use `carousel-builder` to split across slides.
 
-For details: [quote-card-maker/SKILL.md](../quote-card-maker/SKILL.md) · [style-presets](../quote-card-maker/references/style-presets.md).
+For details: [skills/quote-card-maker/SKILL.md](../skills/quote-card-maker/SKILL.md) · [style-presets](../skills/quote-card-maker/references/style-presets.md).
 
 ---
 
@@ -667,7 +667,7 @@ For details: [quote-card-maker/SKILL.md](../quote-card-maker/SKILL.md) · [style
 
 ffmpeg required. install.sh offers auto-install. Mode B cost: $1.20-3.00 per 3-sec clip depending on provider.
 
-For details: [gif-maker/SKILL.md](../gif-maker/SKILL.md) · [quality-tuning](../gif-maker/references/quality-tuning.md) · [model-picker](../gif-maker/references/model-picker.md).
+For details: [skills/gif-maker/SKILL.md](../skills/gif-maker/SKILL.md) · [quality-tuning](../skills/gif-maker/references/quality-tuning.md) · [model-picker](../skills/gif-maker/references/model-picker.md).
 
 ---
 
@@ -683,7 +683,7 @@ For details: [gif-maker/SKILL.md](../gif-maker/SKILL.md) · [quality-tuning](../
 
 Defaults: `--presets og,linkedin-ad --variants 1 --style auto --model ideogram-3-quality`. Presets are at @2x retina resolution; downscale for 1× platform upload.
 
-For details: [banner-maker/SKILL.md](../banner-maker/SKILL.md) · [aspect-presets](../banner-maker/references/aspect-presets.md) · [composition-zones](../banner-maker/references/composition-zones.md).
+For details: [skills/banner-maker/SKILL.md](../skills/banner-maker/SKILL.md) · [aspect-presets](../skills/banner-maker/references/aspect-presets.md) · [composition-zones](../skills/banner-maker/references/composition-zones.md).
 
 ---
 
@@ -699,7 +699,7 @@ For details: [banner-maker/SKILL.md](../banner-maker/SKILL.md) · [aspect-preset
 
 Defaults: `--variants 3 --aspect square --template custom --model gpt-image-2`. Captions auto-uppercase for English; mixed-case for Cyrillic.
 
-For details: [meme-card-maker/SKILL.md](../meme-card-maker/SKILL.md) · [templates](../meme-card-maker/references/templates.md) · [typography](../meme-card-maker/references/typography.md).
+For details: [skills/meme-card-maker/SKILL.md](../skills/meme-card-maker/SKILL.md) · [templates](../skills/meme-card-maker/references/templates.md) · [typography](../skills/meme-card-maker/references/typography.md).
 
 ---
 
@@ -715,7 +715,7 @@ For details: [meme-card-maker/SKILL.md](../meme-card-maker/SKILL.md) · [templat
 
 Cost: ~$0.005-0.02 per image. Output: `./generated/upscaled/<stem>-<scale>x.png` (or `--output`).
 
-For details: [upscaler/SKILL.md](../upscaler/SKILL.md) · [providers](../upscaler/references/providers.md) · [use-cases](../upscaler/references/use-cases.md).
+For details: [skills/upscaler/SKILL.md](../skills/upscaler/SKILL.md) · [providers](../skills/upscaler/references/providers.md) · [use-cases](../skills/upscaler/references/use-cases.md).
 
 ---
 
@@ -731,7 +731,7 @@ For details: [upscaler/SKILL.md](../upscaler/SKILL.md) · [providers](../upscale
 
 No API calls — pure ffmpeg. ffmpeg required.
 
-For details: [audio-mix-maker/SKILL.md](../audio-mix-maker/SKILL.md) · [modes](../audio-mix-maker/references/modes.md).
+For details: [skills/audio-mix-maker/SKILL.md](../skills/audio-mix-maker/SKILL.md) · [modes](../skills/audio-mix-maker/references/modes.md).
 
 ---
 
@@ -749,7 +749,7 @@ Style presets: `watercolor` / `oil-painting` / `sketch` / `line-art` / `ink-wash
 
 Cost: ~$0.05 per image. Output: `./generated/stylized/<stem>-<style>.png`.
 
-For details: [style-transfer/SKILL.md](../style-transfer/SKILL.md) · [styles](../style-transfer/references/styles.md).
+For details: [skills/style-transfer/SKILL.md](../skills/style-transfer/SKILL.md) · [styles](../skills/style-transfer/references/styles.md).
 
 ---
 
@@ -772,7 +772,7 @@ Chain with `subtitle-burner` for end-to-end auto-captioning:
 /subtitle-burner burn ./video.mp4 --subtitle ./captions.srt --style modern --output ./video-captioned.mp4
 ```
 
-For details: [transcribe-maker/SKILL.md](../transcribe-maker/SKILL.md) · [formats](../transcribe-maker/references/formats.md) · [preprocessing](../transcribe-maker/references/preprocessing.md).
+For details: [skills/transcribe-maker/SKILL.md](../skills/transcribe-maker/SKILL.md) · [formats](../skills/transcribe-maker/references/formats.md) · [preprocessing](../skills/transcribe-maker/references/preprocessing.md).
 
 ---
 
@@ -787,9 +787,9 @@ For details: [transcribe-maker/SKILL.md](../transcribe-maker/SKILL.md) · [forma
 /proposal-maker --offer ./offer.txt --quick --template dark --pdf            # offline, no LLM
 ```
 
-**Saved brand profiles** — client-ready designs are saved under [proposal-maker/brands/](../proposal-maker/brands/_index.md) (`brand.json` tokens + authored `template.html` to clone + cached assets). Profiles encode manual corrections a live scrape gets wrong (dark Tilda sites scrape as light; white SVG logos vanish). After finishing a proposal for a new brand, save it as a profile.
+**Saved brand profiles** — client-ready designs are saved under [proposal-maker/brands/](../skills/proposal-maker/brands/_index.md) (`brand.json` tokens + authored `template.html` to clone + cached assets). Profiles encode manual corrections a live scrape gets wrong (dark Tilda sites scrape as light; white SVG logos vanish). After finishing a proposal for a new brand, save it as a profile.
 
-For details: [proposal-maker/SKILL.md](../proposal-maker/SKILL.md) · [examples](../proposal-maker/examples/before-after.md).
+For details: [skills/proposal-maker/SKILL.md](../skills/proposal-maker/SKILL.md) · [examples](../skills/proposal-maker/examples/before-after.md).
 
 ---
 
@@ -816,7 +816,7 @@ For details: [proposal-maker/SKILL.md](../proposal-maker/SKILL.md) · [examples]
 
 After `add`, the file is a skeleton with `<placeholder>` text. Either edit yourself or ask Claude in chat to fill the content based on your description, then `validate`.
 
-For details: [skills-styles/SKILL.md](../skills-styles/SKILL.md) · [usage reference](../skills-styles/references/usage.md) · [templates schema](../skills-styles/references/templates.md).
+For details: [skills/skills-styles/SKILL.md](../skills/skills-styles/SKILL.md) · [usage reference](../skills/skills-styles/references/usage.md) · [templates schema](../skills/skills-styles/references/templates.md).
 
 ---
 
@@ -836,7 +836,7 @@ Output is a complete entry in the v2.15.0 schema — background, accents, elemen
 
 Difference from `/skills-styles`: that one manages the *carousel / video / music* style library by hand (list, add from template, edit, validate, submit). This one *authors* a visual-prompt entry from your description or image.
 
-For details: [style-suggest/SKILL.md](../style-suggest/SKILL.md).
+For details: [skills/style-suggest/SKILL.md](../skills/style-suggest/SKILL.md).
 
 ---
 
@@ -854,9 +854,9 @@ The default flow is LLM-authored: a Python step builds the brand kit (site scree
 
 `--quick` skips the brand scrape and renders one of three fixed themes (editorial / invoice / dark) — useful with no network or when the client has no site. Output prints to a link-preserving, Ghostscript-compressed PDF.
 
-Saved brand profiles live in [proposal-maker/brands/](../proposal-maker/brands/_index.md) and can be reused across proposals for the same client.
+Saved brand profiles live in [proposal-maker/brands/](../skills/proposal-maker/brands/_index.md) and can be reused across proposals for the same client.
 
-For details: [proposal-maker/SKILL.md](../proposal-maker/SKILL.md).
+For details: [skills/proposal-maker/SKILL.md](../skills/proposal-maker/SKILL.md).
 
 ---
 
@@ -883,7 +883,7 @@ The file lives at `~/.skills.env` (override via `SKILLS_KEYS_FILE`), chmod 600. 
 
 Verify covers 9 providers via lightweight HTTP probes (OpenAI, Gemini, Anthropic, BFL, Ideogram, Replicate, FAL, Runway, ElevenLabs). Suno + Kling don't expose verify-friendly endpoints — they show `unsupported`.
 
-For details: [skills-keys/SKILL.md](../skills-keys/SKILL.md) and [skills-keys/references/usage.md](../skills-keys/references/usage.md).
+For details: [skills/skills-keys/SKILL.md](../skills/skills-keys/SKILL.md) and [skills/skills-keys/references/usage.md](../skills/skills-keys/references/usage.md).
 
 ---
 
@@ -966,11 +966,11 @@ Image tags: `latest` (main branch), `X.Y.Z` (pinned, no `v` prefix — Docker co
 
 Each skill respects what's in its own `references/` directory — you can tune behaviour without forking by overriding routing patterns, terminology canons, banned-construction lists, and so on. See the relevant skill's `references/` files for what's configurable:
 
-- `style-check/references/routing.md` — which file patterns route to fiction vs non-fiction lint
-- `translation-sync/references/terminology.md` — your project's term registry (Pointer Architecture, etc.)
-- `translation-sync/references/anchor-quotes.md` — canonical translations for your quoted passages
-- `canon-check/references/routing.md` — which book paths map to which story bible
-- `writer/references/ru-calques.md` — your own additions to the calque dictionary
+- `skills/style-check/references/routing.md` — which file patterns route to fiction vs non-fiction lint
+- `skills/translation-sync/references/terminology.md` — your project's term registry (Pointer Architecture, etc.)
+- `skills/translation-sync/references/anchor-quotes.md` — canonical translations for your quoted passages
+- `skills/canon-check/references/routing.md` — which book paths map to which story bible
+- `skills/writer/references/ru-calques.md` — your own additions to the calque dictionary
 
 ---
 

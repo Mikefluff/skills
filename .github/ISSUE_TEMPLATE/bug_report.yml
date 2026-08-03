@@ -48,7 +48,7 @@ body:
       description: Exact commands or prompts. Paste them, don't summarize.
       placeholder: |
         1. cat input.md  (attach content if non-trivial)
-        2. python3 writer/scripts/lint.py input.md
+        2. python3 skills/writer/scripts/lint.py input.md
         3. observed: ...
         4. expected: ...
     validations:

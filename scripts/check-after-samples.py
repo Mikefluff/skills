@@ -2,7 +2,7 @@
 """Lint the AFTER samples inside examples/before-after.md files.
 
 Why this exists as a separate check: calibration samples live inside fenced code
-blocks, and `writer/scripts/lint.py` masks fenced blocks by default. So the one
+blocks, and `skills/writer/scripts/lint.py` masks fenced blocks by default. So the one
 thing a model copies verbatim — the "После" sample — is exactly the thing the
 linter never sees. This closes that hole.
 
@@ -30,7 +30,7 @@ import pathlib
 import re
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "writer" / "scripts"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "skills" / "writer" / "scripts"))
 import lint as L  # noqa: E402
 
 CHECKED = {"EM_DASH_RU", "NEG_PARALLEL", "CHOPPED_DRAMA"}

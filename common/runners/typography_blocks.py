@@ -20,7 +20,7 @@ from PIL import ImageDraw, ImageFont
 
 # ─── default fonts directory (overridable) ─────────────────────────────────────
 
-DEFAULT_FONTS_DIR = Path(__file__).resolve().parents[2] / "cover-maker" / "fonts"
+DEFAULT_FONTS_DIR = Path(__file__).resolve().parents[2] / "skills" / "cover-maker" / "fonts"
 
 
 # ─── known font mapping ────────────────────────────────────────────────────────

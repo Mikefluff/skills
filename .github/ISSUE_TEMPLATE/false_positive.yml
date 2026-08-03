@@ -13,7 +13,7 @@ body:
     attributes:
       label: Which skill / linter fired?
       options:
-        - writer (writer/scripts/lint.py)
+        - writer (skills/writer/scripts/lint.py)
         - viral-text
         - prose-edit
         - essay-write
@@ -56,7 +56,7 @@ body:
       label: Why this is legitimate prose
       description: |
         Why is the regex wrong here? Is it: an idiom, a domain term, a quoted speech, an intentional stylistic device?
-        Reference `writer/references/structural-prose.md` or `writer/references/neuroslop-categories.md` if the rule has documented exceptions.
+        Reference `skills/writer/references/structural-prose.md` or `skills/writer/references/neuroslop-categories.md` if the rule has documented exceptions.
       placeholder: |
         "Truly remarkable" used here as a descriptive adjective for an antique camera in dialogue —
         not as the AI intensifier pattern (where it's a hollow modifier on an abstract noun).

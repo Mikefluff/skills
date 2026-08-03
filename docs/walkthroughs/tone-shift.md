@@ -23,7 +23,7 @@ skills:
 
 ## Intent — что значит «register»
 
-Шесть фиксированных мишеней (см. `tone-shifter/references/registers.md`):
+Шесть фиксированных мишеней (см. `skills/tone-shifter/references/registers.md`):
 
 - `business-formal` — quarterly report, board memo, legal-adjacent comms
 - `business-casual` — internal Slack-but-written, weekly update, customer support email
@@ -226,7 +226,7 @@ will use `pg_logical_replication_slot` with `streaming=on` and
 
 ### Хочу сохранить одну фразу как есть
 
-Оберни её в `{{ keep: ... }}` — скилл уважает sentinel-маркеры. Полный список в `tone-shifter/references/transformation-rules.md`.
+Оберни её в `{{ keep: ... }}` — скилл уважает sentinel-маркеры. Полный список в `skills/tone-shifter/references/transformation-rules.md`.
 
 ### Diff слишком большой, нечитаем
 
@@ -273,4 +273,4 @@ will use `pg_logical_replication_slot` with `streaming=on` and
 - [pre-commit-hook.md](pre-commit-hook.md) — автоматизировать style-check после tone-shift'а
 - [style-check-gate.md](style-check-gate.md) — verify, что shift не оставил AI-tells
 - [microcopy-error-states.md](microcopy-error-states.md) — родственная задача, но для UX строк
-- [writer/SKILL.md](../../writer/SKILL.md) — финальный слой, который гонится после tone-shift
+- [skills/writer/SKILL.md](../../skills/writer/SKILL.md) — финальный слой, который гонится после tone-shift

@@ -2,7 +2,7 @@
 
 Shared anti-patterns across `landing-copy` and `microcopy`. The base linter
 catches the regex-detectable subset under `EMPTY_CTA` (see
-`writer/scripts/lint.py`).
+`skills/writer/scripts/lint.py`).
 
 A CTA's job is to commit the reader to a specific next action. Empty CTAs
 default the click to a vague verb that could mean anything; users either ignore
@@ -70,4 +70,4 @@ the budget is tighter:
 - Don't use "OK" or "Yes" alone in destructive-action confirmations — name the
   destruction ("Delete account")
 
-See `microcopy/references/element-types.md` for the full per-element budget.
+See `skills/microcopy/references/element-types.md` for the full per-element budget.

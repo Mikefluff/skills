@@ -73,7 +73,7 @@ skills:
 
 ## Этап 5. Длинные сложноподчинённые
 
-Главный voice-приём `essay-write` — фраза, в которой главный тезис тянется через подчинение, конкретный образ или скобку-уточнение, и заканчивается ироничным хвостом. Двух- и трёх-этажные конструкции (см. [essay-write/references/voice-long-sentences.md](../../essay-write/references/voice-long-sentences.md)).
+Главный voice-приём `essay-write` — фраза, в которой главный тезис тянется через подчинение, конкретный образ или скобку-уточнение, и заканчивается ироничным хвостом. Двух- и трёх-этажные конструкции (см. [skills/essay-write/references/voice-long-sentences.md](../../skills/essay-write/references/voice-long-sentences.md)).
 
 **Плоский вариант (то, что не нужно):**
 
@@ -119,7 +119,7 @@ skills:
   не различает планировщики цифровой/бумажный.
 ```
 
-Без falsification block гипотеза не публикуется. Это правило, не вкусовщина — см. [essay-write/references/structure.md](../../essay-write/references/structure.md) раздел V/H/P.
+Без falsification block гипотеза не публикуется. Это правило, не вкусовщина — см. [skills/essay-write/references/structure.md](../../skills/essay-write/references/structure.md) раздел V/H/P.
 
 ## Этап 7. Точечный рерайт
 
@@ -139,7 +139,7 @@ skills:
 /pelevin-digression at essay.md:L342 "почему 1 января — это бренд, а не дата"
 ```
 
-Скилл пишет 200-400 слов через 12 структурных техник (см. [pelevin-digression/SKILL.md](../../pelevin-digression/SKILL.md)), потом финальный пасс через `essay-write` (потому что файл — нон-фикшн), и в самом конце — `writer` (25 категорий нейрослопа). Применять **по запросу**, не ко всей главе.
+Скилл пишет 200-400 слов через 12 структурных техник (см. [skills/pelevin-digression/SKILL.md](../../skills/pelevin-digression/SKILL.md)), потом финальный пасс через `essay-write` (потому что файл — нон-фикшн), и в самом конце — `writer` (25 категорий нейрослопа). Применять **по запросу**, не ко всей главе.
 
 ## Чем эссе отличается от виралки
 
@@ -177,5 +177,5 @@ skills:
 - [docs/COMPOSING.md](../COMPOSING.md) — паттерн «эссе + дигрессия»
 - [viral-post.md](viral-post.md) — если задача всё же виральная
 - [fiction-chapter.md](fiction-chapter.md) — если в эссе вкралась сцена
-- [essay-write/references/sourcing.md](../../essay-write/references/sourcing.md) — формат источников
+- [skills/essay-write/references/sourcing.md](../../skills/essay-write/references/sourcing.md) — формат источников
 - [docs/FAQ.md](../FAQ.md) — частые вопросы

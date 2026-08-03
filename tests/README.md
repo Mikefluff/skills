@@ -18,7 +18,7 @@ tests/
 │   ├── rhythm_monotone.md       # uniform sentence length — RHYTHM_MONOTONE only
 │   └── fiction_dialogue.md      # em-dash dialogue — must pass under --fiction
 ├── snapshots/
-│   └── *.json                # frozen `python3 writer/scripts/lint.py <fixture> --json` output
+│   └── *.json                # frozen `python3 skills/writer/scripts/lint.py <fixture> --json` output
 ├── unit/                     # stdlib unittest over common/runners — 80 tests, runs in CI
 │   ├── test_cost.py             # the module that guards user money
 │   ├── test_keysfile.py         # secret storage, masking, shell-export escaping
@@ -38,7 +38,7 @@ tests/
 
 Run the unit layer alone with `make test-unit`; see [evals/README.md](evals/README.md) for the model-in-the-loop layer.
 
-Fixtures named `fiction_*` are linted with `--fiction`, which demotes the RU em-dash ban from blocker to nit. That mirrors `writer/references/typography.md`, which bans the em-dash in prose but leaves book typesetting alone — without the flag, every dialogue line would fail the gate.
+Fixtures named `fiction_*` are linted with `--fiction`, which demotes the RU em-dash ban from blocker to nit. That mirrors `skills/writer/references/typography.md`, which bans the em-dash in prose but leaves book typesetting alone — without the flag, every dialogue line would fail the gate.
 
 ## Running
 
@@ -67,7 +67,7 @@ Snapshot drift WITHOUT a corresponding intentional change is the signal we care 
 1. Drop the new Russian fragment in `fixtures/<name>.md`.
 2. Generate the initial snapshot:
    ```bash
-   python3 writer/scripts/lint.py tests/fixtures/<name>.md --json > tests/snapshots/<name>.json
+   python3 skills/writer/scripts/lint.py tests/fixtures/<name>.md --json > tests/snapshots/<name>.json
    ```
 3. Commit both files. CI from now on will fail if the verdict drifts.
 

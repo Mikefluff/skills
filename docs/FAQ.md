@@ -91,9 +91,9 @@ Not by design. The contract of every wrapper is "output is ready to ship" — th
 
 The 23-category regex linter is high-recall by design — it's a pre-check, not the final word. False positives mostly come from:
 
-1. **Idioms** (`"ни рыба ни мясо"` triggers DOUBLE_NEG_REGEX) — there's an explicit exception list in `writer/references/structural-prose.md` for these. If you find more, open a PR adding them.
+1. **Idioms** (`"ни рыба ни мясо"` triggers DOUBLE_NEG_REGEX) — there's an explicit exception list in `skills/writer/references/structural-prose.md` for these. If you find more, open a PR adding them.
 2. **Technical terms** (`"нерв"` in anatomical context) — the cat 22 NEURAL_METAPHOR rules document the literal-vs-metaphorical distinction. Pass through context to Claude when in doubt.
-3. **Anaphora / lestnichny accord / mantra** — `essay-write/references/structural-synthesis-keepers.md` lists the 7 patterns where parallelism is a device, not nyeyroslop. The structural detector should skip these.
+3. **Anaphora / lestnichny accord / mantra** — `skills/essay-write/references/structural-synthesis-keepers.md` lists the 7 patterns where parallelism is a device, not nyeyroslop. The structural detector should skip these.
 
 If the linter still fires on something that's clearly fine, file a bug with the exact fragment — the regex needs tightening.
 
@@ -152,7 +152,7 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more.
 
 Mostly you don't — they're designed for the Claude Code matcher. But two pieces are CLI-callable:
 
-- `writer/scripts/lint.py` — offline regex linter, runs on any text file
+- `skills/writer/scripts/lint.py` — offline regex linter, runs on any text file
 - `scripts/install-hook.sh` / `scripts/validate.sh` / `scripts/smoke.sh` / `scripts/coverage.py` — repo maintenance
 
 Everything else (the rule application, voice editing, viral generation, multilingual parity) needs Claude Code as the inference layer.

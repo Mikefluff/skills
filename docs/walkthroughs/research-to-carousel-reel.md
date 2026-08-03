@@ -217,7 +217,7 @@ The caption is read from `captions.md` automatically — check what it extracted
 in the dry-run preview before adding `--yes`.
 
 Accounts have to be connected once first; see
-[`post-publisher/references/oauth-setup.md`](../../post-publisher/references/oauth-setup.md).
+[`skills/post-publisher/references/oauth-setup.md`](../../skills/post-publisher/references/oauth-setup.md).
 Telegram needs no OAuth and Threads is the simplest of the OAuth ones, so those
 are the right places to start. Where the API path is closed — an unaudited
 TikTok app, a personal Instagram account — uploading by hand is still the
@@ -252,6 +252,6 @@ For repeated runs on similar topics: the same `--style <id>` + same provider pro
 - **Reel feels off**: run `--prompts-only` first to inspect script.md before spending. The script is the most important file — get it right before generating.
 
 See also:
-- `carousel-builder/references/troubleshoot.md` for carousel-specific issues
-- `reel-builder/references/troubleshoot.md` for reel-specific issues
-- `research-brief/references/methodology.md` for query clustering rules
+- `skills/carousel-builder/references/troubleshoot.md` for carousel-specific issues
+- `skills/reel-builder/references/troubleshoot.md` for reel-specific issues
+- `skills/research-brief/references/methodology.md` for query clustering rules

@@ -37,7 +37,7 @@ for fix in tests/fixtures/*.md; do
   # lint.py exits 0/1/2/3 to indicate verdict + gate — that's data, not failure.
   # Use a temp file so the exit code doesn't trip set -e.
   tmp_out="$(mktemp)"
-  python3 writer/scripts/lint.py "$fix" --json ${extra_args} > "$tmp_out" || true
+  python3 skills/writer/scripts/lint.py "$fix" --json ${extra_args} > "$tmp_out" || true
   actual="$(cat "$tmp_out")"
   rm -f "$tmp_out"
 

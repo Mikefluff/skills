@@ -136,7 +136,7 @@ Hook C (number-led):
 
 ## Adapting for other platforms
 
-Один и тот же research-bucket можно разложить на 5 платформ, но структура и budget'ы — разные. Таблица ниже — что меняется per platform (детальные пресеты в [viral-text/references/platforms.md](../../viral-text/references/platforms.md)):
+Один и тот же research-bucket можно разложить на 5 платформ, но структура и budget'ы — разные. Таблица ниже — что меняется per platform (детальные пресеты в [skills/viral-text/references/platforms.md](../../skills/viral-text/references/platforms.md)):
 
 | Платформа    | Лимит    | Хук              | Структура тела                     | CTA             | NLP-вопрос  |
 |--------------|----------|------------------|------------------------------------|-----------------|-------------|
@@ -158,7 +158,7 @@ Hook C (number-led):
 /viral-text utr ритуалы platform=instagram points=3 lang=en
 ```
 
-Доступные параметры (см. [viral-text/references/platforms.md](../../viral-text/references/platforms.md) для полного списка):
+Доступные параметры (см. [skills/viral-text/references/platforms.md](../../skills/viral-text/references/platforms.md) для полного списка):
 
 - `platform=` — `telegram` (4096) / `instagram` (2200) / `threads` (500) / `twitter` (280) / `linkedin` (3000) / `facebook` (any). По умолчанию Telegram.
 - `points=` — 3 / 5 / 7. По умолчанию 5.
@@ -230,5 +230,5 @@ Generic хук = хук, который подошёл бы к любой тем
 
 - [fiction-chapter.md](fiction-chapter.md) — если тема уезжает в художку
 - [non-fiction.md](non-fiction.md) — если нужен лонгрид, а не пост
-- [viral-text/references/viral-rules.md](../../viral-text/references/viral-rules.md) — полный список 41 правила, под которые писан текст
+- [skills/viral-text/references/viral-rules.md](../../skills/viral-text/references/viral-rules.md) — полный список 41 правила, под которые писан текст
 - [docs/FAQ.md](../FAQ.md) — частые вопросы

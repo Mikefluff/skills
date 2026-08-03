@@ -25,7 +25,7 @@ skills:
 - `<series>/notes/story-bible.md`
 - `bible.md` в корне репозитория
 
-Формат — простой markdown с секциями `# Characters`, `# Artifacts`, `# Locations`. Полная схема в [canon-check/references/bible-format.md](../../canon-check/references/bible-format.md). Минимальный пример:
+Формат — простой markdown с секциями `# Characters`, `# Artifacts`, `# Locations`. Полная схема в [skills/canon-check/references/bible-format.md](../../skills/canon-check/references/bible-format.md). Минимальный пример:
 
 ```markdown
 # Characters
@@ -65,7 +65,7 @@ skills:
 3. Кросс-референсит с предыдущими главами (`chapters/01.md..16.md`) — на случай молчаливых противоречий.
 4. Выдаёт структурированный отчёт.
 
-Полный workflow расписан в [canon-check/references/workflow.md](../../canon-check/references/workflow.md).
+Полный workflow расписан в [skills/canon-check/references/workflow.md](../../skills/canon-check/references/workflow.md).
 
 ## Step 2. Read the report
 
@@ -115,7 +115,7 @@ Cross-referenced: chapters/01.md..16.md (16 prior chapters)
 
 === SUMMARY ===
 chapters/17.md: 3 BLOCKING · 2 WARNING · 2 INFO
-Known incidents: 0 (see canon-check/references/known-incidents.md)
+Known incidents: 0 (see skills/canon-check/references/known-incidents.md)
 ```
 
 ## Step 3. Severity — как читать
@@ -145,7 +145,7 @@ Known incidents: 0 (see canon-check/references/known-incidents.md)
 - **CANON_EXPANSION** — новая деталь, не отрицающая старую (новый шрам, новая привычка).
 - **NEW_ARTIFACT** / **NEW_LOCATION** — первое появление, контекст одноразовый.
 
-Полная таблица severity и порогов — в [canon-check/references/known-incidents.md](../../canon-check/references/known-incidents.md).
+Полная таблица severity и порогов — в [skills/canon-check/references/known-incidents.md](../../skills/canon-check/references/known-incidents.md).
 
 ## Что скилл НЕ делает
 
@@ -169,7 +169,7 @@ Known incidents: 0 (see canon-check/references/known-incidents.md)
 # Locations
 ```
 
-Скилл при пустом bible будет всё помечать как SILENT_CANON — это нормально, постепенно наполнишь. См. [canon-check/references/bible-format.md](../../canon-check/references/bible-format.md).
+Скилл при пустом bible будет всё помечать как SILENT_CANON — это нормально, постепенно наполнишь. См. [skills/canon-check/references/bible-format.md](../../skills/canon-check/references/bible-format.md).
 
 ### False positive — герой не сам взял чашку
 
@@ -178,7 +178,7 @@ Known incidents: 0 (see canon-check/references/known-incidents.md)
 Что делать:
 
 - Проверь руками — действительно ли формулировка читается двусмысленно. Если да — переформулируй (это правка не от канона, а от ясности).
-- Если формулировка однозначна, а скилл всё равно бьёт — отметь как known incident в [canon-check/references/known-incidents.md](../../canon-check/references/known-incidents.md) и иди дальше.
+- Если формулировка однозначна, а скилл всё равно бьёт — отметь как known incident в [skills/canon-check/references/known-incidents.md](../../skills/canon-check/references/known-incidents.md) и иди дальше.
 
 ### Ambiguous entity — это новый персонаж или диминутив?
 
@@ -186,7 +186,7 @@ Known incidents: 0 (see canon-check/references/known-incidents.md)
 
 ### Routing — почему не сработало на `.docx`
 
-`canon-check` работает только с plain-text форматами. Конвертируй в `.md` (pandoc, ручная вычитка) перед прогоном. Полные правила маршрутизации — в [canon-check/references/routing.md](../../canon-check/references/routing.md).
+`canon-check` работает только с plain-text форматами. Конвертируй в `.md` (pandoc, ручная вычитка) перед прогоном. Полные правила маршрутизации — в [skills/canon-check/references/routing.md](../../skills/canon-check/references/routing.md).
 
 ### Глава большая, прогон долгий
 
@@ -195,6 +195,6 @@ Known incidents: 0 (see canon-check/references/known-incidents.md)
 ## Related
 
 - [fiction-chapter.md](fiction-chapter.md) — место `canon-check` в полной цепочке от драфта до коммита
-- [prose-edit/SKILL.md](../../prose-edit/SKILL.md) — следующий шаг после canon-фикса: художественный рерайт
-- [style-check/SKILL.md](../../style-check/SKILL.md) — финальный лит-чек перед коммитом
+- [skills/prose-edit/SKILL.md](../../skills/prose-edit/SKILL.md) — следующий шаг после canon-фикса: художественный рерайт
+- [skills/style-check/SKILL.md](../../skills/style-check/SKILL.md) — финальный лит-чек перед коммитом
 - [docs/FAQ.md](../FAQ.md) — частые вопросы

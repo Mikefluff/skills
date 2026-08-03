@@ -12,7 +12,7 @@ So I built a tool that strips them. Then I kept extending it. It is now 41 Claud
 
 ## The shape
 
-The base is a Python regex linter — `writer/scripts/lint.py`, about a thousand lines. No LLM call, no dependencies, roughly 80ms on a 4,000-word file. It carries 25 catalogued categories of LLM-prose tells:
+The base is a Python regex linter — `skills/writer/scripts/lint.py`, about a thousand lines. No LLM call, no dependencies, roughly 80ms on a 4,000-word file. It carries 25 catalogued categories of LLM-prose tells:
 
 - **Filler intros** — "In today's fast-paced world...", "In a world where...", "As we all know..."
 - **AI bridges** — "Furthermore", "Moreover", "Additionally", "In conclusion" as paragraph openers

@@ -86,7 +86,7 @@ Conventions enforced by `skills-styles validate`:
 - two_box + vocal_friendly must be true/false.
 - Suno Style box: NO brackets — that's lyrics-box territory.
 - Meta-tags should be from the canonical taxonomy in
-  music-prompt/references/{meta-tags,vocal-tags,instrumental-tags,mix-production-tags}.md.
+  skills/music-prompt/references/{meta-tags,vocal-tags,instrumental-tags,mix-production-tags}.md.
 - Max 4-8 tags per stack.
 - NEVER name living artists or copyrighted songs (Suno/Udio/Lyria refuse).
 - NO emoji.

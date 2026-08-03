@@ -16,7 +16,7 @@ The frontmatter (`id`, `mood`, `tags`, `bpm_range`, `energy`, `two_box`, `vocal_
 ## What's in each file
 
 - **Suno Style box** — natural language, ≤200 chars, NO brackets. Front-loaded with genre + era so Suno's 1000-char Style limit isn't wasted.
-- **Suno meta-tag stacks** — one per section (Intro/Verse/Chorus/Bridge/Outro), tags pulled from the canonical 2026 taxonomy (`music-prompt/references/meta-tags.md`).
+- **Suno meta-tag stacks** — one per section (Intro/Verse/Chorus/Bridge/Outro), tags pulled from the canonical 2026 taxonomy (`skills/music-prompt/references/meta-tags.md`).
 - **Udio prompt** — natural language with bracketed inline cues, atomic tags, no `|` stacking.
 - **Lyria 3 Pro** — field-driven (prompt / key / BPM / lyrics). Purely descriptive — Lyria refuses artist-mimicry.
 - **ElevenLabs Music prompt** — single prompt + bracketed cues + timing markers.

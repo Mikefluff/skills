@@ -50,7 +50,7 @@ Routing — какой rule layer применять (fiction / non-fiction / ge
 | `*/viral/**`, `*/social/**` | `viral-text` rules (соцсети) |
 | остальное | `writer` rules (generic чистка) |
 
-Полная таблица + override-паттерн под твой проект — в [style-check/references/routing.md](../../style-check/references/routing.md). Layer можно переопределить вручную (см. ниже).
+Полная таблица + override-паттерн под твой проект — в [skills/style-check/references/routing.md](../../skills/style-check/references/routing.md). Layer можно переопределить вручную (см. ниже).
 
 ## Step 1. Point at a file or directory
 
@@ -118,7 +118,7 @@ essays/attention-economy.md: 3 BLOCKING · 4 WARNING · 2 INFO
 Exit code: 2 (BLOCKING present)
 ```
 
-Структура отчёта — формальная, чтобы можно было grep'ать в CI. Полная схема в [style-check/references/output-format.md](../../style-check/references/output-format.md).
+Структура отчёта — формальная, чтобы можно было grep'ать в CI. Полная схема в [skills/style-check/references/output-format.md](../../skills/style-check/references/output-format.md).
 
 ## Severity levels
 
@@ -160,7 +160,7 @@ Exit-код 1. CI обычно пропускает с предупрежден�
 
 Exit-код 0. CI всегда проходит. Информация для автора, не сигнал к правке.
 
-Полный список категорий + пороги — в [style-check/references/severity.md](../../style-check/references/severity.md).
+Полный список категорий + пороги — в [skills/style-check/references/severity.md](../../skills/style-check/references/severity.md).
 
 ## Как читать findings — что «must fix», что «consider»
 
@@ -202,7 +202,7 @@ Exit-код 0. CI всегда проходит. Информация для а�
 
 Скорее всего — wrong layer. Художку прогнал через `essay-write` rules: будет ругаться на staccato, на отсутствие источников, на короткие предложения. Запусти с правильным `--mode`.
 
-Если layer правильный, но findings всё равно много на любимом тексте — посмотри, что бьёт. Если 80% findings — одна категория (например, `STACCATO`) и это твой авторский голос — можно демотировать категорию для проекта (см. [style-check/references/severity.md](../../style-check/references/severity.md), раздел «project-level overrides»). Это не отключение скилла, это калибровка под голос.
+Если layer правильный, но findings всё равно много на любимом тексте — посмотри, что бьёт. Если 80% findings — одна категория (например, `STACCATO`) и это твой авторский голос — можно демотировать категорию для проекта (см. [skills/style-check/references/severity.md](../../skills/style-check/references/severity.md), раздел «project-level overrides»). Это не отключение скилла, это калибровка под голос.
 
 ### Exit-код 2, но в выводе только WARNING
 
@@ -215,7 +215,7 @@ Exit-код 0. CI всегда проходит. Информация для а�
 Что делать:
 
 - проверь руками — если это действительно цитата, игнорируй findings (упомяни в PR-описании)
-- или оберни цитату в HTML-комментарий-маркер, который скилл понимает (см. [style-check/references/routing.md](../../style-check/references/routing.md), раздел «inline exclusions»)
+- или оберни цитату в HTML-комментарий-маркер, который скилл понимает (см. [skills/style-check/references/routing.md](../../skills/style-check/references/routing.md), раздел «inline exclusions»)
 
 ### Хочу гейтить только BLOCKING в CI, WARNING пропускать
 
@@ -232,7 +232,7 @@ Exit-код 0. CI всегда проходит. Информация для а�
 - [pre-commit-hook.md](pre-commit-hook.md) — автоматизировать тот же чек на каждом коммите
 - [fiction-chapter.md](fiction-chapter.md) — место `style-check` в конце цепочки художки
 - [non-fiction.md](non-fiction.md) — то же для нон-фикшн эссе
-- [writer/SKILL.md](../../writer/SKILL.md) — если нужен auto-fix вместо verdict
-- [prose-edit/SKILL.md](../../prose-edit/SKILL.md) — auto-fix для художки
-- [essay-write/SKILL.md](../../essay-write/SKILL.md) — auto-fix для нон-фикшн
+- [skills/writer/SKILL.md](../../skills/writer/SKILL.md) — если нужен auto-fix вместо verdict
+- [skills/prose-edit/SKILL.md](../../skills/prose-edit/SKILL.md) — auto-fix для художки
+- [skills/essay-write/SKILL.md](../../skills/essay-write/SKILL.md) — auto-fix для нон-фикшн
 - [docs/FAQ.md](../FAQ.md) — частые вопросы

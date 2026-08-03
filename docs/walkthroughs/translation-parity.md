@@ -30,7 +30,7 @@ The skill reads all three sibling files:
 - `your-book/en/chapters/ch07.md`
 - `your-book/pt-br/chapters/ch07.md`
 
-And runs the 6-pass pipeline (see [translation-sync/SKILL.md](../../translation-sync/SKILL.md) for the full description):
+And runs the 6-pass pipeline (see [skills/translation-sync/SKILL.md](../../skills/translation-sync/SKILL.md) for the full description):
 
 1. Typography per language
 2. Terminology consistency vs canon
@@ -97,7 +97,7 @@ Severity totals: 4 BLOCKING · 2 WARNING · 1 INFO
 
 ### [TYPOGRAPHY]
 
-Per-language conventions for quotes, dashes, ellipsis, numerals. RU uses «ёлочки» for outer quotes, EN uses TeX-style `` ``...'' ``, PT-BR also uses `` ``...'' `` (house rule, see [typography.md](../../translation-sync/references/typography.md)). A `-` where `---` is expected is a typo, not a stylistic choice — usually **WARNING**.
+Per-language conventions for quotes, dashes, ellipsis, numerals. RU uses «ёлочки» for outer quotes, EN uses TeX-style `` ``...'' ``, PT-BR also uses `` ``...'' `` (house rule, see [typography.md](../../skills/translation-sync/references/typography.md)). A `-` where `---` is expected is a typo, not a stylistic choice — usually **WARNING**.
 
 ### [TERMINOLOGY]
 
@@ -110,14 +110,14 @@ Load-bearing quotations from the book whose translations have been hand-tuned an
 ### [NAMES_REALIA]
 
 - Real people: Latin script everywhere, including the Cyrillic source.
-- Russian names: transliterated by your table (see [names-and-realia.md](../../translation-sync/references/names-and-realia.md)) in EN/PT-BR. Never the reverse direction (don't transcribe a real Latin-script name into Cyrillic).
+- Russian names: transliterated by your table (see [names-and-realia.md](../../skills/translation-sync/references/names-and-realia.md)) in EN/PT-BR. Never the reverse direction (don't transcribe a real Latin-script name into Cyrillic).
 - Patronymics: don't transliterate mechanically — usually drop in EN/PT-BR.
 - Diminutives: each character has a full/short/affectionate form map; mixing `Dan` and `Daniel` for the same character mid-chapter is **WARNING**.
 - Cultural realia (place names, institutions, brands): need a first-mention footnote per chapter. Missing footnote — **BLOCKING**.
 
 ### [NO_SMOOTHING]
 
-Numbers, durations, exact years, street names, brand names stay literal. `900 ms` does not become `under a second`. `Yuzhnoye Butovo` does not become `a Moscow district`. `2007` does not become `the mid-2000s`. **BLOCKING** by default — these are concrete anchors that carry meaning. See [what-not-to-smooth.md](../../translation-sync/references/what-not-to-smooth.md) for the full list.
+Numbers, durations, exact years, street names, brand names stay literal. `900 ms` does not become `under a second`. `Yuzhnoye Butovo` does not become `a Moscow district`. `2007` does not become `the mid-2000s`. **BLOCKING** by default — these are concrete anchors that carry meaning. See [what-not-to-smooth.md](../../skills/translation-sync/references/what-not-to-smooth.md) for the full list.
 
 ### [INFO]
 
@@ -157,7 +157,7 @@ exit $?
 
 ## Configuring the terminology canon for your book
 
-Each project has its own canon. The default registry format lives in [translation-sync/references/terminology.md](../../translation-sync/references/terminology.md). Format (illustrative):
+Each project has its own canon. The default registry format lives in [skills/translation-sync/references/terminology.md](../../skills/translation-sync/references/terminology.md). Format (illustrative):
 
 ```markdown
 ## Canon terms
@@ -209,5 +209,5 @@ Rhythm differences are expected (EN compact, PT-BR mellow). Only flagged as INFO
 
 - [pre-commit-hook.md](pre-commit-hook.md) — automate `translation-sync` on every commit
 - [fiction-chapter.md](fiction-chapter.md) — chapter-level fiction workflow (where translation usually starts)
-- [translation-sync/references/checklist.md](../../translation-sync/references/checklist.md) — the 15-point pre-commit checklist
+- [skills/translation-sync/references/checklist.md](../../skills/translation-sync/references/checklist.md) — the 15-point pre-commit checklist
 - [docs/FAQ.md](../FAQ.md) — common questions

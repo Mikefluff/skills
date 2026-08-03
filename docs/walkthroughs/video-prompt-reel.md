@@ -14,7 +14,7 @@ skills:
 
 ## Intent — CHARACTER FIRST law
 
-Главное правило video prompts (см. `video-prompt/references/identity-references.md`):
+Главное правило video prompts (см. `skills/video-prompt/references/identity-references.md`):
 
 > Subject (character / hero object) описывается ПЕРВЫМ, БУКВАЛЬНО, в полных словах. Перед лимит-чувствительной частью. Video models дропают first 30-40% prompt в кэш — туда нужно положить subject, иначе модель impro визирует character.
 
@@ -87,7 +87,7 @@ reached the base. Everything holds for 1.5 seconds. No additional motion.
 
 ## Step 4. The Kling-final prompt
 
-Kling-specific temporal markers (см. `video-prompt/references/models/i2v-tier.md`): use seconds as anchors, avoid relative «then», prefer «at 3.0s», use one camera-move verb per beat.
+Kling-specific temporal markers (см. `skills/video-prompt/references/models/i2v-tier.md`): use seconds as anchors, avoid relative «then», prefer «at 3.0s», use one camera-move verb per beat.
 
 ```
 An amber-coloured glass bottle of cold brew with visible condensation
@@ -164,4 +164,4 @@ Anchor: «exactly one droplet, no other droplets moving, all other condensation 
 - [image-prompt-cover.md](image-prompt-cover.md) — родственная задача со 6-part formula для still
 - [viral-post.md](viral-post.md) — если video идёт в виральный пост
 - [landing-launch.md](landing-launch.md) — если video идёт на landing hero
-- [video-prompt/references/models/i2v-tier.md](../../video-prompt/references/models/i2v-tier.md) — полный Kling syntax reference
+- [skills/video-prompt/references/models/i2v-tier.md](../../skills/video-prompt/references/models/i2v-tier.md) — полный Kling syntax reference

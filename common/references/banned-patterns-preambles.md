@@ -2,7 +2,7 @@
 
 Shared anti-patterns across `cold-email`, `landing-copy`, and `release-notes`.
 The base linter catches the regex-detectable subset under `WEAK_OPENER`
-(see `writer/scripts/lint.py`).
+(see `skills/writer/scripts/lint.py`).
 
 Preambles delay the change. The reader wants to know what shipped (release
 notes), what you do (landing copy), or what you want (cold email) — not how

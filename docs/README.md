@@ -43,11 +43,11 @@ For the project overview + install + the skills table, go back to the top-level 
 
 The skills themselves are at the repo root. Each has its own SKILL.md + references/ + examples/:
 
-- **Base + linters**: [`writer/`](../writer/) · [`style-check/`](../style-check/) · [`translation-sync/`](../translation-sync/) · [`canon-check/`](../canon-check/)
-- **Prose wrappers**: [`viral-text/`](../viral-text/) · [`prose-edit/`](../prose-edit/) · [`essay-write/`](../essay-write/) · [`tone-shifter/`](../tone-shifter/) · [`cold-email/`](../cold-email/) · [`microcopy/`](../microcopy/) · [`release-notes/`](../release-notes/) · [`rfc-writer/`](../rfc-writer/) · [`landing-copy/`](../landing-copy/) · [`pelevin-digression/`](../pelevin-digression/)
-- **Media-gen wrappers**: [`image-prompt/`](../image-prompt/) · [`video-prompt/`](../video-prompt/) · [`music-prompt/`](../music-prompt/)
-- **Orchestrators**: [`research-brief/`](../research-brief/) · [`carousel-builder/`](../carousel-builder/) · [`reel-builder/`](../reel-builder/)
-- **Meta**: [`skills-update/`](../skills-update/) · [`skills-keys/`](../skills-keys/)
+- **Base + linters**: [`writer/`](../skills/writer/) · [`style-check/`](../skills/style-check/) · [`translation-sync/`](../skills/translation-sync/) · [`canon-check/`](../skills/canon-check/)
+- **Prose wrappers**: [`viral-text/`](../skills/viral-text/) · [`prose-edit/`](../skills/prose-edit/) · [`essay-write/`](../skills/essay-write/) · [`tone-shifter/`](../skills/tone-shifter/) · [`cold-email/`](../skills/cold-email/) · [`microcopy/`](../skills/microcopy/) · [`release-notes/`](../skills/release-notes/) · [`rfc-writer/`](../skills/rfc-writer/) · [`landing-copy/`](../skills/landing-copy/) · [`pelevin-digression/`](../skills/pelevin-digression/)
+- **Media-gen wrappers**: [`image-prompt/`](../skills/image-prompt/) · [`video-prompt/`](../skills/video-prompt/) · [`music-prompt/`](../skills/music-prompt/)
+- **Orchestrators**: [`research-brief/`](../skills/research-brief/) · [`carousel-builder/`](../skills/carousel-builder/) · [`reel-builder/`](../skills/reel-builder/)
+- **Meta**: [`skills-update/`](../skills/skills-update/) · [`skills-keys/`](../skills/skills-keys/)
 
 Shared infrastructure:
 
@@ -74,13 +74,13 @@ If you know what you want to do but don't know where to look:
 | Pick a skill for a scenario | [USER-GUIDE](USER-GUIDE.md) |
 | Chain multiple skills | [COMPOSING](COMPOSING.md) |
 | Walk through a real example | [walkthroughs/](walkthroughs/README.md) |
-| Manage API keys | [`/skills-keys`](../skills-keys/SKILL.md) · [usage reference](../skills-keys/references/usage.md) |
+| Manage API keys | [`/skills-keys`](../skills/skills-keys/SKILL.md) · [usage reference](../skills/skills-keys/references/usage.md) |
 | Run the execute layer (image/video/music) | [`execute-end-to-end`](walkthroughs/execute-end-to-end.md) |
 | End-to-end content (research → carousel + reel) | [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md) |
 | Add a new skill | [CONTRIBUTING](../CONTRIBUTING.md) |
 | Lint your repo's prose | [pre-commit-hook](walkthroughs/pre-commit-hook.md) · [LINTER-COVERAGE](LINTER-COVERAGE.md) |
 | Browse the style library | [carousel styles](../common/style-library/carousel/_index.md) · [video styles](../common/style-library/video/_index.md) · [music styles](../common/style-library/music/_index.md) |
-| Update the collection | [`/skills-update`](../skills-update/SKILL.md) · `bash install.sh --update` |
+| Update the collection | [`/skills-update`](../skills/skills-update/SKILL.md) · `bash install.sh --update` |
 | Something is broken | [FAQ](FAQ.md) · [TROUBLESHOOTING](TROUBLESHOOTING.md) |
 
 ---

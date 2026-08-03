@@ -37,7 +37,10 @@ SKIP_SCHEME = ("http://", "https://", "mailto:", "tel:", "#", "data:")
 # on. Scoped deliberately to `<skill>/references/<file>.md`: broad path matching
 # also hits user-project examples (`your-book/ru/chapters/ch07.md`), runtime
 # outputs (`plan.json`, `script.md`) and /tmp paths, none of which exist here.
-BACKTICK_REF = re.compile(r"`([a-z0-9][a-z0-9-]*/references/[A-Za-z0-9_./-]+\.md)`")
+# The `skills/` prefix is optional in the pattern but required in practice:
+# skills moved under skills/ and the old shape would silently match nothing,
+# turning this gate into a no-op right after every ref was rewritten.
+BACKTICK_REF = re.compile(r"`((?:skills/)?[a-z0-9][a-z0-9-]*/references/[A-Za-z0-9_./-]+\.md)`")
 
 
 def tracked_markdown(subtree: str | None) -> list[pathlib.Path]:

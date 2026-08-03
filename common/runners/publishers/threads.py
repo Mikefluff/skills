@@ -8,7 +8,7 @@ The gentler half of the Meta pair, and the right one to connect first:
   · the posting cap (250/day) is high enough that you will not meet it.
 
 The 500-character limit is the thing that actually bites. viral-text already
-knows it (viral-text/references/platforms.md), so a post drafted for Threads
+knows it (skills/viral-text/references/platforms.md), so a post drafted for Threads
 usually fits; a caption written for Instagram never does, which is why
 preflight measures the rendered text including hashtags.
 """

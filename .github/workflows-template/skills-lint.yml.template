@@ -8,7 +8,7 @@
 # On every push and pull request, this workflow:
 #   1. Checks out your repo
 #   2. Clones the latest release of Mikefluff/skills
-#   3. Runs writer/scripts/lint.py on the prose files you care about
+#   3. Runs skills/writer/scripts/lint.py on the prose files you care about
 #   4. Fails the build if any file's verdict is "neuroslop suspected" (exit 2)
 #
 # Files linted: by default, all *.md outside of node_modules / vendor / .git.

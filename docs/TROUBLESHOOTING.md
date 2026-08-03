@@ -149,13 +149,13 @@ After this, `/skills-update` will work normally.
 
 ---
 
-## Linter (`writer/scripts/lint.py`) false positives
+## Linter (`skills/writer/scripts/lint.py`) false positives
 
 ### Symptom: linter flags an idiom as DOUBLE_NEG_REGEX
 
 **Diagnosis.** Some Russian negative idioms naturally trip the regex (`без сучка без задоринки`, `ни рыба ни мясо`, `не больше и не меньше`, `ни сном ни духом`).
 
-**Fix.** These are documented exceptions in `writer/references/structural-prose.md`. The regex catches them; the LLM pass should pass them through. If a wrapper (`prose-edit` etc.) is rewriting them anyway, that's a bug — file it with the exact fragment.
+**Fix.** These are documented exceptions in `skills/writer/references/structural-prose.md`. The regex catches them; the LLM pass should pass them through. If a wrapper (`prose-edit` etc.) is rewriting them anyway, that's a bug — file it with the exact fragment.
 
 For the standalone linter (`python3 lint.py file.md`), false positives in this category are accepted as the cost of high recall. Don't try to make the regex case-by-case smart.
 
@@ -267,7 +267,7 @@ If you get `0` even when you expect `2`, your hook script isn't propagating the 
 
 **Diagnosis.** You're invoking Claude Code from the hook, which has a multi-second cold-start.
 
-**Fix.** Use the offline-only fallback variant from the [pre-commit walkthrough](walkthroughs/pre-commit-hook.md). It runs `python3 writer/scripts/lint.py` on staged diff, which is <100ms.
+**Fix.** Use the offline-only fallback variant from the [pre-commit walkthrough](walkthroughs/pre-commit-hook.md). It runs `python3 skills/writer/scripts/lint.py` on staged diff, which is <100ms.
 
 You lose the wrapper rules (prose-edit / essay-write specifics) but keep the 23-category regex pass — which catches most issues anyway.
 
@@ -292,8 +292,8 @@ If you wrote your own hook, replace bash-4-isms or change the shebang to `#!/usr
 **Fix.** Three options:
 
 1. **Reject the diff.** `prose-edit` returns a *proposed* diff for you to accept/reject. If a rewrite breaks your intent, reject it.
-2. **Pass `--conservative`** (if available — see `prose-edit/SKILL.md` MODES) to apply only structural-synthetics fixes, no voice-level edits.
-3. **Override the rule.** If you consistently disagree with a rule, edit the corresponding `prose-edit/references/<rule>.md` locally (survives until `--update`). For a durable change, open a PR.
+2. **Pass `--conservative`** (if available — see `skills/prose-edit/SKILL.md` MODES) to apply only structural-synthetics fixes, no voice-level edits.
+3. **Override the rule.** If you consistently disagree with a rule, edit the corresponding `skills/prose-edit/references/<rule>.md` locally (survives until `--update`). For a durable change, open a PR.
 
 ---
 
@@ -307,9 +307,9 @@ If you wrote your own hook, replace bash-4-isms or change the shebang to `#!/usr
 
 ### Symptom: `translation-sync` produces empty / nonsense parity report
 
-**Diagnosis.** Most likely the path patterns in `translation-sync/references/checklist.md` don't match your repo layout. Default examples are illustrative.
+**Diagnosis.** Most likely the path patterns in `skills/translation-sync/references/checklist.md` don't match your repo layout. Default examples are illustrative.
 
-**Fix.** Edit your local `translation-sync/references/checklist.md` to reference your actual paths (`<your-repo>/ru/ch07.md`, etc.). For a durable change, fork + PR.
+**Fix.** Edit your local `skills/translation-sync/references/checklist.md` to reference your actual paths (`<your-repo>/ru/ch07.md`, etc.). For a durable change, fork + PR.
 
 ---
 

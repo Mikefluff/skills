@@ -19,7 +19,7 @@ Verified 2026-08-03 against the two references:
 Not sent, and documented as required on both endpoints: brand_content_toggle
 and brand_organic_toggle. Whether the API actually refuses without them cannot
 be established without publishing, so they are named in
-post-publisher/references/platform-limits.md rather than guessed at here.
+skills/post-publisher/references/platform-limits.md rather than guessed at here.
 
 Everything is a plain function of the post — no I/O, no credentials.
 """

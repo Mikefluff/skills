@@ -55,7 +55,7 @@ python3 -m common.runners.cli.video --model veo-3-1 --prompt "..." --duration 8
 python3 -m common.runners.cli.music --model suno-v5-5 --prompt "..." --style "..." --lyrics ...
 ```
 
-Or invoke the per-skill entry script (`image-prompt/scripts/run.py` etc.) — same interface, thin wrapper.
+Or invoke the per-skill entry script (`skills/image-prompt/scripts/run.py` etc.) — same interface, thin wrapper.
 
 ## Output
 

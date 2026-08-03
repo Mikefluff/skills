@@ -47,57 +47,20 @@ WORKDIR /skills
 
 # Copy in lean order so that changes to docs/tests don't bust the layer
 # containing the linter itself.
-COPY writer/scripts/ /skills/writer/scripts/
-COPY writer/SKILL.md /skills/writer/
-COPY writer/references/ /skills/writer/references/
-COPY writer/examples/ /skills/writer/examples/
+COPY skills/writer/scripts/ /skills/writer/scripts/
+COPY skills/writer/SKILL.md /skills/writer/
+COPY skills/writer/references/ /skills/writer/references/
+COPY skills/writer/examples/ /skills/writer/examples/
 
-# Copy remaining skills (read-only reference material — useful inside the image
-# but not needed for lint.py to run).
-COPY audio-mix-maker/    /skills/audio-mix-maker/
-COPY avatar-maker/       /skills/avatar-maker/
-COPY banner-maker/       /skills/banner-maker/
-COPY bg-remover/         /skills/bg-remover/
-COPY canon-check/        /skills/canon-check/
-COPY carousel-builder/   /skills/carousel-builder/
-COPY cold-email/         /skills/cold-email/
-COPY cover-maker/        /skills/cover-maker/
-COPY essay-write/        /skills/essay-write/
-COPY flyer-maker/        /skills/flyer-maker/
-COPY gif-maker/          /skills/gif-maker/
-COPY image-prompt/       /skills/image-prompt/
-COPY landing-copy/       /skills/landing-copy/
-COPY logo-maker/         /skills/logo-maker/
-COPY meme-card-maker/    /skills/meme-card-maker/
-COPY microcopy/          /skills/microcopy/
-COPY music-prompt/       /skills/music-prompt/
-COPY pelevin-digression/ /skills/pelevin-digression/
-COPY post-publisher/     /skills/post-publisher/
-COPY proposal-maker/     /skills/proposal-maker/
-COPY prose-edit/         /skills/prose-edit/
-COPY quote-card-maker/   /skills/quote-card-maker/
-COPY reel-builder/       /skills/reel-builder/
-COPY release-notes/      /skills/release-notes/
-COPY research-brief/     /skills/research-brief/
-COPY rfc-writer/         /skills/rfc-writer/
-COPY skills-keys/        /skills/skills-keys/
-COPY skills-styles/      /skills/skills-styles/
-COPY skills-update/      /skills/skills-update/
-COPY style-check/        /skills/style-check/
-COPY style-suggest/      /skills/style-suggest/
-COPY style-transfer/     /skills/style-transfer/
-COPY subtitle-burner/    /skills/subtitle-burner/
-COPY thumbnail-maker/    /skills/thumbnail-maker/
-COPY tone-shifter/       /skills/tone-shifter/
-COPY transcribe-maker/   /skills/transcribe-maker/
-COPY translation-sync/   /skills/translation-sync/
-COPY upscaler/           /skills/upscaler/
-COPY video-prompt/       /skills/video-prompt/
-COPY viral-text/         /skills/viral-text/
-COPY voiceover-maker/    /skills/voiceover-maker/
+# Every other skill. One COPY because the repo groups them under skills/ —
+# this used to be forty-two hand-maintained lines, and a gate existed purely
+# to catch them drifting from skills.json. Note the trailing slash on the
+# source: it copies the *contents* of skills/ into /skills/, so the image
+# keeps the flat layout ~/.claude/skills uses.
+COPY skills/ /skills/
 
-# Shared runner layer + style libraries. Not a skill, so not in skills.json,
-# and therefore not in the generated list above — it needs its own line.
+# Shared runner layer + style libraries. Not a skill, so it lives outside
+# skills/ and needs its own line.
 COPY common/             /skills/common/
 
 # Helper scripts the entrypoint dispatches to

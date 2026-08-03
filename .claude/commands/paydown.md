@@ -38,7 +38,7 @@ was refactored to zero and is the worked example of what "done" looks like
 | B | Other CLI (`gif`, `styles`, `stylize`, `proposal`, `transcribe`, `upscale`, `subtitle`, `bg`, `mix`, `_shared`) | ~20 | Case by case. `cli/styles.py` (537 lines) and `cli/proposal.py` (`main()` at complexity 41) are the big two. |
 | C | `providers/*.py` — `generate()` / `poll()` | 17 | Shared shape: build body → POST → handle error → poll → download. `kling`, `suno`, `google_video` are the worst. A `providers/_polling.py` helper likely collapses most of it. |
 | D | `proposal_*.py` (`kit`, `parse`, `render`, `brand`) | 15 | `parse()` and `render_html()` both run >100 lines at complexity ~30-40. Real decomposition, no shared skeleton to lean on. |
-| E | `writer/scripts/lint.py` (988 lines) | 6 | **Highest risk, do last.** It is the base linter every skill depends on, and 31 fixture snapshots pin its behaviour. Split by concern (catalogue / structural / rhythm / report) and lean on `bash tests/run.sh` after every step. |
+| E | `skills/writer/scripts/lint.py` (988 lines) | 6 | **Highest risk, do last.** It is the base linter every skill depends on, and 31 fixture snapshots pin its behaviour. Split by concern (catalogue / structural / rhythm / report) and lean on `bash tests/run.sh` after every step. |
 | F | `runners` core (`ffmpeg` 7, `typography` 5, `styles` 5, `batch` 3, misc 4) | ~24 | Mostly `parameters` findings — signatures that grew into bags. A frozen dataclass per call is usually the fix, as `PostOverrides` was. |
 | G | `scripts/*.py` | 7 | Small and safe. Good warm-up. |
 
@@ -55,13 +55,13 @@ was refactored to zero and is the worked example of what "done" looks like
   message is the point of the exercise.
 - **Never raise a threshold to make something pass.** If a threshold is genuinely
   wrong, say so and change it deliberately, in its own commit, with the reason.
-- **Do not touch `writer/scripts/lint.py` until the rest is done.**
+- **Do not touch `skills/writer/scripts/lint.py` until the rest is done.**
 
 ## Also sweep for
 
 Things known to be loose, beyond the baseline:
 
-1. **Unverified platform limits.** `post-publisher/references/platform-limits.md`
+1. **Unverified platform limits.** `skills/post-publisher/references/platform-limits.md`
    marks rows `~` where the number came from a vendor parameter table that could
    not be machine-read (Telegram's per-method limits, X's file sizes, YouTube's,
    LinkedIn's, Threads' video size). Verify against live docs, move `~` to `✅`,

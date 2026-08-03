@@ -57,7 +57,7 @@ TODO.
 
 ## PIPELINE
 
-TODO. If this skill wraps \`writer\`, add: "Final step: apply writer/SKILL.md 4-layer cleaning pass before output."
+TODO. If this skill wraps \`writer\`, add: "Final step: apply skills/writer/SKILL.md 4-layer cleaning pass before output."
 
 ## REFERENCES (load on demand)
 

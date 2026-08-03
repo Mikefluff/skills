@@ -173,7 +173,7 @@ _AUTHORING_STEPS = """\
    - Put the gap padding on the thead/tfoot `<td>` (NOT on the content cell) — it sits inside the repeated group, so the breathing space is identical on every page; content-cell padding only spaces the first/last page and looks crooked on inner ones.
    - The `.rh`/`.rf` bands carry the dark/brand background + the accent hairline so they look like real letterhead colophons.
 9. Verify: screenshot your `proposal.html`, Read it back; iterate until on-brand.
-10. PDF: `proposal-maker/scripts/run.py --pdf-from <…/proposal.html>` — renders via the browser then Ghostscript-shrinks photos (~15 MB → ~0.5 MB), links preserved.
+10. PDF: `skills/proposal-maker/scripts/run.py --pdf-from <…/proposal.html>` — renders via the browser then Ghostscript-shrinks photos (~15 MB → ~0.5 MB), links preserved.
 
 _Offline / no-LLM fallback: re-run with `--quick` to render a deterministic themed template instead._
 """

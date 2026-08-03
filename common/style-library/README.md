@@ -93,6 +93,6 @@ This makes runs reproducible — to redo with the SAME style, point the skill at
 ## See also
 
 - `common/runners/styles.py` — the loader implementation
-- `carousel-builder/references/style-resolution.md` — auto-pick algorithm
-- `reel-builder/references/style-resolution.md` — directorial style application
-- `music-prompt/references/meta-tags.md` — canonical meta-tag taxonomy used in music style files
+- `skills/carousel-builder/references/style-resolution.md` — auto-pick algorithm
+- `skills/reel-builder/references/style-resolution.md` — directorial style application
+- `skills/music-prompt/references/meta-tags.md` — canonical meta-tag taxonomy used in music style files

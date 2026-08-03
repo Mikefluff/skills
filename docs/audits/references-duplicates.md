@@ -14,14 +14,14 @@ Cataloged all reference files across skills. Diff-checked filename-clashes. Sear
 
 | File | Lines | Scope |
 |---|---|---|
-| `writer/references/structural-prose.md` | 243 | Canonical structural patterns (staccato, double-neg, "просто" обрубки, реплики, огрызки) — RU + EN |
-| `writer/references/neuroslop-categories.md` | 497 | 23-category linter catalogue — RU + EN |
-| `writer/references/typography.md` | varies | Typography rules (quotes, dashes, numerals) — RU + EN |
-| `writer/references/ru-calques.md` | varies | RU calques only |
-| `prose-edit/references/voice.md` | 113 | Fiction voice patterns (cross-links to writer/structural-prose) — RU + EN |
-| `viral-text/references/viral-rules.md` | 141 | Viral content rules (hooks, NLP question, CTA) — RU + EN |
-| `essay-write/references/banned-constructions.md` | 40 | Essay-only bans (academic pathos, viral devices in non-fic) |
-| `pelevin-digression/references/banned-constructions.md` | 95 | Pelevin-only bans (aphoristic closers, manifesto-tail) |
+| `skills/writer/references/structural-prose.md` | 243 | Canonical structural patterns (staccato, double-neg, "просто" обрубки, реплики, огрызки) — RU + EN |
+| `skills/writer/references/neuroslop-categories.md` | 497 | 23-category linter catalogue — RU + EN |
+| `skills/writer/references/typography.md` | varies | Typography rules (quotes, dashes, numerals) — RU + EN |
+| `skills/writer/references/ru-calques.md` | varies | RU calques only |
+| `skills/prose-edit/references/voice.md` | 113 | Fiction voice patterns (cross-links to writer/structural-prose) — RU + EN |
+| `skills/viral-text/references/viral-rules.md` | 141 | Viral content rules (hooks, NLP question, CTA) — RU + EN |
+| `skills/essay-write/references/banned-constructions.md` | 40 | Essay-only bans (academic pathos, viral devices in non-fic) |
+| `skills/pelevin-digression/references/banned-constructions.md` | 95 | Pelevin-only bans (aphoristic closers, manifesto-tail) |
 | Skills tone-shifter, cold-email | various | New v1.2.0 — no overlap with others |
 
 ## Filename-clashes investigated
@@ -30,14 +30,14 @@ Two `banned-constructions.md` files exist (essay-write/, pelevin-digression/). D
 
 ## Content-overlap probes
 
-- Staccato concept: defined ONCE in `writer/references/structural-prose.md`. `prose-edit/references/voice.md` references it via cross-link ("Cross-link: writer structural-prose.md 'EN staccato'."), does not redefine.
-- Double-negation: defined ONCE in `writer/references/structural-prose.md`. Not redefined elsewhere.
-- AI-style signatures: defined ONCE in `writer/references/neuroslop-categories.md`. Other skills' references add scope-specific layers (essay-write adds "essay-only bans", viral-text adds "viral hook patterns"), they do not redefine the catalogue.
+- Staccato concept: defined ONCE in `skills/writer/references/structural-prose.md`. `skills/prose-edit/references/voice.md` references it via cross-link ("Cross-link: writer structural-prose.md 'EN staccato'."), does not redefine.
+- Double-negation: defined ONCE in `skills/writer/references/structural-prose.md`. Not redefined elsewhere.
+- AI-style signatures: defined ONCE in `skills/writer/references/neuroslop-categories.md`. Other skills' references add scope-specific layers (essay-write adds "essay-only bans", viral-text adds "viral hook patterns"), they do not redefine the catalogue.
 
 ## Architecture (current)
 
 ```
-writer/references/
+skills/writer/references/
 ├── structural-prose.md       ← canonical structural patterns
 ├── neuroslop-categories.md   ← canonical regex catalogue
 ├── typography.md             ← canonical typography
@@ -51,7 +51,7 @@ Wrappers compose by cross-linking, not by duplicating. The Claude Code skill mat
 
 ## Implication for new skills
 
-When adding a skill that needs structural / neuroslop / typography rules — DO cross-link to `writer/references/<file>.md`, DON'T copy. The cross-link is honored both by Claude Code (which can load referenced files on demand) and by `scripts/validate.sh` (which checks link resolution).
+When adding a skill that needs structural / neuroslop / typography rules — DO cross-link to `skills/writer/references/<file>.md`, DON'T copy. The cross-link is honored both by Claude Code (which can load referenced files on demand) and by `scripts/validate.sh` (which checks link resolution).
 
 ## Out-of-scope decision
 

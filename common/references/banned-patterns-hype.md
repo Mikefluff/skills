@@ -2,7 +2,7 @@
 
 Shared anti-patterns across `cold-email`, `landing-copy`, and `release-notes`.
 The base linter catches the regex-detectable subset under `MARKETING_HYPE`
-(see `writer/scripts/lint.py`).
+(see `skills/writer/scripts/lint.py`).
 
 These adjectives are red flags because they make claims the reader cannot verify
 without proof. Replace each with a **specific number, named customer, or concrete

@@ -24,7 +24,7 @@ skills:
 
 ## Intent — Julian Shapiro hero formula
 
-Hero — это первая и единственная секция, которую читают 80% посетителей. Правило формы (см. `landing-copy/references/hero-formula.md`):
+Hero — это первая и единственная секция, которую читают 80% посетителей. Правило формы (см. `skills/landing-copy/references/hero-formula.md`):
 
 ```
 [H1]   What it is + who it's for (one line, ≤ 12 words)
@@ -92,7 +92,7 @@ Skill commentary inline:
 
 ## Step 4. The three feature blocks
 
-Скилл собирает по pattern «Problem → Mechanism → Outcome» (см. `landing-copy/references/feature-blocks.md`):
+Скилл собирает по pattern «Problem → Mechanism → Outcome» (см. `skills/landing-copy/references/feature-blocks.md`):
 
 ```html
 <section class="features">
@@ -351,4 +351,4 @@ Microcopy default mood — «neutral helpful». Если бренд — sober (f
 - [cold-email-pitch.md](cold-email-pitch.md) — где landing-copy ссылается (link from email body to hero)
 - [release-notes-saas.md](release-notes-saas.md) — что shipped (changelog), а не что promised (landing)
 - [image-prompt-cover.md](image-prompt-cover.md) — для hero illustration к этой landing
-- [landing-copy/references/hero-formula.md](../../landing-copy/references/hero-formula.md) — полная Hero formula
+- [skills/landing-copy/references/hero-formula.md](../../skills/landing-copy/references/hero-formula.md) — полная Hero formula

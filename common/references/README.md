@@ -24,10 +24,10 @@ If you find a new anti-pattern that applies to ≥2 skills:
 1. Add it to the appropriate file here.
 2. Update the skill's local `banned-patterns.md` to cross-link (don't duplicate).
 3. If the pattern is regex-detectable, also add it to
-   `writer/scripts/lint.py` under the appropriate category
+   `skills/writer/scripts/lint.py` under the appropriate category
    (MARKETING_HYPE / WEAK_OPENER / EMPTY_CTA / VAGUE_BENEFIT).
 
-The base linter in `writer/scripts/lint.py` is the source of truth for
+The base linter in `skills/writer/scripts/lint.py` is the source of truth for
 **automated detection**. Files here are the source of truth for the
 **rationale and full taxonomy** — including patterns that are too
 context-dependent to regex.

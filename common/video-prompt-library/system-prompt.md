@@ -10,7 +10,7 @@ This file is the canonical SYSTEM_PROMPT used by every video-generation skill in
 
 The skill loads this SYSTEM_PROMPT verbatim, fills `buildUserMessage(opts)` with the user's input, spawns ONE Agent (`subagent_type=general-purpose`) with `system=SYSTEM_PROMPT` and `user=<built message>`, and gets back JSON `{"shots":[{"index":1,"prompt":"...","kwargs":{...}},...]}`. For N==1 (single-shot) the JSON still has a `shots` array with one entry.
 
-The discipline encoded here is the result of empirical field-testing on Veo 3.1 / Veo 3.1 Fast (the primary target) with cross-checks against Kling 3.0 i2v, Runway Gen-4, and Sora 2. The full per-model deltas live in [`../../video-prompt/references/i2v-prompting.md`](../../video-prompt/references/i2v-prompting.md). When in doubt, this SYSTEM_PROMPT wins — the references file documents WHY each rule exists.
+The discipline encoded here is the result of empirical field-testing on Veo 3.1 / Veo 3.1 Fast (the primary target) with cross-checks against Kling 3.0 i2v, Runway Gen-4, and Sora 2. The full per-model deltas live in [`../../video-prompt/references/i2v-prompting.md`](../../skills/video-prompt/references/i2v-prompting.md). When in doubt, this SYSTEM_PROMPT wins — the references file documents WHY each rule exists.
 
 ---
 
@@ -216,4 +216,4 @@ These items go into a `plan.json` (single canonical path — overwrite each run,
 
 ## Mapping to the i2v references file
 
-The full discipline lives at [`../../video-prompt/references/i2v-prompting.md`](../../video-prompt/references/i2v-prompting.md). This file is the LLM-facing SYSTEM_PROMPT — a tight, rule-list view for the prompt-generator agent. The references file is the human-facing rationale view — same rules, plus before/after worked examples, plus the cinematic 5-8s dialect, plus the camera vocabulary. Keep the two files in sync: any new rule added here should also land in the references file with a worked example.
+The full discipline lives at [`../../video-prompt/references/i2v-prompting.md`](../../skills/video-prompt/references/i2v-prompting.md). This file is the LLM-facing SYSTEM_PROMPT — a tight, rule-list view for the prompt-generator agent. The references file is the human-facing rationale view — same rules, plus before/after worked examples, plus the cinematic 5-8s dialect, plus the camera vocabulary. Keep the two files in sync: any new rule added here should also land in the references file with a worked example.

@@ -25,7 +25,7 @@ Please do **not** open a public GitHub issue for security reports. I'll acknowle
 
 - A skill telling Claude to do something dumb (write bad prose, ignore voice rules). That's quality, not security.
 - A user manually running `install.sh` from a fork they don't trust. Don't pipe `curl` from unknown forks.
-- `writer/scripts/lint.py` producing false positives / false negatives — file a bug, not a security report.
+- `skills/writer/scripts/lint.py` producing false positives / false negatives — file a bug, not a security report.
 
 ## Coordinated disclosure
 

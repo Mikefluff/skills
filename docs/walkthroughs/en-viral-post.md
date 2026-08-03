@@ -48,7 +48,7 @@ The research step usually takes 20-40 seconds. The skill cites the strongest 2-3
 
 ## Step 3. The draft
 
-The default EN structure (controlled by `viral-text/references/viral-rules.md` § "EN viral hook patterns"):
+The default EN structure (controlled by `skills/viral-text/references/viral-rules.md` § "EN viral hook patterns"):
 
 ```
 HOOK
@@ -111,7 +111,7 @@ The question must be specific. Generic ones ("What do you think?") get ignored o
 
 After the skill drafts the body, it auto-runs `writer` on the result:
 
-- Strip 25 categories of AI-slop (now with EN coverage — see `writer/references/neuroslop-categories.md` § "EN AI-style signatures")
+- Strip 25 categories of AI-slop (now with EN coverage — see `skills/writer/references/neuroslop-categories.md` § "EN AI-style signatures")
 - Typography: smart quotes (`"X"` not `"X"`), em-dashes (`—` not `--` or `-`)
 - Comma-splice fixes
 - Em-dash overuse trim (the classic Claude-tell — limit to 1-2 per paragraph)
@@ -186,7 +186,7 @@ Just `remove source N` — the skill will rewrite the claim that depended on it.
 
 Two paths:
 1. `re-run writer pass — strict mode` (forces a second pass with tighter heuristics)
-2. Manual: copy the post, open the relevant references file (`viral-text/references/viral-rules.md` or equivalent), spot-check against your voice samples, and `prose-edit` it for voice.
+2. Manual: copy the post, open the relevant references file (`skills/viral-text/references/viral-rules.md` or equivalent), spot-check against your voice samples, and `prose-edit` it for voice.
 
 ### "X thread mode broke — tweets are over 280 chars."
 
@@ -194,7 +194,7 @@ The skill respects 280 chars per tweet, but counting emoji + URL bytes is imperf
 
 ### EN clean-prose linter false-positive on legitimate prose
 
-If `writer/scripts/lint.py` fires on prose you know is clean, file a bug with the fragment. The EN regex set is younger than the RU one and may need tightening.
+If `skills/writer/scripts/lint.py` fires on prose you know is clean, file a bug with the fragment. The EN regex set is younger than the RU one and may need tightening.
 
 ## Related
 

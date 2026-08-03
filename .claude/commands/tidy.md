@@ -35,7 +35,7 @@ branch complexity ≤12, parameters ≤5.
 
 ## A — verify the platform limits
 
-`post-publisher/references/platform-limits.md` marks a row `~` when the number
+`skills/post-publisher/references/platform-limits.md` marks a row `~` when the number
 came from a vendor parameter table that could not be machine-read. Twelve rows
 carry it:
 

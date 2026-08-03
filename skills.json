@@ -7,7 +7,7 @@
   "skills": [
     {
       "name": "writer",
-      "dir": "writer",
+      "dir": "skills/writer",
       "layer": "base",
       "description": "Base clean-prose editor — antinyeyroslop (25 catalogued categories + copy-paste artifacts + rhythm metrics), typography, structural synthetics, RU calques. Invoked by all other prose skills.",
       "languages": [
@@ -21,7 +21,7 @@
     },
     {
       "name": "viral-text",
-      "dir": "viral-text",
+      "dir": "skills/viral-text",
       "layer": "wrapper",
       "description": "Write viral social media content — hooks, numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules + platform adaptation.",
       "languages": [
@@ -39,7 +39,7 @@
     },
     {
       "name": "prose-edit",
-      "dir": "prose-edit",
+      "dir": "skills/prose-edit",
       "layer": "wrapper",
       "description": "Fiction rewrite layer — Pelevin/Manson voice vector, 10-item style drift checklist, no meta-refs / anglicisms in narrator voice, long artistic rewrite (no comma-stitching), ToV pattern, 5-trigger structural-synthesis detector, Postirony depth-pass.",
       "languages": [
@@ -55,7 +55,7 @@
     },
     {
       "name": "essay-write",
-      "dir": "essay-write",
+      "dir": "skills/essay-write",
       "layer": "wrapper",
       "description": "Non-fiction layer — long subordinate sentences (Manson style), source-backed claims, philosophy through humor, biography through scenes, plain-Russian for complex content.",
       "languages": [
@@ -71,7 +71,7 @@
     },
     {
       "name": "style-check",
-      "dir": "style-check",
+      "dir": "skills/style-check",
       "layer": "linter",
       "description": "Read-only pre-commit lint that stacks writer + prose-edit + essay-write rules. Routes by configurable path patterns (fiction vs non-fic), BLOCKING/WARNING/INFO severity, exit-code semantics for git hook.",
       "languages": [
@@ -90,7 +90,7 @@
     },
     {
       "name": "translation-sync",
-      "dir": "translation-sync",
+      "dir": "skills/translation-sync",
       "layer": "linter",
       "description": "Read-only pre-commit parity checker for trilingual book translations (RU↔EN↔PT-BR) — typography per language, terminology canon, anchor-quote drift, names/patronymics/diminutives, cultural realia footnotes, no-smoothing of numbers/brands/dates. BLOCKING/WARNING/INFO severity with exit-code semantics for git hook.",
       "languages": [
@@ -106,7 +106,7 @@
     },
     {
       "name": "canon-check",
-      "dir": "canon-check",
+      "dir": "skills/canon-check",
       "layer": "linter",
       "description": "Story-bible consistency auditor for any book series. Greps entities (characters / artifacts / locations) in changed chapters, cross-references the project's story-bible document, flags BLOCKING contradictions / WARNING gaps / INFO new details. Read-only — trust the text, not memory.",
       "languages": [
@@ -121,7 +121,7 @@
     },
     {
       "name": "pelevin-digression",
-      "dir": "pelevin-digression",
+      "dir": "skills/pelevin-digression",
       "layer": "wrapper",
       "description": "Write a Pelevin-style digression for a fiction or non-fiction passage — 12 structural techniques + 5 banned constructions. Wraps prose-edit (fiction) or essay-write (non-fic). Invoked by request, not auto-applied.",
       "languages": [
@@ -140,7 +140,7 @@
     },
     {
       "name": "skills-update",
-      "dir": "skills-update",
+      "dir": "skills/skills-update",
       "layer": "meta",
       "description": "User-invocable update check + apply for this collection. Compares local install marker with latest GitHub release, shows CHANGELOG diff, asks for confirmation, runs install.sh --update.",
       "languages": [
@@ -154,7 +154,7 @@
     },
     {
       "name": "skills-keys",
-      "dir": "skills-keys",
+      "dir": "skills/skills-keys",
       "layer": "meta",
       "description": "Manage API keys for the runner's --execute layer. CRUD on ~/.skills.env (chmod 600): list / add / update / remove / enable / disable gate flags / verify (ping vendor APIs) / export. Single source of truth for OPENAI / GEMINI / BFL / FAL / REPLICATE / RUNWAY / KLING / SUNO / ELEVENLABS / IDEOGRAM / ANTHROPIC keys + gate flags + S3 storage env vars. Explicit shell exports always win over file entries.",
       "languages": [
@@ -168,7 +168,7 @@
     },
     {
       "name": "skills-styles",
-      "dir": "skills-styles",
+      "dir": "skills/skills-styles",
       "layer": "meta",
       "description": "Manage the local style library — bundled styles (24 carousel + 12 video director + 12 music genre) plus user overrides at ~/.claude/style-library/<modality>/<id>.md. CRUD on user styles (add / edit / remove / show / list / diff / validate / path) and build upstream-PR submission packages (submit). Frontmatter + body schema validation per modality. Templates ship with the library.",
       "languages": [
@@ -183,7 +183,7 @@
     },
     {
       "name": "tone-shifter",
-      "dir": "tone-shifter",
+      "dir": "skills/tone-shifter",
       "layer": "wrapper",
       "description": "Rewrite a passage in a different register (formal↔casual, business↔academic, technical↔friendly, plain-explainer) without changing meaning. 6 registers + named transformation deltas. Wraps writer as final cleanup.",
       "languages": [
@@ -199,7 +199,7 @@
     },
     {
       "name": "cold-email",
-      "dir": "cold-email",
+      "dir": "skills/cold-email",
       "layer": "wrapper",
       "description": "Write or rewrite cold outreach emails (first-touch, follow-up, intro request, re-engage). 5-block structure, ≤120-word budget, banned ceremony patterns, anti-template subject lines. Wraps writer as final cleanup.",
       "languages": [
@@ -216,7 +216,7 @@
     },
     {
       "name": "image-prompt",
-      "dir": "image-prompt",
+      "dir": "skills/image-prompt",
       "layer": "wrapper",
       "description": "Write prompts for 14+ frontier AI image generators (Midjourney v7, Flux 2 / Flux Kontext, Imagen 4 Ultra, Nano Banana Pro / Gemini 3 Image, gpt-image-2, Ideogram 3, Recraft V3, Seedream 4.5, Qwen-Image, HiDream-O1, Krea-1, SD 3.5, SDXL). Modes: text-to-image, edit (preserve/change), multi-reference, text-in-image. 6-part formula + per-model deltas, character/identity locks, weighted multi-ref.",
       "languages": [
@@ -231,7 +231,7 @@
     },
     {
       "name": "video-prompt",
-      "dir": "video-prompt",
+      "dir": "skills/video-prompt",
       "layer": "wrapper",
       "description": "Write prompts for 20+ frontier AI video generators (Veo 3.1 + native audio, Sora 2 + cameos, Kling 3.0 / Elements, Runway Gen-4 / Aleph V2V / Act-One, Luma Ray 3 / Modify, Pika 2.2 / Pikaframes, Hailuo 02, Higgsfield, LTX-2, HunyuanCustom, Wan 2.2, Seedance). Modes: T2V / I2V / V2V / extend / multi-shot / dialogue+audio. CHARACTER FIRST law, beat structure, exact camera vocabulary, identity-reference grammar, pacing modes (incl. dialogue-scene + music-video).",
       "languages": [
@@ -246,7 +246,7 @@
     },
     {
       "name": "music-prompt",
-      "dir": "music-prompt",
+      "dir": "skills/music-prompt",
       "layer": "wrapper",
       "description": "Write prompts for 10+ frontier AI music generators (Suno v5.5, Udio v4, Google Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen, Tencent SongGeneration, Sonauto v2, Riffusion, Mubert). 2026 canonical 8-category meta-tag taxonomy, `|` stacking, two-box Style+Lyrics workflow (Suno), exclude-styles (Eleven), field-driven (Lyria). 12 genre recipes.",
       "languages": [
@@ -261,7 +261,7 @@
     },
     {
       "name": "microcopy",
-      "dir": "microcopy",
+      "dir": "skills/microcopy",
       "layer": "wrapper",
       "description": "Write UX microcopy — error messages, empty states, tooltips, button labels, helper text, modals, 404/500 pages, onboarding. Plain language, action-oriented, never blame user, length budgets per element type. Wraps writer for final cleanup.",
       "languages": [
@@ -279,7 +279,7 @@
     },
     {
       "name": "release-notes",
-      "dir": "release-notes",
+      "dir": "skills/release-notes",
       "layer": "wrapper",
       "description": "Write user-facing release notes + changelogs. Keep-a-Changelog format, sections Added/Changed/Fixed/Deprecated/Removed/Security. Per-audience tone (user/dev/ops). Anti-marketing-fluff bans. Wraps writer.",
       "languages": [
@@ -297,7 +297,7 @@
     },
     {
       "name": "rfc-writer",
-      "dir": "rfc-writer",
+      "dir": "skills/rfc-writer",
       "layer": "wrapper",
       "description": "Write engineer-facing design docs — RFCs, ADRs, Tech Specs, Design Docs. Structure: context/problem/proposal/alternatives/consequences/decision. RFC 2119 (MUST/SHOULD/MAY). Review checklist for spotting weak alternatives sections.",
       "languages": [
@@ -314,7 +314,7 @@
     },
     {
       "name": "landing-copy",
-      "dir": "landing-copy",
+      "dir": "skills/landing-copy",
       "layer": "wrapper",
       "description": "Write marketing copy — landing page sections (hero/features/pricing/FAQ), SEO meta (title+description+OG+Twitter), ad copy (Google/Facebook/LinkedIn/X). Julian Shapiro hero formula, char limits per platform. Wraps writer.",
       "languages": [
@@ -331,7 +331,7 @@
     },
     {
       "name": "research-brief",
-      "dir": "research-brief",
+      "dir": "skills/research-brief",
       "layer": "orchestrator",
       "description": "Produce a structured research brief on any topic — TL;DR, key facts with citations, notable quotes, suggested angles, open questions. 3-15 queries by depth, multi-source (WebSearch + WebFetch + optional Firecrawl/Exa MCP). Output is a markdown file ready for downstream consumption by carousel-builder, reel-builder, viral-text, essay-write, landing-copy.",
       "languages": [
@@ -346,7 +346,7 @@
     },
     {
       "name": "carousel-builder",
-      "dir": "carousel-builder",
+      "dir": "skills/carousel-builder",
       "layer": "orchestrator",
       "description": "Turn a topic or research brief into an N-slide Instagram / LinkedIn / TikTok carousel with consistent visual style and ready-to-post captions. Wraps essay-write + viral-text + image-prompt --execute + common style library (24 visual styles). Outputs PNG slides + captions.md + manifest. Modes: --topic / --research; --style auto|<library-id>|--style-ref <image>; --slides 3-12; --platform instagram|linkedin|tiktok; --text-mode embedded|overlay|none; --execute; --resume.",
       "languages": [
@@ -367,7 +367,7 @@
     },
     {
       "name": "cover-maker",
-      "dir": "cover-maker",
+      "dir": "skills/cover-maker",
       "layer": "orchestrator",
       "description": "Turn cover metadata (title / creator / subtitle / medium) into an album / book / podcast / report / deck / magazine cover. Wraps image-prompt --execute + the carousel style library (24 visual styles) + the runner's batch executor. Picks aspect by medium. Multi-variant output. Optional photo / artwork reference. Outputs: ./generated/cover/<slug>/<medium>.png + manifest.json.",
       "languages": [
@@ -386,7 +386,7 @@
     },
     {
       "name": "thumbnail-maker",
-      "dir": "thumbnail-maker",
+      "dir": "skills/thumbnail-maker",
       "layer": "orchestrator",
       "description": "Produce YouTube / blog / podcast-episode thumbnails. 16:9 default (1280×720 standard, 1920×1080 high-res). Face + bold title aesthetic; supports face-placement variants (left / right / center). Wraps image-prompt --execute + the carousel style library + the runner's batch executor. Outputs: ./generated/thumbnail/<slug>/<variant>.png + manifest.json.",
       "languages": [
@@ -405,7 +405,7 @@
     },
     {
       "name": "bg-remover",
-      "dir": "bg-remover",
+      "dir": "skills/bg-remover",
       "layer": "wrapper",
       "description": "Background removal utility — image in, transparent PNG out. Wraps Replicate-hosted background removal models (851-labs/background-remover by default). Single image input, transparent PNG output. ~$0.001-0.005 per image.",
       "languages": [
@@ -420,7 +420,7 @@
     },
     {
       "name": "avatar-maker",
-      "dir": "avatar-maker",
+      "dir": "skills/avatar-maker",
       "layer": "orchestrator",
       "description": "Turn a user photo into N profile-pic / headshot / avatar variants in a consistent style. Wraps image-prompt --execute + the carousel style library + the runner's batch executor. Identity preserve is THE differentiator — defaults to nano-banana-pro for best face preservation. Multi-aspect output (square 1:1, square-tight, cover 4:5, story 9:16, wide 16:9). Outputs: ./generated/avatar/<slug>/<aspect>-v<N>.png + manifest.json.",
       "languages": [
@@ -438,7 +438,7 @@
     },
     {
       "name": "voiceover-maker",
-      "dir": "voiceover-maker",
+      "dir": "skills/voiceover-maker",
       "layer": "wrapper",
       "description": "Text-to-speech skill — script in, MP3 out. Wraps the runner's audio modality (ElevenLabs eleven-tts + OpenAI gpt-4o-mini-tts). Supports voice picker, multilingual TTS (Eleven), speed control, long-form scripts. Auto-picks provider based on language + script length + brand-voice needs. Saves to ./generated/audio/<timestamp>-<model>.mp3.",
       "languages": [
@@ -453,7 +453,7 @@
     },
     {
       "name": "subtitle-burner",
-      "dir": "subtitle-burner",
+      "dir": "skills/subtitle-burner",
       "layer": "wrapper",
       "description": "Burn captions / subtitles onto an existing video via ffmpeg. Supports SRT, WebVTT, and plain-text subtitle sources. Style presets (modern / minimal / bold) + per-flag customization (font-size, color, backplate). Outputs <video>-subtitled<ext>. No API calls — pure ffmpeg. Subcommands: burn / preview.",
       "languages": [
@@ -468,7 +468,7 @@
     },
     {
       "name": "flyer-maker",
-      "dir": "flyer-maker",
+      "dir": "skills/flyer-maker",
       "layer": "orchestrator",
       "description": "Turn event details (title / date / location / CTA) plus an optional photo into a poster/flyer/social-event-graphic with embedded text in a chosen visual style. Wraps image-prompt --execute + the carousel style library (24 visual styles) + the runner's batch executor. Picks a text-friendly + multi-ref-capable model (gpt-image-2 / ideogram-3-quality / nano-banana-pro). Multi-aspect output (portrait / square / story / landscape / a4). Outputs: ./generated/flyer/<event-slug>/<aspect>.png + manifest.json + prompts.md.",
       "languages": [
@@ -487,7 +487,7 @@
     },
     {
       "name": "reel-builder",
-      "dir": "reel-builder",
+      "dir": "skills/reel-builder",
       "layer": "orchestrator",
       "description": "Turn a topic / research brief / script into a vertical reel: 1-4 video shots + matched background music + ffmpeg-stitched final.mp4 with optional burned-in captions. Wraps viral-text + video-prompt --execute + music-prompt --execute + common video/music style library + ffmpeg. Outputs final.mp4 + shots/ + music.mp3 + script.md + manifest. Modes: --topic / --research / --script-file; --shots 1-5; --style auto|<library-id>; --music-style auto|<library-id>; --captions on|off; --execute; --resume.",
       "languages": [
@@ -509,7 +509,7 @@
     },
     {
       "name": "logo-maker",
-      "dir": "logo-maker",
+      "dir": "skills/logo-maker",
       "layer": "orchestrator",
       "description": "Brand mark / wordmark / logo generator. Defaults to ideogram-3-quality (cleanest embedded text). Six style presets (wordmark / minimal / illustrated / typographic / geometric / emblem) + optional palette hint. Single-image output, N stochastic variants per call. Outputs: ./generated/logo/<slug>/logo-v<N>.png + manifest.json.",
       "languages": [
@@ -528,7 +528,7 @@
     },
     {
       "name": "quote-card-maker",
-      "dir": "quote-card-maker",
+      "dir": "skills/quote-card-maker",
       "layer": "orchestrator",
       "description": "Quote card / aphorism graphic generator — short text + attribution on a typography-dominant composition. Wraps image-prompt --execute + the carousel style library biased toward text-friendly anchors (minimal-serif / swiss-grid / editorial-magazine / monochrome-bold / gradient-mesh-modern / russian-constructivist). Multi-aspect (square / portrait / story / landscape). Default model ideogram-3-quality. Outputs: ./generated/quote/<slug>/<aspect>.png + manifest.json.",
       "languages": [
@@ -547,7 +547,7 @@
     },
     {
       "name": "gif-maker",
-      "dir": "gif-maker",
+      "dir": "skills/gif-maker",
       "layer": "wrapper",
       "description": "Short looping GIF utility. Mode A: convert existing MP4 → GIF via ffmpeg 2-pass palette optimization. Mode B: generate 1-3s clip via a video provider (Veo / Kling / fal-video / Sora) then convert. Aspect crop presets (1:1 / 9:16 / 16:9 / 4:5 / 2:1). Outputs: ./generated/gif/<name>.gif.",
       "languages": [
@@ -565,7 +565,7 @@
     },
     {
       "name": "banner-maker",
-      "dir": "banner-maker",
+      "dir": "skills/banner-maker",
       "layer": "orchestrator",
       "description": "Banner-ad / display-creative generator with standard-size presets — Google Display (leaderboard, medium-rectangle, mobile-banner, wide-skyscraper), OG image, LinkedIn ad, Facebook ad, Twitter card. Headline + CTA + brand composition. Default model ideogram-3-quality for clean embedded text. Outputs: ./generated/banner/<slug>/<preset>.png + manifest.json.",
       "languages": [
@@ -584,7 +584,7 @@
     },
     {
       "name": "meme-card-maker",
-      "dir": "meme-card-maker",
+      "dir": "skills/meme-card-maker",
       "layer": "orchestrator",
       "description": "Meme-format graphic generator — top text + bottom text + optional centerpiece image. Wraps image-prompt --execute with Impact-style typography (bold white text + thick black stroke). Supports 5 template hints (drake / distracted-boyfriend / expanding-brain / two-buttons / change-my-mind) + custom mode. Optional --base-photo for user-image centerpiece. Default model gpt-image-2. Outputs: ./generated/meme/<slug>/meme-v<N>.png + manifest.json.",
       "languages": [
@@ -603,7 +603,7 @@
     },
     {
       "name": "upscaler",
-      "dir": "upscaler",
+      "dir": "skills/upscaler",
       "layer": "wrapper",
       "description": "Image upscaling utility — single image in, upscaled image out (2× / 4× / 8×). Wraps Replicate-hosted upscalers (Real-ESRGAN default; alternatives: GFPGAN for faces, SwinIR, clarity-upscaler). Optional --face-enhance for portrait restoration. ~$0.005-0.02 per image.",
       "languages": [
@@ -618,7 +618,7 @@
     },
     {
       "name": "audio-mix-maker",
-      "dir": "audio-mix-maker",
+      "dir": "skills/audio-mix-maker",
       "layer": "wrapper",
       "description": "Mix a music / audio track onto an existing video via ffmpeg. Three modes: replace (drop original audio), overlay (mix both audible), duck (sidechain compressor lowers music when speech detected). Volume + fade controls. No API calls — pure ffmpeg.",
       "languages": [
@@ -633,7 +633,7 @@
     },
     {
       "name": "style-transfer",
-      "dir": "style-transfer",
+      "dir": "skills/style-transfer",
       "layer": "wrapper",
       "description": "Apply an artistic style to an existing image. Default provider Flux Kontext. 12 style presets (watercolor / oil-painting / sketch / line-art / ink-wash / cyberpunk / studio-ghibli / pixar-3d / manga / art-deco / low-poly / vaporwave) + custom mode. ~$0.05 per image.",
       "languages": [
@@ -649,7 +649,7 @@
     },
     {
       "name": "transcribe-maker",
-      "dir": "transcribe-maker",
+      "dir": "skills/transcribe-maker",
       "layer": "wrapper",
       "description": "Transcribe audio / video to SRT / WebVTT / JSON / plain text via OpenAI Whisper. Auto-detects language or accepts ISO-639-1 hint. ~$0.006/min. Closes the loop with subtitle-burner — produce captions from video, then burn them in. 25 MB file limit.",
       "languages": [
@@ -664,7 +664,7 @@
     },
     {
       "name": "style-suggest",
-      "dir": "style-suggest",
+      "dir": "skills/style-suggest",
       "layer": "orchestrator",
       "description": "Visual-style generator — turn a text description and/or reference image into a fully-structured style entry that drops into common/visual-prompt-library/styles/. Adapted from figma's StyleSuggestAgent: takes free-form input, checks the existing catalog for duplicates (similarity ≥ 0.72), otherwise produces a new entry with all v2.15.0 schema fields (background / accents / elements / mood / accent_text_color / typography / composition_signature / when_to_use). The new style is immediately usable by every visual-output skill via the shared chain.",
       "languages": [
@@ -681,7 +681,7 @@
     },
     {
       "name": "proposal-maker",
-      "dir": "proposal-maker",
+      "dir": "skills/proposal-maker",
       "layer": "orchestrator",
       "description": "Turn a raw, telegram-style commercial offer into a self-contained, brand-faithful HTML proposal whose style is copied from a website. Default flow is LLM-authored: a Python step builds a brand kit (site screenshot + logo + accent/font tokens + per-item catalogue photos + BRIEF.md), then the orchestrator authors bespoke HTML mirroring the brand. Items missing a photo get an on-brand generated image; prices and links stay exact; prints to a Ghostscript-compressed PDF. A --quick mode renders a deterministic theme (editorial/invoice/dark). Output: ./generated/proposal/<slug>/.",
       "languages": [
@@ -697,7 +697,7 @@
     },
     {
       "name": "post-publisher",
-      "dir": "post-publisher",
+      "dir": "skills/post-publisher",
       "layer": "orchestrator",
       "description": "Publish finished assets to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs. Takes a carousel-builder or reel-builder output directory, reads captions.md, runs a per-platform preflight (char limits, media count, file size, posting caps), previews, confirms per platform, then publishes and writes a posted.json receipt so the same content cannot go out twice. Dry-run by default; --yes leaves it; --draft where the platform has drafts. OAuth tokens live in ~/.skills-tokens.json with automatic refresh.",
       "languages": [

@@ -6,7 +6,7 @@ name: docker
 #   - on push to main → tag `latest` + commit SHA
 #   - on tag v*       → also tag `vX.Y.Z`, `X.Y`, `X`, `latest`
 #
-# The image ships writer/scripts/lint.py + all skills markdown.
+# The image ships skills/writer/scripts/lint.py + all skills markdown.
 
 on:
   push:

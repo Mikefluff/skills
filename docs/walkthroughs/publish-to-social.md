@@ -135,7 +135,7 @@ python3 -m common.runners.cli.auth --platform instagram
 ```
 
 Full setup, per platform, including which scopes and which account type:
-[`post-publisher/references/oauth-setup.md`](../../post-publisher/references/oauth-setup.md).
+[`skills/post-publisher/references/oauth-setup.md`](../../skills/post-publisher/references/oauth-setup.md).
 
 Then stage it rather than publishing it:
 
@@ -178,7 +178,7 @@ Published: 1 · skipped: 0 · failed: 2
 
 This is the normal outcome of writing one caption for seven networks, and the
 fix belongs upstream. Ask `viral-text` for a per-platform variant — the budgets
-live in [`viral-text/references/platforms.md`](../../viral-text/references/platforms.md)
+live in [`skills/viral-text/references/platforms.md`](../../skills/viral-text/references/platforms.md)
 — and publish each with its own `--text-file`. The skill will not truncate to
 make a bad fit look like a good one.
 
@@ -226,7 +226,7 @@ Without `--draft`, preflight says so before you commit to it.
 
 An unaudited TikTok app, a personal Instagram account, a LinkedIn company page —
 these are closed to the API, not merely inconvenient.
-[`browser-fallback.md`](../../post-publisher/references/browser-fallback.md)
+[`browser-fallback.md`](../../skills/post-publisher/references/browser-fallback.md)
 covers posting those by hand while keeping the receipt trail intact, so a later
 API run does not double-post. Run the dry-run first even then: character limits
 and file sizes do not stop mattering because the transport changed.
@@ -244,4 +244,4 @@ and file sizes do not stop mattering because the transport changed.
 | Everything after | ~30 s | One command per post |
 
 Troubleshooting any platform error:
-[`post-publisher/references/troubleshoot.md`](../../post-publisher/references/troubleshoot.md).
+[`skills/post-publisher/references/troubleshoot.md`](../../skills/post-publisher/references/troubleshoot.md).

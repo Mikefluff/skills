@@ -15,7 +15,7 @@ skills:
 
 ## Intent — Keep-a-Changelog шесть секций
 
-Секции в строгом порядке (см. `release-notes/references/sections.md`):
+Секции в строгом порядке (см. `skills/release-notes/references/sections.md`):
 
 1. **Security** — first, всегда. Если есть security fix, он наверху.
 2. **Added** — новые features.
@@ -28,7 +28,7 @@ skills:
 
 ## Intent — anti-marketing-fluff bans
 
-Release notes ≠ marketing email. Скилл режет (см. `release-notes/references/banned-patterns.md`):
+Release notes ≠ marketing email. Скилл режет (см. `skills/release-notes/references/banned-patterns.md`):
 
 - «We're excited to announce...» / «We're thrilled...»
 - «Game-changing» / «revolutionary» / «next-generation»
@@ -219,7 +219,7 @@ GitHub Release UI renders markdown but trims some patterns. Скилл выда�
 
 ### Скилл классифицировал PR неправильно
 
-`reclassify #841 from Added to Changed` — скилл переразмещает. Если не уверен — Keep-a-Changelog reference (`release-notes/references/sections.md`) даёт правила: Added = new public functionality, Changed = different behaviour for existing functionality, Fixed = bug fix without new behaviour.
+`reclassify #841 from Added to Changed` — скилл переразмещает. Если не уверен — Keep-a-Changelog reference (`skills/release-notes/references/sections.md`) даёт правила: Added = new public functionality, Changed = different behaviour for existing functionality, Fixed = bug fix without new behaviour.
 
 ### PRs не имеют user-facing descriptions
 
@@ -238,4 +238,4 @@ Push back. Release notes ≠ launch announcement. Если marketing хочет 
 - [landing-launch.md](landing-launch.md) — где сидит launch-announcement (другой жанр)
 - [rfc-architecture.md](rfc-architecture.md) — где decisions documented before they ship
 - [microcopy-error-states.md](microcopy-error-states.md) — родственная задача с per-audience tone
-- [release-notes/references/sections.md](../../release-notes/references/sections.md) — полная schema
+- [skills/release-notes/references/sections.md](../../skills/release-notes/references/sections.md) — полная schema

@@ -12,7 +12,7 @@ and an API version already sunset. A plausible-looking wrong constant is
 invisible in review, so it gets a test.
 
 Sources, dates and the ~/✅ convention live in
-post-publisher/references/platform-limits.md. Change a number here and you must
+skills/post-publisher/references/platform-limits.md. Change a number here and you must
 change that table in the same commit — they drifted apart once and that is how
 the four wrong ones survived.
 
@@ -43,7 +43,7 @@ class TestVerifiedPlatformNumbers(unittest.TestCase):
     allowance sixteen times too low, and an API version already sunset. A
     plausible-looking wrong constant is invisible in review, so it gets a test.
 
-    Sources are listed in post-publisher/references/platform-limits.md.
+    Sources are listed in skills/post-publisher/references/platform-limits.md.
     """
 
     def test_instagram_publishes_100_per_day_not_25(self):
@@ -117,7 +117,7 @@ class TestSecondPassPlatformNumbers(unittest.TestCase):
     time. Each assertion below quotes the sentence it is pinning, so that a
     future edit has to argue with the vendor rather than with the constant.
 
-    Sources are listed in post-publisher/references/platform-limits.md.
+    Sources are listed in skills/post-publisher/references/platform-limits.md.
     """
 
     def test_telegram_message_and_caption_are_different_ceilings(self):

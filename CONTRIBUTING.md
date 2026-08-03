@@ -28,7 +28,7 @@ skills/
     references/              ← optional: heavy rule tables, checklists
       *.md
     examples/                ← optional: BEFORE/AFTER calibration pairs
-    scripts/                 ← optional: skill-specific tooling (e.g. writer/scripts/lint.py)
+    scripts/                 ← optional: skill-specific tooling (e.g. skills/writer/scripts/lint.py)
   docs/
     USER-GUIDE.md            ← scenario-based landing
     FAQ.md
@@ -153,7 +153,7 @@ The bar is lower than adding a new skill but the gates are the same.
 2. Run the verification block above.
 3. If you changed the `description:` field, make sure it's still ≤350 chars.
 4. If you added or removed a reference file, make sure all SKILL.md cross-links still resolve (`validate.sh` checks this).
-5. If you changed regex patterns in `writer/scripts/lint.py`, snapshots will drift — re-run `bash tests/run.sh --update` and commit the new snapshots **along with the explanation** of why the linter changed in the PR description.
+5. If you changed regex patterns in `skills/writer/scripts/lint.py`, snapshots will drift — re-run `bash tests/run.sh --update` and commit the new snapshots **along with the explanation** of why the linter changed in the PR description.
 
 ---
 
@@ -225,7 +225,7 @@ For each skill:
 Twelve gates, all must pass:
 
 1. **validate** — all `validate.sh` checks
-2. **linter regression** — `writer/examples/before-after.md` must still read as neuroslop
+2. **linter regression** — `skills/writer/examples/before-after.md` must still read as neuroslop
 3. **fixture snapshots** — `lint.py --json` on every `tests/fixtures/*.md`, byte-equal to `tests/snapshots/*.json`. On intentional drift, re-baseline with `bash tests/run.sh --update`
 4. **AFTER calibration samples** — hard bans inside the "После" blocks of `examples/before-after.md`. These live in fenced blocks, which the linter masks, so they need their own pass
 5. **relative links** — all ~1200 of them; `validate.sh` only resolves same-skill `references/`
@@ -331,7 +331,7 @@ When opening a PR, confirm:
 - [ ] `shellcheck install.sh scripts/*.sh` exits 0
 - [ ] `markdownlint-cli2` reports no errors
 - [ ] If you added a skill: `skills.json` updated, README table regenerated, USER-GUIDE mentions it, CHANGELOG `[Unreleased]` has an entry, ≥1 fixture exists
-- [ ] If you changed `writer/scripts/lint.py`: regenerated all snapshots and explained the change in the PR description
+- [ ] If you changed `skills/writer/scripts/lint.py`: regenerated all snapshots and explained the change in the PR description
 - [ ] Commit messages follow Conventional Commits
 
 The CI will run the same gates. If anything fails, the PR cannot merge.

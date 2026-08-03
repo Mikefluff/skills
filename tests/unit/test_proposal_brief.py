@@ -72,14 +72,14 @@ LANGS = ("en", "ru")
 
 # sha256 of the written brief, keyed "<screenshot>/<logo>/<lang>".
 DOC_SHA: dict[str, str] = {
-    "noshot/nologo/en": "e6425fa686c5d903e266b9b5e70863d6c38ddcedfad4897b7e54c39b6d9898e1",
-    "noshot/nologo/ru": "b0b5a6cd5040dfe907cf6c244dd8d2c26c72c4c496a08a32fa61886b2e99e3ae",
-    "noshot/logo/en": "d10418a42a131c8787f12ec647aaabf7a59522782a66ad8d5afc1751e3d4b57b",
-    "noshot/logo/ru": "dfaa53dadd74d79baf5e7fa581a9b8c396d5244eae0ef7cddc9521b436d10838",
-    "shot/nologo/en": "03df0ddebc400ac2f3cec20a68e8479cfd31c6506f157adbdcd2a0fc1870a802",
-    "shot/nologo/ru": "134434581c3a6817477972096856a13a2fbab7767e3efc03a73b7f6e5fbf03f9",
-    "shot/logo/en": "e292ab6161f8b37fffbe966a4f3d4281ab8043af54e2c1a2b3387b9454e14d7a",
-    "shot/logo/ru": "384db77a5c725c58485790a11654bfb032407816682d0ba21ff97d28ee265264",
+    "noshot/nologo/en": "44f51346834ece6cea9a153c83134a6d649e440d3f00cbd7d27025e30e4a372e",
+    "noshot/nologo/ru": "8da0329d263eb0e59641e9132808662003fd643e954f294949c0cdf250c92d48",
+    "noshot/logo/en": "4bef4cdf4a315bb7602660a69d1aa20d5915b64a2016d85fd626f2e4ee98ea71",
+    "noshot/logo/ru": "0e5425dd1e5a029744c13f5051319923a43023f4a5cb188b0396485ce8617156",
+    "shot/nologo/en": "a400528c1900f81f3c097011d5e9109d4032efe1335b86794c97653b090dde27",
+    "shot/nologo/ru": "1638aef5c750ff3fe1ae3a7676c871b4efee0a0f34ed4064420200fd1741538a",
+    "shot/logo/en": "afb98bb6c4dd261bcfec69ebcc68c97def86f0b64b267e5b7c0ac1fabe06fda4",
+    "shot/logo/ru": "fe46fc971f1526f8d0af4e759d26a974232de1aeacaaa2504879c1e5f4b630a0",
 }
 
 

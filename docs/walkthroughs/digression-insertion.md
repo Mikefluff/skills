@@ -27,7 +27,7 @@ skills:
 - эссе требует строгости (научный обзор, методологическая статья) — дигрессия размоет фокус
 - ты уже втыкаешь третью дигрессию подряд — превращается в тик
 - абзац плоский потому, что аргумент слабый — сначала укрепи аргумент, потом украшай
-- ты пишешь художку, не нон-фикшн — там работает `prose-edit`, не `pelevin-digression` (см. [pelevin-digression/references/overlap-with-prose-edit.md](../../pelevin-digression/references/overlap-with-prose-edit.md))
+- ты пишешь художку, не нон-фикшн — там работает `prose-edit`, не `pelevin-digression` (см. [skills/pelevin-digression/references/overlap-with-prose-edit.md](../../skills/pelevin-digression/references/overlap-with-prose-edit.md))
 
 ## Setup
 
@@ -66,7 +66,7 @@ skills:
 5. Финальный пасс через `essay-write` (для нон-фикшн) — аргументация + длинные сложноподчинённые + writer-чистка.
 6. Возвращает diff-патч: что вставить, где именно.
 
-Если файл — художка, скилл сам переключается на `prose-edit` финальный пасс вместо `essay-write` (это маршрутизация по пути файла; см. [pelevin-digression/SKILL.md](../../pelevin-digression/SKILL.md)).
+Если файл — художка, скилл сам переключается на `prose-edit` финальный пасс вместо `essay-write` (это маршрутизация по пути файла; см. [skills/pelevin-digression/SKILL.md](../../skills/pelevin-digression/SKILL.md)).
 
 ## Step 3. Accept or reject
 
@@ -121,7 +121,7 @@ skills:
 
 ## 12 структурных техник — quick-glossary
 
-Полный реестр в [pelevin-digression/references/techniques.md](../../pelevin-digression/references/techniques.md). Кратко:
+Полный реестр в [skills/pelevin-digression/references/techniques.md](../../skills/pelevin-digression/references/techniques.md). Кратко:
 
 1. **Бренд-конкретика** — социология через имя бренда (McDonald's 2009, не «фастфуд-цепочка»)
 2. **Скобка-эссе** — параграф в `(...)` расширяет тезис вбок
@@ -140,7 +140,7 @@ skills:
 
 ## 5 запрещённых конструкций
 
-Полный список в [pelevin-digression/references/banned-constructions.md](../../pelevin-digression/references/banned-constructions.md). Скилл не пропустит:
+Полный список в [skills/pelevin-digression/references/banned-constructions.md](../../skills/pelevin-digression/references/banned-constructions.md). Скилл не пропустит:
 
 1. **Прямое название автора-вдохновителя** — «как у Пелевина», «по-пелевински»
 2. **Метатекст** — «и вот тут начинается дигрессия», «отвлечёмся на минуту»
@@ -161,7 +161,7 @@ skills:
 - предложения слишком гладкие, слишком «литературные» — это плохо, у Пелевина ритм рваный
 - читается как **твоё** эссе, ушедшее на 300 слов в сторону — это хорошо
 
-Полный разбор вектора vs. имперсонации в [pelevin-digression/references/voice-vector.md](../../pelevin-digression/references/voice-vector.md).
+Полный разбор вектора vs. имперсонации в [skills/pelevin-digression/references/voice-vector.md](../../skills/pelevin-digression/references/voice-vector.md).
 
 ## Troubleshooting
 
@@ -195,12 +195,12 @@ skills:
 
 ### Финальный пасс — почему через essay-write, не через writer
 
-`essay-write` уже содержит `writer` 4-layer пасс внутри + добавляет проверки на аргументацию и длинные сложноподчинённые. Для нон-фикшн дигрессии это правильный финальный фильтр. Если файл — художка, скилл сам переключится на `prose-edit` (тоже с `writer` внутри). См. цепочку в [pelevin-digression/SKILL.md](../../pelevin-digression/SKILL.md).
+`essay-write` уже содержит `writer` 4-layer пасс внутри + добавляет проверки на аргументацию и длинные сложноподчинённые. Для нон-фикшн дигрессии это правильный финальный фильтр. Если файл — художка, скилл сам переключится на `prose-edit` (тоже с `writer` внутри). См. цепочку в [skills/pelevin-digression/SKILL.md](../../skills/pelevin-digression/SKILL.md).
 
 ## Related
 
 - [non-fiction.md](non-fiction.md) — общий workflow для нон-фикшн эссе и лонгридов
 - [fiction-chapter.md](fiction-chapter.md) — пелевинская дигрессия внутри художки (через `prose-edit`)
-- [essay-write/SKILL.md](../../essay-write/SKILL.md) — финальный пасс для нон-фикшн
-- [prose-edit/SKILL.md](../../prose-edit/SKILL.md) — финальный пасс для художки
+- [skills/essay-write/SKILL.md](../../skills/essay-write/SKILL.md) — финальный пасс для нон-фикшн
+- [skills/prose-edit/SKILL.md](../../skills/prose-edit/SKILL.md) — финальный пасс для художки
 - [docs/FAQ.md](../FAQ.md) — частые вопросы

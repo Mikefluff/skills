@@ -21,14 +21,14 @@ bash scripts/validate.sh
 
 echo
 echo "─── 2/14 writer/lint.py self-test ─────────────────────────────"
-# writer/examples/before-after.md contains intentional BEFORE samples that
+# skills/writer/examples/before-after.md contains intentional BEFORE samples that
 # should trip the linter. Verdict must be "neuroslop suspected".
 if ! command -v python3 >/dev/null 2>&1; then
   red "python3 not found — skipping writer linter self-test"
   exit 0
 fi
 
-verdict_out="$(python3 writer/scripts/lint.py writer/examples/before-after.md --scan-code-blocks 2>&1 || true)"
+verdict_out="$(python3 skills/writer/scripts/lint.py skills/writer/examples/before-after.md --scan-code-blocks 2>&1 || true)"
 echo "$verdict_out" | head -8 | sed 's/^/  /'
 
 if echo "$verdict_out" | grep -q "neuroslop suspected"; then

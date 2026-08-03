@@ -68,15 +68,15 @@ These chain multiple skills + the execute layer + style libraries into a single 
 
 By skill (jump straight to the SKILL.md):
 
-**Base + linters**: [`writer`](../../writer/) · [`style-check`](../../style-check/) · [`translation-sync`](../../translation-sync/) · [`canon-check`](../../canon-check/)
+**Base + linters**: [`writer`](../../skills/writer/) · [`style-check`](../../skills/style-check/) · [`translation-sync`](../../skills/translation-sync/) · [`canon-check`](../../skills/canon-check/)
 
-**Prose wrappers**: [`viral-text`](../../viral-text/) · [`prose-edit`](../../prose-edit/) · [`essay-write`](../../essay-write/) · [`tone-shifter`](../../tone-shifter/) · [`cold-email`](../../cold-email/) · [`microcopy`](../../microcopy/) · [`release-notes`](../../release-notes/) · [`rfc-writer`](../../rfc-writer/) · [`landing-copy`](../../landing-copy/) · [`pelevin-digression`](../../pelevin-digression/)
+**Prose wrappers**: [`viral-text`](../../skills/viral-text/) · [`prose-edit`](../../skills/prose-edit/) · [`essay-write`](../../skills/essay-write/) · [`tone-shifter`](../../skills/tone-shifter/) · [`cold-email`](../../skills/cold-email/) · [`microcopy`](../../skills/microcopy/) · [`release-notes`](../../skills/release-notes/) · [`rfc-writer`](../../skills/rfc-writer/) · [`landing-copy`](../../skills/landing-copy/) · [`pelevin-digression`](../../skills/pelevin-digression/)
 
-**Media-gen wrappers**: [`image-prompt`](../../image-prompt/) · [`video-prompt`](../../video-prompt/) · [`music-prompt`](../../music-prompt/)
+**Media-gen wrappers**: [`image-prompt`](../../skills/image-prompt/) · [`video-prompt`](../../skills/video-prompt/) · [`music-prompt`](../../skills/music-prompt/)
 
-**Orchestrators**: [`research-brief`](../../research-brief/) · [`carousel-builder`](../../carousel-builder/) · [`reel-builder`](../../reel-builder/)
+**Orchestrators**: [`research-brief`](../../skills/research-brief/) · [`carousel-builder`](../../skills/carousel-builder/) · [`reel-builder`](../../skills/reel-builder/)
 
-**Meta**: [`skills-update`](../../skills-update/) · [`skills-keys`](../../skills-keys/)
+**Meta**: [`skills-update`](../../skills/skills-update/) · [`skills-keys`](../../skills/skills-keys/)
 
 ---
 

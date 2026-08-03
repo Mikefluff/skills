@@ -47,7 +47,7 @@ Layer: fiction (writer + prose-edit)
 fiction/ch07.md: 3 BLOCKING · 3 WARNING · 1 INFO
 ```
 
-Severity по умолчанию (см. [style-check/references/severity.md](../../style-check/references/severity.md)):
+Severity по умолчанию (см. [skills/style-check/references/severity.md](../../skills/style-check/references/severity.md)):
 
 - **BLOCKING** — править надо
 - **WARNING** — посмотри глазами и реши
@@ -84,7 +84,7 @@ Severity по умолчанию (см. [style-check/references/severity.md](../
 
 ### Ловушка #2: «улучшение» работающей шероховатости
 
-Если фраза звучит странно, но в этом голос — `prose-edit` оставит и пометит в сводке. Художественная проза живёт по другим правилам, чем бизнес-текст: filler trim, восклицания, неполные предложения там могут быть приёмом, а не дефектом. См. [prose-edit/SKILL.md](../../prose-edit/SKILL.md) раздел «что НЕ переносить из бизнес-редактирования».
+Если фраза звучит странно, но в этом голос — `prose-edit` оставит и пометит в сводке. Художественная проза живёт по другим правилам, чем бизнес-текст: filler trim, восклицания, неполные предложения там могут быть приёмом, а не дефектом. См. [skills/prose-edit/SKILL.md](../../skills/prose-edit/SKILL.md) раздел «что НЕ переносить из бизнес-редактирования».
 
 ## Этап 4. Автор смотрит и принимает
 
@@ -111,7 +111,7 @@ Severity по умолчанию (см. [style-check/references/severity.md](../
 5. Финальный пасс через `prose-edit` (4-layer + ToV check) — потому что это художка.
 6. Финальный пасс через `writer` (25 категорий нейрослопа) — последним.
 
-Выдаёт готовую вставку. Применяется **по запросу**, не автоматически. Глава, целиком прогнанная через `pelevin-digression` — пародия на Пелевина, а не голос. См. [pelevin-digression/SKILL.md](../../pelevin-digression/SKILL.md) — раздел «когда НЕ применять».
+Выдаёт готовую вставку. Применяется **по запросу**, не автоматически. Глава, целиком прогнанная через `pelevin-digression` — пародия на Пелевина, а не голос. См. [skills/pelevin-digression/SKILL.md](../../skills/pelevin-digression/SKILL.md) — раздел «когда НЕ применять».
 
 ## Этап 6. Канон-чек
 
@@ -179,11 +179,11 @@ git commit -m "ch07: drafted, prose-edit pass, canon-check clean"
 
 ### Не согласен с voice-call от prose-edit
 
-Скилл предлагает, не настаивает. Если он считает, что у тебя поплыл голос, а ты считаешь, что нет — оставляй авторский вариант. В сводке появится отметка «голос: drift низкий», но это не блокер. Если тебя бесят постоянные предложения — посмотри [prose-edit/references/voice.md](../../prose-edit/references/voice.md) и подкрути 10-пунктовый style drift checklist под свой голос (форкни референс).
+Скилл предлагает, не настаивает. Если он считает, что у тебя поплыл голос, а ты считаешь, что нет — оставляй авторский вариант. В сводке появится отметка «голос: drift низкий», но это не блокер. Если тебя бесят постоянные предложения — посмотри [skills/prose-edit/references/voice.md](../../skills/prose-edit/references/voice.md) и подкрути 10-пунктовый style drift checklist под свой голос (форкни референс).
 
 ### Bible ещё не существует
 
-Канон-чек ругается «`<book>/notes/story-bible.md not found`». Заведи пустой файл с минимальной структурой (`# Characters` / `# Artifacts` / `# Locations`) — см. [canon-check/references/bible-format.md](../../canon-check/references/bible-format.md). Скилл при пустом bible будет всё помечать как SILENT_CANON — это нормально, постепенно наполнишь.
+Канон-чек ругается «`<book>/notes/story-bible.md not found`». Заведи пустой файл с минимальной структурой (`# Characters` / `# Artifacts` / `# Locations`) — см. [skills/canon-check/references/bible-format.md](../../skills/canon-check/references/bible-format.md). Скилл при пустом bible будет всё помечать как SILENT_CANON — это нормально, постепенно наполнишь.
 
 ### prose-edit предложил «улучшить» работающую шероховатость
 

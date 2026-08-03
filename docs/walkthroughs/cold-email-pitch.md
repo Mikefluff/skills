@@ -48,7 +48,7 @@ Cold email должен сделать три вещи в первом абза�
 
 ## Step 2. The 5-block structure
 
-Скилл строит по фиксированным блокам (см. `cold-email/references/structure.md`):
+Скилл строит по фиксированным блокам (см. `skills/cold-email/references/structure.md`):
 
 ```
 SUBJECT
@@ -149,7 +149,7 @@ Word count (body): 78 words. Word budget: 120. Spend conservative — leaves roo
 
 ### Скилл отказывается писать без specific datapoint про recipient
 
-Это by design. Cold email без specific fact = spam. Если нечего сказать про recipient — либо research больше, либо don't send. См. `cold-email/references/structure.md`.
+Это by design. Cold email без specific fact = spam. Если нечего сказать про recipient — либо research больше, либо don't send. См. `skills/cold-email/references/structure.md`.
 
 ### Hook не получается узким — слишком много traction signals
 
@@ -168,4 +168,4 @@ Word count (body): 78 words. Word budget: 120. Spend conservative — leaves roo
 - [tone-shift.md](tone-shift.md) — если уже есть draft, но wrong register
 - [microcopy-error-states.md](microcopy-error-states.md) — родственная задача с word budgets
 - [viral-post.md](viral-post.md) — broadcast version (1→many) того же impulse
-- [cold-email/references/structure.md](../../cold-email/references/structure.md) — полная схема 5-блочной структуры
+- [skills/cold-email/references/structure.md](../../skills/cold-email/references/structure.md) — полная схема 5-блочной структуры

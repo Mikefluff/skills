@@ -19,7 +19,7 @@ skills:
 2. **Не используй жаргон.** «401 Unauthorized», «SSL handshake failed», «Quota exceeded» — это не для user-facing. Скилл переводит на plain language.
 3. **Всегда давай следующий шаг.** Error без next-step = тупик. Скилл refuse'ит финализировать строку без actionable continuation.
 
-Плюс per-element length budgets (см. `microcopy/references/length-budgets.md`):
+Плюс per-element length budgets (см. `skills/microcopy/references/length-budgets.md`):
 
 - Modal error title — 4-7 слов
 - Modal error body — ≤ 20 слов
@@ -28,7 +28,7 @@ skills:
 
 ## Setup
 
-Скилл установлен. EN-only по дефолту. Состояния перечислены в `microcopy/references/element-types.md`.
+Скилл установлен. EN-only по дефолту. Состояния перечислены в `skills/microcopy/references/element-types.md`.
 
 ## Step 1. Define the matrix
 
@@ -139,7 +139,7 @@ Why: «on our end» (explicit ownership — это критично), «card was
 
 ## Step 4. Banned patterns scanner
 
-Скилл прогоняет финалы через banlist (см. `microcopy/references/banned-words.md`):
+Скилл прогоняет финалы через banlist (см. `skills/microcopy/references/banned-words.md`):
 
 - «Oops!» / «Whoops!» — infantilizing
 - «Something went wrong» — generic, useless without specifics
@@ -183,7 +183,7 @@ Tone audit — checkout-flow error states (6 states)
 
 ### Engineer wants the technical code in the body
 
-«They asked for `(code: 51)` so they can debug» — fair, но не в primary body. Скилл предлагает шаблон: основной user-facing body + collapsed «Technical details» секция (revealed via «Show details» link). Полная схема в `microcopy/references/rules.md`.
+«They asked for `(code: 51)` so they can debug» — fair, но не в primary body. Скилл предлагает шаблон: основной user-facing body + collapsed «Technical details» секция (revealed via «Show details» link). Полная схема в `skills/microcopy/references/rules.md`.
 
 ### Body превышает 20 слов и не сжимается
 
@@ -202,4 +202,4 @@ DE / FR / RU длиннее EN на 20-40%. Если строка fits EN budget
 - [tone-shift.md](tone-shift.md) — если у тебя уже есть errors, но wrong register
 - [landing-launch.md](landing-launch.md) — где microcopy используется параллельно (404 / forms / FAQ)
 - [release-notes-saas.md](release-notes-saas.md) — родственная задача с разделением user / dev audiences
-- [microcopy/references/length-budgets.md](../../microcopy/references/length-budgets.md) — все per-element budgets
+- [skills/microcopy/references/length-budgets.md](../../skills/microcopy/references/length-budgets.md) — все per-element budgets
