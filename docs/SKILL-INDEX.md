@@ -53,6 +53,25 @@ skills), see [COMPOSING.md](COMPOSING.md).
 | [`translation-sync`](../translation-sync/) | translation, audit | ru / en / pt-br |
 | [`canon-check`](../canon-check/) | fiction, audit | ru / en |
 
+### Orchestrators
+
+| Skill | Tags | Languages |
+| --- | --- | --- |
+| [`research-brief`](../research-brief/) | research, generation | en / ru |
+| [`carousel-builder`](../carousel-builder/) | visual, marketing, generation, orchestration | en / ru |
+| [`cover-maker`](../cover-maker/) | visual, marketing, generation, orchestration | en / ru |
+| [`thumbnail-maker`](../thumbnail-maker/) | visual, marketing, generation, orchestration | en / ru |
+| [`avatar-maker`](../avatar-maker/) | visual, generation, orchestration | en / ru |
+| [`flyer-maker`](../flyer-maker/) | visual, marketing, generation, orchestration | en / ru |
+| [`reel-builder`](../reel-builder/) | visual, audio, marketing, generation, orchestration | en / ru |
+| [`logo-maker`](../logo-maker/) | visual, marketing, generation, orchestration | en / ru |
+| [`quote-card-maker`](../quote-card-maker/) | visual, marketing, generation, orchestration | en / ru |
+| [`banner-maker`](../banner-maker/) | visual, marketing, generation, orchestration | en / ru |
+| [`meme-card-maker`](../meme-card-maker/) | visual, marketing, generation, orchestration | en / ru |
+| [`style-suggest`](../style-suggest/) | visual, generation | en / ru |
+| [`proposal-maker`](../proposal-maker/) | marketing, generation, orchestration | en / ru |
+| [`post-publisher`](../post-publisher/) | social, marketing, orchestration, ops | en / ru |
+
 ### Meta
 
 | Skill | Tags | Languages |

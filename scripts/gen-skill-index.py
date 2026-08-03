@@ -35,7 +35,14 @@ INDEX = ROOT / "docs" / "SKILL-INDEX.md"
 BEGIN = "<!-- BEGIN skill-index (auto-generated; run `make gen-index`) -->"
 END = "<!-- END skill-index -->"
 
-LAYER_ORDER = ["base", "wrapper", "linter", "meta"]
+# Ordered by dependency direction: the base engine, then what wraps it, then the
+# read-only checkers, then skills that orchestrate several others, then tooling
+# about the collection itself.
+#
+# LAYER_ORDER is derived rather than written out a second time. Kept by hand it
+# had already lost "orchestrator", and since render_layer_section() iterates the
+# order and skips anything absent from it, all 14 orchestrators dropped out of
+# the index without a word.
 LAYER_HEADINGS = {
     "base": "Base",
     "wrapper": "Wrappers",
@@ -43,6 +50,7 @@ LAYER_HEADINGS = {
     "orchestrator": "Orchestrators",
     "meta": "Meta",
 }
+LAYER_ORDER = tuple(LAYER_HEADINGS)
 
 DOMAIN_TAGS = {
     "fiction", "non-fiction", "marketing", "social", "product",
@@ -58,6 +66,16 @@ def render_layer_section(skills: list[dict]) -> str:
     by_layer: dict[str, list[dict]] = {}
     for s in skills:
         by_layer.setdefault(s.get("layer", "?"), []).append(s)
+
+    # An unlisted layer would be dropped from the index silently, which is how
+    # the orchestrators went missing. Refuse to render a partial index instead.
+    unknown = sorted(set(by_layer) - set(LAYER_ORDER))
+    if unknown:
+        raise SystemExit(
+            f"skills.json uses layer(s) {unknown} that gen-skill-index.py does not "
+            f"know about. Add them to LAYER_HEADINGS."
+        )
+
     for layer in LAYER_ORDER:
         if layer not in by_layer:
             continue
