@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install install-local update list uninstall check validate smoke lint lint-all test coverage check-docs gen-readme gen-index install-hook install-precommit-hook new-skill bump-patch bump-minor bump-major release clean-test
+.PHONY: help install install-local update list uninstall check validate smoke lint lint-all test coverage check-docs gen gen-readme gen-index gen-coverage gen-pricing install-hook install-precommit-hook new-skill bump-patch bump-minor bump-major release clean-test
 
 PREFIX ?= $(HOME)/.claude/skills
 VERSION := $(shell cat VERSION 2>/dev/null || echo "?")
@@ -71,8 +71,12 @@ test-unit: ## Run runner unit tests (stdlib unittest, no deps)
 gen-index: ## Regenerate docs/SKILL-INDEX.md from skills.json (write in place)
 	python3 scripts/gen-skill-index.py --write
 
+gen: gen-readme gen-index gen-coverage gen-pricing ## Regenerate every derived file at once
+	@printf '\ngen: README table, SKILL-INDEX, LINTER-COVERAGE, model-pricing\n'
+	@printf 'Now run: make check-docs && make smoke\n\n'
+
 lint: ## Run writer offline linter on every skill's examples/
-	@for skill in $$(find . -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' ! -name 'hooks' ! -name 'tests' ! -name 'common'); do \
+	@for skill in $$(find skills -mindepth 1 -maxdepth 1 -type d); do \
 	  if [ -d $$skill/examples ]; then \
 	    for f in $$skill/examples/*.md; do \
 	      [ -f "$$f" ] || continue; \
