@@ -27,7 +27,8 @@ import requests
 
 from .. import oauth, tokens
 from ..errors import PublishError, RateLimitError, RunnerError
-from .base import MB, IMAGE_EXTS, Post, Publisher, PublishResult, Violation, mime_for
+from ._oauth import OAuthPublisher
+from .base import MB, IMAGE_EXTS, Post, PublishResult, Violation, mime_for
 
 API_ROOT = "https://www.googleapis.com/youtube/v3"
 UPLOAD_ROOT = "https://www.googleapis.com/upload/youtube/v3"
@@ -46,10 +47,9 @@ DAILY_UPLOAD_ALLOWANCE = 100
 UPLOAD_CHUNK = 8 * MB
 
 
-class YouTubePublisher(Publisher):
+class YouTubePublisher(OAuthPublisher):
     name = "youtube"
     requires_env = ("YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET")
-    requires_oauth = True
     supports = frozenset({"video"})
     supports_draft = True
     needs_public_media_url = False
@@ -63,6 +63,11 @@ class YouTubePublisher(Publisher):
     max_video_mb = 256_000.0
 
     oauth_scopes = ("https://www.googleapis.com/auth/youtube.upload",)
+    refresh_url = "https://oauth2.googleapis.com/token"
+    refresh_missing_message = (
+        "youtube: no refresh token stored. Google issues one only on first "
+        "consent — revoke at myaccount.google.com/permissions and re-run cli.auth."
+    )
 
     # ── plumbing ────────────────────────────────────────────────────────────
 
@@ -234,9 +239,6 @@ class YouTubePublisher(Publisher):
 
     # ── authorisation ───────────────────────────────────────────────────────
 
-    def oauth_app(self):
-        return oauth.get_app(self.name)
-
     def verify_token(self, access_token: str) -> tuple[str, str]:
         try:
             resp = requests.get(
@@ -255,53 +257,24 @@ class YouTubePublisher(Publisher):
             return "", ""
         return items[0].get("id", ""), items[0].get("snippet", {}).get("title", "")
 
-    def finalize_auth(self, raw: dict[str, Any]):
-        access = raw.get("access_token")
-        if not access:
-            raise RunnerError(f"youtube: token response had no access_token: {raw}")
+    def finalize_auth(self, raw: dict[str, Any]) -> tokens.TokenEntry:
         if not raw.get("refresh_token"):
+            # Google issues one only on first consent, so a missing one is a
+            # dead end rather than a degraded state — say so now.
             raise RunnerError(
                 "youtube: Google returned no refresh_token. Revoke the app's access at "
                 "myaccount.google.com/permissions and authorise again — Google only issues "
                 "one on first consent."
             )
-        account_id = label = ""
-        try:
-            account_id, label = self.verify_token(access)
-        except RunnerError:
-            pass
-        return tokens.TokenEntry(
-            platform=self.name,
-            access_token=access,
-            refresh_token=raw.get("refresh_token"),
-            expires_at=time.time() + float(raw.get("expires_in", 3600)),
-            scopes=list(self.oauth_scopes),
-            account_id=account_id,
-            account_label=label,
-        )
+        return super().finalize_auth(raw)
 
-    def refresh(self, entry: tokens.TokenEntry) -> tokens.TokenEntry:
-        if not entry.refresh_token:
-            raise RunnerError(
-                "youtube: no refresh token stored. Google issues one only on first "
-                "consent — revoke at myaccount.google.com/permissions and re-run cli.auth."
-            )
-        resp = requests.post(
-            "https://oauth2.googleapis.com/token",
-            data={
-                "grant_type": "refresh_token",
-                "refresh_token": entry.refresh_token or "",
-                "client_id": os.environ.get("YOUTUBE_CLIENT_ID", ""),
-                "client_secret": os.environ.get("YOUTUBE_CLIENT_SECRET", ""),
-            },
-            timeout=60,
-        )
-        data = resp.json() if resp.content else {}
-        if resp.status_code >= 400 or "access_token" not in data:
-            raise RunnerError(f"youtube: refresh failed: {resp.text[:200]}")
-        entry.access_token = data["access_token"]
-        entry.expires_at = time.time() + float(data.get("expires_in", 3600))
-        return entry
+    def _refresh_payload(self, entry: tokens.TokenEntry) -> dict[str, Any]:
+        return {
+            "grant_type": "refresh_token",
+            "refresh_token": entry.refresh_token or "",
+            "client_id": os.environ.get("YOUTUBE_CLIENT_ID", ""),
+            "client_secret": os.environ.get("YOUTUBE_CLIENT_SECRET", ""),
+        }
 
 
 _PUBLISHER = YouTubePublisher()

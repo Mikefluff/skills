@@ -31,7 +31,8 @@ import requests
 
 from .. import oauth, tokens
 from ..errors import PublishError, RateLimitError, RunnerError
-from .base import MB, IMAGE_EXTS, Post, Publisher, PublishResult, Violation, mime_for
+from ._oauth import OAuthPublisher
+from .base import MB, IMAGE_EXTS, Post, PublishResult, Violation, mime_for
 
 API_ROOT = "https://api.x.com/2"
 DEFAULT_UPLOAD_URL = f"{API_ROOT}/media/upload"
@@ -41,10 +42,9 @@ CHUNK_SIZE = 4 * MB
 PROCESSING_TIMEOUT = 180.0
 
 
-class XPublisher(Publisher):
+class XPublisher(OAuthPublisher):
     name = "x"
     requires_env = ("X_CLIENT_ID", "X_CLIENT_SECRET")
-    requires_oauth = True
     supports = frozenset({"text", "image", "carousel", "video"})
     supports_draft = False
     needs_public_media_url = False
@@ -58,6 +58,12 @@ class XPublisher(Publisher):
     max_video_mb = 512.0
 
     oauth_scopes = ("tweet.read", "tweet.write", "users.read", "offline.access")
+    default_token_ttl = 7200.0
+    refresh_url = f"{API_ROOT}/oauth2/token"
+    refresh_missing_message = (
+        "x: no refresh token stored — the app was authorised without the "
+        "offline.access scope. Re-run cli.auth after adding it."
+    )
 
     def upload_url(self) -> str:
         return os.environ.get("X_UPLOAD_URL", DEFAULT_UPLOAD_URL)
@@ -228,56 +234,26 @@ class XPublisher(Publisher):
 
     # ── authorisation ───────────────────────────────────────────────────────
 
-    def oauth_app(self):
-        return oauth.get_app(self.name)
-
     def verify_token(self, access_token: str) -> tuple[str, str]:
         data = self._request("GET", f"{API_ROOT}/users/me", token=access_token).get("data", {})
         username = data.get("username", "")
         return str(data.get("id", "")), (f"@{username}" if username else "")
 
-    def finalize_auth(self, raw: dict[str, Any]):
-        access = raw.get("access_token")
-        if not access:
-            raise RunnerError(f"x: token response had no access_token: {raw}")
-        account_id = label = ""
-        try:
-            account_id, label = self.verify_token(access)
-        except RunnerError:
-            pass
-        return tokens.TokenEntry(
-            platform=self.name,
-            access_token=access,
-            refresh_token=raw.get("refresh_token"),
-            expires_at=time.time() + float(raw.get("expires_in", 7200)),
-            scopes=str(raw.get("scope", "")).split(),
-            account_id=account_id,
-            account_label=label,
-        )
+    def _refresh_payload(self, entry: tokens.TokenEntry) -> dict[str, Any]:
+        return {
+            "grant_type": "refresh_token",
+            "refresh_token": entry.refresh_token or "",
+            "client_id": os.environ.get("X_CLIENT_ID", ""),
+        }
 
-    def refresh(self, entry: tokens.TokenEntry) -> tokens.TokenEntry:
-        if not entry.refresh_token:
-            raise RunnerError(
-                "x: no refresh token stored — the app was authorised without the "
-                "offline.access scope. Re-run cli.auth after adding it."
-            )
-        resp = requests.post(
-            "https://api.x.com/2/oauth2/token",
-            data={
-                "grant_type": "refresh_token",
-                "refresh_token": entry.refresh_token or "",
-                "client_id": os.environ.get("X_CLIENT_ID", ""),
-            },
+    def _post_form(self, url: str, payload: dict[str, Any], **kwargs) -> dict[str, Any]:
+        # X wants the client credentials as HTTP Basic on the token endpoint.
+        return super()._post_form(
+            url,
+            payload,
             auth=(os.environ.get("X_CLIENT_ID", ""), os.environ.get("X_CLIENT_SECRET", "")),
-            timeout=60,
+            **kwargs,
         )
-        data = resp.json() if resp.content else {}
-        if resp.status_code >= 400 or "access_token" not in data:
-            raise RunnerError(f"x: refresh failed: {resp.text[:200]}")
-        entry.access_token = data["access_token"]
-        entry.refresh_token = data.get("refresh_token", entry.refresh_token)
-        entry.expires_at = time.time() + float(data.get("expires_in", 7200))
-        return entry
 
 
 _PUBLISHER = XPublisher()

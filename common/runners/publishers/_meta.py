@@ -104,19 +104,24 @@ class MetaPublisher(Publisher):
         except ValueError:
             raise PublishError(self.name, resp.status_code, resp.text[:400]) from None
 
-        if "error" in data:
-            err = data["error"]
-            message = err.get("error_user_msg") or err.get("message") or str(err)
-            code = err.get("code")
-            # 4 / 17 / 32 / 613 are Meta's throttling family; 9 is the
-            # publishing-limit-reached code, which is a cap rather than a bug.
-            if code in {4, 9, 17, 32, 613} or resp.status_code == 429:
+        self._raise_for(resp, data)
+        return data
+
+    # Meta's throttling family. 9 is publishing-limit-reached, which is a cap
+    # rather than a bug and deserves the same "wait" framing as a 429.
+    THROTTLE_CODES = frozenset({4, 9, 17, 32, 613})
+
+    def _raise_for(self, resp: requests.Response, data: dict[str, Any]) -> None:
+        """Meta reports failure inside a 200 body as often as through a status
+        code, so both paths converge here rather than being checked twice."""
+        error = data.get("error")
+        if error:
+            message = error.get("error_user_msg") or error.get("message") or str(error)
+            if error.get("code") in self.THROTTLE_CODES or resp.status_code == 429:
                 raise RateLimitError(self.name, resp.status_code, message)
             raise PublishError(self.name, resp.status_code, message)
-
         if resp.status_code >= 400:
             raise PublishError(self.name, resp.status_code, resp.text[:400])
-        return data
 
     # ── media staging ───────────────────────────────────────────────────────
 

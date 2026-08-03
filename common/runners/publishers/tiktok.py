@@ -35,7 +35,8 @@ import requests
 
 from .. import oauth, tokens
 from ..errors import PublishError, RateLimitError, RunnerError
-from .base import IMAGE_EXTS, MB, Post, Publisher, PublishResult, Violation, mime_for
+from ._oauth import OAuthPublisher
+from .base import IMAGE_EXTS, MB, Post, PublishResult, Violation, mime_for
 
 API_ROOT = "https://open.tiktokapis.com/v2"
 
@@ -53,10 +54,9 @@ STATUS_POLL_INTERVAL = 5.0
 MEDIA_URL_TTL = 3600
 
 
-class TikTokPublisher(Publisher):
+class TikTokPublisher(OAuthPublisher):
     name = "tiktok"
     requires_env = ("TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET")
-    requires_oauth = True
     supports = frozenset({"video", "carousel", "image"})
     supports_draft = True
     needs_public_media_url = False  # video uploads bytes; photos are checked separately
@@ -70,6 +70,13 @@ class TikTokPublisher(Publisher):
     max_image_mb = 20.0
 
     oauth_scopes = ("video.upload", "video.publish")
+    scope_delimiter = ","
+    default_token_ttl = 86400.0  # TikTok access tokens live 24h
+    refresh_url = f"{API_ROOT}/oauth/token/"
+    refresh_missing_message = (
+        "tiktok: no refresh token stored — re-run cli.auth. TikTok access tokens "
+        "last 24h, so this connection cannot be renewed without one."
+    )
 
     # ── plumbing ────────────────────────────────────────────────────────────
 
@@ -341,9 +348,6 @@ class TikTokPublisher(Publisher):
 
     # ── authorisation ───────────────────────────────────────────────────────
 
-    def oauth_app(self):
-        return oauth.get_app(self.name)
-
     def verify_token(self, access_token: str) -> tuple[str, str]:
         try:
             resp = requests.post(
@@ -357,49 +361,13 @@ class TikTokPublisher(Publisher):
         username = data.get("creator_username", "")
         return username, (f"@{username}" if username else "")
 
-    def finalize_auth(self, raw: dict[str, Any]):
-        access = raw.get("access_token")
-        if not access:
-            raise RunnerError(f"tiktok: token response had no access_token: {raw}")
-        account_id, label = "", ""
-        try:
-            account_id, label = self.verify_token(access)
-        except RunnerError:
-            pass  # token is stored either way; --verify re-checks it
-        return tokens.TokenEntry(
-            platform=self.name,
-            access_token=access,
-            refresh_token=raw.get("refresh_token"),
-            expires_at=time.time() + float(raw.get("expires_in", 86400)),
-            scopes=str(raw.get("scope", "")).split(","),
-            account_id=account_id,
-            account_label=label,
-        )
-
-    def refresh(self, entry: tokens.TokenEntry) -> tokens.TokenEntry:
-        if not entry.refresh_token:
-            raise RunnerError(
-                "tiktok: no refresh token stored — re-run cli.auth. TikTok access tokens "
-                "last 24h, so this connection cannot be renewed without one."
-            )
-        resp = requests.post(
-            f"{API_ROOT}/oauth/token/",
-            data={
-                "client_key": os.environ.get("TIKTOK_CLIENT_KEY", ""),
-                "client_secret": os.environ.get("TIKTOK_CLIENT_SECRET", ""),
-                "grant_type": "refresh_token",
-                "refresh_token": entry.refresh_token or "",
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            timeout=60,
-        )
-        data = resp.json() if resp.content else {}
-        if resp.status_code >= 400 or "access_token" not in data:
-            raise RunnerError(f"tiktok: refresh failed: {resp.text[:200]}")
-        entry.access_token = data["access_token"]
-        entry.refresh_token = data.get("refresh_token", entry.refresh_token)
-        entry.expires_at = time.time() + float(data.get("expires_in", 86400))
-        return entry
+    def _refresh_payload(self, entry: tokens.TokenEntry) -> dict[str, Any]:
+        return {
+            "client_key": os.environ.get("TIKTOK_CLIENT_KEY", ""),
+            "client_secret": os.environ.get("TIKTOK_CLIENT_SECRET", ""),
+            "grant_type": "refresh_token",
+            "refresh_token": entry.refresh_token or "",
+        }
 
 
 _PUBLISHER = TikTokPublisher()

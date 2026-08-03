@@ -126,7 +126,7 @@ your-skill/
 
 ```bash
 make validate         # frontmatter + cross-link + description-length + tag dict
-make smoke            # all 12 gates (see below)
+make smoke            # all 14 gates (see below)
 make test-unit        # runner unit tests alone
 make check-docs       # README/USER-GUIDE/walkthroughs/CHANGELOG/SKILL-INDEX consistency
 make lint-all         # writer linter across every reference/example/doc file (advisory)
@@ -236,6 +236,38 @@ Twelve gates, all must pass:
 10. **launch-thread tweet lengths** — every tweet in `docs/launch-posts/x-thread.md` fits 280 characters
 11. **launch copy** — the drafts in `docs/launch-posts/` linted with fenced blocks scanned, against a baseline of reviewed quoted examples
 12. **runners import** — every provider module imports and registers
+
+### 2b. Code quality (`python3 scripts/check-code-quality.py`, gate 13/14)
+
+Structural limits on the Python layer: module ≤400 lines (tests ≤900), function
+≤50 lines, branch complexity ≤12, parameters ≤5. Plus two invariants:
+
+- **contract** — every registered `Publisher` implements `publish()`, declares
+  the attributes the CLI reads, and does not override `preflight()` (extend via
+  `_extra_preflight()`, or the generic checks get skipped).
+- **layering** — `publishers/`, `providers/` and `storage/` must not import
+  `cli.`, and lower layers must not import upper ones.
+
+19k lines predate these thresholds, so the gate runs against a frozen baseline
+in `scripts/code-quality-baseline.json`. Anything **new** is a hard failure;
+known violations are ignored until someone pays them down. The baseline may only
+shrink — `--freeze` refuses to grow it, so adding debt takes a visible,
+deliberate diff.
+
+```bash
+python3 scripts/check-code-quality.py            # gate — new violations only
+python3 scripts/check-code-quality.py --report   # everything, baseline included
+python3 scripts/check-code-quality.py --freeze   # after paying some down
+```
+
+The contract and layering checks have no baseline. They are invariants, not
+debt — a publisher that skips its ABC is broken now, not gradually.
+
+### 2c. CLI surface (gate 14/14)
+
+Every module in `common/runners/cli/` must import and build its parser. The CLI
+paths have no unit tests of their own, so this is what stands between a refactor
+and a runner that dies on invocation.
 
 ### 3. `check-docs-consistency` (`bash scripts/check-docs-consistency.sh`)
 

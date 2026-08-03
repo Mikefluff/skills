@@ -150,21 +150,40 @@ def _pkce_pair() -> tuple[str, str]:
 
 
 def run_flow(app: OAuthApp, *, redirect_uri: str = DEFAULT_REDIRECT, port: int = DEFAULT_PORT) -> dict[str, Any]:
-    """Open the browser, catch the callback, exchange the code. Returns the raw
-    token response so each publisher can read its own non-standard fields."""
-    if not app.configured():
-        missing = [
-            e for e in (app.client_id_env, app.client_secret_env) if not os.environ.get(e)
-        ]
-        hint = f" See {app.setup_url}" if app.setup_url else ""
-        raise RunnerError(
-            f"{app.platform}: missing app credentials {', '.join(missing)} in ~/.skills.env.{hint}"
-        )
+    """Open the browser, catch the callback, exchange the code.
 
+    Returns the raw token response, so each publisher can read its own
+    non-standard fields rather than having them flattened here.
+    """
+    _require_credentials(app)
     state = secrets.token_urlsafe(24)
-    verifier = challenge = None
+    verifier, auth_params = _authorize_params(app, redirect_uri, state)
 
-    auth_params = {
+    url = f"{app.authorize_url}?{urllib.parse.urlencode(auth_params)}"
+    print(f"Opening the browser to authorise {app.platform}.")
+    print(f"If nothing opens, visit:\n  {url}\n")
+    webbrowser.open(url)
+
+    code = _await_code(app, port, state)
+    return _exchange_code(app, code, redirect_uri, verifier)
+
+
+def _require_credentials(app: OAuthApp) -> None:
+    if app.configured():
+        return
+    missing = [e for e in (app.client_id_env, app.client_secret_env) if not os.environ.get(e)]
+    hint = f" See {app.setup_url}" if app.setup_url else ""
+    raise RunnerError(
+        f"{app.platform}: missing app credentials {', '.join(missing)} in ~/.skills.env.{hint}"
+    )
+
+
+def _authorize_params(
+    app: OAuthApp, redirect_uri: str, state: str
+) -> tuple[str | None, dict[str, Any]]:
+    """Returns (pkce_verifier, query params). The verifier has to come back out
+    because the token exchange needs the half the authorize step did not send."""
+    params: dict[str, Any] = {
         app.client_id_param: app.client_id(),
         "redirect_uri": redirect_uri,
         "response_type": "code",
@@ -172,31 +191,33 @@ def run_flow(app: OAuthApp, *, redirect_uri: str = DEFAULT_REDIRECT, port: int =
         "state": state,
         **app.extra_authorize_params,
     }
-    if app.use_pkce:
-        verifier, challenge = _pkce_pair()
-        auth_params["code_challenge"] = challenge
-        auth_params["code_challenge_method"] = "S256"
+    if not app.use_pkce:
+        return None, params
+    verifier, challenge = _pkce_pair()
+    params["code_challenge"] = challenge
+    params["code_challenge_method"] = "S256"
+    return verifier, params
 
-    url = f"{app.authorize_url}?{urllib.parse.urlencode(auth_params)}"
-    print(f"Opening the browser to authorise {app.platform}.")
-    print(f"If nothing opens, visit:\n  {url}\n")
-    webbrowser.open(url)
 
+def _await_code(app: OAuthApp, port: int, state: str) -> str:
     params = _listen_once(port)
-
     if params.get("state") != state:
         # Either a stale tab from an earlier attempt or something forged. Both
         # deserve a hard stop rather than a token exchange.
         raise RunnerError(f"{app.platform}: state mismatch on callback — authorisation rejected")
-
     if "code" not in params:
         detail = params.get("error_description") or params.get("error") or str(params)
         raise RunnerError(f"{app.platform}: authorisation denied — {detail}")
+    return params["code"]
 
+
+def _exchange_code(
+    app: OAuthApp, code: str, redirect_uri: str, verifier: str | None
+) -> dict[str, Any]:
     token_params = {
         app.client_id_param: app.client_id(),
         app.client_secret_param: app.client_secret(),
-        "code": params["code"],
+        "code": code,
         "grant_type": "authorization_code",
         "redirect_uri": redirect_uri,
         **app.extra_token_params,
@@ -217,10 +238,11 @@ def run_flow(app: OAuthApp, *, redirect_uri: str = DEFAULT_REDIRECT, port: int =
     try:
         payload = resp.json()
     except ValueError:
-        raise RunnerError(f"{app.platform}: token endpoint returned non-JSON: {resp.text[:300]}") from None
+        raise RunnerError(
+            f"{app.platform}: token endpoint returned non-JSON: {resp.text[:300]}"
+        ) from None
 
     if resp.status_code >= 400 or "error" in payload:
         detail = payload.get("error_description") or payload.get("error") or resp.text[:300]
         raise RunnerError(f"{app.platform}: token exchange rejected: {detail}")
-
     return payload

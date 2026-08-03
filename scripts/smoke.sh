@@ -16,11 +16,11 @@ if [ ! -x scripts/validate.sh ]; then
   red "scripts/validate.sh is not executable"; exit 1
 fi
 
-echo "─── 1/12 validate ─────────────────────────────────────────────"
+echo "─── 1/14 validate ─────────────────────────────────────────────"
 bash scripts/validate.sh
 
 echo
-echo "─── 2/12 writer/lint.py self-test ─────────────────────────────"
+echo "─── 2/14 writer/lint.py self-test ─────────────────────────────"
 # writer/examples/before-after.md contains intentional BEFORE samples that
 # should trip the linter. Verdict must be "neuroslop suspected".
 if ! command -v python3 >/dev/null 2>&1; then
@@ -39,34 +39,34 @@ else
 fi
 
 echo
-echo "─── 3/12 fixture snapshots ────────────────────────────────────"
+echo "─── 3/14 fixture snapshots ────────────────────────────────────"
 bash tests/run.sh
 
 echo
-echo "─── 4/12 AFTER calibration samples ────────────────────────────"
+echo "─── 4/14 AFTER calibration samples ────────────────────────────"
 # Calibration samples live inside fenced blocks, which lint.py masks by default —
 # so the one thing a model copies verbatim is the one thing the linter misses.
 python3 scripts/check-after-samples.py
 
 echo
-echo "─── 5/12 relative links ───────────────────────────────────────"
+echo "─── 5/14 relative links ───────────────────────────────────────"
 # validate.sh only resolves references/*.md inside the owning skill; cross-skill,
 # docs-to-docs and repo-root links were unchecked until this step existed.
 python3 scripts/check-links.py
 
 echo
-echo "─── 6/12 runner unit tests ────────────────────────────────────"
+echo "─── 6/14 runner unit tests ────────────────────────────────────"
 # stdlib unittest, no pytest dependency — the README promises no required deps.
 python3 -m unittest discover -s tests/unit -t . -q
 
 echo
-echo "─── 7/12 pricing doc ↔ cost.PRICE_TABLE ───────────────────────"
+echo "─── 7/14 pricing doc ↔ cost.PRICE_TABLE ───────────────────────"
 # The published price table is generated from the code that bills. Drift here
 # means the docs quote a number the runner does not charge.
 python3 scripts/gen-pricing.py --check
 
 echo
-echo "─── 8/12 markdownlint (CI-pinned version) ─────────────────────"
+echo "─── 8/14 markdownlint (CI-pinned version) ─────────────────────"
 # CI runs markdownlint-cli2-action@v16, which pins v0.13.0. Running a newer
 # local version reports rules CI does not have (and misses none it does), so
 # the version is pinned here too. Tracked files only: generated/ is ignored.
@@ -81,26 +81,26 @@ else
 fi
 
 echo
-echo "─── 9/12 linter coverage doc ─────────────────────────────────"
+echo "─── 9/14 linter coverage doc ─────────────────────────────────"
 # Generated from the category catalogue + lint.py. It went stale silently once.
 python3 scripts/coverage.py --check
 
 echo
-echo "─── 10/12 launch-thread tweet lengths ────────────────────────"
+echo "─── 10/14 launch-thread tweet lengths ────────────────────────"
 # The old draft claimed "all tweets ≤280 (verified)" next to a checker that no
 # longer parsed the file. Two tweets were over.
 python3 scripts/check-tweet-length.py >/dev/null && green "  ✓ all tweets within 280" \
   || { red "  ✗ a tweet overflows"; python3 scripts/check-tweet-length.py | grep OVER; exit 1; }
 
 echo
-echo "─── 11/12 launch copy ────────────────────────────────────────"
+echo "─── 11/14 launch copy ────────────────────────────────────────"
 # The copy lives inside fenced blocks, which lint.py masks, and the files carry
 # lint-role: catalogue so the hook skips them. Without this step nothing ever
 # checks the promotional copy for an anti-slop toolkit.
 python3 scripts/check-launch-copy.py
 
 echo
-echo "─── 12/12 runners import smoke ─────────────────────────────────"
+echo "─── 12/14 runners import smoke ─────────────────────────────────"
 # common/runners is the optional execution layer. We don't require API keys —
 # just confirm every provider module imports cleanly and registers.
 if [ -d common/runners ]; then
@@ -117,6 +117,43 @@ print(f'  ✓ {len(provs)} providers registered ({len(config.all_providers(\"ima
 else
   dim "  · no common/runners — skipping (this check matters only after v2.2)"
 fi
+
+echo "─── 13/14 code quality (structure + contracts) ────────────────"
+# Thresholds and the frozen baseline live in scripts/check-code-quality.py.
+# Contract and layering findings are never baselined — they are invariants.
+python3 scripts/check-code-quality.py || { red "  ✗ code quality gate failed"; exit 3; }
+
+echo
+echo "─── 14/14 CLI surface ─────────────────────────────────────────"
+# Every CLI module must import and build its parser. Cheap, and it is the only
+# thing standing between a refactor and a runner that dies on invocation —
+# these paths have no unit tests of their own.
+python3 -c "
+import importlib, pkgutil, sys
+sys.path.insert(0, '.')
+import common.runners.cli as clipkg
+bad = []
+n = 0
+for mod in pkgutil.iter_modules(clipkg.__path__):
+    if mod.name.startswith('_'):
+        continue
+    name = f'common.runners.cli.{mod.name}'
+    try:
+        m = importlib.import_module(name)
+        if hasattr(m, 'build_parser'):
+            m.build_parser().format_help()
+        elif not hasattr(m, 'main'):
+            bad.append(f'{name}: neither build_parser() nor main()')
+            continue
+        n += 1
+    except Exception as exc:
+        bad.append(f'{name}: {type(exc).__name__}: {exc}')
+if bad:
+    for b in bad:
+        print(f'  ✗ {b}')
+    sys.exit(1)
+print(f'  ✓ {n} CLI modules import and expose a usable entry point')
+" || { red "  ✗ CLI surface check failed"; exit 3; }
 
 echo
 green "smoke: OK"

@@ -25,7 +25,8 @@ import requests
 
 from .. import oauth, tokens
 from ..errors import PublishError, RateLimitError, RunnerError
-from .base import IMAGE_EXTS, Post, Publisher, PublishResult, Violation, mime_for
+from ._oauth import OAuthPublisher
+from .base import IMAGE_EXTS, Post, PublishResult, Violation, mime_for
 
 API_ROOT = "https://api.linkedin.com"
 
@@ -38,10 +39,9 @@ DEFAULT_VERSION = "202607"
 TEXT_LIMIT = 3000
 
 
-class LinkedInPublisher(Publisher):
+class LinkedInPublisher(OAuthPublisher):
     name = "linkedin"
     requires_env = ("LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET")
-    requires_oauth = True
     supports = frozenset({"text", "image", "carousel", "video"})
     supports_draft = False
     needs_public_media_url = False
@@ -55,6 +55,12 @@ class LinkedInPublisher(Publisher):
     max_video_mb = 500.0
 
     oauth_scopes = ("w_member_social", "openid", "profile")
+    default_token_ttl = 5_184_000.0  # 60 days
+    refresh_url = "https://www.linkedin.com/oauth/v2/accessToken"
+    refresh_missing_message = (
+        "linkedin: no refresh token — refresh tokens are only issued to apps "
+        "approved for them. Re-run cli.auth to get a fresh 60-day token."
+    )
 
     def api_version(self) -> str:
         return os.environ.get("LINKEDIN_API_VERSION", DEFAULT_VERSION)
@@ -200,9 +206,6 @@ class LinkedInPublisher(Publisher):
 
     # ── authorisation ───────────────────────────────────────────────────────
 
-    def oauth_app(self):
-        return oauth.get_app(self.name)
-
     def verify_token(self, access_token: str) -> tuple[str, str]:
         try:
             resp = requests.get(
@@ -217,48 +220,13 @@ class LinkedInPublisher(Publisher):
             raise RunnerError(f"linkedin: token rejected: {resp.text[:200]}")
         return str(data.get("sub", "")), str(data.get("name", ""))
 
-    def finalize_auth(self, raw: dict[str, Any]):
-        access = raw.get("access_token")
-        if not access:
-            raise RunnerError(f"linkedin: token response had no access_token: {raw}")
-        account_id = label = ""
-        try:
-            account_id, label = self.verify_token(access)
-        except RunnerError:
-            pass
-        return tokens.TokenEntry(
-            platform=self.name,
-            access_token=access,
-            refresh_token=raw.get("refresh_token"),
-            expires_at=time.time() + float(raw.get("expires_in", 5_184_000)),  # 60 days
-            scopes=list(self.oauth_scopes),
-            account_id=account_id,
-            account_label=label,
-        )
-
-    def refresh(self, entry: tokens.TokenEntry) -> tokens.TokenEntry:
-        if not entry.refresh_token:
-            raise RunnerError(
-                "linkedin: no refresh token — refresh tokens are only issued to apps "
-                "approved for them. Re-run cli.auth to get a fresh 60-day token."
-            )
-        resp = requests.post(
-            "https://www.linkedin.com/oauth/v2/accessToken",
-            data={
-                "grant_type": "refresh_token",
-                "refresh_token": entry.refresh_token,
-                "client_id": os.environ.get("LINKEDIN_CLIENT_ID", ""),
-                "client_secret": os.environ.get("LINKEDIN_CLIENT_SECRET", ""),
-            },
-            timeout=60,
-        )
-        data = resp.json() if resp.content else {}
-        if resp.status_code >= 400 or "access_token" not in data:
-            raise RunnerError(f"linkedin: refresh failed: {resp.text[:200]}")
-        entry.access_token = data["access_token"]
-        entry.refresh_token = data.get("refresh_token", entry.refresh_token)
-        entry.expires_at = time.time() + float(data.get("expires_in", 5_184_000))
-        return entry
+    def _refresh_payload(self, entry: tokens.TokenEntry) -> dict[str, Any]:
+        return {
+            "grant_type": "refresh_token",
+            "refresh_token": entry.refresh_token or "",
+            "client_id": os.environ.get("LINKEDIN_CLIENT_ID", ""),
+            "client_secret": os.environ.get("LINKEDIN_CLIENT_SECRET", ""),
+        }
 
 
 _PUBLISHER = LinkedInPublisher()

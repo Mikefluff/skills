@@ -9,6 +9,56 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+### Added — structural gates, and the publishing layer refactored to pass them
+
+Two new smoke gates. `check-code-quality.py` enforces module ≤400 lines, function
+≤50, branch complexity ≤12, parameters ≤5, plus two invariants: every registered
+`Publisher` honours its ABC, and lower layers never import upper ones. The CLI
+surface gate confirms all 26 CLI modules import and build a parser — those paths
+have no unit tests, so it is the only thing between a refactor and a runner that
+dies on invocation.
+
+19k lines of Python predate the thresholds, so the gate runs against a frozen
+baseline, the same shape `check-launch-copy.py` already uses here. Anything new
+fails hard; the baseline may only shrink, and `--freeze` refuses to grow it. A
+gate that fails the whole repo on day one gets disabled on day two.
+
+The contract and layering checks have no baseline. They are invariants, not debt.
+
+**The publishing layer now has zero violations**, which took four extractions,
+each of which was worth doing on its own:
+
+- `preflight()` was a 102-line method checking ten unrelated things. It is now
+  `publishers/rules.py` — one function per rule, same signature, composed in a
+  list. A rule can be tested against a stub instead of a whole publisher.
+- Five publishers repeated the same forty lines of OAuth plumbing, and it had
+  already drifted — the "is there a refresh token?" guard existed in three of
+  them and not the other two. `publishers/_oauth.py` holds the shape; subclasses
+  declare the endpoint and the payload.
+- `cli/publish.py` was a 423-line module whose `main()` ran to 127 lines at
+  complexity 36. Working out what a directory contains moved to `postsource.py`
+  (domain logic, no argparse), rendering moved to `cli/_publish_view.py`, and the
+  per-platform decision sequence became one readable function — that order *is*
+  the safety contract, and it was hard to audit inside the loop.
+- `build_post()` had grown to seven parameters that always travel together;
+  they became a `PostOverrides` dataclass.
+
+Outside the publishing layer, the worst function in the repository is gone:
+`cli/reel.py:main()` ran 260 lines at complexity 60. It was already a pipeline —
+the code had comments labelling "Stage 1/2/3" — so it became one: `load_plan`,
+`prepare`, `estimate`, `run_shots`, `run_music`, and an ffmpeg stage in
+`cli/_reel_stitch.py`. Verified by re-running `--cost-only`, the stdin path, and
+every plan-error case against the original exit codes.
+
+The gate found three violations in itself on first run, which is the correct
+outcome for a tool with any authority, and two bugs worth recording: `--freeze`
+refused to create the initial baseline because "0 → 116" reads as growth, and a
+failure printed all 116 findings, which is a wall nobody reads.
+
+114 known violations remain, all pre-existing, all frozen and visible. The
+largest cluster is the twenty `-maker` CLI `main()` functions, which share a
+shape and want a common skeleton rather than twenty separate edits.
+
 ## [2.21.1] — 2026-08-03
 
 ### Fixed — four platform constants were written from memory and were wrong

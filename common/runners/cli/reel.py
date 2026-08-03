@@ -43,6 +43,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -52,6 +53,7 @@ from .. import config
 from .. import cost as cost_mod
 from .. import ffmpeg as ff_mod
 from ..errors import CostConfirmationDeclined
+from ._reel_stitch import stitch
 
 
 def _print_progress(item: batch_mod.BatchItem) -> None:
@@ -72,7 +74,11 @@ def _make_item(entry: dict[str, Any], default_label: str) -> batch_mod.BatchItem
     )
 
 
-def main() -> int:
+class PlanError(Exception):
+    """Plan is unusable. Carries the message the CLI should print."""
+
+
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="common.runners.cli.reel")
     parser.add_argument("--plan-file", type=Path, required=True, help="path to plan.json")
     parser.add_argument("--resume", action="store_true", help="reuse succeeded items from manifest")
@@ -85,109 +91,211 @@ def main() -> int:
         "--skip-stitch", action="store_true",
         help="generate shots + music; don't run ffmpeg",
     )
-    args = parser.parse_args()
+    return parser
 
-    # `--plan-file -` reads from stdin (no intermediate file needed).
-    if str(args.plan_file) == "-":
+
+# ── plan ────────────────────────────────────────────────────────────────────
+
+
+def load_plan(plan_file: Path) -> dict[str, Any]:
+    """Read and validate plan.json. `--plan-file -` reads stdin."""
+    if str(plan_file) == "-":
         raw = sys.stdin.read()
         if not raw.strip():
-            print("plan-file '-' (stdin) is empty", file=sys.stderr)
-            return 2
-        plan = json.loads(raw)
+            raise PlanError("plan-file '-' (stdin) is empty")
     else:
-        if not args.plan_file.is_file():
-            print(f"plan-file not found: {args.plan_file}", file=sys.stderr)
-            return 2
-        plan = json.loads(args.plan_file.read_text(encoding="utf-8"))
+        if not plan_file.is_file():
+            raise PlanError(f"plan-file not found: {plan_file}")
+        raw = plan_file.read_text(encoding="utf-8")
+
+    plan = json.loads(raw)
     if plan.get("schema") != "skills.reel.plan.v1":
-        print(
-            f"unexpected plan schema '{plan.get('schema')}'. Expected 'skills.reel.plan.v1'.",
-            file=sys.stderr,
+        raise PlanError(
+            f"unexpected plan schema '{plan.get('schema')}'. Expected 'skills.reel.plan.v1'."
         )
-        return 2
+    if not plan.get("video_provider"):
+        raise PlanError("plan missing 'video_provider'")
+    if not (plan.get("shots") or []):
+        raise PlanError("plan has no shots")
+    return plan
 
-    video_provider_slug = plan.get("video_provider")
-    music_provider_slug = plan.get("music_provider")
-    if not video_provider_slug:
-        print("plan missing 'video_provider'", file=sys.stderr)
-        return 2
 
-    shots = plan.get("shots") or []
-    if not shots:
-        print("plan has no shots", file=sys.stderr)
-        return 2
+def resolve_provider(slug: str, expected: str):
+    try:
+        provider = config.get_provider(slug)
+    except KeyError as exc:
+        raise PlanError(exc.args[0]) from exc
+    if provider.modality != expected:
+        raise PlanError(f"'{slug}' is {provider.modality}, not {expected}.")
+    return provider
+
+
+@dataclass
+class ReelJob:
+    """A validated plan plus everything resolved from it."""
+
+    plan: dict[str, Any]
+    video_provider: Any
+    music_provider: Any | None
+    shot_items: list[batch_mod.BatchItem]
+    music_item: batch_mod.BatchItem | None
+    output_dir: Path
+
+    @property
+    def shots_dir(self) -> Path:
+        return self.output_dir / "shots"
+
+    @property
+    def manifest_path(self) -> Path:
+        return self.output_dir / "manifest.json"
+
+
+def prepare(plan: dict[str, Any]) -> ReelJob:
+    """Resolve providers, build batch items, create the output directories."""
+    config.load_all_providers()
+    video_provider = resolve_provider(plan["video_provider"], "video")
 
     music_block = plan.get("music")
-    captions_enabled = bool(plan.get("captions_enabled"))
-    captions = plan.get("captions") or []
+    music_slug = plan.get("music_provider")
+    music_provider = resolve_provider(music_slug, "music") if music_block and music_slug else None
+
+    shot_items = [
+        _make_item(entry, default_label=f"shot-{int(entry['index']):02d}")
+        for entry in plan["shots"]
+    ]
+    music_item = _build_music_item(music_block) if music_block and music_provider else None
 
     output_dir = Path(plan.get("output_dir") or "./generated/reel/batch")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    shots_dir = output_dir / "shots"
-    shots_dir.mkdir(parents=True, exist_ok=True)
-    manifest_path = output_dir / "manifest.json"
+    job = ReelJob(plan, video_provider, music_provider, shot_items, music_item, output_dir)
+    job.output_dir.mkdir(parents=True, exist_ok=True)
+    job.shots_dir.mkdir(parents=True, exist_ok=True)
+    return job
 
-    config.load_all_providers()
+
+def _build_music_item(music_block: dict[str, Any]) -> batch_mod.BatchItem:
+    return batch_mod.BatchItem(
+        index=999,
+        label="music",
+        prompt=str(music_block.get("prompt") or ""),
+        kwargs={
+            **(music_block.get("kwargs") or {}),
+            "instrumental": bool(music_block.get("instrumental")),
+            "duration_seconds": float(music_block.get("duration_seconds") or 15),
+            "lyrics": music_block.get("lyrics") or "",
+        },
+    )
+
+
+# ── cost ────────────────────────────────────────────────────────────────────
+
+
+def estimate(job: ReelJob) -> tuple[Decimal, Decimal]:
+    """(video, music) estimates. Kept separate so --cost-only can itemise."""
+    video = batch_mod.estimate_batch_cost(job.video_provider, job.shot_items) or Decimal("0")
+    music = Decimal("0")
+    if job.music_item and job.music_provider is not None:
+        per_music = job.music_provider.estimate_cost(**job.music_item.kwargs)
+        if per_music is not None:
+            music = per_music
+    return video, music
+
+
+def print_cost(job: ReelJob, video: Decimal, music: Decimal) -> int:
+    print(f"video shots: {len(job.shot_items)} ({cost_mod.format_cost(video)})")
+    if job.music_item is not None:
+        print(f"music: 1 ({cost_mod.format_cost(music)})")
+    print(f"total: {cost_mod.format_cost(video + music)}")
+    return 0
+
+
+def _meta(job: ReelJob, total: Decimal) -> dict[str, Any]:
+    plan = job.plan
+    return {
+        "skill": "reel-builder",
+        "topic": plan.get("topic"),
+        "aspect": plan.get("aspect"),
+        "video_style_id": plan.get("video_style_id"),
+        "music_style_id": plan.get("music_style_id"),
+        "video_provider": plan.get("video_provider"),
+        "music_provider": plan.get("music_provider"),
+        "captions_enabled": bool(plan.get("captions_enabled")),
+        "estimated_total_cost_usd": str(total),
+    }
+
+
+# ── generation ──────────────────────────────────────────────────────────────
+
+
+def run_shots(job: ReelJob, meta: dict[str, Any], *, resume: bool):
+    return batch_mod.run_batch(
+        job.video_provider,
+        job.shot_items,
+        modality="video",
+        output_dir=job.shots_dir,
+        manifest_path=job.manifest_path,
+        parallelism=int(job.plan.get("parallelism") or 2),
+        resume=resume,
+        extension_hint="mp4",
+        on_progress=_print_progress,
+        extra_meta=meta,
+    )
+
+
+def run_music(job: ReelJob, meta: dict[str, Any], *, resume: bool) -> Path | None:
+    """Separate sub-batch, so the directory layout stays readable."""
+    if job.music_item is None or job.music_provider is None:
+        return None
+    result = batch_mod.run_batch(
+        job.music_provider,
+        [job.music_item],
+        modality="music",
+        output_dir=job.output_dir,
+        manifest_path=job.output_dir / "music-manifest.json",
+        parallelism=1,
+        resume=resume,
+        extension_hint="mp3",
+        on_progress=_print_progress,
+        extra_meta={**meta, "component": "music"},
+    )
+    if not (result.ok and result.items[0].output_path):
+        print("  music generation failed — proceeding with silent stitch", file=sys.stderr)
+        return None
+    return _normalise_music_name(Path(result.items[0].output_path), job.output_dir)
+
+
+def _normalise_music_name(path: Path, output_dir: Path) -> Path:
+    """ffmpeg is handed a predictable name rather than a timestamped one."""
+    target = output_dir / f"music{path.suffix}"
+    if path == target:
+        return path
+    try:
+        path.replace(target)
+        return target
+    except OSError:
+        return path
+
+
+# ── main ────────────────────────────────────────────────────────────────────
+
+
+def main() -> int:
+    args = build_parser().parse_args()
 
     try:
-        video_provider = config.get_provider(video_provider_slug)
-    except KeyError as exc:
+        job = prepare(load_plan(args.plan_file))
+    except PlanError as exc:
         print(str(exc), file=sys.stderr)
         return 2
-    if video_provider.modality != "video":
-        print(f"'{video_provider_slug}' is {video_provider.modality}, not video.", file=sys.stderr)
-        return 2
 
-    music_provider = None
-    if music_block and music_provider_slug:
-        try:
-            music_provider = config.get_provider(music_provider_slug)
-        except KeyError as exc:
-            print(str(exc), file=sys.stderr)
-            return 2
-        if music_provider.modality != "music":
-            print(f"'{music_provider_slug}' is {music_provider.modality}, not music.", file=sys.stderr)
-            return 2
-
-    # Build batch items: shots + (optional) music as one combined manifest
-    items: list[batch_mod.BatchItem] = []
-    for entry in shots:
-        items.append(_make_item(entry, default_label=f"shot-{int(entry['index']):02d}"))
-    music_item: batch_mod.BatchItem | None = None
-    if music_block and music_provider is not None:
-        music_item = batch_mod.BatchItem(
-            index=999,
-            label="music",
-            prompt=str(music_block.get("prompt") or ""),
-            kwargs={
-                **(music_block.get("kwargs") or {}),
-                "instrumental": bool(music_block.get("instrumental")),
-                "duration_seconds": float(music_block.get("duration_seconds") or 15),
-                "lyrics": music_block.get("lyrics") or "",
-            },
-        )
-
-    # Cost estimate
-    shot_items = [i for i in items if i.label.startswith("shot-")]
-    estimated_video = batch_mod.estimate_batch_cost(video_provider, shot_items) or Decimal("0")
-    estimated_music = Decimal("0")
-    if music_item and music_provider is not None:
-        per_music = music_provider.estimate_cost(**music_item.kwargs)
-        if per_music is not None:
-            estimated_music = per_music
-    estimated_total = estimated_video + estimated_music
-
+    video_cost, music_cost = estimate(job)
+    total = video_cost + music_cost
     if args.cost_only:
-        print(f"video shots: {len(shot_items)} ({cost_mod.format_cost(estimated_video)})")
-        if music_item is not None:
-            print(f"music: 1 ({cost_mod.format_cost(estimated_music)})")
-        print(f"total: {cost_mod.format_cost(estimated_total)}")
-        return 0
+        return print_cost(job, video_cost, music_cost)
 
     try:
         cost_mod.confirm_batch(
-            estimated_total,
-            n_items=len(shot_items) + (1 if music_item else 0),
+            total,
+            n_items=len(job.shot_items) + (1 if job.music_item else 0),
             modality="reel",
             yes=args.yes,
         )
@@ -195,143 +303,31 @@ def main() -> int:
         print(str(exc), file=sys.stderr)
         return 3
 
-    parallelism = int(plan.get("parallelism") or 2)
-    extra_meta = {
-        "skill": "reel-builder",
-        "topic": plan.get("topic"),
-        "aspect": plan.get("aspect"),
-        "video_style_id": plan.get("video_style_id"),
-        "music_style_id": plan.get("music_style_id"),
-        "video_provider": video_provider_slug,
-        "music_provider": music_provider_slug,
-        "captions_enabled": captions_enabled,
-        "estimated_total_cost_usd": str(estimated_total),
-    }
-
+    meta = _meta(job, total)
     print(
-        f"Reel batch: {len(shot_items)} shots via {video_provider_slug}"
-        + (f" + music via {music_provider_slug}" if music_item else "")
-        + f". Estimated {cost_mod.format_cost(estimated_total)}. Parallelism: {parallelism}.",
+        f"Reel batch: {len(job.shot_items)} shots via {job.plan['video_provider']}"
+        + (f" + music via {job.plan.get('music_provider')}" if job.music_item else "")
+        + f". Estimated {cost_mod.format_cost(total)}. "
+        f"Parallelism: {job.plan.get('parallelism') or 2}.",
         file=sys.stderr,
     )
 
-    # Stage 1: run shots
-    shots_result = batch_mod.run_batch(
-        video_provider,
-        shot_items,
-        modality="video",
-        output_dir=shots_dir,
-        manifest_path=manifest_path,
-        parallelism=parallelism,
-        resume=args.resume,
-        extension_hint="mp4",
-        on_progress=_print_progress,
-        extra_meta=extra_meta,
-    )
-
+    shots_result = run_shots(job, meta, resume=args.resume)
     if not shots_result.ok:
-        failed = len(shots_result.failed)
         print(
-            f"  {failed} shot(s) failed. Components saved; ffmpeg skipped. Re-run with --resume.",
+            f"  {len(shots_result.failed)} shot(s) failed. Components saved; "
+            f"ffmpeg skipped. Re-run with --resume.",
             file=sys.stderr,
         )
         return 1
 
-    # Stage 2: run music (separate sub-batch to keep dir layout clean)
-    music_path: Path | None = None
-    if music_item is not None and music_provider is not None:
-        music_manifest = output_dir / "music-manifest.json"
-        music_result = batch_mod.run_batch(
-            music_provider,
-            [music_item],
-            modality="music",
-            output_dir=output_dir,
-            manifest_path=music_manifest,
-            parallelism=1,
-            resume=args.resume,
-            extension_hint="mp3",
-            on_progress=_print_progress,
-            extra_meta={**extra_meta, "component": "music"},
-        )
-        if music_result.ok and music_result.items[0].output_path:
-            music_path = Path(music_result.items[0].output_path)
-            # Normalize music filename for ffmpeg
-            target = output_dir / f"music{music_path.suffix}"
-            if music_path != target:
-                try:
-                    music_path.replace(target)
-                    music_path = target
-                except OSError:
-                    pass
-        else:
-            print("  music generation failed — proceeding with silent stitch", file=sys.stderr)
+    music_path = run_music(job, meta, resume=args.resume)
 
-    # Stage 3: ffmpeg stitch
     if args.skip_stitch:
-        print(f"\nReel components: {output_dir} (ffmpeg skipped via --skip-stitch)")
+        print(f"\nReel components: {job.output_dir} (ffmpeg skipped via --skip-stitch)")
         return 0
 
-    probe = ff_mod.detect_ffmpeg()
-    if not probe.found:
-        print("\nffmpeg not found — components saved; stitch skipped.", file=sys.stderr)
-        print("Install: 'brew install ffmpeg' (mac) or 'apt-get install -y ffmpeg' (debian).", file=sys.stderr)
-        return 0
-
-    # Concat must follow plan order (shot index), NOT file-finish order.
-    # Sorting by filename concats by timestamp prefix, which reflects when each
-    # shot finished — wrong when shots run in parallel or get retried via --resume.
-    succeeded_in_plan_order = sorted(shots_result.succeeded, key=lambda it: it.index)
-    shot_paths = [Path(item.output_path) for item in succeeded_in_plan_order if item.output_path]
-
-    concat_mp4 = output_dir / "concat.mp4"
-    with_music_mp4 = output_dir / "with-music.mp4"
-    final_mp4 = output_dir / "final.mp4"
-
-    try:
-        if len(shot_paths) >= 2:
-            ff_mod.concat_videos(shot_paths, concat_mp4, ffmpeg_bin=probe.binary or "ffmpeg")
-        else:
-            # single shot — just copy
-            import shutil as _shutil
-            _shutil.copyfile(shot_paths[0], concat_mp4)
-    except Exception as exc:  # noqa: BLE001
-        print(f"\nffmpeg concat failed: {exc}", file=sys.stderr)
-        return 1
-
-    stitched = concat_mp4
-    if music_path is not None and music_path.is_file():
-        try:
-            ff_mod.mix_audio_over_video(
-                concat_mp4, music_path, with_music_mp4,
-                audio_volume=0.8, fade_out=0.5, ffmpeg_bin=probe.binary or "ffmpeg",
-            )
-            stitched = with_music_mp4
-        except Exception as exc:  # noqa: BLE001
-            print(f"\nffmpeg music mix failed: {exc} — using silent reel.", file=sys.stderr)
-            stitched = concat_mp4
-
-    def _finalize(src: Path) -> None:
-        # No transformation left between src and final.mp4 — rename instead of copy
-        # so the reel dir doesn't carry two identical multi-MB files.
-        if src == final_mp4:
-            return
-        if final_mp4.exists():
-            final_mp4.unlink()
-        src.replace(final_mp4)
-
-    if captions_enabled and captions:
-        try:
-            cap_tuples = [(float(c["start"]), float(c["end"]), str(c["text"])) for c in captions]
-            ff_mod.burn_captions(stitched, cap_tuples, final_mp4, ffmpeg_bin=probe.binary or "ffmpeg")
-        except Exception as exc:  # noqa: BLE001
-            print(f"\nffmpeg burn-captions failed: {exc} — using uncaptioned reel.", file=sys.stderr)
-            _finalize(stitched)
-    else:
-        _finalize(stitched)
-
-    print(f"\nReel: {final_mp4}")
-    print(f"Components: {output_dir}/(shots/, music.mp3, script.md)")
-    return 0
+    return stitch(job, shots_result, music_path)
 
 
 if __name__ == "__main__":

@@ -222,149 +222,24 @@ class Publisher(ABC):
     # ── preflight ───────────────────────────────────────────────────────────
 
     def preflight(self, post: Post, *, draft: bool = False) -> list[Violation]:
-        """Generic checks every platform needs, plus the subclass hook.
+        """Run every generic rule, then the platform's own.
 
-        Concrete rather than abstract on purpose: a subclass that forgets to
-        call super() would skip the file-exists check and fail mid-upload with
-        a confusing vendor error. Subclasses extend via `_extra_preflight()`.
+        Concrete rather than abstract on purpose: a subclass that forgot to call
+        super() would skip the file-exists check and fail mid-upload with a
+        confusing vendor error. Subclasses extend via `_extra_preflight()`, and
+        `check-code-quality.py` fails the build if one overrides this instead.
 
         `draft` is passed through because it can change what is valid, not just
         what happens afterwards — TikTok's audit caveat applies to a direct post
         and is noise on a draft.
         """
-        v: list[Violation] = []
+        from .rules import GENERIC_RULES
 
-        if post.kind not in self.supports:
-            v.append(
-                Violation(
-                    "block",
-                    "kind",
-                    f"{self.name} does not support {post.kind} posts "
-                    f"(supported: {', '.join(sorted(self.supports))})",
-                )
-            )
-
-        text = post.rendered_text()
-        if self.max_text_chars is not None and len(text) > self.max_text_chars:
-            v.append(
-                Violation(
-                    "block",
-                    "text",
-                    f"{len(text)} chars exceeds the {self.max_text_chars}-char limit "
-                    f"(over by {len(text) - self.max_text_chars})",
-                )
-            )
-
-        if self.max_title_chars is not None and len(post.title) > self.max_title_chars:
-            v.append(
-                Violation(
-                    "block",
-                    "title",
-                    f"{len(post.title)} chars exceeds the {self.max_title_chars}-char limit",
-                )
-            )
-
-        if self.max_hashtags is not None and len(post.hashtags) > self.max_hashtags:
-            v.append(
-                Violation(
-                    "warn",
-                    "hashtags",
-                    f"{len(post.hashtags)} hashtags; {self.name} tolerates about "
-                    f"{self.max_hashtags} before it reads as spam",
-                )
-            )
-
-        n = len(post.media)
-        if n < self.min_media:
-            v.append(Violation("block", "media", f"needs at least {self.min_media} file(s), got {n}"))
-        if n > self.max_media:
-            v.append(Violation("block", "media", f"accepts at most {self.max_media} file(s), got {n}"))
-
-        for m in post.media:
-            v.extend(self._check_file(m))
-
-        if post.media and not post.alt_texts:
-            v.append(Violation("warn", "alt_texts", "no alt text — hurts reach and accessibility"))
-        elif post.media and len(post.alt_texts) < len(post.media):
-            # Partial alt text is the likelier mistake than none at all: --alt is
-            # repeated per file, so it is easy to describe the first two slides
-            # and forget the rest. Naming the gap beats a generic nudge.
-            first_missing = len(post.alt_texts) + 1
-            v.append(
-                Violation(
-                    "warn",
-                    "alt_texts",
-                    f"{len(post.alt_texts)} alt texts for {len(post.media)} files — "
-                    f"{'file' if first_missing == len(post.media) else 'files'} "
-                    f"{first_missing}"
-                    f"{'' if first_missing == len(post.media) else f'-{len(post.media)}'} "
-                    f"will go without",
-                )
-            )
-
-        if self.needs_public_media_url and post.media:
-            from ..storage import s3
-
-            if not s3.s3_configured():
-                v.append(
-                    Violation(
-                        "block",
-                        "media",
-                        f"{self.name} fetches media by URL and cannot accept raw bytes. "
-                        f"Set S3_BUCKET / S3_ACCESS_KEY / S3_SECRET_KEY in ~/.skills.env. "
-                        f"(--draft does not avoid this: staging the container is what "
-                        f"needs the URL. Without a bucket, post it by hand — see "
-                        f"references/browser-fallback.md.)",
-                    )
-                )
-
-        if draft and not self.supports_draft:
-            v.append(Violation("block", "draft", f"{self.name} has no draft concept"))
-
-        v.extend(self._extra_preflight(post, draft=draft))
-        return v
-
-    def _check_file(self, path: Path) -> list[Violation]:
-        v: list[Violation] = []
-        if not path.is_file():
-            v.append(Violation("block", "media", f"file not found: {path}"))
-            return v
-
-        ext = path.suffix.lower()
-        size_bytes = path.stat().st_size
-        if size_bytes == 0:
-            v.append(Violation("block", "media", f"file is empty: {path.name}"))
-            return v
-        size_mb = size_bytes / MB
-
-        if ext in IMAGE_EXTS:
-            if self.max_image_mb and size_mb > self.max_image_mb:
-                v.append(
-                    Violation(
-                        "block",
-                        "media",
-                        f"{path.name} is {size_mb:.1f} MB; {self.name} caps images at {self.max_image_mb} MB",
-                    )
-                )
-        elif ext in VIDEO_EXTS:
-            if self.max_video_mb and size_mb > self.max_video_mb:
-                v.append(
-                    Violation(
-                        "block",
-                        "media",
-                        f"{path.name} is {size_mb:.1f} MB; {self.name} caps video at {self.max_video_mb} MB",
-                    )
-                )
-        else:
-            v.append(
-                Violation(
-                    "block",
-                    "media",
-                    f"unrecognised media type '{ext}' ({path.name}); "
-                    f"expected one of {', '.join(sorted(IMAGE_EXTS | VIDEO_EXTS))}",
-                )
-            )
-        return v
+        found: list[Violation] = []
+        for rule in GENERIC_RULES:
+            found.extend(rule(self, post, draft))
+        found.extend(self._extra_preflight(post, draft=draft))
+        return found
 
     def _extra_preflight(self, post: Post, *, draft: bool = False) -> list[Violation]:  # noqa: ARG002
         """Platform-specific rules. Override; default is no extra rules."""
