@@ -7,7 +7,6 @@ to surface raw HTTP statuses (401 = invalid, 200 = valid, anything else = unknow
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from typing import Callable
 

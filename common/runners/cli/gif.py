@@ -26,11 +26,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-from .. import config
+from . import _shared
 from .. import ffmpeg as ff_mod
 from .. import output as output_mod
 from ..errors import (
-    CostConfirmationDeclined,
     KeyMissingError,
     ProviderError,
     RunnerError,
@@ -68,6 +67,55 @@ def _crop_filter(aspect: str | None) -> str | None:
     return f"crop='if(gt(iw/ih,{w}/{h}),ih*{w}/{h},iw)':'if(gt(iw/ih,{w}/{h}),ih,iw*{h}/{w})'"
 
 
+def _gif_width(args: argparse.Namespace) -> int:
+    """Explicit --width wins; otherwise a default suited to the aspect."""
+    if args.width is not None:
+        return args.width
+    if args.aspect:
+        return DEFAULT_WIDTH_BY_ASPECT.get(args.aspect, 720)
+    return 720
+
+
+def _trim_args(args: argparse.Namespace) -> list[str]:
+    trim: list[str] = []
+    if args.start and args.start > 0:
+        trim += ["-ss", f"{args.start:.3f}"]
+    if args.duration and args.duration > 0:
+        trim += ["-t", f"{args.duration:.3f}"]
+    return trim
+
+
+def _remove(path: Path) -> None:
+    try:
+        path.unlink()
+    except OSError:
+        pass
+
+
+def _crop_prepass(video: Path, crop_vf: str, args: argparse.Namespace, ffmpeg_bin: str) -> Path:
+    """Crop and trim into a temp MP4 before the palette passes.
+
+    mp4_to_gif builds its own filter chain, so a crop cannot be appended to it —
+    it has to happen first, into a file.
+    """
+    tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+    tmp.close()
+    tmp_path = Path(tmp.name)
+    subprocess.run(
+        [
+            ffmpeg_bin, "-y", "-loglevel", "error",
+            *_trim_args(args),
+            "-i", str(video),
+            "-vf", crop_vf,
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
+            "-an",
+            str(tmp_path),
+        ],
+        check=True, capture_output=True, text=True,
+    )
+    return tmp_path
+
+
 def _convert(video: Path, output: Path, args: argparse.Namespace) -> int:
     probe = ff_mod.detect_ffmpeg()
     if not probe.found:
@@ -75,48 +123,23 @@ def _convert(video: Path, output: Path, args: argparse.Namespace) -> int:
         print("    Install: 'brew install ffmpeg' (Mac) / 'apt-get install -y ffmpeg' (Debian).", file=sys.stderr)
         return 2
 
-    aspect = args.aspect
-    width = args.width
-    if width is None and aspect:
-        width = DEFAULT_WIDTH_BY_ASPECT.get(aspect, 720)
-    elif width is None:
-        width = 720
-
-    # If aspect crop is requested, we need to crop before scale. ff_mod.mp4_to_gif
-    # only supports fps + width via vf chain; we apply crop as a pre-pass when needed.
-    crop_vf = _crop_filter(aspect) if aspect else None
+    ffmpeg_bin = probe.binary or "ffmpeg"
+    width = _gif_width(args)
+    crop_vf = _crop_filter(args.aspect)
 
     try:
         if crop_vf:
-            tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
-            tmp.close()
-            tmp_path = Path(tmp.name)
-            trim_in: list[str] = []
-            if args.start and args.start > 0:
-                trim_in += ["-ss", f"{args.start:.3f}"]
-            if args.duration and args.duration > 0:
-                trim_in += ["-t", f"{args.duration:.3f}"]
-            crop_cmd = [
-                probe.binary or "ffmpeg", "-y", "-loglevel", "error",
-                *trim_in,
-                "-i", str(video),
-                "-vf", crop_vf,
-                "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
-                "-an",
-                str(tmp_path),
-            ]
-            subprocess.run(crop_cmd, check=True, capture_output=True, text=True)
-            # The crop pre-pass already applied the trim window, so the GIF
-            # conversion must not apply it a second time.
-            ff_mod.mp4_to_gif(
-                tmp_path, output,
-                ff_mod.GifOptions(fps=int(args.fps), width=width),
-                ffmpeg_bin=probe.binary or "ffmpeg",
-            )
+            tmp_path = _crop_prepass(video, crop_vf, args, ffmpeg_bin)
             try:
-                tmp_path.unlink()
-            except OSError:
-                pass
+                # The pre-pass already applied the trim window; trimming again
+                # would cut into the already-cut clip.
+                ff_mod.mp4_to_gif(
+                    tmp_path, output,
+                    ff_mod.GifOptions(fps=int(args.fps), width=width),
+                    ffmpeg_bin=ffmpeg_bin,
+                )
+            finally:
+                _remove(tmp_path)
         else:
             ff_mod.mp4_to_gif(
                 video, output,
@@ -126,7 +149,7 @@ def _convert(video: Path, output: Path, args: argparse.Namespace) -> int:
                     start=float(args.start or 0.0),
                     duration=float(args.duration) if args.duration else None,
                 ),
-                ffmpeg_bin=probe.binary or "ffmpeg",
+                ffmpeg_bin=ffmpeg_bin,
             )
     except subprocess.CalledProcessError as exc:
         stderr = (exc.stderr or "").strip()
@@ -141,33 +164,34 @@ def _convert(video: Path, output: Path, args: argparse.Namespace) -> int:
     return 0
 
 
-def _generate(args: argparse.Namespace) -> tuple[int, Path | None]:
+def _video_provider(args: argparse.Namespace):
+    """Mode B needs a configured video provider. None means exit 2."""
     if not args.model:
         print("  ✗ --model required when generating (e.g., veo-3-1-fast, fal-video).", file=sys.stderr)
-        return 2, None
+        return None
     if not args.prompt:
         print("  ✗ --prompt required when generating", file=sys.stderr)
-        return 2, None
+        return None
 
-    config.load_all_providers()
-    try:
-        provider = config.get_provider(args.model)
-    except KeyError as exc:
-        print(str(exc), file=sys.stderr)
-        return 2, None
-    if provider.modality != "video":
-        print(f"'{args.model}' is {provider.modality}, not video", file=sys.stderr)
-        return 2, None
+    provider = _shared.resolve_provider(args.model, "video")
+    if provider is None:
+        return None
     if not provider.available():
-        missing = ", ".join(provider.requires_env)
-        print(f"missing env: {missing}", file=sys.stderr)
+        print(f"missing env: {', '.join(provider.requires_env)}", file=sys.stderr)
+        return None
+    return provider
+
+
+def _generate(args: argparse.Namespace) -> tuple[int, Path | None]:
+    provider = _video_provider(args)
+    if provider is None:
         return 2, None
 
     kwargs: dict = {}
     if args.duration:
         kwargs["duration"] = float(args.duration)
     if args.aspect and args.aspect in ASPECT_RATIOS:
-        # provider may or may not honor; we still center-crop post-hoc
+        # The provider may or may not honour it; we center-crop post-hoc anyway.
         kwargs["aspect"] = args.aspect
 
     print(
@@ -202,7 +226,7 @@ def _generate(args: argparse.Namespace) -> tuple[int, Path | None]:
     return 0, Path(saved.local_path)
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="common.runners.cli.gif")
     parser.add_argument("--input", type=Path, help="path to existing MP4 (Mode A)")
     parser.add_argument("--prompt", help="prompt text for video generation (Mode B)")
@@ -223,8 +247,11 @@ def main() -> int:
     )
     parser.add_argument("--timeout", type=float, default=600.0, help="poll timeout (Mode B)")
     parser.add_argument("--yes", action="store_true", help="skip cost confirmation (Mode B)")
-    args = parser.parse_args()
+    return parser
 
+
+def _resolve_mode(args: argparse.Namespace) -> int | None:
+    """Mode A (--input) and Mode B (--prompt) are exclusive; one is required."""
     if args.prompt_file and not args.prompt:
         if not args.prompt_file.is_file():
             print(f"  ✗ prompt-file not found: {args.prompt_file}", file=sys.stderr)
@@ -237,13 +264,27 @@ def main() -> int:
             file=sys.stderr,
         )
         return 2
-
     if args.input and args.prompt:
-        print(
-            "  ✗ pass either --input OR --prompt+--model, not both",
-            file=sys.stderr,
-        )
+        print("  ✗ pass either --input OR --prompt+--model, not both", file=sys.stderr)
         return 2
+    return None
+
+
+def _output_path(args: argparse.Namespace, source: Path) -> Path:
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        return args.output
+    out_dir = Path("./generated/gif")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    return out_dir / f"{source.stem or 'loop'}.gif"
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+
+    early = _resolve_mode(args)
+    if early is not None:
+        return early
 
     source: Path
     if args.input:
@@ -256,16 +297,7 @@ def main() -> int:
         if rc != 0 or source is None:
             return rc
 
-    if args.output:
-        output = args.output
-        output.parent.mkdir(parents=True, exist_ok=True)
-    else:
-        stem = source.stem or "loop"
-        out_dir = Path("./generated/gif")
-        out_dir.mkdir(parents=True, exist_ok=True)
-        output = out_dir / f"{stem}.gif"
-
-    return _convert(source, output, args)
+    return _convert(source, _output_path(args, source), args)
 
 
 if __name__ == "__main__":

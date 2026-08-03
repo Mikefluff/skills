@@ -51,7 +51,6 @@ from typing import Any
 from .. import batch as batch_mod
 from .. import config
 from .. import cost as cost_mod
-from .. import ffmpeg as ff_mod
 from ..errors import CostConfirmationDeclined
 from ._reel_stitch import stitch
 

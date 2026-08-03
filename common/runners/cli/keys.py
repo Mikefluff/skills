@@ -20,9 +20,7 @@ from __future__ import annotations
 
 import argparse
 import getpass
-import re
 import sys
-from pathlib import Path
 
 from .. import keysfile
 from .. import verify as verify_mod

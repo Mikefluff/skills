@@ -18,7 +18,6 @@ ffmpeg required. If absent: prints install instructions + the manual command.
 from __future__ import annotations
 
 import argparse
-import shutil
 import sys
 from pathlib import Path
 

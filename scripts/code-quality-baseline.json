@@ -8,15 +8,12 @@
     "parameters": 5
   },
   "counts": {
-    "function-size": 16,
-    "complexity": 18,
+    "function-size": 13,
+    "complexity": 15,
     "module-size": 5,
     "parameters": 2
   },
   "frozen": [
-    "complexity|common/runners/cli/gif.py|_convert",
-    "complexity|common/runners/cli/gif.py|_generate",
-    "complexity|common/runners/cli/gif.py|main",
     "complexity|common/runners/cli/proposal.py|main",
     "complexity|common/runners/cli/styles.py|_cmd_list",
     "complexity|common/runners/proposal_brand.py|_pick_fonts",
@@ -32,9 +29,6 @@
     "complexity|common/runners/subtitles.py|parse_vtt",
     "complexity|writer/scripts/lint.py|_structural_hits",
     "complexity|writer/scripts/lint.py|scan",
-    "function-size|common/runners/cli/gif.py|_convert",
-    "function-size|common/runners/cli/gif.py|_generate",
-    "function-size|common/runners/cli/gif.py|main",
     "function-size|common/runners/cli/proposal.py|main",
     "function-size|common/runners/cli/styles.py|_build_submission_readme",
     "function-size|common/runners/cli/styles.py|_cmd_list",

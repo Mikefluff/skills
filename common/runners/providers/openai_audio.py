@@ -9,7 +9,6 @@ from decimal import Decimal
 from typing import Any
 
 from .. import cost
-from ..errors import ProviderError
 from . import _http
 from .base import GenerationResult, Provider
 
