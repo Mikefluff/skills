@@ -21,25 +21,15 @@ import argparse
 import sys
 from pathlib import Path
 
-from .. import config
-from .. import output as output_mod
-from ..errors import (
-    KeyMissingError,
-    ProviderError,
-    RunnerError,
-    TimeoutError as RunnerTimeoutError,
-)
-from ..providers.base import JobHandle
-
+from . import _tool
 
 DEFAULT_REPLICATE_MODEL = "nightmareai/real-esrgan"
 DEFAULT_SCALE = 4
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="common.runners.cli.upscale")
-    parser.add_argument("--image", required=True, help="path or URL to the input image")
-    parser.add_argument("--output", help="output path (default ./generated/upscaled/<stem>-<scale>x.png)")
+    _tool.add_common_arguments(parser, "./generated/upscaled/<stem>-<scale>x.png")
     parser.add_argument(
         "--scale", type=int, default=DEFAULT_SCALE,
         help=f"upscaling factor (2/4/8; default {DEFAULT_SCALE}); model must support it",
@@ -53,36 +43,27 @@ def main() -> int:
         "--face-enhance", action="store_true",
         help="enable face restoration (Real-ESRGAN / GFPGAN supports this)",
     )
-    parser.add_argument("--check", action="store_true", help="verify env + connectivity, no upscale")
-    parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
-    parser.add_argument("--cost-only", action="store_true", help="print estimated cost + exit")
-    parser.add_argument("--timeout", type=float, default=180.0, help="poll timeout seconds")
-    args = parser.parse_args()
+    return parser
 
-    config.load_all_providers()
-    try:
-        provider = config.get_provider("replicate-image")
-    except KeyError as exc:
-        print(str(exc), file=sys.stderr)
+
+def main() -> int:
+    args = build_parser().parse_args()
+
+    provider = _tool.resolve_provider("replicate-image")
+    if provider is None:
         return 2
 
-    if args.check:
-        if not provider.available():
-            missing = ", ".join(provider.requires_env)
-            print(f"missing env: {missing}", file=sys.stderr)
-            return 2
-        print("OK: replicate-image configured. Run without --check to upscale.")
-        return 0
+    early = _tool.preflight(
+        provider, args,
+        ready_line="OK: replicate-image configured. Run without --check to upscale.",
+        cost_line=(
+            f"estimated cost: ~$0.005-0.02 per image at {args.scale}× (Replicate upscalers)"
+        ),
+    )
+    if early is not None:
+        return early
 
-    if args.cost_only:
-        print(f"estimated cost: ~$0.005-0.02 per image at {args.scale}× (Replicate upscalers)")
-        return 0
-
-    if not provider.available():
-        missing = ", ".join(provider.requires_env)
-        print(f"missing env: {missing}", file=sys.stderr)
-        return 2
-
+    # Not fatal: an unusual factor may still be valid for a specific model.
     if args.scale not in (2, 4, 8):
         print(f"  ⚠ scale={args.scale} unusual; common values are 2 / 4 / 8", file=sys.stderr)
 
@@ -100,45 +81,12 @@ def main() -> int:
         f"{' (face-enhance ON)' if args.face_enhance else ''} ...",
         file=sys.stderr,
     )
-
-    try:
-        result = provider.generate("", **kwargs)
-        if isinstance(result, JobHandle):
-            print("  job queued, polling", end="", file=sys.stderr, flush=True)
-            result = provider.poll(result, timeout=args.timeout)
-            print("", file=sys.stderr)
-    except KeyMissingError as exc:
-        print(f"  ✗ {exc}", file=sys.stderr)
-        return 2
-    except (ProviderError, RunnerTimeoutError, RunnerError) as exc:
-        print(f"  ✗ {exc}", file=sys.stderr)
-        return 5
-
-    if args.output:
-        output_path = Path(args.output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_bytes(result.content)
-        print(f"  ✓ Upscaled → {output_path}", file=sys.stderr)
-        print(str(output_path))
-    else:
-        input_path = Path(args.image)
-        stem = input_path.stem if input_path.suffix else "image"
-        if "/" in stem or stem.startswith("http"):
-            stem = "image"
-        saved = output_mod.save(
-            result.content,
-            "image",
-            "png",
-            output_mod.SaveOptions(
-                slug=f"{stem}-{args.scale}x",
-                output_dir=Path("./generated/upscaled"),
-                mime="image/png",
-            ),
-        )
-        print(f"  ✓ Upscaled → {saved.local_path}", file=sys.stderr)
-        print(saved.display())
-
-    return 0
+    output = _tool.ToolOutput(
+        directory=Path("./generated/upscaled"),
+        suffix=f"-{args.scale}x",
+        verb="Upscaled",
+    )
+    return _tool.run(provider, "", kwargs, args, output)
 
 
 if __name__ == "__main__":

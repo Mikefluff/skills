@@ -16,15 +16,9 @@ import argparse
 import sys
 from pathlib import Path
 
-from .. import config
-from .. import output as output_mod
-from ..errors import (
-    KeyMissingError,
-    ProviderError,
-    RunnerError,
-    TimeoutError as RunnerTimeoutError,
-)
-from ..providers.base import JobHandle
+from typing import Any
+
+from . import _tool
 
 
 STYLE_PROMPTS: dict[str, str] = {
@@ -45,10 +39,58 @@ STYLE_PROMPTS: dict[str, str] = {
 DEFAULT_MODEL = "flux-kontext"
 
 
+def _style_prompt(args: argparse.Namespace) -> str | None:
+    """Resolve --style into prompt text. None means the caller should exit 2."""
+    if args.style == "custom":
+        if not args.prompt_mod:
+            print("  ✗ --style custom requires --prompt-mod '<description>'", file=sys.stderr)
+            return None
+        return args.prompt_mod
+
+    if args.style not in STYLE_PROMPTS:
+        print(
+            f"  ✗ unknown --style '{args.style}'. "
+            f"Available: {', '.join(STYLE_PROMPTS)} or 'custom'.",
+            file=sys.stderr,
+        )
+        return None
+
+    preset = STYLE_PROMPTS[args.style]
+    return f"{preset}, {args.prompt_mod}" if args.prompt_mod else preset
+
+
+def _image_kwargs(args: argparse.Namespace) -> dict[str, Any] | None:
+    """Route the image reference under the kwarg name each provider expects.
+
+    flux-kontext and nano-banana-pro both accept `image_url` or `input_image`
+    (bfl.py and google_image.py normalise); replicate-image passes kwargs
+    straight to the hosted model, which for style transfer usually reads
+    `image`. None means the caller should exit 2.
+    """
+    if args.model == "gpt-image-2":
+        print(
+            "  ✗ gpt-image-2 image-to-image edits not wired in this skill yet "
+            "(needs /v1/images/edits endpoint). Use --model flux-kontext or nano-banana-pro.",
+            file=sys.stderr,
+        )
+        return None
+
+    by_model = {
+        "flux-kontext": ("input_image",),
+        "nano-banana-pro": ("image_url",),
+        "replicate-image": ("image",),
+    }
+    # Unknown or future provider — send both aliases and hope one lands.
+    keys = by_model.get(args.model, ("image_url", "input_image"))
+    kwargs: dict[str, Any] = {"variants": 1}
+    for key in keys:
+        kwargs[key] = args.image
+    return kwargs
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(prog="common.runners.cli.stylize")
-    parser.add_argument("--image", required=True, help="path or URL to the input image")
-    parser.add_argument("--output", help="output path (default ./generated/stylized/<stem>-<style>.png)")
+    _tool.add_common_arguments(parser, "./generated/stylized/<stem>-<style>.png")
     parser.add_argument(
         "--style",
         default="watercolor",
@@ -62,117 +104,35 @@ def main() -> int:
         "--model", default=DEFAULT_MODEL,
         help=f"provider slug (default {DEFAULT_MODEL}); other options: nano-banana-pro, replicate-image",
     )
-    parser.add_argument("--check", action="store_true", help="verify env + connectivity, no generation")
-    parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
-    parser.add_argument("--cost-only", action="store_true", help="print estimated cost + exit")
-    parser.add_argument("--timeout", type=float, default=180.0, help="poll timeout seconds")
     args = parser.parse_args()
 
-    config.load_all_providers()
-    try:
-        provider = config.get_provider(args.model)
-    except KeyError as exc:
-        print(str(exc), file=sys.stderr)
+    provider = _tool.resolve_provider(args.model)
+    if provider is None:
         return 2
 
-    if args.check:
-        if not provider.available():
-            missing = ", ".join(provider.requires_env)
-            print(f"missing env: {missing}", file=sys.stderr)
-            return 2
-        print(f"OK: {args.model} configured. Run without --check to stylize.")
-        return 0
-
-    if args.cost_only:
-        print(f"estimated cost: ~$0.05 per image via {args.model}")
-        return 0
-
-    if not provider.available():
-        missing = ", ".join(provider.requires_env)
-        print(f"missing env: {missing}", file=sys.stderr)
-        return 2
-
-    # Assemble style prompt
-    if args.style == "custom":
-        if not args.prompt_mod:
-            print("  ✗ --style custom requires --prompt-mod '<description>'", file=sys.stderr)
-            return 2
-        style_prompt = args.prompt_mod
-    elif args.style in STYLE_PROMPTS:
-        style_prompt = STYLE_PROMPTS[args.style]
-        if args.prompt_mod:
-            style_prompt = f"{style_prompt}, {args.prompt_mod}"
-    else:
-        print(f"  ✗ unknown --style '{args.style}'. Available: {', '.join(STYLE_PROMPTS)} or 'custom'.", file=sys.stderr)
-        return 2
-
-    # Route the image reference under the kwarg name each provider expects.
-    # flux-kontext + nano-banana-pro both now accept `image_url` or `input_image`
-    # (bfl.py and google_image.py normalize); replicate-image passes kwargs through
-    # to the hosted model, which typically expects `image` for style-transfer models.
-    kwargs: dict[str, Any] = {"variants": 1}
-    if args.model == "flux-kontext":
-        kwargs["input_image"] = args.image
-    elif args.model == "nano-banana-pro":
-        kwargs["image_url"] = args.image
-    elif args.model == "replicate-image":
-        # Most Replicate style-transfer models read `image` (the model's input field).
-        kwargs["image"] = args.image
-    elif args.model == "gpt-image-2":
-        print(
-            "  ✗ gpt-image-2 image-to-image edits not wired in this skill yet "
-            "(needs /v1/images/edits endpoint). Use --model flux-kontext or nano-banana-pro.",
-            file=sys.stderr,
-        )
-        return 2
-    else:
-        # Unknown / future provider — pass both aliases and hope for the best.
-        kwargs["image_url"] = args.image
-        kwargs["input_image"] = args.image
-
-    print(
-        f"Stylizing via {args.model} → {args.style} ...",
-        file=sys.stderr,
+    early = _tool.preflight(
+        provider, args,
+        ready_line=f"OK: {args.model} configured. Run without --check to stylize.",
+        cost_line=f"estimated cost: ~$0.05 per image via {args.model}",
     )
+    if early is not None:
+        return early
 
-    try:
-        result = provider.generate(style_prompt, **kwargs)
-        if isinstance(result, JobHandle):
-            print("  job queued, polling", end="", file=sys.stderr, flush=True)
-            result = provider.poll(result, timeout=args.timeout)
-            print("", file=sys.stderr)
-    except KeyMissingError as exc:
-        print(f"  ✗ {exc}", file=sys.stderr)
+    style_prompt = _style_prompt(args)
+    if style_prompt is None:
         return 2
-    except (ProviderError, RunnerTimeoutError, RunnerError) as exc:
-        print(f"  ✗ {exc}", file=sys.stderr)
-        return 5
 
-    if args.output:
-        output_path = Path(args.output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_bytes(result.content)
-        print(f"  ✓ Stylized → {output_path}", file=sys.stderr)
-        print(str(output_path))
-    else:
-        input_path = Path(args.image)
-        stem = input_path.stem if input_path.suffix else "image"
-        if "/" in stem or stem.startswith("http"):
-            stem = "image"
-        saved = output_mod.save(
-            result.content,
-            "image",
-            "png",
-            output_mod.SaveOptions(
-                slug=f"{stem}-{args.style}",
-                output_dir=Path("./generated/stylized"),
-                mime="image/png",
-            ),
-        )
-        print(f"  ✓ Stylized → {saved.local_path}", file=sys.stderr)
-        print(saved.display())
+    kwargs = _image_kwargs(args)
+    if kwargs is None:
+        return 2
 
-    return 0
+    print(f"Stylizing via {args.model} → {args.style} ...", file=sys.stderr)
+    output = _tool.ToolOutput(
+        directory=Path("./generated/stylized"),
+        suffix=f"-{args.style}",
+        verb="Stylized",
+    )
+    return _tool.run(provider, style_prompt, kwargs, args, output)
 
 
 if __name__ == "__main__":
