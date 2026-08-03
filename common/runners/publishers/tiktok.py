@@ -35,12 +35,15 @@ import requests
 
 from .. import oauth, tokens
 from ..errors import PublishError, RateLimitError, RunnerError
+from . import _tiktok_payload
 from ._oauth import OAuthPublisher
 from .base import IMAGE_EXTS, MB, Post, PublishResult, Violation, mime_for
 
 API_ROOT = "https://open.tiktokapis.com/v2"
 
-TITLE_LIMIT = 2200
+# Video and photos are separate endpoints with separate budgets — the field
+# tables for both, and why they differ, live in _tiktok_payload.py.
+TITLE_LIMIT = _tiktok_payload.VIDEO_TITLE_LIMIT
 CAROUSEL_MAX = 35
 
 # TikTok requires chunks between 5 MB and 64 MB, with the final chunk allowed
@@ -263,18 +266,10 @@ class TikTokPublisher(OAuthPublisher):
         return self._result(publish_id, draft=draft, username=username)
 
     def _post_info(self, post: Post, info: dict[str, Any]) -> dict[str, Any]:
-        options = info.get("privacy_level_options") or []
-        # Honour what the creator's account actually allows. A private account
-        # has no PUBLIC_TO_EVERYONE option and passing it is an error.
-        wanted = os.environ.get("TIKTOK_PRIVACY_LEVEL", "PUBLIC_TO_EVERYONE")
-        privacy = wanted if wanted in options else (options[0] if options else "SELF_ONLY")
-        return {
-            "title": post.rendered_text()[:TITLE_LIMIT],
-            "privacy_level": privacy,
-            "disable_duet": bool(info.get("duet_disabled", False)),
-            "disable_stitch": bool(info.get("stitch_disabled", False)),
-            "disable_comment": bool(info.get("comment_disabled", False)),
-        }
+        return _tiktok_payload.post_info(post, info)
+
+    def text_limit_for(self, post: Post) -> int | None:
+        return _tiktok_payload.text_limit_for(post)
 
     def _result(self, publish_id: str, *, draft: bool, username: str) -> PublishResult:
         if draft:

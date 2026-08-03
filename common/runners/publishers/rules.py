@@ -44,25 +44,22 @@ def check_kind(pub: "Publisher", post: Post, draft: bool) -> list[Violation]:
 
 
 def check_text_length(pub: "Publisher", post: Post, draft: bool) -> list[Violation]:
-    if pub.max_text_chars is None:
+    limit = pub.text_limit_for(post)
+    if limit is None:
         return []
     # Measured on the rendered text, hashtags included, because that is what
     # the platform receives — not on the body the author typed. The unit is the
     # platform's: YouTube states its description budget in bytes.
     text = post.rendered_text()
     size = pub.measure_text(text)
-    if size <= pub.max_text_chars:
+    if size <= limit:
         return []
     unit = pub.text_unit
-    over = f"(over by {size - pub.max_text_chars})"
+    over = f"(over by {size - limit})"
     if unit == "bytes":
-        over = f"(over by {size - pub.max_text_chars}; {len(text)} characters)"
+        over = f"(over by {size - limit}; {len(text)} characters)"
     return [
-        Violation(
-            "block",
-            "text",
-            f"{size} {unit} exceeds the {pub.max_text_chars}-{unit.rstrip('s')} limit {over}",
-        )
+        Violation("block", "text", f"{size} {unit} exceeds the {limit}-{unit.rstrip('s')} limit {over}")
     ]
 
 

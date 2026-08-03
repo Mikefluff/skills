@@ -40,7 +40,7 @@ posting API accepts.
 | Telegram ✅ | 4096 / **1024** | `sendMessage.text` is "1-4096 characters after entities parsing"; every `caption` field is "0-1024". Same text, two ceilings, depending on whether media rides along — the commonest surprise in this table. |
 | Threads ✅ | 500 | Hashtags count; emoji count as UTF-8 bytes. |
 | Instagram ✅ | 2200 | "Maximum 2200 characters, 30 hashtags, and 20 @ tags". |
-| TikTok ✅ | 2200 | Title, hashtags included; "UTF-16 runes". |
+| TikTok ✅ | 2200 video · **90 + 4000** photo | Two endpoints, two field tables. Video takes one `title` of 2200. A photo post takes a `title` of **90** and a `description` of 4000 — the caption belongs in the second. Hashtags included; "UTF-16 runes" throughout, and preflight counts code points, so an astral emoji weighs 1 here and 2 there. |
 | X ✅ | 280 | 25,000 on Premium. Each post of a thread is measured separately. X counts *weighted* characters: Latin and Cyrillic weigh 1, CJK and most emoji weigh 2. Preflight counts code points, so it under-counts a CJK post — [see below](#what-the-table-documents-but-preflight-does-not-check). |
 | YouTube ✅ | 100 title / 5000 **bytes** description | Mixed units in one resource: `snippet.title` is "a maximum length of 100 characters", `snippet.description` "a maximum length of 5000 **bytes**". Cyrillic is 2 bytes a character, so the description budget is 2500 characters in Russian and less in CJK. Tags capped at 500 chars total, commas included. |
 | LinkedIn ~ | 3000 | The Posts API documents no length for `commentary` — only a `FIELD_LENGTH_TOO_LONG` error when you exceed it. 3000 is the figure LinkedIn's own composer enforces and is unverified here. Beyond ~5 hashtags reach drops. multiImage `altText` is documented: "Maximum length is 4,086 characters" ✅. |
@@ -126,6 +126,7 @@ rejection they cause is recognisable instead of mysterious.
 | Video duration 3 s – 30 min | LinkedIn | same |
 | Photo width + height ≤ 10000, ratio ≤ 20 | Telegram | Needs to decode the image; Pillow is optional in this repo. |
 | `altText` ≤ 4,086 chars | LinkedIn | Documented and unenforced, but the recommended length is under 120 — nothing this repo generates comes close. |
+| `brand_content_toggle` / `brand_organic_toggle` | TikTok | Marked **required** on both the video and the photo endpoint, and this repo sends neither. Whether the API refuses without them cannot be settled without publishing a real post, which is not a thing to test by trying. If a TikTok publish fails with a missing-field error, this is the first place to look. |
 
 Duration is the one most likely to bite: a 3-minute reel is well inside X's
 512 MB and will still be rejected. Adding it means letting a rule shell out to

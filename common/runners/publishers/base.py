@@ -183,6 +183,15 @@ class Publisher(ABC):
         """Length of `text` in whatever unit this platform's limit is stated in."""
         return len(text.encode("utf-8")) if self.text_unit == "bytes" else len(text)
 
+    def text_limit_for(self, post: "Post") -> int | None:
+        """The caption budget for this particular post.
+
+        One number per platform is the usual case. TikTok is not: photos and
+        video are separate endpoints with separate budgets, so the limit
+        depends on what is being posted rather than on where.
+        """
+        return self.max_text_chars
+
     # ── availability ────────────────────────────────────────────────────────
 
     def available(self) -> bool:

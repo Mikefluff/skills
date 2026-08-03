@@ -421,6 +421,55 @@ class TestTikTokPreflight(MediaCase):
         post = Post(kind="video", media=[self.make("final.mp4")], text="я" * 2201, alt_texts=["x"])
         self.assertIn("text", self.fields(self.blocks(self.pub.preflight(post))))
 
+    # ── photo posts are a different endpoint with different budgets ─────────
+
+    def photos(self, text):
+        return Post(
+            kind="carousel",
+            media=[self.make("a.png"), self.make("b.png")],
+            text=text,
+            alt_texts=["x", "y"],
+        )
+
+    def test_photo_caption_gets_the_4000_description_budget(self):
+        # Not the video endpoint's 2200: a photo post has both a title (90)
+        # and a description (4000), and the caption belongs in the latter.
+        v = self.pub.preflight(self.photos("я" * 3000))
+        self.assertNotIn("text", self.fields(self.blocks(v)))
+
+    def test_photo_caption_over_4000_blocks(self):
+        v = self.pub.preflight(self.photos("я" * 4001))
+        self.assertIn("text", self.fields(self.blocks(v)))
+
+    def test_video_caption_keeps_the_2200_budget(self):
+        post = Post(kind="video", media=[self.make("final.mp4")], text="я" * 2500, alt_texts=["x"])
+        self.assertIn("text", self.fields(self.blocks(self.pub.preflight(post))))
+
+    def test_photo_payload_puts_the_caption_in_description_not_title(self):
+        # The bug: the whole caption went into `title`, which caps at 90 UTF-16
+        # runes for a photo post. A 2200-character carousel caption was a
+        # guaranteed rejection.
+        info = self.pub._post_info(self.photos("я" * 500), {})
+        self.assertLessEqual(len(info["title"]), 90)
+        self.assertEqual(info["description"], "я" * 500)
+
+    def test_photo_title_falls_back_to_the_first_caption_line(self):
+        post = self.photos("Заголовок поста\n\nостальное тело")
+        self.assertEqual(self.pub._post_info(post, {})["title"], "Заголовок поста")
+
+    def test_photo_payload_omits_the_video_only_toggles(self):
+        # disable_duet / disable_stitch are documented on the video endpoint
+        # only; the photo endpoint does not list them.
+        info = self.pub._post_info(self.photos("тело"), {})
+        self.assertNotIn("disable_duet", info)
+        self.assertNotIn("disable_stitch", info)
+
+    def test_video_payload_still_carries_them(self):
+        info = self.pub._post_info(Post(kind="video", text="тело"), {})
+        self.assertIn("disable_duet", info)
+        self.assertIn("disable_stitch", info)
+        self.assertNotIn("description", info)
+
     # ── chunking ────────────────────────────────────────────────────────────
 
     def test_a_single_chunk_always_declares_the_real_file_size(self):
