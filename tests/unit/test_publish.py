@@ -562,6 +562,44 @@ class TestYouTubePreflight(MediaCase):
         )
         self.assertIn("hashtags", self.fields(self.blocks(self.pub.preflight(post))))
 
+    def test_cyrillic_description_is_measured_in_bytes(self):
+        # snippet.description is "a maximum length of 5000 bytes", not
+        # characters. Cyrillic is two bytes per character in UTF-8, so 3000
+        # characters is 6000 bytes and YouTube rejects it. Counting code
+        # points let it through.
+        post = Post(
+            kind="video", media=[self.make("a.mp4")], title="T", text="я" * 3000, alt_texts=["x"]
+        )
+        blocked = self.blocks(self.pub.preflight(post))
+        self.assertIn("text", self.fields(blocked))
+        self.assertTrue(any("bytes" in x.message for x in blocked), blocked)
+
+    def test_an_ascii_description_under_5000_still_passes(self):
+        # The same 3000 characters in ASCII are 3000 bytes and are fine —
+        # the fix must not turn into "measure everything twice".
+        post = Post(
+            kind="video", media=[self.make("a.mp4")], title="T", text="a" * 3000, alt_texts=["x"]
+        )
+        self.assertEqual(self.blocks(self.pub.preflight(post)), [])
+
+    def test_other_platforms_still_count_characters(self):
+        # Only YouTube documents a byte budget. Telegram's 4096 is characters
+        # "after entities parsing", so 3000 Cyrillic characters must pass.
+        self.assertEqual(TelegramPublisher.text_unit, "chars")
+        v = TelegramPublisher().preflight(Post(kind="text", text="я" * 3000))
+        self.assertEqual(self.blocks(v), [])
+
+    def test_description_truncation_cuts_bytes_and_keeps_characters_whole(self):
+        # The send path's own guard. Slicing by code point produced 10000
+        # bytes from a 5000-character cut; slicing raw bytes would produce a
+        # half-character at the end.
+        from common.runners.publishers.youtube import _truncate_bytes
+
+        cut = _truncate_bytes("я" * 4000, 5000)
+        self.assertLessEqual(len(cut.encode("utf-8")), 5000)
+        self.assertEqual(cut, "я" * 2500)  # exactly, no partial character
+        self.assertEqual(_truncate_bytes("короткий", 5000), "короткий")
+
 
 class TestLinkedInPreflight(MediaCase):
     def setUp(self):

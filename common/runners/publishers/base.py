@@ -173,6 +173,16 @@ class Publisher(ABC):
     max_image_mb: float | None = None
     max_video_mb: float | None = None
 
+    # What `max_text_chars` counts. Every platform but YouTube documents a
+    # character budget; YouTube's snippet.description is "a maximum length of
+    # 5000 bytes", which is half as much text in Cyrillic and less than that
+    # in CJK.
+    text_unit: str = "chars"
+
+    def measure_text(self, text: str) -> int:
+        """Length of `text` in whatever unit this platform's limit is stated in."""
+        return len(text.encode("utf-8")) if self.text_unit == "bytes" else len(text)
+
     # ── availability ────────────────────────────────────────────────────────
 
     def available(self) -> bool:

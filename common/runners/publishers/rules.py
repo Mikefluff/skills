@@ -47,16 +47,21 @@ def check_text_length(pub: "Publisher", post: Post, draft: bool) -> list[Violati
     if pub.max_text_chars is None:
         return []
     # Measured on the rendered text, hashtags included, because that is what
-    # the platform receives — not on the body the author typed.
+    # the platform receives — not on the body the author typed. The unit is the
+    # platform's: YouTube states its description budget in bytes.
     text = post.rendered_text()
-    if len(text) <= pub.max_text_chars:
+    size = pub.measure_text(text)
+    if size <= pub.max_text_chars:
         return []
+    unit = pub.text_unit
+    over = f"(over by {size - pub.max_text_chars})"
+    if unit == "bytes":
+        over = f"(over by {size - pub.max_text_chars}; {len(text)} characters)"
     return [
         Violation(
             "block",
             "text",
-            f"{len(text)} chars exceeds the {pub.max_text_chars}-char limit "
-            f"(over by {len(text) - pub.max_text_chars})",
+            f"{size} {unit} exceeds the {pub.max_text_chars}-{unit.rstrip('s')} limit {over}",
         )
     ]
 

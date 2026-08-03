@@ -42,7 +42,7 @@ posting API accepts.
 | Instagram ✅ | 2200 | "Maximum 2200 characters, 30 hashtags, and 20 @ tags". |
 | TikTok ✅ | 2200 | Title, hashtags included; "UTF-16 runes". |
 | X ✅ | 280 | 25,000 on Premium. Each post of a thread is measured separately. X counts *weighted* characters: Latin and Cyrillic weigh 1, CJK and most emoji weigh 2. Preflight counts code points, so it under-counts a CJK post — [see below](#what-the-table-documents-but-preflight-does-not-check). |
-| YouTube ~ | 100 title / 5000 description | Tags additionally capped at ~500 chars total. |
+| YouTube ✅ | 100 title / 5000 **bytes** description | Mixed units in one resource: `snippet.title` is "a maximum length of 100 characters", `snippet.description` "a maximum length of 5000 **bytes**". Cyrillic is 2 bytes a character, so the description budget is 2500 characters in Russian and less in CJK. Tags capped at 500 chars total, commas included. |
 | LinkedIn ~ | 3000 | The Posts API documents no length for `commentary` — only a `FIELD_LENGTH_TOO_LONG` error when you exceed it. 3000 is the figure LinkedIn's own composer enforces and is unverified here. Beyond ~5 hashtags reach drops. multiImage `altText` is documented: "Maximum length is 4,086 characters" ✅. |
 
 `preflight` measures `post.rendered_text()` — body **plus** hashtags — because

@@ -32,7 +32,13 @@ from .base import MB, IMAGE_EXTS, Post, PublishResult, Violation, mime_for
 API_ROOT = "https://www.googleapis.com/youtube/v3"
 UPLOAD_ROOT = "https://www.googleapis.com/upload/youtube/v3"
 
-TITLE_LIMIT = 100
+TITLE_LIMIT = 100  # characters
+# Bytes, not characters. Verified 2026-08-03 against
+# developers.google.com/youtube/v3/docs/videos — snippet.description "has a
+# maximum length of 5000 bytes", while snippet.title on the same page is "a
+# maximum length of 100 characters". Mixed units in one resource, and counting
+# code points for both let a 3000-character Cyrillic description (6000 bytes)
+# through preflight to be rejected by the API.
 DESCRIPTION_LIMIT = 5000
 TAGS_TOTAL_LIMIT = 500  # characters across all tags
 
@@ -46,6 +52,20 @@ DAILY_UPLOAD_ALLOWANCE = 100
 UPLOAD_CHUNK = 8 * MB
 
 
+def _truncate_bytes(text: str, limit: int) -> str:
+    """Cut `text` to at most `limit` UTF-8 bytes without splitting a character.
+
+    Preflight blocks an over-long description before this is reached, so this
+    is the belt to preflight's braces — but slicing by code point the way this
+    used to would produce 10000 bytes of Cyrillic from a 5000-character cut and
+    hand the API a payload it rejects.
+    """
+    encoded = text.encode("utf-8")
+    if len(encoded) <= limit:
+        return text
+    return encoded[:limit].decode("utf-8", errors="ignore")
+
+
 class YouTubePublisher(OAuthPublisher):
     name = "youtube"
     requires_env = ("YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET")
@@ -55,6 +75,7 @@ class YouTubePublisher(OAuthPublisher):
     doc_url = "https://developers.google.com/youtube/v3/docs/videos/insert"
 
     max_text_chars = DESCRIPTION_LIMIT
+    text_unit = "bytes"
     max_title_chars = TITLE_LIMIT
     max_hashtags = 15  # YouTube only renders the first three above the title
     min_media = 1
@@ -100,7 +121,7 @@ class YouTubePublisher(OAuthPublisher):
         metadata = {
             "snippet": {
                 "title": self._derive_title(post),
-                "description": post.rendered_text()[:DESCRIPTION_LIMIT],
+                "description": _truncate_bytes(post.rendered_text(), DESCRIPTION_LIMIT),
                 "tags": list(post.hashtags),
                 "categoryId": os.environ.get("YOUTUBE_CATEGORY_ID", "22"),  # People & Blogs
             },

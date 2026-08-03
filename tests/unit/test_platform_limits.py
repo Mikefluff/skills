@@ -173,6 +173,23 @@ class TestSecondPassPlatformNumbers(unittest.TestCase):
         self.assertEqual(TITLE_LIMIT, 100)
         self.assertEqual(TAGS_TOTAL_LIMIT, 500)
 
+    def test_youtube_description_budget_is_bytes_and_nothing_elses_is(self):
+        # "The property value has a maximum length of 5000 bytes" — the only
+        # limit in this repo not stated in characters.
+        from common.runners.publishers.youtube import DESCRIPTION_LIMIT
+
+        self.assertEqual(DESCRIPTION_LIMIT, 5000)
+        self.assertEqual(YouTubePublisher.text_unit, "bytes")
+        for pub in (
+            TelegramPublisher,
+            ThreadsPublisher,
+            InstagramPublisher,
+            TikTokPublisher,
+            XPublisher,
+            LinkedInPublisher,
+        ):
+            self.assertEqual(pub.text_unit, "chars", pub.name)
+
     def test_linkedin_video_is_500_mb_not_the_5_gb_the_schema_claims(self):
         # The Videos API prose says "Between 75kb and 500MB"; the
         # fileSizeBytes field on the same page says 5GB. Take the smaller.
