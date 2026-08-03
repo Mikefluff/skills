@@ -43,7 +43,7 @@ ROOT = Path(__file__).resolve().parent.parent
 BASELINE_PATH = ROOT / "scripts" / "code-quality-baseline.json"
 
 MAX_MODULE_LINES = 400
-MAX_TEST_MODULE_LINES = 900  # a test file is a list, not a control flow
+MAX_LIST_MODULE_LINES = 900  # a list is not a control flow — see _is_declaration_module
 MAX_FUNCTION_LINES = 50
 MAX_COMPLEXITY = 12
 MAX_PARAMETERS = 5  # excluding self/cls
@@ -113,13 +113,13 @@ def complexity(node: ast.AST) -> int:
 def scan_module(path: Path) -> list[Violation]:
     rel = str(path.relative_to(ROOT))
     text = path.read_text(encoding="utf-8")
-    found = _check_module_size(rel, text)
 
     try:
         tree = ast.parse(text)
     except SyntaxError as exc:
-        found.append(Violation("syntax", rel, "-", exc.lineno or 1, str(exc)))
-        return found
+        return [Violation("syntax", rel, "-", exc.lineno or 1, str(exc))]
+
+    found = _check_module_size(rel, text, tree)
 
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -128,9 +128,28 @@ def scan_module(path: Path) -> list[Violation]:
     return found
 
 
-def _check_module_size(rel: str, text: str) -> list[Violation]:
+def _is_declaration_module(tree: ast.Module) -> bool:
+    """True when a module only declares data — no functions, no classes.
+
+    The module cap exists so a reader does not have to hold a whole god file
+    in their head. That cost is about control flow, not length: a catalogue of
+    500 regexes is scanned, not followed, and halving it to satisfy a line
+    count makes it harder to read rather than easier.
+
+    Tests already had this exemption by path. Measuring the shape instead of
+    naming the file means a data module cannot smuggle logic in behind the
+    larger cap — one def or class and it is back under the normal 400.
+    """
+    return not any(
+        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+        for node in tree.body
+    )
+
+
+def _check_module_size(rel: str, text: str, tree: ast.Module) -> list[Violation]:
     lines = text.count("\n") + 1
-    cap = MAX_TEST_MODULE_LINES if rel.startswith("tests/") else MAX_MODULE_LINES
+    is_list = rel.startswith("tests/") or _is_declaration_module(tree)
+    cap = MAX_LIST_MODULE_LINES if is_list else MAX_MODULE_LINES
     if lines <= cap:
         return []
     return [Violation("module-size", rel, "-", 1, f"{lines} lines, limit {cap} — split it")]
@@ -247,7 +266,7 @@ def write_baseline(keys: set[str], counts: dict[str, int]) -> None:
         ),
         "thresholds": {
             "module_lines": MAX_MODULE_LINES,
-            "test_module_lines": MAX_TEST_MODULE_LINES,
+            "list_module_lines": MAX_LIST_MODULE_LINES,
             "function_lines": MAX_FUNCTION_LINES,
             "complexity": MAX_COMPLEXITY,
             "parameters": MAX_PARAMETERS,
