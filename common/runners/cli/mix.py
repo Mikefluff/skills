@@ -71,11 +71,13 @@ def main() -> int:
     try:
         ff_mod.mix_audio_with_modes(
             args.video, args.audio, output,
-            mode=args.mode,
-            audio_volume=float(args.volume),
-            fade_in=float(args.fade_in),
-            fade_out=float(args.fade_out),
-            duck_amount=float(args.duck_amount),
+            ff_mod.MixOptions(
+                mode=args.mode,
+                audio_volume=float(args.volume),
+                fade_in=float(args.fade_in),
+                fade_out=float(args.fade_out),
+                duck_amount=float(args.duck_amount),
+            ),
             ffmpeg_bin=probe.binary or "ffmpeg",
         )
     except Exception as exc:  # noqa: BLE001

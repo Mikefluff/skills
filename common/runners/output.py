@@ -47,14 +47,25 @@ def _slugify(s: str | None, max_len: int = 40) -> str:
     return s[:max_len] or "asset"
 
 
+@dataclass(frozen=True)
+class SaveOptions:
+    """Where an asset lands and what it is called.
+
+    slug becomes the filename suffix after the timestamp; output_dir overrides
+    the ./generated/<modality>/ default; mime is sent to S3 when the extension
+    is not one of the known ones.
+    """
+
+    slug: str | None = None
+    output_dir: Path | None = None
+    mime: str | None = None
+
+
 def save(
     content: bytes,
     modality: Modality,
     extension: str,
-    *,
-    slug: str | None = None,
-    output_dir: Path | None = None,
-    mime: str | None = None,
+    opts: SaveOptions = SaveOptions(),
 ) -> SavedAsset:
     """Write content to ./generated/<modality>/<timestamp>-<slug>.<ext>.
 
@@ -62,15 +73,15 @@ def save(
     """
     ext = extension.lstrip(".").lower()
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    filename = f"{timestamp}-{_slugify(slug)}.{ext}"
+    filename = f"{timestamp}-{_slugify(opts.slug)}.{ext}"
 
-    base = output_dir or Path("./generated") / modality
+    base = opts.output_dir or Path("./generated") / modality
     local_path = base / filename
     write_local(content, local_path)
 
     s3_url: str | None = None
     if s3_configured():
-        content_type = mime or _MIME_BY_EXT.get(ext, "application/octet-stream")
+        content_type = opts.mime or _MIME_BY_EXT.get(ext, "application/octet-stream")
         s3_url = write_s3(content, f"{modality}/{filename}", content_type)
 
     return SavedAsset(local_path=local_path, s3_url=s3_url)
@@ -79,13 +90,17 @@ def save(
 def save_prompt_only(
     prompt: str,
     modality: Modality,
+    opts: SaveOptions = SaveOptions(),
     *,
-    slug: str | None = None,
-    output_dir: Path | None = None,
     reason: str = "",
 ) -> SavedAsset:
     """Fallback when execution fails: persist the prompt text so work isn't lost."""
     body = prompt
     if reason:
         body = f"# Prompt-only fallback\n# Reason: {reason}\n\n{prompt}"
-    return save(body.encode("utf-8"), modality, "txt", slug=slug or "prompt-only", output_dir=output_dir)
+    return save(
+        body.encode("utf-8"),
+        modality,
+        "txt",
+        SaveOptions(slug=opts.slug or "prompt-only", output_dir=opts.output_dir),
+    )

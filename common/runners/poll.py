@@ -9,6 +9,7 @@ from __future__ import annotations
 import sys
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import TypeVar
 
 from .errors import TimeoutError as RunnerTimeoutError
@@ -16,13 +17,20 @@ from .errors import TimeoutError as RunnerTimeoutError
 T = TypeVar("T")
 
 
+@dataclass(frozen=True)
+class Backoff:
+    """How fast to re-ask. Gentle by design — these are paid vendor endpoints."""
+
+    initial_interval: float = 3.0
+    max_interval: float = 12.0
+
+
 def poll_until(
     check: Callable[[], T | None],
     *,
     provider: str,
     timeout: float = 600.0,
-    initial_interval: float = 3.0,
-    max_interval: float = 12.0,
+    backoff: Backoff = Backoff(),
     progress: bool = True,
 ) -> T:
     """Call check() in a loop until it returns non-None or timeout fires.
@@ -31,7 +39,7 @@ def poll_until(
     when progress=True. Raises RunnerTimeoutError if max wait exceeded.
     """
     started = time.monotonic()
-    interval = initial_interval
+    interval = backoff.initial_interval
     attempt = 0
 
     while True:
@@ -57,4 +65,4 @@ def poll_until(
         attempt += 1
         # gentle backoff: x1.5 capped at max_interval, but only every 3 attempts
         if attempt % 3 == 0:
-            interval = min(interval * 1.5, max_interval)
+            interval = min(interval * 1.5, backoff.max_interval)

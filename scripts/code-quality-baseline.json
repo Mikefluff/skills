@@ -8,13 +8,12 @@
     "parameters": 5
   },
   "counts": {
-    "function-size": 28,
-    "complexity": 25,
-    "parameters": 13,
-    "module-size": 6
+    "complexity": 24,
+    "function-size": 23,
+    "module-size": 5,
+    "parameters": 2
   },
   "frozen": [
-    "complexity|common/runners/batch.py|run_batch",
     "complexity|common/runners/cli/_shared.py|gather_kwargs",
     "complexity|common/runners/cli/bg.py|main",
     "complexity|common/runners/cli/gif.py|_convert",
@@ -39,7 +38,6 @@
     "complexity|common/runners/subtitles.py|parse_vtt",
     "complexity|writer/scripts/lint.py|_structural_hits",
     "complexity|writer/scripts/lint.py|scan",
-    "function-size|common/runners/batch.py|run_batch",
     "function-size|common/runners/cli/_shared.py|dispatch",
     "function-size|common/runners/cli/bg.py|main",
     "function-size|common/runners/cli/gif.py|_convert",
@@ -55,15 +53,11 @@
     "function-size|common/runners/cli/subtitle.py|_cmd_burn",
     "function-size|common/runners/cli/transcribe.py|main",
     "function-size|common/runners/cli/upscale.py|main",
-    "function-size|common/runners/ffmpeg.py|burn_captions",
-    "function-size|common/runners/ffmpeg.py|mix_audio_with_modes",
-    "function-size|common/runners/ffmpeg.py|mp4_to_gif",
     "function-size|common/runners/proposal_kit.py|print_pdf",
     "function-size|common/runners/proposal_kit.py|write_brief",
     "function-size|common/runners/proposal_parse.py|parse",
     "function-size|common/runners/proposal_render.py|render_html",
     "function-size|common/runners/styles.py|validate_style",
-    "function-size|common/runners/typography.py|_render_block",
     "function-size|writer/scripts/lint.py|_structural_hits",
     "function-size|writer/scripts/lint.py|main",
     "function-size|writer/scripts/lint.py|scan",
@@ -71,20 +65,8 @@
     "module-size|common/runners/proposal_kit.py|-",
     "module-size|common/runners/proposal_render.py|-",
     "module-size|common/runners/styles.py|-",
-    "module-size|common/runners/typography.py|-",
     "module-size|writer/scripts/lint.py|-",
-    "parameters|common/runners/batch.py|run_batch",
-    "parameters|common/runners/cover_imprints.py|_build_layout",
-    "parameters|common/runners/ffmpeg.py|burn_captions",
-    "parameters|common/runners/ffmpeg.py|mix_audio_over_video",
-    "parameters|common/runners/ffmpeg.py|mix_audio_with_modes",
-    "parameters|common/runners/ffmpeg.py|mp4_to_gif",
-    "parameters|common/runners/output.py|save",
-    "parameters|common/runners/poll.py|poll_until",
     "parameters|common/runners/proposal_kit.py|fill_missing_photos",
-    "parameters|common/runners/proposal_kit.py|write_brief",
-    "parameters|common/runners/typography.py|_anchor_origin",
-    "parameters|common/runners/typography.py|_draw_tracked_text",
-    "parameters|common/runners/typography.py|_render_block"
+    "parameters|common/runners/proposal_kit.py|write_brief"
   ]
 }

@@ -207,14 +207,16 @@ def _execute(job: _Job) -> int:
     result = batch_mod.run_batch(
         job.provider,
         job.items,
-        modality="image",
-        output_dir=output_dir,
-        manifest_path=output_dir / "manifest.json",
-        parallelism=parallelism,
-        resume=job.resume,
-        extension_hint="png",
+        batch_mod.BatchSpec(
+            modality="image",
+            output_dir=output_dir,
+            manifest_path=output_dir / "manifest.json",
+            parallelism=parallelism,
+            resume=job.resume,
+            extension_hint="png",
+            extra_meta=_manifest_meta(job),
+        ),
         on_progress=_progress_printer(spec),
-        extra_meta=_manifest_meta(job),
     )
     if spec.after_batch is not None:
         spec.after_batch(plan, result)

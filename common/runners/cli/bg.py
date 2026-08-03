@@ -107,9 +107,11 @@ def main() -> int:
             result.content,
             "image",
             "png",
-            slug=f"{stem}-nobg",
-            output_dir=Path("./generated/bg-removed"),
-            mime="image/png",
+            output_mod.SaveOptions(
+                slug=f"{stem}-nobg",
+                output_dir=Path("./generated/bg-removed"),
+                mime="image/png",
+            ),
         )
         print(f"  ✓ Background removed → {saved.local_path}", file=sys.stderr)
         print(saved.display())

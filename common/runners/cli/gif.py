@@ -106,9 +106,11 @@ def _convert(video: Path, output: Path, args: argparse.Namespace) -> int:
                 str(tmp_path),
             ]
             subprocess.run(crop_cmd, check=True, capture_output=True, text=True)
+            # The crop pre-pass already applied the trim window, so the GIF
+            # conversion must not apply it a second time.
             ff_mod.mp4_to_gif(
                 tmp_path, output,
-                fps=int(args.fps), width=width,
+                ff_mod.GifOptions(fps=int(args.fps), width=width),
                 ffmpeg_bin=probe.binary or "ffmpeg",
             )
             try:
@@ -118,9 +120,12 @@ def _convert(video: Path, output: Path, args: argparse.Namespace) -> int:
         else:
             ff_mod.mp4_to_gif(
                 video, output,
-                fps=int(args.fps), width=width,
-                start=float(args.start or 0.0),
-                duration=float(args.duration) if args.duration else None,
+                ff_mod.GifOptions(
+                    fps=int(args.fps),
+                    width=width,
+                    start=float(args.start or 0.0),
+                    duration=float(args.duration) if args.duration else None,
+                ),
                 ffmpeg_bin=probe.binary or "ffmpeg",
             )
     except subprocess.CalledProcessError as exc:
@@ -187,9 +192,11 @@ def _generate(args: argparse.Namespace) -> tuple[int, Path | None]:
         result.content,
         "video",
         "mp4",
-        slug="gif-source",
-        output_dir=Path("./generated/gif/_source"),
-        mime="video/mp4",
+        output_mod.SaveOptions(
+            slug="gif-source",
+            output_dir=Path("./generated/gif/_source"),
+            mime="video/mp4",
+        ),
     )
     print(f"  ✓ source MP4 → {saved.local_path}", file=sys.stderr)
     return 0, Path(saved.local_path)

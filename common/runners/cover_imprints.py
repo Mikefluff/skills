@@ -31,50 +31,11 @@ class ImprintPreset:
     genres: tuple[str, ...]        # genres this imprint fits naturally
 
 
-def _build_layout(
-    title_font: str, title_weight: int, title_size: float, title_color: str,
-    title_anchor: str, title_case: str, title_tracking: float,
-    title_align: str, title_margin_top: float, title_max_lines: int,
-    author_font: str, author_weight: int, author_size: float, author_color: str,
-    author_anchor: str, author_tracking: float,
-    decorations: list[Decoration] | None = None,
-    title_band: dict | None = None,
-    title_margin_x: float = 0.10,
-    author_margin_bottom: float = 0.08,
-) -> TypeLayout:
-    """Helper to keep the imprint dict below readable."""
-    return TypeLayout(
-        title=TextBlock(
-            text="",
-            font=title_font,
-            weight=title_weight,
-            size_fraction=title_size,
-            color=title_color,
-            case=title_case,
-            anchor=title_anchor,
-            tracking=title_tracking,
-            align=title_align,
-            margin_top_fraction=title_margin_top,
-            margin_x_fraction=title_margin_x,
-            max_lines=title_max_lines,
-            line_height=1.05,
-        ),
-        author=TextBlock(
-            text="",
-            font=author_font,
-            weight=author_weight,
-            size_fraction=author_size,
-            color=author_color,
-            case="preserve",
-            anchor=author_anchor,
-            tracking=author_tracking,
-            align="center",
-            margin_bottom_fraction=author_margin_bottom,
-            max_lines=1,
-        ),
-        decorations=decorations or [],
-        title_band=title_band,
-    )
+# Every preset below builds its TypeLayout directly. A _build_layout() helper
+# used to flatten the two TextBlocks into one call, which meant twenty
+# positional-ish parameters named title_*/author_* — a signature nobody could
+# read and the worst one in the repo. Four of the five imprints went through it
+# and one did not, so the file had two shapes for the same thing anyway.
 
 
 # ─── IMPRINT PRESETS ───────────────────────────────────────────────────────────
@@ -124,14 +85,20 @@ IMPRINTS: dict[str, ImprintPreset] = {
         name="penguin-marber-grid",
         display_name="Penguin Marber Grid",
         description="1963 Romek Marber tri-band: title band top, image band middle, author/imprint band bottom. Helvetica + single accent color.",
-        layout=_build_layout(
-            title_font="Inter", title_weight=600, title_size=0.060, title_color="#1A1A1A",
-            title_anchor="top-center", title_case="preserve", title_tracking=0.02,
-            title_align="center", title_margin_top=0.05, title_max_lines=3,
-            title_margin_x=0.08,
-            author_font="Inter", author_weight=500, author_size=0.025, author_color="#1A1A1A",
-            author_anchor="bottom-center", author_tracking=0.05,
-            author_margin_bottom=0.06,
+        layout=TypeLayout(
+            title=TextBlock(
+                text="",
+                font="Inter", weight=600, size_fraction=0.060, color="#1A1A1A",
+                case="preserve", tracking=0.02, align="center", anchor="top-center",
+                margin_top_fraction=0.05, margin_x_fraction=0.08, max_lines=3,
+                line_height=1.05,
+            ),
+            author=TextBlock(
+                text="",
+                font="Inter", weight=500, size_fraction=0.025, color="#1A1A1A",
+                case="preserve", tracking=0.05, align="center", anchor="bottom-center",
+                margin_bottom_fraction=0.06, max_lines=1,
+            ),
             title_band={"y_start": 0.0, "y_end": 0.27, "color": "#F5F0E8", "opacity": 1.0},
             decorations=[
                 Decoration(kind="hline", color="#1A1A1A", thickness_fraction=0.002,
@@ -158,14 +125,22 @@ IMPRINTS: dict[str, ImprintPreset] = {
         name="mit-essential-knowledge",
         display_name="MIT Press Essential Knowledge",
         description="Top half typographic (title dominant), bottom half abstract diagrammatic visual, modern sans-serif. Pocketable academic primer.",
-        layout=_build_layout(
-            title_font="Inter", title_weight=700, title_size=0.090, title_color="#1A1A1A",
-            title_anchor="top-left", title_case="preserve", title_tracking=-0.01,
-            title_align="left", title_margin_top=0.10, title_max_lines=4,
-            title_margin_x=0.07,
-            author_font="Inter", author_weight=500, author_size=0.025, author_color="#1A1A1A",
-            author_anchor="bottom-left", author_tracking=0.04,
-            author_margin_bottom=0.05,
+        layout=TypeLayout(
+            title=TextBlock(
+                text="",
+                font="Inter", weight=700, size_fraction=0.090, color="#1A1A1A",
+                case="preserve", tracking=-0.01, align="left", anchor="top-left",
+                margin_top_fraction=0.10, margin_x_fraction=0.07, max_lines=4,
+                line_height=1.05,
+            ),
+            # Author is bottom-left to match the title's rag, but the text itself
+            # is centre-aligned within its own single line — which is a no-op.
+            author=TextBlock(
+                text="",
+                font="Inter", weight=500, size_fraction=0.025, color="#1A1A1A",
+                case="preserve", tracking=0.04, align="center", anchor="bottom-left",
+                margin_bottom_fraction=0.05, max_lines=1,
+            ),
             title_band={"y_start": 0.0, "y_end": 0.55, "color": "#FFFFFF", "opacity": 1.0},
         ),
         prompt_fragment=(
@@ -186,14 +161,20 @@ IMPRINTS: dict[str, ImprintPreset] = {
         name="picador-modern",
         display_name="Picador Modern Classics",
         description="Refined typographic top with bold display serif, minimal flat-color visual accent below, generous negative space.",
-        layout=_build_layout(
-            title_font="Playfair Display", title_weight=700, title_size=0.080, title_color="#1A1A1A",
-            title_anchor="top-center", title_case="preserve", title_tracking=0.00,
-            title_align="center", title_margin_top=0.12, title_max_lines=4,
-            title_margin_x=0.10,
-            author_font="EB Garamond", author_weight=400, author_size=0.028, author_color="#1A1A1A",
-            author_anchor="bottom-center", author_tracking=0.10,
-            author_margin_bottom=0.06,
+        layout=TypeLayout(
+            title=TextBlock(
+                text="",
+                font="Playfair Display", weight=700, size_fraction=0.080, color="#1A1A1A",
+                case="preserve", tracking=0.00, align="center", anchor="top-center",
+                margin_top_fraction=0.12, margin_x_fraction=0.10, max_lines=4,
+                line_height=1.05,
+            ),
+            author=TextBlock(
+                text="",
+                font="EB Garamond", weight=400, size_fraction=0.028, color="#1A1A1A",
+                case="preserve", tracking=0.10, align="center", anchor="bottom-center",
+                margin_bottom_fraction=0.06, max_lines=1,
+            ),
             decorations=[
                 Decoration(kind="hline", color="#1A1A1A", thickness_fraction=0.0015,
                            length_fraction=0.10, position_y_fraction=0.90),
@@ -216,14 +197,20 @@ IMPRINTS: dict[str, ImprintPreset] = {
         name="faber-modernist",
         display_name="Faber Modernist",
         description="Typography-as-image — Faber & Faber poetry / criticism style. Large display lettering, bold flat color, no photo.",
-        layout=_build_layout(
-            title_font="Cinzel", title_weight=700, title_size=0.110, title_color="#F5F0E8",
-            title_anchor="center", title_case="upper", title_tracking=0.04,
-            title_align="center", title_margin_top=0.30, title_max_lines=3,
-            title_margin_x=0.10,
-            author_font="EB Garamond", author_weight=400, author_size=0.030, author_color="#F5F0E8",
-            author_anchor="bottom-center", author_tracking=0.18,
-            author_margin_bottom=0.08,
+        layout=TypeLayout(
+            title=TextBlock(
+                text="",
+                font="Cinzel", weight=700, size_fraction=0.110, color="#F5F0E8",
+                case="upper", tracking=0.04, align="center", anchor="center",
+                margin_top_fraction=0.30, margin_x_fraction=0.10, max_lines=3,
+                line_height=1.05,
+            ),
+            author=TextBlock(
+                text="",
+                font="EB Garamond", weight=400, size_fraction=0.030, color="#F5F0E8",
+                case="preserve", tracking=0.18, align="center", anchor="bottom-center",
+                margin_bottom_fraction=0.08, max_lines=1,
+            ),
             decorations=[
                 Decoration(kind="hline", color="#F5F0E8", thickness_fraction=0.0015,
                            length_fraction=0.15, position_y_fraction=0.85),

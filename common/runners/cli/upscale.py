@@ -129,9 +129,11 @@ def main() -> int:
             result.content,
             "image",
             "png",
-            slug=f"{stem}-{args.scale}x",
-            output_dir=Path("./generated/upscaled"),
-            mime="image/png",
+            output_mod.SaveOptions(
+                slug=f"{stem}-{args.scale}x",
+                output_dir=Path("./generated/upscaled"),
+                mime="image/png",
+            ),
         )
         print(f"  ✓ Upscaled → {saved.local_path}", file=sys.stderr)
         print(saved.display())

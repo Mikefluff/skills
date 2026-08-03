@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 
@@ -18,6 +18,78 @@ class FfmpegProbe:
     found: bool
     binary: str | None = None
     version: str | None = None
+
+
+# ── option objects ───────────────────────────────────────────────────────
+# These signatures had grown into bags of six to nine keyword arguments, which
+# is how "audio_volume" and "duck_amount" end up passed positionally by a
+# caller in a hurry. Frozen, so they are safe as default arguments.
+
+
+@dataclass(frozen=True)
+class MixOptions:
+    """How a music track sits against a video's existing audio.
+
+    mode:
+      replace — drop the original audio, music becomes the only track
+      overlay — mix music on top of the original, both audible
+      duck    — overlay, but sidechain-compressed so music drops under speech
+
+    duck_amount attenuates the music while ducking: 0.0 mutes it, 1.0 is no
+    ducking at all.
+    """
+
+    mode: str = "replace"
+    audio_volume: float = 0.8
+    fade_in: float = 0.0
+    fade_out: float = 0.5
+    duck_amount: float = 0.6
+
+    def music_filter(self) -> str:
+        """The -af chain applied to the music input before mixing."""
+        parts = [f"volume={self.audio_volume}"]
+        if self.fade_in > 0:
+            parts.append(f"afade=t=in:st=0:d={self.fade_in}")
+        if self.fade_out > 0:
+            parts.append(f"afade=t=out:st=0:d={self.fade_out}")
+        return ",".join(parts)
+
+
+@dataclass(frozen=True)
+class CaptionStyle:
+    font_size: int = 48
+    font_color: str = "white"
+    box_color: str = "black@0.6"
+
+
+@dataclass(frozen=True)
+class GifOptions:
+    """fps 12-15 reads well; 24+ inflates the file for no visible gain.
+
+    width scales the output in px, keeping aspect; None keeps the source width.
+    start / duration trim in seconds. loop: 0 is infinite, -1 never repeats,
+    N plays N+1 times.
+    """
+
+    fps: int = 12
+    width: int | None = None
+    start: float = 0.0
+    duration: float | None = None
+    loop: int = 0
+
+    def scale_filter(self) -> str:
+        chain = f"fps={self.fps}"
+        if self.width is not None and self.width > 0:
+            chain += f",scale={int(self.width)}:-1:flags=lanczos"
+        return chain
+
+    def trim_args(self) -> list[str]:
+        args: list[str] = []
+        if self.start and self.start > 0:
+            args += ["-ss", f"{self.start:.3f}"]
+        if self.duration and self.duration > 0:
+            args += ["-t", f"{self.duration:.3f}"]
+        return args
 
 
 def detect_ffmpeg() -> FfmpegProbe:
@@ -70,22 +142,24 @@ def mix_audio_over_video(
     video: Path,
     audio: Path,
     output: Path,
+    opts: MixOptions = MixOptions(),
     *,
-    audio_volume: float = 0.8,
-    fade_out: float = 0.5,
     ffmpeg_bin: str = "ffmpeg",
 ) -> list[str]:
-    """Replace (or overlay) the audio track of a video with a music file.
+    """Replace the audio track of a video with a music file.
 
-    The video's existing audio is REPLACED — we use -map 0:v + -map 1:a. For
-    overlay/duck behaviour (keeping diegetic sound), use mix_audio_with_duck().
+    The video's existing audio is REPLACED — -map 0:v plus -map 1:a. To keep
+    diegetic sound, use mix_audio_with_modes() with overlay or duck.
     """
-    output.parent.mkdir(parents=True, exist_ok=True)
-    af = f"volume={audio_volume},afade=out:st=0:d=0:enable='lt(t,0)'"
-    # Add a tail fade-out matching the video length minus fade_out
-    # (we ignore complex sync — for v1 keep it simple).
-    af_filter = f"volume={audio_volume},afade=t=out:st=0:d={fade_out}"
-    cmd = [
+    return mix_audio_with_modes(
+        video, audio, output,
+        replace(opts, mode="replace"),
+        ffmpeg_bin=ffmpeg_bin,
+    )
+
+
+def _replace_cmd(video: Path, audio: Path, output: Path, opts: MixOptions, ffmpeg_bin: str) -> list[str]:
+    return [
         ffmpeg_bin, "-y", "-loglevel", "error",
         "-i", str(video),
         "-i", str(audio),
@@ -93,124 +167,65 @@ def mix_audio_over_video(
         "-map", "1:a",
         "-c:v", "copy",
         "-c:a", "aac", "-b:a", "192k",
-        "-af", af_filter,
+        "-af", opts.music_filter(),
         "-shortest",
         str(output),
     ]
-    subprocess.run(cmd, check=True, capture_output=True, text=True)
-    return cmd
+
+
+def _mixed_cmd(video: Path, audio: Path, output: Path, graph: str, ffmpeg_bin: str) -> list[str]:
+    """Shared tail for the two modes that keep the original audio."""
+    return [
+        ffmpeg_bin, "-y", "-loglevel", "error",
+        "-i", str(video),
+        "-i", str(audio),
+        "-filter_complex", graph,
+        "-map", "0:v",
+        "-map", "[mix]",
+        "-c:v", "copy",
+        "-c:a", "aac", "-b:a", "192k",
+        "-shortest",
+        str(output),
+    ]
 
 
 def mix_audio_with_modes(
     video: Path,
     audio: Path,
     output: Path,
+    opts: MixOptions = MixOptions(),
     *,
-    mode: str = "replace",
-    audio_volume: float = 0.8,
-    fade_in: float = 0.0,
-    fade_out: float = 0.5,
-    duck_amount: float = 0.6,
     ffmpeg_bin: str = "ffmpeg",
 ) -> list[str]:
-    """Mix a music track onto a video with one of three modes:
-
-    - replace: drop original audio, use music as the only audio track
-    - overlay: mix music ON TOP of original audio (both audible)
-    - duck: like overlay but music is sidechain-ducked when original audio is present
-            (auto-lowers music volume when speech is detected)
-
-    fade_in / fade_out: fade duration in seconds.
-    duck_amount: how much to attenuate music when ducking (0.0 = full mute, 1.0 = no ducking).
-    """
-    if mode not in ("replace", "overlay", "duck"):
-        raise ValueError(f"mode must be replace/overlay/duck, got {mode}")
+    """Mix a music track onto a video. See MixOptions for the three modes."""
+    if opts.mode not in ("replace", "overlay", "duck"):
+        raise ValueError(f"mode must be replace/overlay/duck, got {opts.mode}")
     output.parent.mkdir(parents=True, exist_ok=True)
 
-    fade_chain_parts = [f"volume={audio_volume}"]
-    if fade_in > 0:
-        fade_chain_parts.append(f"afade=t=in:st=0:d={fade_in}")
-    if fade_out > 0:
-        fade_chain_parts.append(f"afade=t=out:st=0:d={fade_out}")
-    music_filter = ",".join(fade_chain_parts)
-
-    if mode == "replace":
-        cmd = [
-            ffmpeg_bin, "-y", "-loglevel", "error",
-            "-i", str(video),
-            "-i", str(audio),
-            "-map", "0:v",
-            "-map", "1:a",
-            "-c:v", "copy",
-            "-c:a", "aac", "-b:a", "192k",
-            "-af", music_filter,
-            "-shortest",
-            str(output),
-        ]
-    elif mode == "overlay":
-        cmd = [
-            ffmpeg_bin, "-y", "-loglevel", "error",
-            "-i", str(video),
-            "-i", str(audio),
-            "-filter_complex",
-            f"[1:a]{music_filter}[music];[0:a][music]amix=inputs=2:duration=first:dropout_transition=2[mix]",
-            "-map", "0:v",
-            "-map", "[mix]",
-            "-c:v", "copy",
-            "-c:a", "aac", "-b:a", "192k",
-            "-shortest",
-            str(output),
-        ]
-    else:  # duck
-        # Sidechain compressor: original audio (0:a) ducks music (1:a).
-        cmd = [
-            ffmpeg_bin, "-y", "-loglevel", "error",
-            "-i", str(video),
-            "-i", str(audio),
-            "-filter_complex",
-            (
-                f"[1:a]{music_filter}[music];"
-                f"[music][0:a]sidechaincompress=threshold=0.05:ratio=8:attack=20:release=300:makeup=1[ducked];"
-                f"[0:a][ducked]amix=inputs=2:duration=first:weights={1.0} {duck_amount}[mix]"
-            ),
-            "-map", "0:v",
-            "-map", "[mix]",
-            "-c:v", "copy",
-            "-c:a", "aac", "-b:a", "192k",
-            "-shortest",
-            str(output),
-        ]
+    music = opts.music_filter()
+    if opts.mode == "replace":
+        cmd = _replace_cmd(video, audio, output, opts, ffmpeg_bin)
+    elif opts.mode == "overlay":
+        graph = (
+            f"[1:a]{music}[music];"
+            f"[0:a][music]amix=inputs=2:duration=first:dropout_transition=2[mix]"
+        )
+        cmd = _mixed_cmd(video, audio, output, graph, ffmpeg_bin)
+    else:
+        # Sidechain compressor: the original audio (0:a) ducks the music (1:a).
+        graph = (
+            f"[1:a]{music}[music];"
+            f"[music][0:a]sidechaincompress=threshold=0.05:ratio=8:attack=20:release=300:makeup=1[ducked];"
+            f"[0:a][ducked]amix=inputs=2:duration=first:weights={1.0} {opts.duck_amount}[mix]"
+        )
+        cmd = _mixed_cmd(video, audio, output, graph, ffmpeg_bin)
 
     subprocess.run(cmd, check=True, capture_output=True, text=True)
     return cmd
 
 
-def burn_captions(
-    video: Path,
-    captions: list[tuple[float, float, str]],
-    output: Path,
-    *,
-    ffmpeg_bin: str = "ffmpeg",
-    font_size: int = 48,
-    font_color: str = "white",
-    box_color: str = "black@0.6",
-) -> list[str]:
-    """Burn timed captions onto a video via drawtext filter.
-
-    captions: list of (start_seconds, end_seconds, text) tuples.
-    """
-    if not captions:
-        # No captions — just copy
-        cmd = [
-            ffmpeg_bin, "-y", "-loglevel", "error",
-            "-i", str(video),
-            "-c", "copy",
-            str(output),
-        ]
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
-        return cmd
-
-    output.parent.mkdir(parents=True, exist_ok=True)
+def _drawtext_chain(captions: list[tuple[float, float, str]], style: CaptionStyle) -> str:
+    """One drawtext filter per cue, each gated to its own time window."""
     parts: list[str] = []
     for start, end, text in captions:
         escaped = (
@@ -221,16 +236,39 @@ def burn_captions(
         )
         parts.append(
             f"drawtext=text='{escaped}':"
-            f"fontcolor={font_color}:fontsize={font_size}:"
-            f"box=1:boxcolor={box_color}:boxborderw=20:"
+            f"fontcolor={style.font_color}:fontsize={style.font_size}:"
+            f"box=1:boxcolor={style.box_color}:boxborderw=20:"
             f"x=(w-text_w)/2:y=h-(text_h*2.5):"
             f"enable='between(t,{start:.2f},{end:.2f})'"
         )
-    vf = ",".join(parts)
+    return ",".join(parts)
+
+
+def burn_captions(
+    video: Path,
+    captions: list[tuple[float, float, str]],
+    output: Path,
+    style: CaptionStyle = CaptionStyle(),
+    *,
+    ffmpeg_bin: str = "ffmpeg",
+) -> list[str]:
+    """Burn timed (start_seconds, end_seconds, text) captions onto a video."""
+    if not captions:
+        # Nothing to draw — stream-copy so the caller still gets an output file.
+        cmd = [
+            ffmpeg_bin, "-y", "-loglevel", "error",
+            "-i", str(video),
+            "-c", "copy",
+            str(output),
+        ]
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        return cmd
+
+    output.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
         ffmpeg_bin, "-y", "-loglevel", "error",
         "-i", str(video),
-        "-vf", vf,
+        "-vf", _drawtext_chain(captions, style),
         "-c:a", "copy",
         str(output),
     ]
@@ -241,59 +279,40 @@ def burn_captions(
 def mp4_to_gif(
     video: Path,
     output: Path,
+    opts: GifOptions = GifOptions(),
     *,
-    fps: int = 12,
-    width: int | None = None,
-    start: float = 0.0,
-    duration: float | None = None,
-    loop: int = 0,
     ffmpeg_bin: str = "ffmpeg",
 ) -> list[str]:
-    """Convert an MP4 to a high-quality looping GIF via 2-pass palettegen/paletteuse.
+    """Convert an MP4 to a looping GIF via 2-pass palettegen / paletteuse.
 
-    width: scaled output width in px (keeps aspect). None = source width.
-    fps: target frame rate (12-15 is good for GIFs; 24+ inflates file size).
-    start / duration: optional trim window in seconds.
-    loop: 0 = infinite (default), -1 = no loop, N = N+1 plays.
+    A GIF is limited to 256 colours, so the palette is generated from the
+    actual frames first and applied second — one pass produces visible banding.
 
-    Two passes:
-      1. ffmpeg ... palettegen → palette.png
-      2. ffmpeg ... -i palette.png paletteuse → output.gif
-
-    Returns the second-pass command run (the visible one). Raises CalledProcessError on failure.
+    Returns the second-pass command (the visible one). Raises
+    CalledProcessError on failure.
     """
     output.parent.mkdir(parents=True, exist_ok=True)
     palette = output.with_suffix(".palette.png")
+    scale = opts.scale_filter()
+    trim = opts.trim_args()
 
-    scale_part = f"fps={fps}"
-    if width is not None and width > 0:
-        scale_part += f",scale={int(width)}:-1:flags=lanczos"
-
-    trim_in: list[str] = []
-    if start and start > 0:
-        trim_in += ["-ss", f"{start:.3f}"]
-    if duration and duration > 0:
-        trim_in += ["-t", f"{duration:.3f}"]
-
-    # Pass 1 — palette
     pass1 = [
         ffmpeg_bin, "-y", "-loglevel", "error",
-        *trim_in,
+        *trim,
         "-i", str(video),
-        "-vf", f"{scale_part},palettegen=max_colors=256:stats_mode=diff",
+        "-vf", f"{scale},palettegen=max_colors=256:stats_mode=diff",
         str(palette),
     ]
     subprocess.run(pass1, check=True, capture_output=True, text=True)
 
-    # Pass 2 — apply palette
     pass2 = [
         ffmpeg_bin, "-y", "-loglevel", "error",
-        *trim_in,
+        *trim,
         "-i", str(video),
         "-i", str(palette),
         "-filter_complex",
-        f"[0:v]{scale_part}[v];[v][1:v]paletteuse=dither=bayer:bayer_scale=5",
-        "-loop", str(loop),
+        f"[0:v]{scale}[v];[v][1:v]paletteuse=dither=bayer:bayer_scale=5",
+        "-loop", str(opts.loop),
         str(output),
     ]
     subprocess.run(pass2, check=True, capture_output=True, text=True)

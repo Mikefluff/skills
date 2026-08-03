@@ -69,7 +69,7 @@ class TestPollUntil(PollCase):
         with self.assertRaises(RunnerTimeoutError) as ctx:
             poll.poll_until(
                 lambda: None, provider="sora", timeout=30.0,
-                initial_interval=3.0, progress=False,
+                backoff=poll.Backoff(initial_interval=3.0), progress=False,
             )
         self.assertIn("sora", str(ctx.exception))
 
@@ -77,7 +77,7 @@ class TestPollUntil(PollCase):
         with self.assertRaises(RunnerTimeoutError):
             poll.poll_until(
                 lambda: None, provider="p", timeout=10.0,
-                initial_interval=3.0, progress=False,
+                backoff=poll.Backoff(initial_interval=3.0), progress=False,
             )
         # A final sleep overshooting the deadline would make the call outlive
         # the timeout the caller asked for.
@@ -87,7 +87,7 @@ class TestPollUntil(PollCase):
         with self.assertRaises(RunnerTimeoutError):
             poll.poll_until(
                 lambda: None, provider="p", timeout=600.0,
-                initial_interval=3.0, max_interval=12.0, progress=False,
+                backoff=poll.Backoff(initial_interval=3.0, max_interval=12.0), progress=False,
             )
         self.assertEqual(self.clock.sleeps[0], 3.0, "first wait should be initial_interval")
         self.assertGreater(max(self.clock.sleeps), 3.0, "backoff never grew")

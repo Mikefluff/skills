@@ -197,7 +197,9 @@ def dispatch(modality: Modality, models_hint: list[str] | None = None) -> int:
             result = provider.poll(result, timeout=args.timeout)
     except (ProviderError, RunnerTimeoutError, RunnerError) as exc:
         saved = output_mod.save_prompt_only(
-            prompt, modality, slug=args.model, output_dir=args.output, reason=str(exc)
+            prompt, modality,
+            output_mod.SaveOptions(slug=args.model, output_dir=args.output),
+            reason=str(exc),
         )
         print(f"FAILED: {exc}", file=sys.stderr)
         print(saved.display())
@@ -207,9 +209,7 @@ def dispatch(modality: Modality, models_hint: list[str] | None = None) -> int:
         result.content,
         modality,
         result.extension,
-        slug=args.model,
-        output_dir=args.output,
-        mime=result.mime,
+        output_mod.SaveOptions(slug=args.model, output_dir=args.output, mime=result.mime),
     )
     print(saved.display())
     return 0

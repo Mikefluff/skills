@@ -72,7 +72,8 @@ def _mix_music(job: "ReelJob", concat_mp4: Path, music_path: Path | None, ffmpeg
     try:
         ff_mod.mix_audio_over_video(
             concat_mp4, music_path, with_music,
-            audio_volume=0.8, fade_out=0.5, ffmpeg_bin=ffmpeg_bin,
+            ff_mod.MixOptions(audio_volume=0.8, fade_out=0.5),
+            ffmpeg_bin=ffmpeg_bin,
         )
         return with_music
     except Exception as exc:  # noqa: BLE001

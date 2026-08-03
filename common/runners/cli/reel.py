@@ -230,14 +230,16 @@ def run_shots(job: ReelJob, meta: dict[str, Any], *, resume: bool):
     return batch_mod.run_batch(
         job.video_provider,
         job.shot_items,
-        modality="video",
-        output_dir=job.shots_dir,
-        manifest_path=job.manifest_path,
-        parallelism=int(job.plan.get("parallelism") or 2),
-        resume=resume,
-        extension_hint="mp4",
+        batch_mod.BatchSpec(
+            modality="video",
+            output_dir=job.shots_dir,
+            manifest_path=job.manifest_path,
+            parallelism=int(job.plan.get("parallelism") or 2),
+            resume=resume,
+            extension_hint="mp4",
+            extra_meta=meta,
+        ),
         on_progress=_print_progress,
-        extra_meta=meta,
     )
 
 
@@ -248,14 +250,16 @@ def run_music(job: ReelJob, meta: dict[str, Any], *, resume: bool) -> Path | Non
     result = batch_mod.run_batch(
         job.music_provider,
         [job.music_item],
-        modality="music",
-        output_dir=job.output_dir,
-        manifest_path=job.output_dir / "music-manifest.json",
-        parallelism=1,
-        resume=resume,
-        extension_hint="mp3",
+        batch_mod.BatchSpec(
+            modality="music",
+            output_dir=job.output_dir,
+            manifest_path=job.output_dir / "music-manifest.json",
+            parallelism=1,
+            resume=resume,
+            extension_hint="mp3",
+            extra_meta={**meta, "component": "music"},
+        ),
         on_progress=_print_progress,
-        extra_meta={**meta, "component": "music"},
     )
     if not (result.ok and result.items[0].output_path):
         print("  music generation failed — proceeding with silent stitch", file=sys.stderr)

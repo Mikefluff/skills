@@ -89,10 +89,12 @@ def _cmd_burn(args: argparse.Namespace) -> int:
             video,
             subs_mod.cues_to_tuples(cues),
             output,
+            ff_mod.CaptionStyle(
+                font_size=int(args.font_size or preset["font_size"]),
+                font_color=str(args.font_color or preset["font_color"]),
+                box_color=str(args.box_color or preset["box_color"]),
+            ),
             ffmpeg_bin=probe.binary or "ffmpeg",
-            font_size=int(args.font_size or preset["font_size"]),
-            font_color=str(args.font_color or preset["font_color"]),
-            box_color=str(args.box_color or preset["box_color"]),
         )
     except Exception as exc:  # noqa: BLE001
         print(f"  ✗ ffmpeg burn failed: {exc}", file=sys.stderr)
