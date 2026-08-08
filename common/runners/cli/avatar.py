@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import sys
 
-from ._maker import MakerSpec, run
+from ._maker import MakerSpec, build_parser as _build, run
 
 SPEC = MakerSpec(
     module="avatar",
@@ -34,6 +34,11 @@ SPEC = MakerSpec(
     parallelism=3,
     meta_keys=("slug", "photo", "style_id"),
 )
+
+
+def build_parser():
+    """The flags this module accepts — read by scripts/check-cli-docs.py."""
+    return _build(SPEC)
 
 
 def main() -> int:

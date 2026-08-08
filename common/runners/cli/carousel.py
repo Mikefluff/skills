@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import sys
 
-from ._maker import MakerSpec, run
+from ._maker import MakerSpec, build_parser as _build, run
 
 SPEC = MakerSpec(
     module="carousel",
@@ -45,6 +45,11 @@ SPEC = MakerSpec(
     item_hint="Structured role+content items were removed in v2.13.0.",
     meta_keys=("topic", "platform", "aspect", "style_id", "text_mode", "research_brief"),
 )
+
+
+def build_parser():
+    """The flags this module accepts — read by scripts/check-cli-docs.py."""
+    return _build(SPEC)
 
 
 def main() -> int:

@@ -40,7 +40,7 @@ from typing import Any
 from .. import batch as batch_mod
 from .. import cover_imprints
 from .. import typography as type_mod
-from ._maker import MakerSpec, run
+from ._maker import MakerSpec, build_parser as _build, run
 
 
 def _typeset_mode(plan: dict[str, Any]) -> str:
@@ -108,6 +108,11 @@ SPEC = MakerSpec(
     meta_keys=("slug", "title", "subtitle", "creator", "medium", "lang", "style_id", "photo"),
     after_batch=_typeset_pass,
 )
+
+
+def build_parser():
+    """The flags this module accepts — read by scripts/check-cli-docs.py."""
+    return _build(SPEC)
 
 
 def main() -> int:

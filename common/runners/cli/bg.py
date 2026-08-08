@@ -23,7 +23,8 @@ OUTPUT = _tool.ToolOutput(
 )
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """The flags this module accepts — read by scripts/check-cli-docs.py."""
     parser = argparse.ArgumentParser(prog="common.runners.cli.bg")
     _tool.add_common_arguments(parser, "./generated/bg-removed/<stem>-nobg.png")
     parser.add_argument(
@@ -31,7 +32,11 @@ def main() -> int:
         default=DEFAULT_REPLICATE_MODEL,
         help=f"Replicate model id (default: {DEFAULT_REPLICATE_MODEL})",
     )
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> int:
+    args = build_parser().parse_args()
 
     provider = _tool.resolve_provider("replicate-image")
     if provider is None:

@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import sys
 
-from ._maker import MakerSpec, run
+from ._maker import MakerSpec, build_parser as _build, run
 
 SPEC = MakerSpec(
     module="quote",
@@ -37,6 +37,11 @@ SPEC = MakerSpec(
     noun="card(s)",
     meta_keys=("slug", "quote", "attribution", "style_id", "lang"),
 )
+
+
+def build_parser():
+    """The flags this module accepts — read by scripts/check-cli-docs.py."""
+    return _build(SPEC)
 
 
 def main() -> int:

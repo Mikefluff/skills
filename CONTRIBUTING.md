@@ -60,10 +60,30 @@ Each skill must have `SKILL.md` with valid frontmatter (`name`, `description`, `
 
 3. **Decide the layer:** `base` (rules used by other skills), `wrapper` (calls a base skill as final cleanup), or `linter` (read-only, produces reports).
 
+4. **A separate skill, or a flag on an existing one?** Split when the two would
+   need different `description:` triggers; add a flag when they differ only in
+   defaults. Claude routes on `description:` alone, so one skill covering eight
+   jobs needs a description vague enough to match all eight — which is a
+   description that matches none of them well.
+
+   This was measured rather than assumed. The eight single-image makers
+   (`flyer` / `cover` / `thumbnail` / `avatar` / `logo` / `quote-card` /
+   `banner` / `meme-card`) look like one skill wearing eight hats, and merging
+   them was on the roadmap twice. Their same-named reference files turn out to
+   share 4–19% of their text, and 656 bytes of prose is duplicated verbatim
+   across three or more of them. They are not copies; they are eight different
+   grammars — thumbnails have eyeline rules, logos have palette-count limits,
+   memes have caption conventions — over one shared pipeline that already lives
+   in `common/runners/cli/_maker.py`, where each `run.py` is a 25-line shim.
+
+   What *was* duplicated is the part that has since been automated: the price
+   tables that had to be edited together on every vendor refresh, now checked by
+   gate 8. Extract shared *data* into `common/`; keep the routing surface split.
+
 ### Scaffold
 
 ```bash
-make new-skill name=your-skill
+make new-skill NAME=your-skill DESC="one line, ≤350 chars"
 # or
 bash scripts/new-skill.sh your-skill --description "..." --layer wrapper --deps writer
 ```
@@ -271,7 +291,7 @@ and a runner that dies on invocation.
 
 ### 3. `check-docs-consistency` (`bash scripts/check-docs-consistency.sh`)
 
-Six sub-checks, all must pass:
+Ten sub-checks, all must pass:
 
 1. README table ↔ `skills.json` (auto-generated; if drift, run `make gen-readme`)
 2. Skill folders on disk ↔ `skills.json` (new folder without manifest entry → fail)
@@ -279,6 +299,15 @@ Six sub-checks, all must pass:
 4. Every skill in `skills.json` is mentioned somewhere in `docs/USER-GUIDE.md`
 5. New skill folders since the last `v*` tag are documented in `CHANGELOG.md` — in any section above the tagged version, not only `[Unreleased]`, because this repo writes version sections directly
 6. `docs/SKILL-INDEX.md` ↔ `skills.json` (auto-generated; if drift, run `make gen-index`)
+7. `Dockerfile` + `package.json` ship `skills/` and `common/`
+8. Every price quoted in a doc is derivable from `cost.PRICE_TABLE` (`make check-prices`) — batch totals need a `<!-- prices: batch=N -->` declaration in the file
+9. Every `skills.json` blurb was written against the current `SKILL.md` description (`make check-descriptions`; accept a change with `make freeze-descriptions`)
+10. Every literal `python3 -m common.runners.cli.X --flag` in the docs uses flags that parser accepts (`make check-cli-docs`)
+
+Checks 2 and 5 assert their scan found something before reporting green. They
+both spent two years passing while matching nothing, because they searched the
+pre-`skills/` layout — a gate that scans nothing looks exactly like a gate that
+scans everything. Any new check that walks the tree should assert a floor too.
 
 ### 4. Shellcheck + Markdownlint
 

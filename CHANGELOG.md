@@ -87,7 +87,37 @@ that `make release` had been wired to `make publish-npm`, not that an upload had
 happened. Statuses now come from a four-word vocabulary, routes must name live
 `make` targets, and the review goes stale after 90 days.
 
-Tests: 721 → 745.
+### Added — `scripts/check-cli-docs.py`, gate 10
+
+Nine maker modules built their argparse parser inside the call that consumed it,
+so the only way to learn which flags they accepted was to run them. Every CLI
+module now exposes a zero-arg `build_parser()`, and the gate checks the 88
+literal `python3 -m common.runners.cli.X --flag` commands in the docs against
+the real parsers. Skill-level flags (`/logo-maker --variants 4`) are conventions
+Claude reads, not CLI arguments, and are left alone.
+
+Nothing had drifted. The class had simply never been checkable.
+
+### Decided — the eight single-image makers stay separate
+
+The roadmap twice suspected `flyer-maker`, `cover-maker`, `thumbnail-maker`,
+`avatar-maker`, `logo-maker`, `quote-card-maker`, `banner-maker` and
+`meme-card-maker` of being one skill wearing eight hats. Measured, their
+same-named reference files share 4–19% of their text, and 656 bytes of prose is
+duplicated verbatim across three or more of them. The pipeline they share is
+already shared, in `_maker.py`.
+
+Merging would trade eight precise `description:` triggers for one vague enough
+to match all eight — and `description:` is the whole of how Claude finds a skill.
+The rule is written up in CONTRIBUTING: split on routing, merge on defaults,
+extract shared data into `common/`.
+
+Two things fixed on the way past: the "prices below are illustrative" disclaimer
+in ten `model-picker.md` files, which gate 8 had made false, and
+`make new-skill name=…` in CONTRIBUTING, which is `NAME=` and had been failing
+for anyone following the onboarding.
+
+Tests: 721 → 754.
 
 ## [2.24.0] — 2026-08-08
 

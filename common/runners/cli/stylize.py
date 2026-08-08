@@ -88,7 +88,8 @@ def _image_kwargs(args: argparse.Namespace) -> dict[str, Any] | None:
     return kwargs
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """The flags this module accepts — read by scripts/check-cli-docs.py."""
     parser = argparse.ArgumentParser(prog="common.runners.cli.stylize")
     _tool.add_common_arguments(parser, "./generated/stylized/<stem>-<style>.png")
     parser.add_argument(
@@ -104,7 +105,11 @@ def main() -> int:
         "--model", default=DEFAULT_MODEL,
         help=f"provider slug (default {DEFAULT_MODEL}); other options: nano-banana-pro, replicate-image",
     )
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> int:
+    args = build_parser().parse_args()
 
     provider = _tool.resolve_provider(args.model)
     if provider is None:

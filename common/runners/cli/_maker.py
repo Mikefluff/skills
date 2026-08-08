@@ -75,7 +75,14 @@ class _Job:
     resume: bool = False
 
 
-def _parse_args(spec: MakerSpec) -> argparse.Namespace:
+def build_parser(spec: MakerSpec) -> argparse.ArgumentParser:
+    """The maker CLI surface, separate from parsing it.
+
+    Split out so the flags can be read without running the command. Nine skills
+    document invocations of these parsers in their SKILL.md; `check-cli-docs.py`
+    compares the two, which it cannot do against a parser that only exists
+    inside a call to `parse_args`.
+    """
     parser = argparse.ArgumentParser(prog=f"common.runners.cli.{spec.module}")
     parser.add_argument(
         "--plan-file", type=Path, required=True,
@@ -87,7 +94,11 @@ def _parse_args(spec: MakerSpec) -> argparse.Namespace:
         "--cost-only", action="store_true",
         help="print the estimated total; do not generate",
     )
-    return parser.parse_args()
+    return parser
+
+
+def _parse_args(spec: MakerSpec) -> argparse.Namespace:
+    return build_parser(spec).parse_args()
 
 
 def _load_plan(plan_file: Path, schema: str) -> dict[str, Any] | None:

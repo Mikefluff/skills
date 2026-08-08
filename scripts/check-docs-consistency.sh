@@ -15,6 +15,7 @@
 #   7. Dockerfile + package.json ship every registered skill (distribution drift)
 #   8. Every price quoted in a skill doc is derivable from cost.PRICE_TABLE
 #   9. Each skills.json blurb was reconciled against the current SKILL.md text
+#  10. Every literal CLI command in the docs uses flags its parser accepts
 #
 # Usage:
 #   bash scripts/check-docs-consistency.sh
@@ -54,7 +55,7 @@ skill_dirs_on_disk() {
 
 # ── Check 1 — README table is in sync with skills.json ──────────────────────
 
-echo "[1/9] README skills table ↔ skills.json"
+echo "[1/10] README skills table ↔ skills.json"
 if python3 scripts/gen-skills-table.py --check >/dev/null 2>&1; then
   pass "README table is up to date with skills.json"
 else
@@ -65,7 +66,7 @@ echo
 
 # ── Check 2 — every disk skill folder is in skills.json ─────────────────────
 
-echo "[2/9] skill folders on disk ↔ skills.json"
+echo "[2/10] skill folders on disk ↔ skills.json"
 manifest_set=" $(skills_in_manifest | tr '\n' ' ')"
 on_disk="$(skill_dirs_on_disk)"
 disk_count="$(printf '%s\n' "$on_disk" | grep -c . || true)"
@@ -89,7 +90,7 @@ echo
 
 # ── Check 3 — walkthroughs cite only real skills ────────────────────────────
 
-echo "[3/9] docs/walkthroughs/ frontmatter ↔ skills.json"
+echo "[3/10] docs/walkthroughs/ frontmatter ↔ skills.json"
 if [ -d docs/walkthroughs ]; then
   walked=0
   for w in docs/walkthroughs/*.md; do
@@ -135,7 +136,7 @@ echo
 
 # ── Check 4 — every skill is named somewhere in USER-GUIDE.md ───────────────
 
-echo "[4/9] every skill is mentioned in docs/USER-GUIDE.md"
+echo "[4/10] every skill is mentioned in docs/USER-GUIDE.md"
 if [ -f docs/USER-GUIDE.md ]; then
   guide="$(cat docs/USER-GUIDE.md)"
   missing=""
@@ -164,7 +165,7 @@ echo
 # manually, so a skill shipping in an untagged 2.20.0 belongs under [2.20.0] —
 # scanning [Unreleased] alone would fail every such entry.
 
-echo "[5/9] new skills since last v* tag ↔ CHANGELOG (untagged sections)"
+echo "[5/10] new skills since last v* tag ↔ CHANGELOG (untagged sections)"
 last_tag="$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)"
 if [ -z "$last_tag" ]; then
   info "no v* tag yet — skipping (this check matters only after first release)"
@@ -218,7 +219,7 @@ fi
 echo
 # ── Check 6 — SKILL-INDEX.md is up to date with skills.json ─────────────────
 
-echo "[6/9] docs/SKILL-INDEX.md ↔ skills.json"
+echo "[6/10] docs/SKILL-INDEX.md ↔ skills.json"
 if [ -f scripts/gen-skill-index.py ]; then
   if python3 scripts/gen-skill-index.py --check >/dev/null 2>&1; then
     pass "SKILL-INDEX.md is up to date with skills.json"
@@ -230,7 +231,7 @@ else
 fi
 echo
 
-echo "[7/9] distribution manifests ↔ skills.json"
+echo "[7/10] distribution manifests ↔ skills.json"
 # Nothing checked this, which is how the npm package and the Docker image came
 # to ship a 17-skill v1.x subset while skills.json advertised 42 — install.sh
 # then warned about 25 missing skills inside the very artifacts meant to
@@ -289,7 +290,7 @@ echo
 # nano-banana-pro thumbnail batch advertised at $0.45 bills $1.21. Reading the
 # doc was how a user decided whether to run the batch.
 
-echo "[8/9] quoted model prices ↔ cost.PRICE_TABLE"
+echo "[8/10] quoted model prices ↔ cost.PRICE_TABLE"
 if python3 scripts/check-prices.py >/dev/null 2>&1; then
   pass "$(python3 scripts/check-prices.py | head -n1)"
 else
@@ -304,12 +305,28 @@ echo
 # What is not allowed is the catalog one going stale unnoticed, which is how
 # skills.json came to advertise "17 Claude Code skills" against 42 on disk.
 
-echo "[9/9] skills.json blurbs ↔ SKILL.md descriptions"
+echo "[9/10] skills.json blurbs ↔ SKILL.md descriptions"
 if python3 scripts/check-skill-descriptions.py >/dev/null 2>&1; then
   pass "$(python3 scripts/check-skill-descriptions.py | head -n1)"
 else
   fail "a SKILL.md description moved since its catalog blurb was written"
   python3 scripts/check-skill-descriptions.py >&2 || true
+fi
+echo
+
+# ── Check 10 — documented commands would actually run ───────────────────────
+#
+# Skill-level flags (`/logo-maker --variants 4`) are conventions Claude reads;
+# nothing can verify those. A literal `python3 -m common.runners.cli.X --flag`
+# is different — a reader copies it verbatim, and argparse answers with
+# "unrecognized arguments" rather than anything about what the doc meant.
+
+echo "[10/10] documented CLI commands ↔ argparse"
+if python3 scripts/check-cli-docs.py >/dev/null 2>&1; then
+  pass "$(python3 scripts/check-cli-docs.py | head -n1)"
+else
+  fail "a documented command passes a flag its CLI rejects"
+  python3 scripts/check-cli-docs.py >&2 || true
 fi
 echo
 

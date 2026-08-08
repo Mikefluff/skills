@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 
-from ._shared import dispatch
+from ._shared import build_parser as _build, dispatch
 
 MODELS_HINT = [
     "veo-3-1",
@@ -21,6 +21,11 @@ MODELS_HINT = [
     "sora-2",
     "sora-2-pro",
 ]
+
+
+def build_parser():
+    """The flags this module accepts — read by scripts/check-cli-docs.py."""
+    return _build("video", MODELS_HINT)
 
 
 def main() -> int:

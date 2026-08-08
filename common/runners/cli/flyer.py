@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import sys
 
-from ._maker import MakerSpec, run
+from ._maker import MakerSpec, build_parser as _build, run
 
 SPEC = MakerSpec(
     module="flyer",
@@ -48,6 +48,11 @@ SPEC = MakerSpec(
     list_files=True,
     meta_keys=("title", "subtitle", "date", "location", "cta", "lang", "style_id", "photo"),
 )
+
+
+def build_parser():
+    """The flags this module accepts — read by scripts/check-cli-docs.py."""
+    return _build(SPEC)
 
 
 def main() -> int:

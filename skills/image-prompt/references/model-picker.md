@@ -1,9 +1,10 @@
 # Model picker
 
-> Per-unit prices below are illustrative; the canonical table is
-> [`common/references/model-pricing.md`](../../../common/references/model-pricing.md),
-> generated from `common/runners/cost.py` — the same table that estimates your bill.
-> Batch figures here are that unit price times the item count.
+> Prices below are checked against
+> [`common/references/model-pricing.md`](../../../common/references/model-pricing.md)
+> by `scripts/check-prices.py`, which fails the build when a figure here stops
+> matching `common/runners/cost.py` — the table that estimates your bill. Batch
+> totals are that unit price times a count the file declares.
 
 Decision tree — given user intent, pick the right model and load the right model-file. Use this before writing any prompt.
 

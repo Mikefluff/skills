@@ -102,16 +102,26 @@ caught a `deps` entry holding a directory path.
 live `make` targets, 90-day review marker. npm is on 2.23.0 against a repo on
 2.24.0, because `make publish-npm` skipped itself on an expired login.
 
-**Still open — eight near-identical single-image orchestrators.** `flyer-maker`,
-`cover-maker`, `thumbnail-maker`, `avatar-maker`, `logo-maker`,
-`quote-card-maker`, `banner-maker`, `meme-card-maker` share a pipeline and
-differ mostly in aspect presets and a model default. This is a product decision,
-not a cleanup, so the audit left it alone. Two things it can now report: the
-Python is already shared (`common/runners/cli/*`, each `run.py` is a 25-line
-shim), and the duplication that actually costs is in the markdown — five of the
-eight carry their own `model-picker.md`, ten exist across the collection. Gate 8
-now catches the drift those files used to hide, which lowers the cost of leaving
-them split. Decide on discovery grounds, not maintenance ones.
+**Decided — the eight single-image makers stay separate.** The premise was that
+`flyer-maker`, `cover-maker`, `thumbnail-maker`, `avatar-maker`, `logo-maker`,
+`quote-card-maker`, `banner-maker` and `meme-card-maker` are near-identical.
+Measured, they are not: same-named reference files share 4–19% of their text,
+and 656 bytes of prose is duplicated verbatim across three or more of them. The
+pipeline they share is already shared, in `common/runners/cli/_maker.py`, with
+each `run.py` a 25-line shim.
+
+Merging would trade eight precise `description:` triggers for one vague enough
+to match all eight, which is how a skill stops being found. The duplication that
+did cost — price tables edited together on every vendor refresh — is now gate 8's
+problem rather than a maintainer's. Rule written up in
+[`CONTRIBUTING.md`](../CONTRIBUTING.md#adding-a-new-skill): split on routing,
+merge on defaults, extract shared *data* into `common/`.
+
+**Done — the CLI surface is introspectable, and documented commands are checked.**
+Nine maker modules built their parser inside `parse_args`, so the only way to
+learn what flags they took was to run them. Every module now exposes a zero-arg
+`build_parser()`, and gate 10 verifies the 88 literal commands in the docs
+against it. No drift today; the point is the class.
 
 **Still open — `writer/SKILL.md` is ~27 KB.** It is the base every prose skill
 loads. Check whether progressive disclosure is actually happening or whether the
