@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install install-local update list uninstall check validate smoke lint lint-all test coverage check-docs gen gen-readme gen-index gen-coverage gen-pricing install-hook install-precommit-hook new-skill bump-patch bump-minor bump-major release clean-test
+.PHONY: help install install-local update list uninstall check validate smoke lint lint-all test coverage check-docs check-prices check-descriptions freeze-descriptions gen gen-readme gen-index gen-coverage gen-pricing install-hook install-precommit-hook new-skill bump-patch bump-minor bump-major release clean-test
 
 PREFIX ?= $(HOME)/.claude/skills
 VERSION := $(shell cat VERSION 2>/dev/null || echo "?")
@@ -50,8 +50,17 @@ test: ## Run snapshot tests on fixtures (writer linter)
 coverage: ## Show which neuroslop categories lint.py detects via regex
 	python3 scripts/coverage.py
 
-check-docs: ## Verify skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs ↔ CHANGELOG
+check-docs: ## Verify skills.json ↔ README ↔ USER-GUIDE ↔ walkthroughs ↔ CHANGELOG ↔ prices
 	bash scripts/check-docs-consistency.sh
+
+check-prices: ## Verify every price quoted in a skill doc against cost.PRICE_TABLE
+	python3 scripts/check-prices.py
+
+check-descriptions: ## Verify each skills.json blurb was written against the current SKILL.md
+	python3 scripts/check-skill-descriptions.py
+
+freeze-descriptions: ## Accept the current SKILL.md descriptions (after re-reading the blurbs)
+	python3 scripts/check-skill-descriptions.py --freeze
 
 gen-readme: ## Regenerate the README skills table from skills.json (write in place)
 	python3 scripts/gen-skills-table.py --write

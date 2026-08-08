@@ -59,7 +59,9 @@ gif-maker
 
 ### What happens
 
-1. Pre-flight: `veo-3-1-fast` available (GEMINI_API_KEY present), estimated cost ~$1.20.
+<!-- prices: batch=3 -->
+
+1. Pre-flight: `veo-3-1-fast` available (GEMINI_API_KEY present), estimated cost ~$0.36 for 3s.
 2. Generate via Veo: poll-with-timeout, returns MP4.
 3. Save intermediate MP4: `./generated/gif/_source/20260521-XXXXXX-gif-source.mp4`.
 4. Center-crop to 2:1 (1080×540), trim to 3s, palette-convert.

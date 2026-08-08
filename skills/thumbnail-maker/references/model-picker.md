@@ -34,9 +34,11 @@
 
 ## Cost preview
 
+<!-- prices: batch=3,9 -->
+
 | Model | 3 placements × 1 variant | 3 × 3 variants (9 total) |
 |---|---|---|
-| nano-banana-pro | $0.15 | $0.45 |
+| nano-banana-pro | $0.40 | $1.21 |
 | gpt-image-2 (med) | $0.15-0.30 | $0.45-0.90 |
 | ideogram-3-quality | $0.24 | $0.72 |
 | flux-2-pro | $0.18 | $0.54 |

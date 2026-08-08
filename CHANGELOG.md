@@ -9,6 +9,86 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+The roadmap asked the next session to audit the structure. The audit found that
+two of the nine documentation gates had never run, and that the numbers the
+skills quote for what a run costs had drifted from the table that bills for it.
+
+### Fixed — two gates that reported green without looking at anything
+
+`check-docs-consistency.sh` check 2 globbed `*/` at the repo root for
+directories containing a `SKILL.md`. Nothing at the root has one; they all live
+under `skills/`. The loop iterated an empty list and passed, every commit since
+the move.
+
+Check 5 had the same shape: it asked git for added `*/SKILL.md` paths, then
+discarded every result containing a slash as "nested". After the move that is
+all of them, so `post-publisher` and `schema-maker` both shipped without the
+gate ever opening the CHANGELOG.
+
+Both now assert their scan found something. A gate that scans nothing prints the
+same green as a gate that scans everything, which is the only reason these
+survived two years of releases.
+
+### Fixed — thirteen prices that understated the bill
+
+`common/references/model-pricing.md` is generated from `cost.PRICE_TABLE` and so
+cannot lie. The skills quote prices somewhere else entirely — in decision tables,
+worked examples, and the sentence that says whether a batch trips the budget —
+and 153 such claims were hand-written. Thirteen were wrong:
+
+- `nano-banana-pro` advertised at $0.05 an image in `style-transfer`, billed at
+  $0.134.
+- `thumbnail-maker` quoted a nine-image batch at $0.45. It costs $1.21 — 2.7x,
+  and the doc was what a user read before deciding to run it.
+- `gif-maker` priced six video models per clip against a per-second table.
+- `logo-maker`'s $/image table had three of five rows wrong.
+- `lyria-3-clip` at $0.05, `eleven-tts` at $0.15 per 1000 characters, both stale.
+
+### Added — `scripts/check-prices.py`, gate 8
+
+A line naming a model and quoting a dollar figure is a claim about that model.
+It has to resolve to the unit price, or to the unit price times a batch size the
+file declares with `<!-- prices: batch=8 -->`. Undeclared batch totals fail,
+which is what makes the check worth running: `$0.45` and `$1.21` are both
+plausible-looking numbers, and only one of them is nine times $0.134.
+
+Fractional batches (`batch=0.5`) cover per-minute models quoted for a 30-second
+clip. `ignore` exists for pipeline totals that span three skills, and takes a
+reason after an em dash.
+
+### Added — `docs/skill-descriptions.lock.json`, gate 9
+
+Every skill describes itself twice: `SKILL.md` frontmatter is the routing
+contract Claude reads, the `skills.json` blurb is what a person browsing the
+README sees. All 43 pairs are worded independently and should stay that way —
+forcing them identical would make both worse.
+
+What must not happen is the catalog going quietly stale, which is how
+`skills.json` came to advertise "17 Claude Code skills" against 42 on disk. The
+lock records the description each blurb was written against; when that text
+moves, the failure prints the old wording, the new wording, and the blurb that
+now contradicts it, so re-freezing is a decision rather than a keystroke.
+
+### Added — `docs/skills.schema.json`
+
+Line 2 of `skills.json` has always pointed at this file. It 404'd. Nothing
+validated the manifest, which is how a `deps` entry came to hold a directory
+path and how `layer` and `tags` grew their vocabularies by accident. The schema
+is now real, and `test_skills_manifest.py` validates against it with a
+stdlib-only checker — depending on `jsonschema` would mean skipping in CI, and a
+gate that skips is the thing this release removed.
+
+### Added — a dated marker on the distribution table
+
+`docs/distribution.md` closed by predicting that its hand-maintained status
+column would rot and prescribing the fix. It rotted first: the npm row read
+"published" while the registry sat a release behind, because the row recorded
+that `make release` had been wired to `make publish-npm`, not that an upload had
+happened. Statuses now come from a four-word vocabulary, routes must name live
+`make` targets, and the review goes stale after 90 days.
+
+Tests: 721 → 745.
+
 ## [2.24.0] — 2026-08-08
 
 The collection could make content and post it to social platforms. It could not

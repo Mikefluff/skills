@@ -13,6 +13,8 @@
 #      CHANGELOG.md [Unreleased]
 #   6. docs/SKILL-INDEX.md is up to date with skills.json (auto-generated)
 #   7. Dockerfile + package.json ship every registered skill (distribution drift)
+#   8. Every price quoted in a skill doc is derivable from cost.PRICE_TABLE
+#   9. Each skills.json blurb was reconciled against the current SKILL.md text
 #
 # Usage:
 #   bash scripts/check-docs-consistency.sh
@@ -36,18 +38,23 @@ skills_in_manifest() {
   python3 -c "import json; [print(s['name']) for s in json.load(open('skills.json'))['skills']]"
 }
 
+# Skills live in skills/. This used to glob `*/` at the repo root, which matches
+# bin, docs, scripts and nothing with a SKILL.md in it — so check 2 iterated an
+# empty list and passed for every commit since the skills/ move. A gate that
+# scans nothing reports the same green as a gate that scans everything, which is
+# why the count is asserted below rather than trusted.
 skill_dirs_on_disk() {
-  for d in */; do
+  for d in skills/*/; do
     name="${d%/}"
     if [ -f "$name/SKILL.md" ]; then
-      echo "$name"
+      basename "$name"
     fi
   done
 }
 
 # ── Check 1 — README table is in sync with skills.json ──────────────────────
 
-echo "[1/7] README skills table ↔ skills.json"
+echo "[1/9] README skills table ↔ skills.json"
 if python3 scripts/gen-skills-table.py --check >/dev/null 2>&1; then
   pass "README table is up to date with skills.json"
 else
@@ -58,17 +65,21 @@ echo
 
 # ── Check 2 — every disk skill folder is in skills.json ─────────────────────
 
-echo "[2/7] skill folders on disk ↔ skills.json"
+echo "[2/9] skill folders on disk ↔ skills.json"
 manifest_set=" $(skills_in_manifest | tr '\n' ' ')"
+on_disk="$(skill_dirs_on_disk)"
+disk_count="$(printf '%s\n' "$on_disk" | grep -c . || true)"
 unregistered=""
-for dir in $(skill_dirs_on_disk); do
+for dir in $on_disk; do
   case "$manifest_set" in
     *" $dir "*) ;;
     *) unregistered="$unregistered $dir" ;;
   esac
 done
-if [ -z "$unregistered" ]; then
-  pass "all skill folders are registered in skills.json"
+if [ "$disk_count" -lt 2 ]; then
+  fail "found $disk_count skill folders on disk — the scan is broken, not the repo"
+elif [ -z "$unregistered" ]; then
+  pass "all $disk_count skill folders are registered in skills.json"
 else
   for d in $unregistered; do
     fail "skill folder $d/ has SKILL.md but is NOT in skills.json"
@@ -78,7 +89,7 @@ echo
 
 # ── Check 3 — walkthroughs cite only real skills ────────────────────────────
 
-echo "[3/7] docs/walkthroughs/ frontmatter ↔ skills.json"
+echo "[3/9] docs/walkthroughs/ frontmatter ↔ skills.json"
 if [ -d docs/walkthroughs ]; then
   walked=0
   for w in docs/walkthroughs/*.md; do
@@ -124,7 +135,7 @@ echo
 
 # ── Check 4 — every skill is named somewhere in USER-GUIDE.md ───────────────
 
-echo "[4/7] every skill is mentioned in docs/USER-GUIDE.md"
+echo "[4/9] every skill is mentioned in docs/USER-GUIDE.md"
 if [ -f docs/USER-GUIDE.md ]; then
   guide="$(cat docs/USER-GUIDE.md)"
   missing=""
@@ -153,27 +164,30 @@ echo
 # manually, so a skill shipping in an untagged 2.20.0 belongs under [2.20.0] —
 # scanning [Unreleased] alone would fail every such entry.
 
-echo "[5/7] new skills since last v* tag ↔ CHANGELOG (untagged sections)"
+echo "[5/9] new skills since last v* tag ↔ CHANGELOG (untagged sections)"
 last_tag="$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)"
 if [ -z "$last_tag" ]; then
   info "no v* tag yet — skipping (this check matters only after first release)"
 else
-  # Find skill folders added since last_tag (paths matching */SKILL.md)
-  new_skill_paths="$(git diff --name-only --diff-filter=A "$last_tag"..HEAD -- '*/SKILL.md' 2>/dev/null || true)"
+  # Only skills/<name>/SKILL.md counts. The old pattern kept any */SKILL.md and
+  # then discarded every path containing a slash as "nested" — which, after the
+  # move into skills/, is all of them. post-publisher and schema-maker both
+  # shipped through this gate without it ever looking at the CHANGELOG.
+  new_skill_paths="$(git diff --name-only --diff-filter=A "$last_tag"..HEAD -- 'skills/*/SKILL.md' 2>/dev/null || true)"
   new_skills=""
   for path in $new_skill_paths; do
     case "$path" in
-      */SKILL.md)
+      skills/*/SKILL.md)
         dir="${path%/SKILL.md}"
-        # Only count top-level skill folders (no nested SKILL.md)
-        case "$dir" in
-          */*) ;;  # nested — skip
-          *)   new_skills="$new_skills $dir" ;;
-        esac
+        new_skills="$new_skills ${dir#skills/}"
         ;;
     esac
   done
-  if [ -z "$new_skills" ]; then
+  # Same trap as check 2: "no new skills" and "the pattern matches nothing" print
+  # identically. If the layout moves again, say so instead of staying quiet.
+  if [ ! -f "$(printf '%s\n' skills/*/SKILL.md | head -n1)" ]; then
+    fail "pattern skills/*/SKILL.md matches nothing on disk — the scan is broken"
+  elif [ -z "$new_skills" ]; then
     info "no new skills added since $last_tag"
   else
     # Capture from the top of the changelog down to (and excluding) the section
@@ -204,7 +218,7 @@ fi
 echo
 # ── Check 6 — SKILL-INDEX.md is up to date with skills.json ─────────────────
 
-echo "[6/7] docs/SKILL-INDEX.md ↔ skills.json"
+echo "[6/9] docs/SKILL-INDEX.md ↔ skills.json"
 if [ -f scripts/gen-skill-index.py ]; then
   if python3 scripts/gen-skill-index.py --check >/dev/null 2>&1; then
     pass "SKILL-INDEX.md is up to date with skills.json"
@@ -216,7 +230,7 @@ else
 fi
 echo
 
-echo "[7/7] distribution manifests ↔ skills.json"
+echo "[7/9] distribution manifests ↔ skills.json"
 # Nothing checked this, which is how the npm package and the Docker image came
 # to ship a 17-skill v1.x subset while skills.json advertised 42 — install.sh
 # then warned about 25 missing skills inside the very artifacts meant to
@@ -265,6 +279,37 @@ print(f"  ✓ Dockerfile + package.json ship skills/ + common/ ({len(registered)
 GATE7
 then
   fail "distribution manifests out of sync with skills.json"
+fi
+echo
+
+# ── Check 8 — quoted prices are derivable from the billing table ────────────
+#
+# model-pricing.md is generated and therefore true. The skills quote prices in
+# prose and in decision tables, and thirteen of those had gone stale — a
+# nano-banana-pro thumbnail batch advertised at $0.45 bills $1.21. Reading the
+# doc was how a user decided whether to run the batch.
+
+echo "[8/9] quoted model prices ↔ cost.PRICE_TABLE"
+if python3 scripts/check-prices.py >/dev/null 2>&1; then
+  pass "$(python3 scripts/check-prices.py | head -n1)"
+else
+  fail "price claims contradict cost.PRICE_TABLE"
+  python3 scripts/check-prices.py >&2 || true
+fi
+echo
+
+# ── Check 9 — catalog blurbs were written against the current SKILL.md ───────
+#
+# The two descriptions are deliberately different texts for different readers.
+# What is not allowed is the catalog one going stale unnoticed, which is how
+# skills.json came to advertise "17 Claude Code skills" against 42 on disk.
+
+echo "[9/9] skills.json blurbs ↔ SKILL.md descriptions"
+if python3 scripts/check-skill-descriptions.py >/dev/null 2>&1; then
+  pass "$(python3 scripts/check-skill-descriptions.py | head -n1)"
+else
+  fail "a SKILL.md description moved since its catalog blurb was written"
+  python3 scripts/check-skill-descriptions.py >&2 || true
 fi
 echo
 

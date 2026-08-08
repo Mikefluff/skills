@@ -126,7 +126,9 @@ Alternative for 4+ captions: switch to `carousel-builder --slides 4 --style mono
 
 ## Cost is higher than expected
 
-3 variants × `gpt-image-2` (medium) ($0.04) = $0.12 per batch. Reasonable.
+<!-- prices: batch=3 -->
+
+3 variants × `gpt-image-2` (medium) ($0.05) = $0.15 per batch. Reasonable.
 
 For exploration: lower variant count or use `--cost-only` first.
 

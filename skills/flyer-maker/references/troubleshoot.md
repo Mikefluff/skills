@@ -104,6 +104,8 @@ When the flyer doesn't come out right.
 
 ## Cost confirmation triggered for what feels small
 
+<!-- prices: batch=3 -->
+
 **Symptom**: 3-aspect run at `ideogram-3-quality` = $0.24. User expects no prompt but gets one.
 
 **Cause**: Default budget is `SKILLS_CAROUSEL_BUDGET=$1.50` (flyer shares the carousel budget). $0.24 is well under — no prompt.

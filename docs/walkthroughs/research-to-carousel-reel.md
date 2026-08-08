@@ -175,7 +175,7 @@ Time: 2-3 minutes.
 If you want cheaper:
 > reel-builder --research <path> --video-provider veo-3-1-fast --music-provider stable-audio-2-5 --execute
 
-Cost drops to ~$2.30.
+Cost drops to ~$1.90 (15s × $0.12 + music).
 
 If you want longer:
 > reel-builder --research <path> --shots 4 --shot-duration 5 --execute
@@ -232,7 +232,10 @@ Total wall time: ~6-10 minutes for one topic → one brief → one carousel + on
 
 Total cost (with the defaults above): $6.50 ($0 + $0.48 + $6.03).
 
-Cheaper variant (--video-provider veo-3-1-fast --music-provider stable-audio-2-5): ~$2.80.
+<!-- prices: ignore — a pipeline total across three skills, not one model's rate -->
+
+Cheaper variant (--video-provider veo-3-1-fast --music-provider stable-audio-2-5): ~$2.40
+— $0.48 of carousel plus $1.90 of reel.
 
 The three skills compose: each output is the next input. Research is the upstream feeder. Carousel and reel are sibling outputs from the same research.
 

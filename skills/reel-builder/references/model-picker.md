@@ -112,6 +112,8 @@ If user passes `--video-provider <slug>` explicitly: override the tree, validate
 
 ## Music capability matrix
 
+<!-- prices: batch=0.5 -->
+
 | Slug | Provider | Max duration | Vocals | Instrumental | Exclude-styles | Cost per song | Latency | Notes |
 |---|---|---|---|---|---|---|---|---|
 | `suno-v5-5` | Suno (gateway) | ~4 min | excellent | yes | no | $0.10 | 30-60s | Two-box; English-strong; needs SUNO_API_URL — no official API |

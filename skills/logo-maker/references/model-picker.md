@@ -70,14 +70,18 @@ Do NOT use for logos:
 
 ---
 
-## Cost guide (approximate, May 2026)
+## Cost guide
+
+Prices from `common/runners/cost.py`; timings are observed medians.
 
 | Model | $/image | Speed |
 |---|---|---|
 | `ideogram-3-quality` | $0.08 | ~20s |
-| `ideogram-3-turbo` | $0.03 | ~5s |
-| `gpt-image-2` (low) | $0.04 | ~10s |
-| `gpt-image-2` (high) | $0.19 | ~25s |
-| `flux-2-pro` | $0.05 | ~15s |
+| `ideogram-3-turbo` | $0.02 | ~5s |
+| `gpt-image-2` (low) | $0.02 | ~10s |
+| `gpt-image-2` (high) | $0.10 | ~25s |
+| `flux-2-pro` | $0.06 | ~15s |
+
+<!-- prices: batch=4 -->
 
 Default batch of 4 variants × ideogram-3-quality ≈ $0.32. Well under the $1.50 carousel budget cap.

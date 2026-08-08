@@ -71,6 +71,8 @@ Fallbacks (in order):
 
 ## Cost preview by run shape
 
+<!-- prices: batch=3,5,9 -->
+
 | Aspects × variants | Model | Total |
 |---|---|---|
 | 1 × 3 (default) | nano-banana-pro | $0.40 |

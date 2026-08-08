@@ -4,7 +4,7 @@ Identified gaps where the collection is functional but UX-painful. Tracked here 
 
 Not all of these will be built. They're sorted by user-likely-to-want vs. effort, with notes on what could ship as a skill vs. what's better left as a one-liner in `image-prompt --execute` / `video-prompt --execute`.
 
-Last updated: 2026-08-03 (post v2.22.0).
+Last updated: 2026-08-08 (post v2.24.0, structural audit unreleased).
 
 ---
 
@@ -75,40 +75,57 @@ vendor docs, which is the whole point of the marker.
 
 ### Job 2 — audit the structure
 
-Specific smells observed while working, not a generic "review the code":
+Done in the unreleased section. What the audit actually found, and what it left:
 
-**Two sources of truth for skill descriptions.** `skills.json` is hand-maintained
-and restates every SKILL.md `description:`. They already drift — `skills.json`
-carried "17 Claude Code skills" long after there were 42. Either generate one
-from the other or add a parity test.
+**Done — two gates had never run.** `check-docs-consistency.sh` checks 2 and 5
+both scanned the pre-`skills/` layout and matched nothing, so they passed by
+looking at an empty list. `post-publisher` and `schema-maker` shipped through
+check 5 without it opening the CHANGELOG. Both now assert their scan found
+something, which is the general lesson: a gate that scans nothing prints the
+same green as a gate that scans everything.
 
-**Eight near-identical single-image orchestrators.** `flyer-maker`, `cover-maker`,
-`thumbnail-maker`, `avatar-maker`, `logo-maker`, `quote-card-maker`,
-`banner-maker`, `meme-card-maker` share a pipeline and differ mostly in aspect
-presets and a model default. This roadmap flagged the risk when `cover-maker`
-was proposed ("could be merged into one skill with `--type`") and shipped seven
-more anyway. Worth deciding deliberately: is the duplication buying discovery,
-or is it now maintenance debt spread across eight `model-picker.md` files that
-have to be updated together every time a vendor moves? The last model refresh
-touched all of them.
+**Done — prices in the docs contradicted the billing table.** Thirteen of 153
+hand-written price claims were wrong, understating a batch by up to 2.7x.
+`scripts/check-prices.py` is gate 8; batch arithmetic is declared per file with
+`<!-- prices: batch=N -->`.
 
-**Hand-maintained status columns rot.** `docs/distribution.md` tracks submission
-state by hand. That is exactly how the npm version reached 1.9.0. If it is not
-being updated, apply the pattern that worked: a dated marker and a test.
+**Done — the two description sources.** Not merged: they address different
+readers and forcing parity would make both worse. `docs/skill-descriptions.lock.json`
+records the SKILL.md text each catalog blurb was written against, and gate 9
+fails when it moves, printing all three texts.
 
-**`writer/SKILL.md` is ~27 KB.** It is the base every prose skill loads. Check
-whether progressive disclosure is actually happening or whether the body should
-move into `references/`.
+**Done — `skills.json` pointed at a schema that 404'd.** `docs/skills.schema.json`
+now exists and `test_skills_manifest.py` validates against it, stdlib-only. It
+caught a `deps` entry holding a directory path.
 
-**No round-trip test for any publisher.** 721 tests, all offline. Nothing proves
-a publisher's request body is what the vendor accepts — the two live bugs found
-in ElevenLabs (wrong duration field, dropped lyrics) were caught by reading
-docs, not by the suite. Consider recorded-fixture tests against real response
-shapes.
+**Done — the distribution table.** Four-word status vocabulary, routes must name
+live `make` targets, 90-day review marker. npm is on 2.23.0 against a repo on
+2.24.0, because `make publish-npm` skipped itself on an expired login.
 
-**`common/runners/` is 30+ modules.** Check the layering still reads: providers,
-publishers, CLI, and now `syndication` / `directories` / `staticblog` / `schema_ld`
-sitting at top level next to `cost` and `config`.
+**Still open — eight near-identical single-image orchestrators.** `flyer-maker`,
+`cover-maker`, `thumbnail-maker`, `avatar-maker`, `logo-maker`,
+`quote-card-maker`, `banner-maker`, `meme-card-maker` share a pipeline and
+differ mostly in aspect presets and a model default. This is a product decision,
+not a cleanup, so the audit left it alone. Two things it can now report: the
+Python is already shared (`common/runners/cli/*`, each `run.py` is a 25-line
+shim), and the duplication that actually costs is in the markdown — five of the
+eight carry their own `model-picker.md`, ten exist across the collection. Gate 8
+now catches the drift those files used to hide, which lowers the cost of leaving
+them split. Decide on discovery grounds, not maintenance ones.
+
+**Still open — `writer/SKILL.md` is ~27 KB.** It is the base every prose skill
+loads. Check whether progressive disclosure is actually happening or whether the
+body should move into `references/`.
+
+**Still open — no round-trip test for any publisher.** 745 tests, all offline.
+Nothing proves a publisher's request body is what the vendor accepts — the two
+live bugs found in ElevenLabs (wrong duration field, dropped lyrics) were caught
+by reading docs, not by the suite. Consider recorded-fixture tests against real
+response shapes.
+
+**Still open — `common/runners/` is 30+ modules.** Check the layering still
+reads: providers, publishers, CLI, and now `syndication` / `directories` /
+`staticblog` / `schema_ld` sitting at top level next to `cost` and `config`.
 
 ---
 

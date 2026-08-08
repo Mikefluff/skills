@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Mikefluff/skills/main/docs/skills.schema.json",
+  "title": "Mikefluff/skills collection manifest",
+  "description": "The shape of skills.json. Line 2 of that file has always pointed here; until v2.25.0 the URL 404'd, so no editor could validate the manifest it claimed to describe.",
+  "type": "object",
+  "required": ["collection", "version", "repo", "license", "skills"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "collection": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "repo": { "type": "string", "pattern": "^https://" },
+    "license": { "type": "string", "minLength": 1 },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/skill" }
+    }
+  },
+  "$defs": {
+    "skill": {
+      "type": "object",
+      "required": ["name", "dir", "layer", "description", "languages", "tags"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Matches the directory name and the SKILL.md frontmatter name."
+        },
+        "dir": {
+          "type": "string",
+          "pattern": "^skills/[a-z][a-z0-9-]*$",
+          "description": "Everything under skills/ is what Dockerfile and package.json ship."
+        },
+        "layer": {
+          "type": "string",
+          "enum": ["base", "wrapper", "orchestrator", "linter", "meta"],
+          "description": "base writes prose; wrapper adds one domain on top of it; orchestrator drives several skills or the execute layer; linter only reports; meta manages the collection itself."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20,
+          "description": "The catalog blurb, rendered into the README table and SKILL-INDEX. Deliberately not the SKILL.md description, which addresses a model rather than a reader — docs/skill-descriptions.lock.json is what keeps the two from silently disagreeing."
+        },
+        "languages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["en", "ru", "pt-br"] }
+        },
+        "tags": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "audio",
+              "audit",
+              "editing",
+              "fiction",
+              "generation",
+              "marketing",
+              "non-fiction",
+              "ops",
+              "orchestration",
+              "outreach",
+              "product",
+              "research",
+              "social",
+              "tech-docs",
+              "translation",
+              "ux-copy",
+              "visual"
+            ]
+          }
+        },
+        "deps": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string" },
+          "description": "What this skill loads at runtime: the name of another registered skill, or a repo-relative path to shared data such as common/visual-prompt-library/styles."
+        }
+      }
+    }
+  }
+}

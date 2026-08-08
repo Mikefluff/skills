@@ -102,13 +102,15 @@ python3 ~/.claude/skills/video-prompt/scripts/run.py \
   --yes
 ```
 
+<!-- prices: batch=8 -->
+
 ```
-Calling veo-3-1-fast (est cost $1.2000)...
+Calling veo-3-1-fast (est cost $0.9600)...
   job operations/... queued, polling.......... done (47.3s)
 ./generated/video/20260521-130200-veo-3-1-fast.mp4
 ```
 
-Cost: 8s × $0.15 ≈ $1.20 (Fast tier; Standard is $0.40/sec).
+Cost: 8s × $0.12 = $0.96 (Fast tier; Standard is $0.40/sec, so $3.20).
 
 **Long-poll behaviour**: dots printed to stderr while waiting. Default timeout 600s; override `--timeout 1200` for the full tier.
 

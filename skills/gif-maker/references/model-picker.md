@@ -78,17 +78,19 @@ OpenAI Sora 2 — currently behind feature flag `SORA_ENABLED=1`.
 
 ## Cost guide (Mode B)
 
-Approximate, May 2026.
+From `common/runners/cost.py` — the table the pre-flight estimate uses.
+
+<!-- prices: batch=3 -->
 
 | Provider | Per-second cost | 3-sec total |
 |---|---|---|
-| `veo-3-1-fast` | $0.40 | $1.20 |
-| `veo-3-1` | $0.50 | $1.50 |
-| `kling-3` | $0.50 | $1.50 |
-| `fal-video` (varies) | $0.20-0.60 | $0.60-1.80 |
-| `gen-4-turbo` | $1.00 | $3.00 |
-| `sora-2` | $1.00 | $3.00 |
-| `sora-2-pro` | $2.00 | $6.00 |
+| `veo-3-1-fast` | $0.12 | $0.36 |
+| `veo-3-1` | $0.40 | $1.20 |
+| `kling-3` | $0.12 | $0.36 |
+| `fal-video` (varies) | $0.15 median | $0.45 |
+| `gen-4-turbo` | $0.05 | $0.15 |
+| `sora-2` | $0.10 | $0.30 |
+| `sora-2-pro` | $0.50 | $1.50 |
 
 For exploratory work: `veo-3-1-fast`. For shipping: `kling-3` or `veo-3-1`.
 

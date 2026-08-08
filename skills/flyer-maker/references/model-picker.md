@@ -79,6 +79,8 @@ Updated 2026-08.
 
 ### Cost preview by aspect count
 
+<!-- prices: batch=3,5 -->
+
 | Model | 3 aspects (default) | 5 aspects (full set) |
 |---|---|---|
 | flux-schnell | $0.009 | $0.015 |

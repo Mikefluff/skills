@@ -92,7 +92,7 @@ Specific Replicate model needed (InstantID, PhotoMaker, etc.)
 | Model | $/image | Speed |
 |---|---|---|
 | flux-kontext | $0.05 | ~10s |
-| nano-banana-pro | $0.05 | ~20s |
+| nano-banana-pro | $0.134 | ~20s |
 | replicate-image (varies) | $0.01-0.05 | ~20-40s |
 
 ---

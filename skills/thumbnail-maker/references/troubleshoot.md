@@ -106,7 +106,9 @@ If the output has exaggerated shock expression you didn't ask for:
 
 ## Cost is higher than expected
 
-3 placements × 3 variants = 9 images. At nano-banana-pro = $0.45.
+<!-- prices: batch=9 -->
+
+3 placements × 3 variants = 9 images. At nano-banana-pro = $1.21.
 
 That's still under default $1.50 budget. If you're seeing confirmations:
 

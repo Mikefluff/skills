@@ -70,7 +70,9 @@ logo-maker
 
 ### Notes
 
-- 6 variants × gpt-image-2 (medium) ≈ $0.42.
+<!-- prices: batch=6 -->
+
+- 6 variants × gpt-image-2 (medium) ≈ $0.30.
 - Mascot logos REQUIRE selection — first run usually has 1-2 that "click", 4-5 that don't. Generate more variants than you think you need.
 
 ---

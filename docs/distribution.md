@@ -30,17 +30,29 @@ different reasons and should not be confused.
 
 ## The map
 
+Last reviewed: 2026-08-08. `tests/unit/test_distribution.py` fails 90 days after
+that date — the point is to re-check the statuses against the actual listings,
+not to move the line.
+
+Status is one of `listed`, `submitted`, `drafted`, `not submitted`. Anything else
+fails the same test, because a free-text column is how the npm row came to say
+"published" through a release that never uploaded.
+
 | Directory | Link | Route | Status |
 |---|---|---|---|
-| npm registry | dofollow | `make publish-npm` | **published, was 14 minors stale** |
+| npm registry | dofollow | `make publish-npm` | listed |
 | Anthropic community plugin directory | dofollow | form at clau.de | not submitted |
-| awesome-claude-code | dofollow | issue form, by hand | copy written, not submitted |
+| awesome-claude-code | dofollow | issue form, by hand | drafted |
 | travisvn/awesome-claude-skills | dofollow | pull request | not submitted |
 | claudemarketplaces.com | unknown | site form | not submitted |
 | aitmpl.com | unknown | site form | not submitted |
 | AlternativeTo | dofollow | add-software form | not submitted |
 | SourceForge | dofollow | project + GitHub mirror | not submitted |
 | Product Hunt | nofollow | scheduled launch | not submitted |
+
+`listed` for npm means the package is on the registry, not that it is current:
+the upload runs at release time and skips itself when `npm login` has expired,
+which is what left v2.24.0 on disk and 2.23.0 on the registry.
 
 ---
 
@@ -102,7 +114,13 @@ that rebuilds it per release.
 
 ## Keeping it honest
 
-The status column above is maintained by hand and will rot the same way the npm
-version did. When a submission goes out, update the row. If that turns out not
-to happen, the fix is the same one used for model ids: a dated marker and a test
-that fails when it goes stale.
+The status column above is maintained by hand, and it rotted exactly as this
+section predicted: the npm row read "published" while the registry sat a release
+behind, because the row was written when the target was fixed rather than when an
+upload succeeded.
+
+So it now carries the same guard as the model ids — a dated marker and a test.
+`tests/unit/test_distribution.py` checks three things offline: the review date is
+under 90 days old, every status comes from the four-word vocabulary, and every
+`make` route named in the table is a target that still exists. What it cannot
+check is whether a listing is real; that is what the 90-day prompt is for.

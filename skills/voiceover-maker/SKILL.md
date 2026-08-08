@@ -106,7 +106,7 @@ See [examples/before-after.md](examples/before-after.md) — 3 calibration runs:
 
 - **Cost per character**, not per call:
   - OpenAI gpt-4o-mini-tts: ~$0.015/minute spoken (very cheap)
-  - ElevenLabs eleven-tts: ~$0.15/1000 chars (~$0.30 per minute)
+  - ElevenLabs eleven-tts: $0.12/1000 chars (~$0.11 per spoken minute at 150 wpm)
   - Pick OpenAI for iteration; Eleven for final / multilingual / brand voice.
 
 - **Multilingual: use Eleven.** OpenAI handles RU / DE / FR / etc. but accent is off. Eleven multilingual_v2 is the right pick for non-English work.

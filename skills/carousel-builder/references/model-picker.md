@@ -78,6 +78,8 @@ For Schnell / router-based models: pass `--seed <int>` if your --style-mod can i
 
 8-slide carousel:
 
+<!-- prices: batch=8 -->
+
 | Model | Approx total |
 |---|---|
 | flux-schnell | $0.024 |
@@ -95,8 +97,9 @@ For Schnell / router-based models: pass `--seed <int>` if your --style-mod can i
 `SKILLS_CAROUSEL_BUDGET` default cap: $1.50. Beyond that → warn + require `--yes` to proceed.
 
 Google's tiers got a lot more expensive when Imagen retired and Gemini took over.
-An 8-slide run on `nano-banana-pro` now lands at $1.07 — still inside the cap, but
-a 4K run doubles to $1.92 and will trip it. Iterate on `nano-banana-2-lite`.
+An 8-slide run on `nano-banana-pro` now lands at $1.07 — still inside the cap.
+The same eight slides at 4K bill `nano-banana-pro` at $1.92 and trip it.
+Iterate on the lite tier, then re-run the keeper at full quality.
 
 ---
 

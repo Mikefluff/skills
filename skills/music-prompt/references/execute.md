@@ -39,6 +39,8 @@ python3 ~/.claude/skills/music-prompt/scripts/run.py --list-providers
 
 ## Provider matrix
 
+<!-- prices: batch=0.5,3 -->
+
 | Slug | Vendor | Env var(s) | Max length | Est cost/song | Notes |
 |---|---|---|---|---|---|
 | `suno-v5-5` | Suno (gateway) | `SUNO_API_KEY` + `SUNO_API_ENABLED=1` + `SUNO_API_URL` | ~4 min default, ~8 min Pro | $0.10 | **No official API** — needs a gateway URL. Pass Style box via `--prompt`, Lyrics box via `--lyrics` or `--lyrics-file`. Brackets in Lyrics box only. `--instrumental` flips lyrics-off. |

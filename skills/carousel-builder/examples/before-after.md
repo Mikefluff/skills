@@ -116,7 +116,9 @@
 
 3. `--style bauhaus-primary` + `--style-ref <image>` BOTH passed. Style anchor (carousel) loaded for text. User's mood-board attached as reference image to every Nano Banana Pro call.
 
-4. `--model nano-banana-pro` — supports multi-ref. 10 × $0.05 = $0.50.
+<!-- prices: batch=10 -->
+
+4. `--model nano-banana-pro` — supports multi-ref. 10 × $0.134 = $1.34.
 
 5. `--platform tiktok` → aspect 9:16 (1080×1920).
 

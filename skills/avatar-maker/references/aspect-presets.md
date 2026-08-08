@@ -88,7 +88,9 @@ Default `--variants 3` is the sweet spot.
 - `--variants 5`: when identity-preserve is shaky (style transfer fighting identity) — more takes give more chances at a "yes that's me" shot.
 - `--variants 10+`: probably over-spending. Iterate on prompt / style instead.
 
-If `--aspects square,cover --variants 3`: total is 6 images, $0.30 at nano-banana-pro.
+<!-- prices: batch=6 -->
+
+If `--aspects square,cover --variants 3`: total is 6 images, $0.80 at nano-banana-pro.
 
 ---
 

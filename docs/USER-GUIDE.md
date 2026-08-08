@@ -414,7 +414,7 @@ Outputs `./generated/carousel/<slug>/`:
 
 Default cost: $0.32-0.80 per 8-slide carousel depending on model. Budget cap: `SKILLS_CAROUSEL_BUDGET=1.50` (override).
 
-**Animate it** (v2.19.0+): add `--animate` and the deck continues into an animated reel — each slide becomes a 4s image-to-video shot (subtle character micro-gesture, all overlay text frozen via the video-chain discipline), ffmpeg-stitched into one final.mp4. `--animate-provider veo-3-1-fast` (default, $0.15/s) or `veo-3-1` for publication-grade text stability. 5 slides × 4s ≈ $3.00 on Fast. The motion prompts are written by the shared [video chain](../common/video-prompt-library/system-prompt.md) — not by hand.
+**Animate it** (v2.19.0+): add `--animate` and the deck continues into an animated reel — each slide becomes a 4s image-to-video shot (subtle character micro-gesture, all overlay text frozen via the video-chain discipline), ffmpeg-stitched into one final.mp4. `--animate-provider veo-3-1-fast` (default, $0.12/s) or `veo-3-1` for publication-grade text stability. 5 slides × 4s ≈ $2.40 on Fast. The motion prompts are written by the shared [video chain](../common/video-prompt-library/system-prompt.md) — not by hand.
 
 For details: [skills/carousel-builder/SKILL.md](../skills/carousel-builder/SKILL.md) and [research-to-carousel-reel](walkthroughs/research-to-carousel-reel.md).
 
@@ -503,7 +503,7 @@ For details: [skills/avatar-maker/SKILL.md](../skills/avatar-maker/SKILL.md) · 
 Auto-pick:
 
 - English short-form → `gpt-4o-mini-tts` (cheap: ~$0.015/min)
-- Multilingual or long-form (>2 min) → `eleven-tts` (~$0.30/min)
+- Multilingual or long-form (>2 min) → `eleven-tts` ($0.12 per 1000 chars, ~$0.11/min)
 - Brand voice consistency across episodes → `eleven-tts --voice-id <stable-id>`
 
 Outputs `./generated/audio/<timestamp>-<model>.mp3`. Cost preview built in; confirmation past $0.10.
