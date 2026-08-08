@@ -6,6 +6,21 @@
 > matching `common/runners/cost.py` — the table that estimates your bill. Batch
 > totals are that unit price times a count the file declares.
 
+## Ideogram 4 is available as of 2026-08-08
+
+`ideogram-4-turbo` / `ideogram-4` / `ideogram-4-quality` ($0.03 / $0.06 / $0.10)
+call the v4 endpoint. Native 2K, and the current best typography Ideogram ships —
+prefer `ideogram-4-quality` over `ideogram-3-quality` when legible text *is* the
+job and the extra cent per image is irrelevant.
+
+The v3 tiers stay the default here rather than flipping silently: they are what
+every worked example in this skill was calibrated against. Pass `--model
+ideogram-4-quality` to opt in.
+
+`ideogram-3-flash` remains the cheapest tier — v4 has no FLASH speed yet.
+
+---
+
 ---
 
 ## Decision tree
@@ -41,7 +56,7 @@
 |---|---|---|
 | nano-banana-pro | $0.40 | $1.21 |
 | gpt-image-2 (med) | $0.15-0.30 | $0.45-0.90 |
-| ideogram-3-quality | $0.24 | $0.72 |
+| ideogram-3-quality | $0.27 | $0.81 |
 | flux-2-pro | $0.18 | $0.54 |
 
 All under default $1.50 budget.

@@ -155,7 +155,36 @@ test and would have disabled photo generation without printing anything.
 `styles*` and `typography*` stay flat: shared infrastructure rather than one
 skill's guts, with `styles.py` already acting as a facade over the other two.
 
-Tests: 721 → 769.
+### Fixed — every Ideogram v3 tier was priced under what the vendor charges
+
+`ideogram-3-turbo` was carrying $0.02 against a published $0.03, `ideogram-3`
+$0.04 against $0.06, `ideogram-3-quality` $0.08 against $0.09. `cost.py` says of
+itself that actual cost "may come in slightly lower; it should never come in
+higher" — this was the one direction it is not allowed to be wrong in, on the
+default path of `logo-maker`, whose whole premise is Ideogram's typography.
+
+Re-read from ideogram.ai/api-pricing on 2026-08-08 and corrected. Gate 8 then
+pulled twenty-six documented figures along with it, which is what it is for.
+
+### Added — Ideogram 4
+
+The endpoint the roadmap was waiting for exists: `ideogram-4-turbo` /
+`ideogram-4` / `ideogram-4-quality` at $0.03 / $0.06 / $0.10, posting to
+`/v1/ideogram-v4/generate` with `rendering_speed` ∈ {TURBO, DEFAULT, QUALITY}.
+
+The prompt field is `text_prompt`, where v3 takes `prompt`. Both the path and
+the field name are pinned in tests, because the failure is quiet: a v4 slug sent
+to the v3 path returns a perfectly good image, from the model nobody asked for,
+billed at the other rate. `rendering_speed=FLASH` returns 400 on v4 today, so
+`ideogram-3-flash` stays the cheapest tier and stays on v3.
+
+Defaults did not move. The pickers name v4 and say when to prefer it; flipping
+`logo-maker` to it would change what every existing user pays and gets, and that
+needs a side-by-side generation to justify, not a changelog entry. The other half
+of the roadmap's Ideogram item — sending `json_prompt` instead of flattening
+layout into prose — is untouched and is the larger piece.
+
+Tests: 721 → 777.
 
 ## [2.24.0] — 2026-08-08
 

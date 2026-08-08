@@ -156,10 +156,10 @@ Or, for a unified series, use carousel-builder with multiple slides — each sli
 
 ## Cost is higher than expected
 
-3 aspects × ideogram-3-quality ($0.08) = $0.24 per quote. If you're running batches:
+3 aspects × ideogram-3-quality ($0.09) = $0.27 per quote. If you're running batches:
 
-- Single variant per aspect: ~$0.24 per quote
-- 3 variants per aspect across 3 aspects: ~$0.72 per quote
+- Single variant per aspect: ~$0.27 per quote
+- 3 variants per aspect across 3 aspects: ~$0.81 per quote
 
 Track via `--cost-only` before committing.
 

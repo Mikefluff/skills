@@ -38,15 +38,21 @@ A confident business person leaning on marble countertop in a sunlit Brooklyn lo
 
 ---
 
-## Ideogram 4.0 — prompt-only for now
+## Ideogram 4.0 — wired
 
 Shipped 2026-06-03: a 9.3B single-stream diffusion transformer released under a
 commercial licence, weights on Hugging Face, inference code Apache-2.0. Native 2K
 output. Hosted tiers price at $0.03 / $0.06 / $0.10.
 
-**Why it is not wired**: the public API still documents only the v3 generate
-endpoint. Until a v4 path is published, `--execute` keeps calling v3. Run the
-open weights yourself if you need v4 today.
+The hosted endpoint appeared, and `--execute` calls it as of 2026-08-08:
+`ideogram-4-turbo` / `ideogram-4` / `ideogram-4-quality` post to
+`POST /v1/ideogram-v4/generate` with `rendering_speed` ∈ {TURBO, DEFAULT,
+QUALITY}. The prompt field is `text_prompt`, not v3's `prompt` — pointing a v4
+slug at the v3 path would return a valid image from the wrong model at the wrong
+price, so both are pinned in `tests/unit/test_ideogram.py`.
+
+`rendering_speed=FLASH` is documented as coming soon and returns 400 today, so
+`ideogram-3-flash` stays the cheapest tier and stays on v3.
 
 ### JSON-first prompting
 
@@ -65,11 +71,12 @@ Y below", v4 accepts the arrangement directly:
 }
 ```
 
-This removes the guessing that makes prose layout prompts drift between runs. When
-the v4 endpoint lands, `banner-maker`, `flyer-maker` and `logo-maker` are the
-skills that gain most — their briefs are already structured internally, so they
-would stop flattening that structure into a sentence just to have the model
-re-infer it.
+This removes the guessing that makes prose layout prompts drift between runs. The
+endpoint takes `json_prompt` in place of `text_prompt`, and the runner does not
+send it yet: `banner-maker`, `flyer-maker` and `logo-maker` hold that structure
+internally and currently flatten it into a sentence for the model to re-infer.
+Teaching them to emit it directly is a second prompt mode across three skills,
+not a slug — the next piece of Ideogram work, and the largest.
 
 ---
 

@@ -55,12 +55,17 @@ PRICE_TABLE: dict[str, dict[str, Decimal]] = {
     # ElevenLabs
     "eleven-music": {"per_minute": Decimal("0.20")},
     "eleven-tts": {"per_1k_chars": Decimal("0.12")},
-    # Ideogram. Ideogram 4.0 shipped 2026-06-03 at $0.03/$0.06/$0.10, but the public
-    # API still exposes only the v3 generate endpoint — priced here when we can call it.
-    "ideogram-3-flash": {"per_image": Decimal("0.02")},
-    "ideogram-3-turbo": {"per_image": Decimal("0.02")},
-    "ideogram-3": {"per_image": Decimal("0.04")},
-    "ideogram-3-quality": {"per_image": Decimal("0.08")},
+    # Ideogram, re-read from ideogram.ai/api-pricing on 2026-08-08. The v3 tiers had
+    # been carrying $0.02/$0.04/$0.08 here, which is under what the vendor charges —
+    # the one direction this table is not allowed to be wrong in, and the default
+    # path for logo-maker. FLASH bills at TURBO's rate or lower.
+    "ideogram-4-turbo": {"per_image": Decimal("0.03")},
+    "ideogram-4": {"per_image": Decimal("0.06")},
+    "ideogram-4-quality": {"per_image": Decimal("0.10")},
+    "ideogram-3-flash": {"per_image": Decimal("0.03")},
+    "ideogram-3-turbo": {"per_image": Decimal("0.03")},
+    "ideogram-3": {"per_image": Decimal("0.06")},
+    "ideogram-3-quality": {"per_image": Decimal("0.09")},
 }
 
 CONFIRMATION_THRESHOLD = Decimal("0.10")

@@ -6,6 +6,21 @@
 > matching `common/runners/cost.py` — the table that estimates your bill. Batch
 > totals are that unit price times a count the file declares.
 
+## Ideogram 4 is available as of 2026-08-08
+
+`ideogram-4-turbo` / `ideogram-4` / `ideogram-4-quality` ($0.03 / $0.06 / $0.10)
+call the v4 endpoint. Native 2K, and the current best typography Ideogram ships —
+prefer `ideogram-4-quality` over `ideogram-3-quality` when legible text *is* the
+job and the extra cent per image is irrelevant.
+
+The v3 tiers stay the default here rather than flipping silently: they are what
+every worked example in this skill was calibrated against. Pass `--model
+ideogram-4-quality` to opt in.
+
+`ideogram-3-flash` remains the cheapest tier — v4 has no FLASH speed yet.
+
+---
+
 ## Default: `ideogram-3-quality`
 
 Text rendering is everything for logos. ~90% of generated logos fail because the text is mangled. Ideogram 3 Quality is the current best-in-class for embedded text.
@@ -77,12 +92,12 @@ Prices from `common/runners/cost.py`; timings are observed medians.
 
 | Model | $/image | Speed |
 |---|---|---|
-| `ideogram-3-quality` | $0.08 | ~20s |
-| `ideogram-3-turbo` | $0.02 | ~5s |
+| `ideogram-3-quality` | $0.09 | ~20s |
+| `ideogram-3-turbo` | $0.03 | ~5s |
 | `gpt-image-2` (low) | $0.02 | ~10s |
 | `gpt-image-2` (high) | $0.10 | ~25s |
 | `flux-2-pro` | $0.06 | ~15s |
 
 <!-- prices: batch=4 -->
 
-Default batch of 4 variants × ideogram-3-quality ≈ $0.32. Well under the $1.50 carousel budget cap.
+Default batch of 4 variants × ideogram-3-quality ≈ $0.36. Well under the $1.50 carousel budget cap.

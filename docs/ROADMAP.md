@@ -180,16 +180,30 @@ date passes, and drop the migration table from
 [`skills/video-prompt/references/execute.md`](../skills/video-prompt/references/execute.md)
 after it stops being useful.
 
-### Ideogram 4 — wire it when the endpoint appears
+### Ideogram 4 — half wired
 
-Shipped 2026-06-03 with open weights and JSON-first prompting. The hosted API
-still exposes only the v3 generate path, so `--execute` stays on v3. Two things
-to do when v4 lands:
+The endpoint appeared. Done 2026-08-08: `ideogram-4-turbo` / `-4` / `-4-quality`
+at $0.03 / $0.06 / $0.10, posting to `/v1/ideogram-v4/generate` with
+`rendering_speed`. The prompt field is `text_prompt`, not v3's `prompt`, and both
+the path and the field name are pinned — sending a v4 slug to the v3 path returns
+a valid image from the wrong model at the wrong price, and nothing in the response
+says so.
 
-1. Register `ideogram-4-turbo` / `-4` / `-4-quality` at $0.03 / $0.06 / $0.10.
-2. Teach `banner-maker` / `flyer-maker` / `logo-maker` to emit layout as JSON
-   instead of flattening their internal structure into a prose sentence. This is
-   the larger of the two — it is a second prompt mode, not a new slug.
+Checking the vendor page for this also turned up that every v3 tier had been
+priced *under* what Ideogram charges — $0.02/$0.04/$0.08 against $0.03/$0.06/$0.09
+— which is the one direction `cost.py` is not allowed to be wrong in, on
+`logo-maker`'s default path. Fixed, and gate 8 pulled twenty-six documented
+figures along with it.
+
+**Still to do — the larger half.** Teach `banner-maker` / `flyer-maker` /
+`logo-maker` to send `json_prompt` instead of flattening their internal layout
+into a prose sentence for the model to re-infer. That is a second prompt mode
+across three skills, not a slug.
+
+**Deliberately not done — flipping defaults.** `logo-maker` and friends still
+default to `ideogram-3-quality`; the pickers now name v4 and say when to prefer
+it. Changing a default changes what every existing user pays and gets, and it
+cannot be justified without generating on both and comparing.
 
 ### Seedream 5 Pro — layered output
 

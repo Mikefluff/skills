@@ -154,9 +154,9 @@ The skill doesn't support animated banners in v1 due to platform-spec complexity
 
 ## Cost is higher than expected
 
-3 presets × `ideogram-3-quality` ($0.08) = $0.24 per batch. If running many variants:
+3 presets × `ideogram-3-quality` ($0.09) = $0.27 per batch. If running many variants:
 
-- 6 presets × 3 variants × $0.08 = $1.44 per batch
+- 6 presets × 3 variants × $0.09 = $1.62 per batch
 - Track via `--cost-only` before committing
 - Budget cap: `SKILLS_CAROUSEL_BUDGET=1.50` (inherited)
 

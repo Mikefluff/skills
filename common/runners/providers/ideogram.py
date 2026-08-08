@@ -1,5 +1,14 @@
-"""Ideogram image providers — ideogram-3-turbo / ideogram-3 / ideogram-3-quality.
-Vendor: Ideogram v3 generate API.
+"""Ideogram image providers, v4 and v3.
+
+The two generate endpoints differ in one field name and nothing else that matters
+here: v3 takes `prompt`, v4 takes `text_prompt` (and a `json_prompt` alternative
+this does not use yet — teaching the layout skills to emit structured prompts is
+its own change, not a slug).
+
+Verified against developer.ideogram.ai on 2026-08-08:
+`POST /v1/ideogram-v4/generate`, `rendering_speed` ∈ {TURBO, DEFAULT, QUALITY}.
+FLASH is documented as "coming soon" for v4 and returns 400 today, so the flash
+tier stays on v3.
 """
 
 from __future__ import annotations
@@ -18,6 +27,8 @@ class _IdeogramBase(Provider):
     modality = "image"
     requires_env = ("IDEOGRAM_API_KEY",)
     rendering_speed: str = "DEFAULT"
+    endpoint: str = "https://api.ideogram.ai/v1/ideogram-v3/generate"
+    prompt_field: str = "prompt"
 
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         return cost.estimate(self.name, variants=kwargs.get("num_images", kwargs.get("variants", 1)))
@@ -30,14 +41,14 @@ class _IdeogramBase(Provider):
         aspect_ratio: str = kwargs.get("aspect_ratio", "16x9")
 
         body: dict[str, Any] = {
-            "prompt": prompt,
+            self.prompt_field: prompt,
             "rendering_speed": self.rendering_speed,
             "num_images": num_images,
             "aspect_ratio": aspect_ratio,
         }
         resp = _http.post(
             self.name,
-            "https://api.ideogram.ai/v1/ideogram-v3/generate",
+            self.endpoint,
             json=body,
             headers={"Api-Key": api_key, "Content-Type": "application/json"},
             timeout=120,
@@ -64,6 +75,26 @@ class _IdeogramBase(Provider):
         )
 
 
+class _IdeogramV4Base(_IdeogramBase):
+    endpoint = "https://api.ideogram.ai/v1/ideogram-v4/generate"
+    prompt_field = "text_prompt"
+
+
+class Ideogram4TurboProvider(_IdeogramV4Base):
+    name = "ideogram-4-turbo"
+    rendering_speed = "TURBO"
+
+
+class Ideogram4DefaultProvider(_IdeogramV4Base):
+    name = "ideogram-4"
+    rendering_speed = "DEFAULT"
+
+
+class Ideogram4QualityProvider(_IdeogramV4Base):
+    name = "ideogram-4-quality"
+    rendering_speed = "QUALITY"
+
+
 class IdeogramFlashProvider(_IdeogramBase):
     """Cheapest v3 tier. Priced at TURBO's rate — FLASH bills lower, never higher."""
 
@@ -88,6 +119,9 @@ class IdeogramQualityProvider(_IdeogramBase):
 
 from ..config import register
 
+register(Ideogram4TurboProvider())
+register(Ideogram4DefaultProvider())
+register(Ideogram4QualityProvider())
 register(IdeogramFlashProvider())
 register(IdeogramTurboProvider())
 register(IdeogramDefaultProvider())

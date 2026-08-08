@@ -55,9 +55,12 @@ count, not separate prices.
 
 | Model | Unit | USD |
 |---|---|---|
-| `ideogram-3-turbo` | per image | $0.02 |
-| `ideogram-3` | per image | $0.04 |
-| `ideogram-3-quality` | per image | $0.08 |
+| `ideogram-4-turbo` | per image | $0.03 |
+| `ideogram-4` | per image | $0.06 |
+| `ideogram-4-quality` | per image | $0.10 |
+| `ideogram-3-turbo` | per image | $0.03 |
+| `ideogram-3` | per image | $0.06 |
+| `ideogram-3-quality` | per image | $0.09 |
 
 ## Runway
 
@@ -100,7 +103,7 @@ count, not separate prices.
 
 | Model | Unit | USD |
 |---|---|---|
-| `ideogram-3-flash` | per image | $0.02 |
+| `ideogram-3-flash` | per image | $0.03 |
 | `lyria-3-clip` | per minute | $0.10 |
 
 ## Confirmation thresholds

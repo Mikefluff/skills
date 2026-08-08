@@ -6,6 +6,21 @@
 > matching `common/runners/cost.py` — the table that estimates your bill. Batch
 > totals are that unit price times a count the file declares.
 
+## Ideogram 4 is available as of 2026-08-08
+
+`ideogram-4-turbo` / `ideogram-4` / `ideogram-4-quality` ($0.03 / $0.06 / $0.10)
+call the v4 endpoint. Native 2K, and the current best typography Ideogram ships —
+prefer `ideogram-4-quality` over `ideogram-3-quality` when legible text *is* the
+job and the extra cent per image is irrelevant.
+
+The v3 tiers stay the default here rather than flipping silently: they are what
+every worked example in this skill was calibrated against. Pass `--model
+ideogram-4-quality` to opt in.
+
+`ideogram-3-flash` remains the cheapest tier — v4 has no FLASH speed yet.
+
+---
+
 Decision tree + capability matrix.
 
 ---
@@ -48,8 +63,8 @@ Decision tree + capability matrix.
 
 | Slug | Text-in-image | Multi-ref | Identity preserve | Style transfer | Cost / variant | Best for cover |
 |---|---|---|---|---|---|---|
-| `ideogram-3-quality` | excellent (cleanest) | yes (1 style-ref) | medium | medium | $0.08 | Text-heavy book / podcast / deck / LinkedIn / report DEFAULT |
-| `ideogram-3` | excellent | yes (1 style-ref) | medium | medium | $0.04 | Quick iteration |
+| `ideogram-3-quality` | excellent (cleanest) | yes (1 style-ref) | medium | medium | $0.09 | Text-heavy book / podcast / deck / LinkedIn / report DEFAULT |
+| `ideogram-3` | excellent | yes (1 style-ref) | medium | medium | $0.06 | Quick iteration |
 | `gpt-image-2` | excellent (Latin + CJK) | yes (up to 16) | medium | medium | $0.05-0.10 | Magazine, multi-text + photo |
 | `nano-banana-pro` | good | yes (14) | excellent | good | $0.134 | Author / artist photo embedded |
 | `nano-banana-2` | good | yes | good | good | $0.101 | Photoreal magazine / book |
@@ -69,8 +84,8 @@ Decision tree + capability matrix.
 
 | Model | 1 variant | 2 variants (default) | 3 variants | 5 variants |
 |---|---|---|---|---|
-| ideogram-3-quality | $0.08 | $0.16 | $0.24 | $0.40 |
-| ideogram-3 | $0.04 | $0.08 | $0.12 | $0.20 |
+| ideogram-3-quality | $0.09 | $0.18 | $0.27 | $0.45 |
+| ideogram-3 | $0.06 | $0.12 | $0.18 | $0.30 |
 | gpt-image-2 (med) | $0.05 | $0.10 | $0.15 | $0.25 |
 | nano-banana-pro | $0.134 | $0.27 | $0.40 | $0.67 |
 | flux-2-pro | $0.06 | $0.12 | $0.18 | $0.30 |

@@ -71,7 +71,7 @@
 
 3. `--style swiss-grid-poster` explicit. Loads `Style anchor (text-in-image mode)` (because `--text-mode embedded`) — includes typography spec: Helvetica/Akzidenz-Grotesk variants, primary palette, headline placeholder.
 
-4. `--model ideogram-3-quality` explicit. Best for embedded text + brand-clean aesthetic. Cost: 6 × $0.08 = $0.48.
+4. `--model ideogram-3-quality` explicit. Best for embedded text + brand-clean aesthetic. Cost: 6 × $0.09 = $0.54.
 
 5. Builds prompts. Each has:
    - Style anchor (~110 words)

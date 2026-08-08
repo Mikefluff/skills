@@ -6,6 +6,21 @@
 > matching `common/runners/cost.py` — the table that estimates your bill. Batch
 > totals are that unit price times a count the file declares.
 
+## Ideogram 4 is available as of 2026-08-08
+
+`ideogram-4-turbo` / `ideogram-4` / `ideogram-4-quality` ($0.03 / $0.06 / $0.10)
+call the v4 endpoint. Native 2K, and the current best typography Ideogram ships —
+prefer `ideogram-4-quality` over `ideogram-3-quality` when legible text *is* the
+job and the extra cent per image is irrelevant.
+
+The v3 tiers stay the default here rather than flipping silently: they are what
+every worked example in this skill was calibrated against. Pass `--model
+ideogram-4-quality` to opt in.
+
+`ideogram-3-flash` remains the cheapest tier — v4 has no FLASH speed yet.
+
+---
+
 Decision tree + capability matrix for `--model auto`.
 
 ---
@@ -56,9 +71,9 @@ Updated 2026-08.
 | `flux-1-1-pro` | BFL | image | fair | no | good | excellent | $0.04 | 4-8s |
 | `flux-kontext` | BFL | image | fair | yes (1, edit-mode) | good | excellent for edits | $0.05 | 5-10s |
 | `flux-schnell` | BFL | image | poor | no | fair | fair | $0.003 | 1-3s |
-| `ideogram-3` | Ideogram | image | excellent | yes (1, style-ref) | medium | medium | $0.04 | 4-8s |
-| `ideogram-3-quality` | Ideogram | image | excellent (cleanest) | yes (1, style-ref) | medium | medium | $0.08 | 6-12s |
-| `ideogram-3-turbo` | Ideogram | image | good | no | medium | medium | $0.02 | 2-5s |
+| `ideogram-3` | Ideogram | image | excellent | yes (1, style-ref) | medium | medium | $0.06 | 4-8s |
+| `ideogram-3-quality` | Ideogram | image | excellent (cleanest) | yes (1, style-ref) | medium | medium | $0.09 | 6-12s |
+| `ideogram-3-turbo` | Ideogram | image | good | no | medium | medium | $0.03 | 2-5s |
 | `fal-image` | fal.ai router | image | varies | varies | varies | varies | $0.03-0.10 | varies |
 | `replicate-image` | Replicate router | image | varies | varies | varies | varies | $0.02-0.10 | varies |
 
@@ -84,13 +99,13 @@ For Schnell / router-based models: pass `--seed <int>` if your --style-mod can i
 | Model | Approx total |
 |---|---|
 | flux-schnell | $0.024 |
-| ideogram-3-turbo | $0.16 |
+| ideogram-3-turbo | $0.24 |
 | nano-banana-2-lite | $0.27 |
 | flux-1-1-pro | $0.32 |
-| ideogram-3 | $0.32 |
+| ideogram-3 | $0.48 |
 | gpt-image-2 (medium) | $0.40 |
 | flux-2-pro | $0.48 |
-| ideogram-3-quality | $0.64 |
+| ideogram-3-quality | $0.72 |
 | gpt-image-2 (high) | $0.80 |
 | nano-banana-2 | $0.81 |
 | nano-banana-pro | $1.07 |
