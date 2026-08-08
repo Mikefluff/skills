@@ -123,19 +123,35 @@ learn what flags they took was to run them. Every module now exposes a zero-arg
 `build_parser()`, and gate 10 verifies the 88 literal commands in the docs
 against it. No drift today; the point is the class.
 
-**Still open — `writer/SKILL.md` is ~27 KB.** It is the base every prose skill
-loads. Check whether progressive disclosure is actually happening or whether the
-body should move into `references/`.
+**Closed — `writer/SKILL.md` was measured in the wrong unit.** 27 KB is its size
+on disk, where 59% of the file is Cyrillic and every such character costs two
+UTF-8 bytes. In characters it is 16,633, behind `carousel-builder` at 19,778.
+Progressive disclosure is happening: the Layer 1 section is an index of 25
+category names pointing at `references/neuroslop-categories.md` rather than a
+copy of it, and every skill over 10,000 characters carries a load-on-demand
+table. `tests/unit/test_skill_size.py` now holds that line for the next skill —
+400 lines maximum, and a `references/` link required past 10,000 characters.
 
-**Still open — no round-trip test for any publisher.** 745 tests, all offline.
-Nothing proves a publisher's request body is what the vendor accepts — the two
-live bugs found in ElevenLabs (wrong duration field, dropped lyrics) were caught
-by reading docs, not by the suite. Consider recorded-fixture tests against real
-response shapes.
+**Half done — publisher contracts.** Both ElevenLabs bugs were field-name
+mistakes, and a field-name mistake is invisible to a test that checks the value
+it just inserted: `body["duration_secs"] == 30` passes whether or not the vendor
+has heard of `duration_secs`. `tests/unit/test_publisher_contracts.py` pins the
+*vocabulary* instead — each article publisher's request body against the field
+list in the vendor's own docs, cited with a checked-on date. Renaming
+`body_markdown` to `body_md` now fails three tests.
 
-**Still open — `common/runners/` is 30+ modules.** Check the layering still
-reads: providers, publishers, CLI, and now `syndication` / `directories` /
-`staticblog` / `schema_ld` sitting at top level next to `cost` and `config`.
+What that still cannot prove is that the vendor accepts the vocabulary. That
+needs a recorded response fixture and a key, and remains open. The social
+publishers (Instagram / Threads / TikTok / X / YouTube / LinkedIn) have no
+`_body()` seam yet, so they are not covered either.
+
+**Still open — `common/runners/` layering.** Measured: 31 top-level modules
+beside four packages. Six of them are `proposal_*` (1,747 lines, one skill's
+implementation occupying a fifth of the top level) and three are `styles*`. The
+package convention already exists — `providers/`, `publishers/`, `cli/`,
+`storage/` — these simply never got grouped. It is a pure move with no
+behavioural change, which is why it was not folded into a release that was
+already adding four gates; do it alone, where the diff is legible.
 
 ---
 

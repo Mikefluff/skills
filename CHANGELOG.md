@@ -117,7 +117,26 @@ in ten `model-picker.md` files, which gate 8 had made false, and
 `make new-skill name=…` in CONTRIBUTING, which is `NAME=` and had been failing
 for anyone following the onboarding.
 
-Tests: 721 → 754.
+### Added — publisher contract tests, and a correction about skill size
+
+Both ElevenLabs bugs were field-name mistakes, and those are invisible to a test
+that checks the value it just inserted: `body["duration_secs"] == 30` passes
+whether or not the vendor has heard of `duration_secs`. The new tests pin the
+vocabulary instead — every key each article publisher sends, against the field
+list in the vendor's own documentation, cited with the date it was checked.
+Renaming `body_markdown` to `body_md` fails three of them. What they still
+cannot prove is that the vendor accepts that vocabulary; that needs a recorded
+fixture and a key, and stays on the roadmap.
+
+The roadmap also asked whether `writer/SKILL.md` at ~27 KB should move its body
+into `references/`. 27 KB is its size on disk, where 59% of the file is Cyrillic
+and each such character costs two UTF-8 bytes. In characters it is 16,633 —
+smaller than `carousel-builder` — and its longest section is an index of 25
+category names pointing at the catalogue rather than a copy of it. Nothing to
+move. `tests/unit/test_skill_size.py` holds the line for the next skill instead:
+400 lines maximum, and a `references/` link required past 10,000 characters.
+
+Tests: 721 → 769.
 
 ## [2.24.0] — 2026-08-08
 
