@@ -50,15 +50,17 @@ fails after 120 days without a manual check; `LAST_REVIEWED` is 2026-08-03. Do
 not just move the date — re-verify `PINNED_MODEL_IDS` and `PRICE_TABLE` against
 vendor docs, which is the whole point of the marker.
 
-**Known-pending items** already researched, waiting on someone else to ship:
+**Known-pending items** — all five re-checked 2026-08-08, two had moved:
 
-- Ideogram 4 — open weights out, no v4 API endpoint. Wire when one appears, and
-  teach `banner-maker` / `flyer-maker` / `logo-maker` to emit layout as JSON
-  instead of flattening structure into prose.
-- Seedream 5 Pro layered PNG output — no host exposes the field yet. This is the
-  one that would change the retry loop for every text-in-image skill.
-- FLUX 3, Meta Muse Image — early access, no API.
-- Hashnode — API works but needs Pro; check whether that changed.
+- Ideogram 4 — **endpoint shipped, wired.** The v3 tiers were also found priced
+  under the vendor's published rate; fixed. The JSON-prompt half is still open.
+- Seedream 5 Pro layered output — **host shipped** (`layerize` on fal). Now
+  blocked on `GenerationResult` carrying one asset; the router refuses rather
+  than dropping layers it billed for.
+- FLUX 3 — still application-gated, no public API, no pricing.
+- Meta Muse Image — still no public API. The Meta Model API that did open is for
+  Muse Spark 1.1, a reasoning model; different product.
+- Hashnode — unchanged and already handled: Pro required, preflight says so.
 
 **Open questions worth actual research**, none of which this session covered:
 
@@ -205,19 +207,40 @@ default to `ideogram-3-quality`; the pickers now name v4 and say when to prefer
 it. Changing a default changes what every existing user pays and gets, and it
 cannot be justified without generating on both and comparing.
 
-### Seedream 5 Pro — layered output
+### Seedream 5 Pro — layered output, and what blocks it now
 
-One render decomposes into 10+ editable PNG layers. That changes the retry loop
-for every text-in-image skill: a typo becomes a layer edit rather than a
-regeneration, which is currently the main cause of style drift across a
-carousel set. Needs a host that exposes the layered response — fal and Replicate
-both mirror Seedream but not yet that field.
+The host appeared. `bytedance/seedream/v5/pro/layerize` has been live on fal
+since 2026-07-08: image plus prompt in, 2-17 transparent PNGs out, each with a
+z-index, a bounding box and a name. $0.03375 per layer under 1536², $0.0675
+above. Checked 2026-08-08.
 
-### FLUX 3 / Meta Muse Image — watch only
+What blocks it is now on this side. `GenerationResult` carries `content: bytes` —
+one asset — and the fal router took `images[0]` and returned. Pointed at
+layerize, that would bill for seventeen layers, hand back one, and print nothing
+about the other sixteen. The router now refuses a multi-asset response and says
+how many it found; a loud failure costs the user exactly what a quiet wrong
+answer costs, and tells them why.
 
-FLUX 3 (2026-07-23) generates image, video and audio from one set of weights but
-is early-access with no API and no published pricing. Muse Image (2026-07-07)
-has no public API. Documented in the model references, not wired.
+Making it work is a real feature, not a slug: `GenerationResult` has to grow a
+set, and `batch.py`, `output.py` and the maker CLIs all assume one file per item.
+The payoff is the one the roadmap already argued — a typo becomes a layer edit
+instead of a regeneration, which is the main cause of style drift across a
+carousel set.
+
+### FLUX 3 / Meta Muse Image — watch only, re-checked 2026-08-08
+
+FLUX 3 generates image, video and audio from one set of weights. Still gated:
+application-only early access, Video and Action first, Image "in the coming
+weeks", open-weight Dev last. No public API, no published pricing for any tier.
+
+Muse Image still runs only inside Meta's own apps. What Meta did open is the
+Meta Model API for **Muse Spark 1.1**, a reasoning model — a different product
+that this collection has no use for. Do not confuse the two when re-checking.
+
+Hashnode was on this list too and comes off it: the Pro requirement did not
+change, it hardened — since May 2026 publication-scoped *reads* need Pro as
+well. `publishers/hashnode.py` already fails preflight with that reason, so
+nothing to do.
 
 ---
 

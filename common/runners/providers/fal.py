@@ -100,6 +100,8 @@ class _FalBase(Provider):
             self.name, response_url, headers=headers, what="network error fetching response"
         ).json()
 
+        self._reject_multi_asset(payload, handle)
+
         url = self._extract_url(payload)
         if not url:
             raise ProviderError(self.name, None, f"completed job missing {self.output_key} url")
@@ -110,6 +112,26 @@ class _FalBase(Provider):
             extension=self.output_extension,
             extra={"model_id": handle.extra.get("model_id")},
         )
+
+    # fal hosts models whose whole output is a set: `seedream/v5/pro/layerize`
+    # returns 2-17 transparent PNGs and bills $0.03375 for each one. A router
+    # that returns `content: bytes` can hand back exactly one of them, so taking
+    # the first and returning quietly would charge for seventeen layers and
+    # deliver one, with nothing in the output saying so. Refuse instead, and name
+    # what was found — a loud failure costs the same and tells the truth.
+    _MULTI_ASSET_KEYS = ("layers", "outputs", "files")
+
+    def _reject_multi_asset(self, payload: dict[str, Any], handle: JobHandle) -> None:
+        for key in self._MULTI_ASSET_KEYS:
+            node = payload.get(key)
+            if isinstance(node, list) and len(node) > 1:
+                raise ProviderError(
+                    self.name,
+                    None,
+                    f"{handle.extra.get('model_id')} returned {len(node)} assets under "
+                    f"'{key}'; this router returns a single file and would drop the rest. "
+                    f"Use a model with one output, or wire a multi-asset provider.",
+                )
 
     def _extract_url(self, payload: dict[str, Any]) -> str | None:
         node = payload.get(self.output_key)

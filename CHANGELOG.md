@@ -184,7 +184,28 @@ needs a side-by-side generation to justify, not a changelog entry. The other hal
 of the roadmap's Ideogram item — sending `json_prompt` instead of flattening
 layout into prose — is untouched and is the larger piece.
 
-Tests: 721 → 777.
+### Fixed — the fal router would have billed for seventeen layers and returned one
+
+`bytedance/seedream/v5/pro/layerize` went live on fal on 2026-07-08: a poster
+decomposes into 2-17 transparent PNGs, each with a z-index and a bounding box,
+billed at $0.03375 per layer. `--fal-model` would have reached it today, and
+`GenerationResult` carries exactly one asset — so the router would have taken
+`images[0]`, returned normally, and said nothing about the other sixteen.
+
+It now refuses a multi-asset response and names the count. Returning a set is a
+real feature: `GenerationResult` has to grow one, and `batch.py`, `output.py` and
+the maker CLIs all assume one file per item. Until then, failing costs the user
+exactly what succeeding wrongly costs, and tells them why.
+
+### Checked — the other three pending vendor items
+
+FLUX 3 is still application-gated with no public API and no pricing. Muse Image
+still runs only inside Meta's apps; the Meta Model API that did open is for Muse
+Spark 1.1, a reasoning model, and is a different product. Hashnode comes off the
+watch list unchanged: the Pro requirement hardened rather than lifted, and
+`publishers/hashnode.py` already fails preflight with that reason.
+
+Tests: 721 → 781.
 
 ## [2.24.0] — 2026-08-08
 
