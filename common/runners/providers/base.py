@@ -25,13 +25,39 @@ class JobHandle:
 
 
 @dataclass
+class Companion:
+    """A second file the same call produced, saved beside the primary one.
+
+    Seedream's `layerize` returns one transparent PNG per element — background,
+    subject, each text block — with a z-index and a bounding box. They are not
+    variants of the primary asset and not alternatives to it; they are the rest
+    of what the caller paid for, at $0.03375 each.
+
+    `name` becomes part of the filename, so a layer set lands on disk already
+    ordered and labelled rather than as `-01`, `-02`, `-03`.
+    """
+
+    content: bytes
+    mime: str
+    extension: str
+    name: str = ""
+    meta: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class GenerationResult:
-    """Returned by generate() or poll() once an asset is ready."""
+    """Returned by generate() or poll() once an asset is ready.
+
+    `content` is the one asset every caller has always got. `companions` is
+    empty for all but a handful of models, which is why it is a suffix rather
+    than a rewrite: a provider that returns one file keeps working untouched.
+    """
 
     content: bytes
     mime: str
     extension: str  # "png", "mp4", "mp3", ...
     extra: dict[str, Any] = field(default_factory=dict)
+    companions: tuple[Companion, ...] = ()
 
 
 class Provider(ABC):

@@ -214,18 +214,23 @@ since 2026-07-08: image plus prompt in, 2-17 transparent PNGs out, each with a
 z-index, a bounding box and a name. $0.03375 per layer under 1536², $0.0675
 above. Checked 2026-08-08.
 
-What blocks it is now on this side. `GenerationResult` carries `content: bytes` —
-one asset — and the fal router took `images[0]` and returned. Pointed at
-layerize, that would bill for seventeen layers, hand back one, and print nothing
-about the other sixteen. The router now refuses a multi-asset response and says
-how many it found; a loud failure costs the user exactly what a quiet wrong
-answer costs, and tells them why.
+**Done 2026-08-08.** `GenerationResult` grew `companions`, a suffix rather than a
+rewrite: a provider returning one file behaves exactly as before, and the field
+is empty for every model but this one. `output.save_result()` writes the set,
+naming each file after its own layer (`-01-subject.png`, not `-01.png`) because a
+directory of numbers is a puzzle rather than a layer set. `batch.py` records them
+in the manifest, so `--resume` does not buy seventeen layers again to recover a
+filename it already had.
 
-Making it work is a real feature, not a slug: `GenerationResult` has to grow a
-set, and `batch.py`, `output.py` and the maker CLIs all assume one file per item.
-The payoff is the one the roadmap already argued — a typo becomes a layer edit
-instead of a regeneration, which is the main cause of style drift across a
-carousel set.
+The estimate quotes the 17-layer ceiling. Layerize bills per layer produced and
+the count is not knowable before the call; quoting one image would say $0.05
+against a possible $0.57, and `cost.py` is allowed to come in over the receipt,
+never under.
+
+Still to use it: no skill reaches for layerize on its own yet. The payoff the
+roadmap argued for — a typo becoming a layer edit instead of a regeneration —
+needs a text-in-image skill to notice a bad render and re-run one layer, which is
+a retry-loop change, not a provider one.
 
 ### FLUX 3 / Meta Muse Image — watch only, re-checked 2026-08-08
 

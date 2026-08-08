@@ -6,7 +6,7 @@ import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from .storage import s3_configured, write_local, write_s3
 
@@ -85,6 +85,42 @@ def save(
         s3_url = write_s3(content, f"{modality}/{filename}", content_type)
 
     return SavedAsset(local_path=local_path, s3_url=s3_url)
+
+
+def save_result(
+    result: Any,
+    modality: Modality,
+    extension_hint: str,
+    opts: SaveOptions = SaveOptions(),
+) -> tuple[SavedAsset, list[SavedAsset]]:
+    """Save a GenerationResult and everything else the same call produced.
+
+    Returns the primary asset and its companions, in the order the provider
+    gave them. Most providers return none, so this is `save()` with a loop that
+    usually does not run — every existing caller behaves identically.
+
+    Companion filenames carry the layer's own name where it has one, because a
+    directory of `-01.png` through `-17.png` is not a layer set, it is a puzzle.
+    """
+    primary = save(result.content, modality, result.extension or extension_hint, opts)
+
+    companions: list[SavedAsset] = []
+    base_slug = opts.slug or "asset"
+    for index, companion in enumerate(getattr(result, "companions", ()) or (), start=1):
+        label = _slugify(companion.name) if companion.name else "layer"
+        companions.append(
+            save(
+                companion.content,
+                modality,
+                companion.extension or extension_hint,
+                SaveOptions(
+                    slug=f"{base_slug}-{index:02d}-{label}",
+                    output_dir=opts.output_dir,
+                    mime=companion.mime,
+                ),
+            )
+        )
+    return primary, companions
 
 
 def save_prompt_only(

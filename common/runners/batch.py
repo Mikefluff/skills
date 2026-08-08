@@ -36,6 +36,10 @@ class BatchItem:
     status: str = "pending"        # pending | succeeded | failed | skipped
     output_path: str | None = None
     s3_url: str | None = None
+    # Extra files the same call produced — Seedream's layer sets, and nothing
+    # else so far. Recorded so `--resume` does not regenerate an item whose
+    # companions are already on disk, and so the manifest lists what was billed.
+    companion_paths: list[str] = field(default_factory=list)
     error: str | None = None
     started_at: float | None = None
     finished_at: float | None = None
@@ -114,6 +118,7 @@ def _restore_succeeded(items: list[BatchItem], manifest_path: Path) -> None:
             current.status = "succeeded"
             current.output_path = previous.output_path
             current.s3_url = previous.s3_url
+            current.companion_paths = list(previous.companion_paths)
 
 
 def _generate_one(provider: Provider, item: BatchItem, spec: BatchSpec) -> None:
@@ -129,10 +134,10 @@ def _generate_one(provider: Provider, item: BatchItem, spec: BatchSpec) -> None:
     if not isinstance(result, GenerationResult):
         raise RunnerError(f"provider returned unexpected type: {type(result).__name__}")
 
-    saved = output_mod.save(
-        result.content,
+    saved, companions = output_mod.save_result(
+        result,
         spec.save_modality(),
-        result.extension or spec.extension_hint,
+        spec.extension_hint,
         output_mod.SaveOptions(
             slug=item.label or f"item-{item.index:02d}",
             output_dir=spec.output_dir,
@@ -141,6 +146,7 @@ def _generate_one(provider: Provider, item: BatchItem, spec: BatchSpec) -> None:
     )
     item.output_path = str(saved.local_path)
     item.s3_url = saved.s3_url
+    item.companion_paths = [str(c.local_path) for c in companions]
     item.status = "succeeded"
 
 

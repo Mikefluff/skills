@@ -205,7 +205,28 @@ Spark 1.1, a reasoning model, and is a different product. Hashnode comes off the
 watch list unchanged: the Pro requirement hardened rather than lifted, and
 `publishers/hashnode.py` already fails preflight with that reason.
 
-Tests: 721 → 781.
+### Added — a call can return a set of files, and Seedream's layers arrive whole
+
+`GenerationResult` grew `companions`. It is a suffix, not a rewrite: `content` is
+still the one asset every provider has always returned, the field is empty for
+all but one model, and a provider that returns a single file is untouched.
+
+`bytedance/seedream/v5/pro/layerize` is that model — 2-17 transparent PNGs from
+one image, each with a z-index, a bounding box and a name. `output.save_result()`
+writes them ordered and named after themselves (`-01-subject.png`, not `-01.png`),
+`batch.py` records them in the manifest, and `--resume` no longer re-buys a layer
+set to recover a filename it already had.
+
+The estimate quotes the 17-layer ceiling, because layerize bills per layer
+produced and the count is not knowable before the call. `cost.py` may come in
+over the receipt; it may never come in under.
+
+No skill reaches for layerize on its own yet. The payoff the roadmap argued for —
+a typo becoming a layer edit instead of a full regeneration, which is the main
+cause of style drift across a carousel — needs a retry-loop change, not a
+provider one.
+
+Tests: 721 → 795.
 
 ## [2.24.0] — 2026-08-08
 

@@ -115,8 +115,8 @@ def _write(result: GenerationResult, args: argparse.Namespace, out: ToolOutput) 
         print(str(path))
         return 0
 
-    saved = output_mod.save(
-        result.content,
+    saved, companions = output_mod.save_result(
+        result,
         "image",
         "png",
         output_mod.SaveOptions(
@@ -127,6 +127,8 @@ def _write(result: GenerationResult, args: argparse.Namespace, out: ToolOutput) 
     )
     print(f"  ✓ {out.verb} → {saved.local_path}", file=sys.stderr)
     print(saved.display())
+    for companion in companions:
+        print(companion.display())
     return 0
 
 

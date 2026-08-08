@@ -13,7 +13,7 @@ from .. import cost
 from ..errors import ProviderError
 from ..poll import poll_until
 from . import _http
-from .base import GenerationResult, JobHandle, Provider
+from .base import Companion, GenerationResult, JobHandle, Provider
 
 _QUEUE_BASE = "https://queue.fal.run"
 
@@ -25,11 +25,24 @@ class _FalBase(Provider):
     output_extension: str = ""
     output_mime: str = ""
 
+    # A layerize call bills per layer produced, and produces up to 17. Estimating
+    # it as one image would quote $0.05 against a possible $0.57 — under, which
+    # is the direction this table is not allowed to be wrong in. There is no way
+    # to know the count before the call, so quote the ceiling and let the receipt
+    # come in lower.
+    _SET_MODEL_MARKERS = ("layerize", "layer-decomposition")
+    _MAX_LAYERS = 17
+
+    def _model_multiplier(self, kwargs: dict[str, Any]) -> int:
+        model_id = str(self._model_id(kwargs) or "").lower()
+        return self._MAX_LAYERS if any(m in model_id for m in self._SET_MODEL_MARKERS) else 1
+
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
+        variants = int(kwargs.get("variants") or 1) * self._model_multiplier(kwargs)
         if self.modality == "image":
-            return cost.estimate("fal/any", variants=kwargs.get("variants", 1))
+            return cost.estimate("fal/any", variants=variants)
         duration = float(kwargs.get("duration_seconds", 5))
-        return cost.estimate("fal/any", duration_seconds=duration, variants=kwargs.get("variants", 1))
+        return cost.estimate("fal/any", duration_seconds=duration, variants=variants)
 
     def _headers(self) -> dict[str, str]:
         return {
@@ -100,7 +113,9 @@ class _FalBase(Provider):
             self.name, response_url, headers=headers, what="network error fetching response"
         ).json()
 
-        self._reject_multi_asset(payload, handle)
+        assets = self._asset_set(payload)
+        if assets:
+            return self._download_set(assets, handle)
 
         url = self._extract_url(payload)
         if not url:
@@ -113,25 +128,56 @@ class _FalBase(Provider):
             extra={"model_id": handle.extra.get("model_id")},
         )
 
-    # fal hosts models whose whole output is a set: `seedream/v5/pro/layerize`
-    # returns 2-17 transparent PNGs and bills $0.03375 for each one. A router
-    # that returns `content: bytes` can hand back exactly one of them, so taking
-    # the first and returning quietly would charge for seventeen layers and
-    # deliver one, with nothing in the output saying so. Refuse instead, and name
-    # what was found — a loud failure costs the same and tells the truth.
-    _MULTI_ASSET_KEYS = ("layers", "outputs", "files")
+    # fal hosts models whose whole output is a set. `seedream/v5/pro/layerize`
+    # decomposes an image into 2-17 transparent PNGs — background, subject, each
+    # text block — and bills $0.03375 for every one of them. Returning the first
+    # and dropping the rest would charge for seventeen and deliver one, with
+    # nothing in the output saying so.
+    _ASSET_SET_KEYS = ("layers", "outputs", "files")
 
-    def _reject_multi_asset(self, payload: dict[str, Any], handle: JobHandle) -> None:
-        for key in self._MULTI_ASSET_KEYS:
+    def _asset_set(self, payload: dict[str, Any]) -> list[dict[str, Any]] | None:
+        """The list a set-returning model produced, or None for ordinary models."""
+        for key in self._ASSET_SET_KEYS:
             node = payload.get(key)
-            if isinstance(node, list) and len(node) > 1:
-                raise ProviderError(
-                    self.name,
-                    None,
-                    f"{handle.extra.get('model_id')} returned {len(node)} assets under "
-                    f"'{key}'; this router returns a single file and would drop the rest. "
-                    f"Use a model with one output, or wire a multi-asset provider.",
+            if isinstance(node, list) and len(node) > 1 and all(isinstance(x, dict) for x in node):
+                # z_index is the stacking order; without it the caller has to
+                # guess which transparent PNG goes underneath which.
+                return sorted(node, key=lambda a: a.get("z_index", 0))
+        return None
+
+    def _download_set(self, assets: list[dict[str, Any]], handle: JobHandle) -> GenerationResult:
+        downloaded = []
+        for asset in assets:
+            url = asset.get("url")
+            if not url:
+                raise ProviderError(self.name, None, "asset in set has no url")
+            downloaded.append((asset, _http.download(self.name, url)))
+
+        first_meta, first_bytes = downloaded[0]
+        return GenerationResult(
+            content=first_bytes,
+            mime=self.output_mime,
+            extension=self.output_extension,
+            extra={
+                "model_id": handle.extra.get("model_id"),
+                "asset_count": len(downloaded),
+                "primary_layer": first_meta.get("name") or first_meta.get("label"),
+            },
+            companions=tuple(
+                Companion(
+                    content=content,
+                    mime=self.output_mime,
+                    extension=self.output_extension,
+                    name=str(meta.get("name") or meta.get("label") or ""),
+                    meta={
+                        k: meta[k]
+                        for k in ("z_index", "bbox", "bounding_box", "description")
+                        if k in meta
+                    },
                 )
+                for meta, content in downloaded[1:]
+            ),
+        )
 
     def _extract_url(self, payload: dict[str, Any]) -> str | None:
         node = payload.get(self.output_key)

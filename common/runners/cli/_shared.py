@@ -193,13 +193,15 @@ def _generate(provider: "Provider", args: argparse.Namespace,
         _keep_prompt(prompt, args, modality, str(exc))
         return 5
 
-    saved = output_mod.save(
-        result.content,
+    saved, companions = output_mod.save_result(
+        result,
         modality,
         result.extension,
         output_mod.SaveOptions(slug=args.model, output_dir=args.output, mime=result.mime),
     )
     print(saved.display())
+    for companion in companions:
+        print(companion.display())
     return 0
 
 

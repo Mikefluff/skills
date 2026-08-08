@@ -59,7 +59,30 @@ python3 ~/.claude/skills/image-prompt/scripts/run.py --list-providers
 | `fal-image` | fal.ai | `FAL_KEY` | async (poll) | ~$0.05 | Router. Override hosted model via `--fal-model <id>`. Hosts Flux / Recraft / Seedream / many mirrors. |
 | `replicate-image` | Replicate | `REPLICATE_API_TOKEN` | async (poll) | ~$0.03 | Router. Override via `--replicate-model <owner>/<name>`. Hosts SD 3.5 / open-source frontier. |
 
-**Prompt-only (no public API)**: Midjourney V8.1 (no first-party API; community gateways exist but quality varies — use fal-image with a Midjourney-style model alias if needed), Krea-1, Qwen-Image 2.0 (open weights — self-host), HiDream-O1 (open weights — self-host), Seedream 5.0 (use fal-image override), Recraft V3 (use fal-image with `--fal-model fal-ai/recraft-v3`), FLUX 3 (early access, no API yet), Meta Muse Image (no public API).
+### Layer sets — one call, many files
+
+`bytedance/seedream/v5/pro/layerize` on fal decomposes an image into 2-17
+transparent PNGs — background, subject, each text block — with a z-index, a
+bounding box and a name per layer. It bills **per layer produced**
+($0.03375 under 1536², $0.0675 above), so the estimate quotes the 17-layer
+ceiling; the receipt comes in lower.
+
+```bash
+python3 scripts/run.py --model fal-image \
+  --fal-model bytedance/seedream/v5/pro/layerize \
+  --image-url ./poster.png \
+  --prompt "separate the headline, the subject and the background"
+```
+
+Every layer is written, ordered by z-index and named after itself
+(`…-01-subject.png`, `…-02-headline.png`) rather than numbered. In a batch they
+are recorded in the manifest, so `--resume` does not buy the set again.
+
+Why it matters more than the file count: a typo in embedded text becomes a layer
+edit instead of a regeneration, and regeneration is the main cause of style drift
+across a carousel set.
+
+**Prompt-only (no public API)**: Midjourney V8.1 (no first-party API; community gateways exist but quality varies — use fal-image with a Midjourney-style model alias if needed), Krea-1, Qwen-Image 2.0 (open weights — self-host), HiDream-O1 (open weights — self-host), Recraft V3 (use fal-image with `--fal-model fal-ai/recraft-v3`), FLUX 3 (early access, no API yet), Meta Muse Image (no public API).
 
 ### Retired slugs
 
