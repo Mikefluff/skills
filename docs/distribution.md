@@ -41,6 +41,7 @@ fails the same test, because a free-text column is how the npm row came to say
 | Directory | Link | Route | Status |
 |---|---|---|---|
 | npm registry | dofollow | `make publish-npm` | listed |
+| skills.sh index (`npx skills`) | unknown | site submission | not submitted |
 | Anthropic community plugin directory | dofollow | form at clau.de | not submitted |
 | awesome-claude-code | dofollow | issue form, by hand | drafted |
 | travisvn/awesome-claude-skills | dofollow | pull request | not submitted |
@@ -71,6 +72,25 @@ Also fixed on the way through: the tarball was shipping `__pycache__/*.pyc`.
 `.npmignore` did not apply because `package.json` sets a `files` allow-list,
 which takes precedence. Negation patterns in `files` were the fix — 656 files
 down to 552.
+
+### `npx skills` — already works, and nobody knew
+
+Vercel Labs' `skills` CLI launched 2026-01-20 and became the ecosystem's default
+installer: GitHub is the registry, 40+ agent platforms are supported, and the
+public index is skills.sh. It finds skills by walking a repo — root, `skills/`,
+`.claude/skills/` and about thirty other paths.
+
+`skills/` is where this collection already keeps them, so nothing had to change:
+
+```bash
+npx skills add Mikefluff/skills --list      # verified 2026-08-08: 43 skills found
+```
+
+Two things follow. Compatibility with the standard installer is now a property
+worth *not* breaking — moving the skills again would silently drop the repo out
+of the ecosystem, the same class of accident as the two documentation gates that
+scanned the old layout. And the index itself is a listing this page had not
+noticed: submission is not automatic, GitHub presence is not enough.
 
 ### Anthropic community plugin directory — newly possible
 

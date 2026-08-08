@@ -253,7 +253,49 @@ targets and asks the filesystem, which also means it covers links that are not
 under `references/` at all — and it reports how many it checked, so "no links"
 and "every link resolves" stop printing the same thing.
 
-Tests: 721 → 799.
+### Added — the AEO linter learned the two rules the 2026 measurements added
+
+The extractability rules were built on research that held the words constant and
+changed only structure. The 2026 follow-up measured two things that set of rules
+did not cover.
+
+**Evidence.** Citing sources scored +40% visibility, adding statistics +41%,
+quotations +28%, and they compound. `lint_aeo` now reports which of the three a
+page shows and warns below two — a page evidencing none of them is asking to be
+believed rather than cited.
+
+**Per-section answers.** The page-level answer only wins the query the title
+matches; a section long enough to be retrieved on its own is scored on its own
+first sentences. Sections past 120 words that open with setup are flagged.
+
+Not added: freshness. 83% of AI citations now come from pages updated inside
+twelve months, and pages not refreshed quarterly are 3x more likely to lose them
+— but that needs a date the linter cannot see from the text.
+
+The number that moved most is not a rule at all. In mid-2025 roughly 76% of AI
+Overview citations were also top-ten organic results; by early 2026 Ahrefs put
+that near 38% and BrightEdge as low as 17%. Ranking no longer buys the citation.
+
+`lint_aeo.py` passed the module-size gate on the way in, so the thresholds,
+patterns and parser moved to `lint_aeo_core.py`.
+
+### Checked — where this collection stands against the ecosystem
+
+`npx skills` (Vercel Labs, launched 2026-01-20) became the ecosystem's default
+installer: GitHub as registry, 40+ agent platforms, skills.sh as the public
+index. `npx skills add Mikefluff/skills --list` finds all 43 — the `skills/`
+layout already matched, by accident rather than intent. Now written down in
+`distribution.md`, both as a compatibility property not to break and as a listing
+that was never submitted.
+
+Document generation comes off the roadmap and onto the non-goals: Claude ships
+native `pptx` / `xlsx` / `docx` / `pdf` skills, free to every account since
+2026-02-11. Voice cloning joins it — the APIs exist, the consent workflow this
+collection could enforce does not. 3D stays open and is the one real modality
+gap: Tripo, Meshy and Rodin all have APIs, and a `model-maker` would reuse the
+existing plan/batch/receipt path rather than needing a new one.
+
+Tests: 721 → 803.
 
 ## [2.24.0] — 2026-08-08
 

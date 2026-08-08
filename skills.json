@@ -201,7 +201,7 @@
       "name": "image-prompt",
       "dir": "skills/image-prompt",
       "layer": "wrapper",
-      "description": "Write prompts for 14+ frontier AI image generators (Midjourney V8.1, Flux 2 / Flux Kontext, Nano Banana Pro / 2 / 2 Lite (Gemini image family), gpt-image-2, Ideogram 3, Recraft V3, Seedream 5.0, Qwen-Image, HiDream-O1, Krea-1, SD 3.5, SDXL). Modes: text-to-image, edit (preserve/change), multi-reference, text-in-image. 6-part formula + per-model deltas, character/identity locks, weighted multi-ref.",
+      "description": "Write prompts for 14+ frontier AI image generators (Midjourney V8.1, Flux 2 / Flux Kontext, Nano Banana Pro / 2 / 2 Lite (Gemini image family), gpt-image-2, Ideogram 4 / 3, Recraft V3, Seedream 5.0, Qwen-Image, HiDream-O1, Krea-1, SD 3.5, SDXL). Modes: text-to-image, edit (preserve/change), multi-reference, text-in-image. 6-part formula + per-model deltas, character/identity locks, weighted multi-ref.",
       "languages": [
         "en",
         "ru"

@@ -151,8 +151,9 @@ GOOD = (
     + "Model drift breaks silently because nothing distinguishes a live model id from a "
     "string that used to resolve. The fix is a test that pins every vendor id, asserts each "
     "registered provider is priced, and fails after a fixed interval without manual "
-    "re-verification. In one collection this caught three dead endpoints.\n\n"
-    "## What is model drift?\n\nA vendor retires a model on its own schedule.\n\n"
+    "re-verification. In one collection this caught 3 dead endpoints in 2026.\n\n"
+    "## What is model drift?\n\nA vendor retires a model on its own schedule, as "
+    "[Google did with Imagen 4](https://example.com/imagen-retirement).\n\n"
     "## How do you detect it offline?\n\nPin the identifiers in a test.\n"
 )
 
@@ -172,6 +173,37 @@ class TestAeoLinter(unittest.TestCase):
     def test_preamble_opening_is_flagged(self):
         rules = {f.rule for f in lint_aeo.scan(BAD).findings}
         self.assertIn("answer-first", rules)
+
+    def test_a_page_that_evidences_nothing_is_flagged(self):
+        # Measured across engines in 2026: citing sources +40% visibility,
+        # statistics +41%, quotations +28%. A page with none of the three is
+        # asking to be believed rather than cited.
+        rules = {f.rule for f in lint_aeo.scan(BAD).findings}
+        self.assertIn("evidence", rules)
+
+    def test_two_evidence_signals_are_enough(self):
+        # GOOD carries a link and figures, no quotation. Demanding all three
+        # would fail most honest writing.
+        self.assertEqual([], [f for f in lint_aeo.scan(GOOD).findings if f.rule == "evidence"])
+        self.assertEqual(["sources", "statistics"], lint_aeo.scan(GOOD).stats["evidence"])
+
+    def test_a_long_section_opening_on_setup_is_flagged(self):
+        # The page-level answer only wins the query the title matches. A section
+        # long enough to be retrieved alone is scored on its own first sentences.
+        page = (
+            GOOD
+            + "\n## Why does it matter?\n\n"
+            + "In this guide we'll walk through the background. " * 18
+            + "\n\nThen the actual claim arrives, far too late to be quoted.\n"
+        )
+        rules = {f.rule for f in lint_aeo.scan(page).findings}
+        self.assertIn("section-answer", rules)
+
+    def test_a_short_section_is_left_alone(self):
+        # Short sections are read as part of the page, not chunked on their own.
+        self.assertEqual(
+            [], [f for f in lint_aeo.scan(GOOD).findings if f.rule == "section-answer"]
+        )
 
     def test_statement_headings_are_flagged(self):
         findings = [f for f in lint_aeo.scan(BAD).findings if f.rule == "headings"]

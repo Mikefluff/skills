@@ -1,6 +1,6 @@
 ---
 name: image-prompt
-description: "Write prompts for 14+ frontier AI image generators (Midjourney V8.1, Flux 2/Kontext, Nano Banana Pro/2, gpt-image-2, Ideogram 3, Recraft V3, Seedream 5, Qwen, HiDream, Krea, SDXL). Modes: T2I, edit, multi-ref, text-in-image. Use when: 'prompt for an image', 'Midjourney prompt', 'edit with Kontext', 'character consistency', 'poster with text'."
+description: "Write prompts for 14+ frontier AI image generators (Midjourney V8.1, Flux 2/Kontext, Nano Banana Pro/2, gpt-image-2, Ideogram 4/3, Recraft V3, Seedream 5, Qwen, HiDream, Krea, SDXL). Modes: T2I, edit, multi-ref, text-in-image. Use when: 'prompt for an image', 'Midjourney prompt', 'edit with Kontext', 'character consistency', 'poster with text'."
 
 license: MIT
 allowed-tools:

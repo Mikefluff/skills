@@ -62,18 +62,34 @@ vendor docs, which is the whole point of the marker.
   Muse Spark 1.1, a reasoning model; different product.
 - Hashnode — unchanged and already handled: Pro required, preflight says so.
 
-**Open questions worth actual research**, none of which this session covered:
+**Open questions** — researched 2026-08-08. Answers, not a list any more:
 
-- Modalities the collection has no answer for. 3D / spatial, voice cloning with
-  consent workflows, realtime/streaming, document generation (the pre-built
-  pptx/xlsx/docx Skills exist on the API surface but not in Claude Code).
-- Claude Code platform features the skills do not use. Hooks beyond the
-  pre-commit example, MCP servers as a distribution shape, subagents, whatever
-  has shipped since. The plugin manifest landed in v2.23.0 and immediately
-  unlocked a directory submission — there may be more of that kind.
-- Whether anything has displaced the AEO findings from 2026-08. That research
-  has a short half-life; the 17.3% structural-lift study and the citation
-  overlap numbers should be re-checked, not assumed.
+- **Document generation is not a gap, it is covered by the platform.** Claude
+  shipped native `pptx` / `xlsx` / `docx` / `pdf` skills in April 2026 and opened
+  them to free accounts on 2026-02-11. Building a fifth copy would be worse than
+  the built-in, not better. Closed.
+- **3D is a real gap with real APIs.** Tripo (API credits at $0.01, 2 000 free on
+  signup), Meshy (subscription, SOC2/ISO), Rodin (premium, Gen-2). Generation
+  runs 20-180 s depending on tier. The shape that fits this collection is a
+  `model-maker` wrapping one provider behind the same plan/batch/receipt path as
+  every other maker, not a new architecture. Unresearched: what a user does with
+  a GLB once they have it, which decides whether this is worth building.
+- **Voice cloning and realtime stay out.** Cloning needs a consent workflow this
+  collection has no way to enforce, and realtime/streaming is not a shape a
+  file-producing skill collection has. Both were already non-goals in spirit;
+  they are non-goals in writing now.
+- **AEO moved, and the movement was larger than expected.** The citation ↔
+  ranking overlap collapsed: ~76% of AI Overview citations were also top-ten
+  organic in mid-2025; by early 2026 Ahrefs measured ~38% and BrightEdge as low
+  as 17%. Ranking no longer buys the citation. The 2026 lift measurements —
+  sources +40%, statistics +41%, quotations +28% — and the per-section answer
+  block are now checked by `lint_aeo`; freshness (83% of citations come from
+  pages updated inside 12 months) is not, and would need a date the linter
+  cannot see.
+- **Claude Code platform features** — the one that mattered is in
+  [`distribution.md`](distribution.md): `npx skills` became the ecosystem's
+  default installer and this repo is already compatible, unlisted. Hooks,
+  subagents and MCP-as-distribution are still unexamined.
 
 ### Job 2 — audit the structure
 
@@ -450,6 +466,13 @@ These call existing third-party providers (Replicate / fal). Pattern: thin wrapp
 
 These are NOT planned:
 
+- **Voice cloning** — the APIs exist and the consent workflow does not. A skill that
+  takes a voice sample cannot verify the speaker agreed, and a collection that
+  ships one is supplying the tool without the check. Plain TTS with stock voices
+  (`voiceover-maker`) is the version that does not need a consent record.
+- **Document generation (pptx / xlsx / docx / pdf)** — Claude ships these natively
+  and has since April 2026, free to every account since 2026-02-11. A fifth copy
+  would be worse than the built-in.
 - **AI-driven prompt-engineering for content moderation** — bypassing AI safety filters is out of scope.
 - **Stock-photo generation at scale** — that's what stock photo sites are for.
 - **DALL-E 3 integration** — OpenAI removed dall-e-2 and dall-e-3 from the API on 2026-05-12. gpt-image-2 is the replacement, and we have it.

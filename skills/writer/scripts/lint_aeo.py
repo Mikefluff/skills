@@ -15,181 +15,41 @@ things that decide citation are structural, and they are measurable offline:
   - paragraphs small enough to survive chunking intact
   - sections sized to one self-contained argument
   - a comparison table when the page answers a comparison query
+  - a direct answer at the top of every section long enough to be chunked alone
+  - evidence the page can be cited for: sources, figures, quotations
 
 The published research that motivates this held the words constant and changed
-only structure, across six engines. No network calls, no model, same shape as
-the prose linter next door.
+only structure, across six engines. The 2026 follow-up measured the evidence
+signals separately: citing sources +40% visibility, statistics +41%, quotations
++28%. No network calls, no model, same shape as the prose linter next door.
+
+Thresholds, patterns and the parser live in lint_aeo_core.py.
 """
 
-from __future__ import annotations
 
-import re
-import sys
-from dataclasses import dataclass, field
-
-# The first 40-60 words after the title are the primary extraction window. The
-# band below is deliberately wider at the top: a 75-word answer still fits a
-# chunk, while anything past that has stopped being an answer and become a
-# preamble.
-ANSWER_MIN_WORDS = 40
-ANSWER_MAX_WORDS = 75
-
-# One self-contained argument, measured between headings.
-SECTION_MIN_WORDS = 100
-SECTION_MAX_WORDS = 200
-
-# An atomic paragraph is one idea. Past this it stops being one chunk.
-PARAGRAPH_MAX_WORDS = 90
-
-# Below this share of question-form headings the page reads as a document
-# rather than as a set of answers.
-QUESTION_HEADING_RATIO = 0.4
-
-_HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
-_TABLE_ROW = re.compile(r"^\s*\|.*\|\s*$")
-_CODE_FENCE = re.compile(r"^\s*```")
-
-# Interrogative openers, EN + RU. A heading ending in "?" counts regardless.
-_QUESTION_WORDS = {
-    "what", "how", "why", "when", "where", "which", "who", "can", "should",
-    "is", "are", "does", "do", "will", "would",
-    "что", "как", "почему", "зачем", "когда", "где", "какой", "какая", "какие",
-    "кто", "нужно", "стоит", "можно", "чем",
-}
-
-# Openers that announce an article instead of answering. If the first paragraph
-# starts like this, the extraction window is spent on throat-clearing.
-_PREAMBLE = re.compile(
-    r"^\s*(in this (article|post|guide)|this (article|post|guide)|let'?s |we'?ll |"
-    r"have you ever|imagine |picture this|в этой (статье|заметке)|"
-    r"сегодня (мы|я)|давайте |представьте |поговорим )",
-    re.IGNORECASE,
+from lint_aeo_core import (
+    ANSWER_MAX_WORDS,
+    ANSWER_MIN_WORDS,
+    EVIDENCE_MIN_KINDS,
+    PARAGRAPH_MAX_WORDS,
+    QUESTION_HEADING_RATIO,
+    SECTION_ANSWER_MAX_WORDS,
+    SECTION_ANSWER_THRESHOLD_WORDS,
+    SECTION_MAX_WORDS,
+    SECTION_MIN_WORDS,
+    AeoReport,
+    Finding,
+    _Block,
+    _COMPARISON,
+    _PREAMBLE,
+    _QUOTATION,
+    _SOURCE,
+    _STATISTIC,
+    _is_question,
+    _opening_block,
+    _parse,
+    _words,
 )
-
-# Words that signal the page answers a comparison query.
-_COMPARISON = re.compile(
-    r"\b(vs\.?|versus|compared? to|alternatives?|better than|which one|"
-    r"против|сравнение|вместо|альтернатив|лучше чем|что выбрать)\b",
-    re.IGNORECASE,
-)
-
-
-@dataclass
-class Finding:
-    line: int
-    rule: str
-    severity: str  # "block" | "warn" | "nit"
-    message: str
-
-    def to_dict(self) -> dict:
-        return {
-            "line": self.line,
-            "rule": self.rule,
-            "severity": self.severity,
-            "message": self.message,
-        }
-
-
-@dataclass
-class AeoReport:
-    findings: list[Finding] = field(default_factory=list)
-    stats: dict = field(default_factory=dict)
-
-    @property
-    def blocks(self) -> int:
-        return sum(1 for f in self.findings if f.severity == "block")
-
-    @property
-    def warns(self) -> int:
-        return sum(1 for f in self.findings if f.severity == "warn")
-
-    def verdict(self) -> tuple[int, str]:
-        """0 extractable · 1 weak · 2 poor. Independent of the slop verdict."""
-        if self.blocks:
-            return 2, "poor extractability"
-        if self.warns >= 3:
-            return 2, "poor extractability"
-        if self.warns:
-            return 1, "weak extractability"
-        return 0, "extractable"
-
-
-def _words(text: str) -> list[str]:
-    return re.findall(r"[\w'’-]+", text, re.UNICODE)
-
-
-def _is_question(heading: str) -> bool:
-    stripped = heading.strip().rstrip(":")
-    if stripped.endswith("?"):
-        return True
-    first = _words(stripped.lower())
-    return bool(first) and first[0] in _QUESTION_WORDS
-
-
-@dataclass
-class _Block:
-    """A parsed markdown block: heading, paragraph, table row or fence."""
-
-    kind: str
-    line: int
-    text: str
-    level: int = 0
-
-
-def _parse(lines: list[str]) -> list[_Block]:
-    blocks: list[_Block] = []
-    in_fence = False
-    buffer: list[str] = []
-    buffer_start = 0
-
-    def flush() -> None:
-        nonlocal buffer, buffer_start
-        joined = " ".join(buffer).strip()
-        if joined:
-            blocks.append(_Block("paragraph", buffer_start, joined))
-        buffer = []
-
-    for number, raw in enumerate(lines, 1):
-        if _CODE_FENCE.match(raw):
-            flush()
-            in_fence = not in_fence
-            continue
-        if in_fence:
-            continue
-
-        heading = _HEADING.match(raw)
-        if heading:
-            flush()
-            blocks.append(
-                _Block("heading", number, heading.group(2).strip(), len(heading.group(1)))
-            )
-            continue
-
-        if _TABLE_ROW.match(raw):
-            flush()
-            blocks.append(_Block("table", number, raw.strip()))
-            continue
-
-        if not raw.strip():
-            flush()
-            continue
-
-        if not buffer:
-            buffer_start = number
-        buffer.append(raw.strip())
-
-    flush()
-    return blocks
-
-
-def _opening_block(blocks: list[_Block]) -> _Block | None:
-    """The first paragraph before any H2 — the extraction window."""
-    for block in blocks:
-        if block.kind == "heading" and block.level >= 2:
-            return None
-        if block.kind == "paragraph":
-            return block
-    return None
 
 
 def _check_answer_first(blocks: list[_Block]) -> list[Finding]:
@@ -338,6 +198,93 @@ def _check_comparison_table(blocks: list[_Block], title: str) -> list[Finding]:
     ]
 
 
+def _evidence_kinds(text: str) -> list[str]:
+    """Which of the three lift-carrying signals the page actually shows."""
+    kinds = []
+    if _SOURCE.search(text):
+        kinds.append("sources")
+    if _STATISTIC.search(text):
+        kinds.append("statistics")
+    if _QUOTATION.search(text):
+        kinds.append("quotations")
+    return kinds
+
+
+def _check_evidence(text: str) -> list[Finding]:
+    """Citing sources, quoting figures and quoting people are what get quoted.
+
+    Measured separately across engines in 2026: citing sources +40% visibility,
+    adding statistics +41%, adding quotations +28%. They compound, and a page
+    showing none of the three is asking to be believed rather than cited.
+    """
+    kinds = _evidence_kinds(text)
+    if len(kinds) >= EVIDENCE_MIN_KINDS:
+        return []
+    missing = [k for k in ("sources", "statistics", "quotations") if k not in kinds]
+    return [
+        Finding(
+            1,
+            "evidence",
+            "warn",
+            f"page shows {len(kinds)} of 3 evidence signals "
+            f"({', '.join(kinds) or 'none'}); missing {', '.join(missing)} — "
+            f"engines cite pages that show their working",
+        )
+    ]
+
+
+def _check_section_answers(blocks: list[_Block]) -> list[Finding]:
+    """Every section long enough to be chunked alone needs its own opening answer.
+
+    The page-level answer only wins the query the title matches. A long section
+    is retrieved on its own terms, and if it opens with setup rather than a
+    claim, the passage that gets scored has nothing quotable at the top.
+    """
+    out: list[Finding] = []
+    current: _Block | None = None
+    first_paragraph: _Block | None = None
+    words = 0
+
+    def close() -> None:
+        if current is None or words < SECTION_ANSWER_THRESHOLD_WORDS:
+            return
+        if first_paragraph is None:
+            out.append(
+                Finding(
+                    current.line,
+                    "section-answer",
+                    "warn",
+                    f"section '{current.text[:40]}' runs {words} words with no opening "
+                    f"paragraph — the chunk starts on a list or a table",
+                )
+            )
+            return
+        opening = len(_words(first_paragraph.text))
+        if opening > SECTION_ANSWER_MAX_WORDS or _PREAMBLE.match(first_paragraph.text):
+            out.append(
+                Finding(
+                    first_paragraph.line,
+                    "section-answer",
+                    "warn",
+                    f"section '{current.text[:40]}' opens with {opening} words of setup; "
+                    f"a chunked section is scored on its own first sentences",
+                )
+            )
+
+    for block in blocks:
+        if block.kind == "heading" and block.level >= 2:
+            close()
+            current, first_paragraph, words = block, None, 0
+            continue
+        if current is None:
+            continue
+        words += len(_words(block.text))
+        if first_paragraph is None and block.kind == "paragraph":
+            first_paragraph = block
+    close()
+    return out
+
+
 def scan(text: str) -> AeoReport:
     lines = text.splitlines()
     blocks = _parse(lines)
@@ -354,6 +301,8 @@ def scan(text: str) -> AeoReport:
     findings += _check_paragraphs(blocks)
     findings += _check_sections(blocks)
     findings += _check_comparison_table(blocks, title)
+    findings += _check_evidence(text)
+    findings += _check_section_answers(blocks)
 
     headings = [b for b in blocks if b.kind == "heading" and b.level >= 2]
     report = AeoReport(findings=findings)
@@ -362,6 +311,7 @@ def scan(text: str) -> AeoReport:
         "sections": len(headings),
         "question_headings": sum(1 for h in headings if _is_question(h.text)),
         "has_table": any(b.kind == "table" for b in blocks),
+        "evidence": _evidence_kinds(text),
     }
     return report
 
@@ -373,7 +323,8 @@ def format_human(report: AeoReport) -> str:
         f"writer-aeo: {label} ({report.blocks} block, {report.warns} warn)",
         f"  {stats.get('words', 0)} words · {stats.get('sections', 0)} sections · "
         f"{stats.get('question_headings', 0)} question headings · "
-        f"table: {'yes' if stats.get('has_table') else 'no'}",
+        f"table: {'yes' if stats.get('has_table') else 'no'} · "
+        f"evidence: {', '.join(stats.get('evidence') or []) or 'none'}",
     ]
     if report.findings:
         out.append("")
