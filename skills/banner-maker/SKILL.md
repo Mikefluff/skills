@@ -119,6 +119,17 @@ Read headline + CTA + brand + style + presets → pick text-strong model → ass
 - `--resume` — retry failed
 - `--prompts-only` — dry run
 
+## STRUCTURED LAYOUT (Ideogram 4 only)
+
+When `--model` is an `ideogram-4*` tier, emit the layout as structure instead of
+flattening it into a sentence: add `json_prompt` to each plan item's `kwargs`,
+following [`common/references/json-prompt.md`](../../common/references/json-prompt.md).
+This skill already knows where every element goes; sending that directly is what
+stops the arrangement drifting between variants.
+
+On any v3 tier the provider refuses a `json_prompt` rather than ignoring it, so
+keep the prose prompt as written and send nothing extra.
+
 ## REFERENCES (load on demand)
 
 | File | When to load |

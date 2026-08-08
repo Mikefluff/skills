@@ -197,10 +197,15 @@ priced *under* what Ideogram charges — $0.02/$0.04/$0.08 against $0.03/$0.06/$
 `logo-maker`'s default path. Fixed, and gate 8 pulled twenty-six documented
 figures along with it.
 
-**Still to do — the larger half.** Teach `banner-maker` / `flyer-maker` /
-`logo-maker` to send `json_prompt` instead of flattening their internal layout
-into a prose sentence for the model to re-infer. That is a second prompt mode
-across three skills, not a slug.
+**Done — the larger half.** `json_prompt` goes through: the provider sends it or
+the prose field, never both, and refuses it on a v3 tier rather than letting the
+call succeed with the layout silently dropped. The contract lives once in
+[`common/references/json-prompt.md`](../common/references/json-prompt.md); the
+three layout skills point at it.
+
+What is untested is whether structured prompts actually hold a layout better than
+prose — that needs generating both and comparing, which needs a key. The claim in
+the reference is the vendor's, and is labelled as such.
 
 **Deliberately not done — flipping defaults.** `logo-maker` and friends still
 default to `ideogram-3-quality`; the pickers now name v4 and say when to prefer

@@ -18,6 +18,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from common.runners import cost  # noqa: E402
+from common.runners.errors import ProviderError  # noqa: E402
 from common.runners.providers import ideogram  # noqa: E402
 
 V3 = "https://api.ideogram.ai/v1/ideogram-v3/generate"
@@ -31,7 +32,7 @@ class _Response:
         return {"data": [{"url": "https://img.example/x.png"}]}
 
 
-def sent(provider):
+def sent(provider, **kwargs):
     """Return (url, body) the provider would post, without posting it."""
     captured = {}
 
@@ -43,7 +44,7 @@ def sent(provider):
     with mock.patch.dict("os.environ", {"IDEOGRAM_API_KEY": "k"}), \
             mock.patch.object(ideogram._http, "post", fake_post), \
             mock.patch.object(ideogram._http, "download", lambda *a, **k: b"PNG"):
-        provider.generate("a poster")
+        provider.generate("a poster", **kwargs)
     return captured["url"], captured["body"]
 
 
@@ -78,6 +79,39 @@ class TestPromptField(unittest.TestCase):
         body = sent(ideogram.Ideogram4QualityProvider())[1]
         self.assertEqual("a poster", body["text_prompt"])
         self.assertNotIn("prompt", body)
+
+
+class TestJsonPrompt(unittest.TestCase):
+    """Layout as structure, which only v4 accepts."""
+
+    LAYOUT = {
+        "canvas": {"aspect": "4:5", "background": "warm cream"},
+        "blocks": [{"role": "headline", "text": "OPEN KITCHEN", "position": "top-center"}],
+    }
+
+    def test_v4_sends_the_structure_and_drops_the_sentence(self):
+        # The API documents the two fields as mutually exclusive. Sending both
+        # is a 400 at best and an ignored layout at worst.
+        body = sent(ideogram.Ideogram4QualityProvider(), json_prompt=self.LAYOUT)[1]
+        self.assertEqual(self.LAYOUT, body["json_prompt"])
+        self.assertNotIn("text_prompt", body)
+        self.assertNotIn("prompt", body)
+
+    def test_v3_refuses_rather_than_dropping_the_layout(self):
+        # v3 has no such field, so it would accept the call, ignore the layout,
+        # and return a plausible image built from nothing the caller specified.
+        with self.assertRaises(ProviderError) as caught:
+            sent(ideogram.IdeogramQualityProvider(), json_prompt=self.LAYOUT)
+        self.assertIn("Ideogram 4", str(caught.exception))
+
+    def test_a_non_object_layout_is_refused(self):
+        with self.assertRaises(ProviderError):
+            sent(ideogram.Ideogram4TurboProvider(), json_prompt="headline at the top")
+
+    def test_no_json_prompt_leaves_the_text_path_alone(self):
+        body = sent(ideogram.Ideogram4TurboProvider())[1]
+        self.assertEqual("a poster", body["text_prompt"])
+        self.assertNotIn("json_prompt", body)
 
 
 class TestRenderingSpeed(unittest.TestCase):

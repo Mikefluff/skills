@@ -63,23 +63,51 @@ for skill in $SKILLS; do
     pass "frontmatter OK (name, description, license, allowed-tools)"
   fi
 
-  # 2) Cross-link check: every references/<file>.md mentioned in SKILL.md must exist.
-  # Matches intra-skill links (references/x.md) and cross-skill ones
-  # (../other-skill/references/x.md); both resolve against the skill dir.
-  links="$(grep -oE '(\.\./[a-z0-9_-]+/)?references/[a-z0-9_-]+\.md' "$skill/SKILL.md" | sort -u || true)"
+  # 2) Cross-link check: every local markdown link in SKILL.md must resolve.
+  #
+  # This used to grep for a path *shape* — one optional `../` then `references/`.
+  # It matched the tail of anything deeper, so a correct
+  # `../../common/references/x.md` was reported broken as `../common/...`, and a
+  # path merely mentioned in prose was checked as if it were a link. Extract the
+  # link targets instead, and let the filesystem resolve them.
+  links="$(python3 - "$skill/SKILL.md" <<'EXTRACT'
+import re, sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+skill_dir = path.parent
+checked = 0
+broken = []
+for target in re.findall(r"\]\(([^)\s]+)\)", path.read_text(encoding="utf-8")):
+    target = target.split("#", 1)[0]
+    if not target or target.startswith(("http://", "https://", "mailto:")):
+        continue
+    if not target.endswith(".md"):
+        continue
+    checked += 1
+    resolved = (skill_dir / target).resolve()
+    if not resolved.is_file():
+        broken.append(target)
+
+print(checked)
+for target in broken:
+    print(target)
+EXTRACT
+)"
+  # First line is how many links were looked at; the rest are the broken ones.
+  # Reporting the count matters: "no links to check" and "every link resolves"
+  # must not print the same thing.
+  link_total="$(printf '%s\n' "$links" | head -n1)"
+  link_broken="$(printf '%s\n' "$links" | tail -n +2)"
   link_err=0
-  for link in $links; do
-    if [ -f "$skill/$link" ]; then
-      :
-    else
-      fail "broken link in SKILL.md: $link"
-      link_err=1
-    fi
+  for link in $link_broken; do
+    fail "broken link in SKILL.md: $link"
+    link_err=1
   done
-  if [ -z "$links" ]; then
-    info "no references/ links to check"
+  if [ "${link_total:-0}" = "0" ]; then
+    info "no local markdown links to check"
   elif [ "$link_err" = "0" ]; then
-    pass "all references/ links resolve ($(echo "$links" | wc -l | tr -d ' ') checked)"
+    pass "all local links resolve ($link_total checked)"
   fi
 
   # 3) examples/ check (optional but recommended)

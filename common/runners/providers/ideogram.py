@@ -30,8 +30,32 @@ class _IdeogramBase(Provider):
     endpoint: str = "https://api.ideogram.ai/v1/ideogram-v3/generate"
     prompt_field: str = "prompt"
 
+    supports_json_prompt: bool = False
+
     def estimate_cost(self, **kwargs: Any) -> Decimal | None:
         return cost.estimate(self.name, variants=kwargs.get("num_images", kwargs.get("variants", 1)))
+
+    def _prompt_body(self, prompt: str, json_prompt: Any) -> dict[str, Any]:
+        """Which prompt field to send. The two are mutually exclusive per the API.
+
+        A structured prompt describes layout as structure — headline here, image
+        there — instead of asking the model to re-infer an arrangement from a
+        sentence, which is what makes prose layout prompts drift between runs.
+        Only v4 accepts it; sending it to v3 would be ignored, and a silently
+        ignored layout is worse than a refused one.
+        """
+        if json_prompt is None:
+            return {self.prompt_field: prompt}
+        if not self.supports_json_prompt:
+            raise ProviderError(
+                self.name,
+                None,
+                "json_prompt needs an Ideogram 4 tier (ideogram-4-turbo / "
+                "ideogram-4 / ideogram-4-quality); v3 would ignore it silently.",
+            )
+        if not isinstance(json_prompt, dict):
+            raise ProviderError(self.name, None, "json_prompt must be an object")
+        return {"json_prompt": json_prompt}
 
     def generate(self, prompt: str, **kwargs: Any) -> GenerationResult:
         self.ensure_available()
@@ -41,11 +65,11 @@ class _IdeogramBase(Provider):
         aspect_ratio: str = kwargs.get("aspect_ratio", "16x9")
 
         body: dict[str, Any] = {
-            self.prompt_field: prompt,
             "rendering_speed": self.rendering_speed,
             "num_images": num_images,
             "aspect_ratio": aspect_ratio,
         }
+        body.update(self._prompt_body(prompt, kwargs.get("json_prompt")))
         resp = _http.post(
             self.name,
             self.endpoint,
@@ -78,6 +102,7 @@ class _IdeogramBase(Provider):
 class _IdeogramV4Base(_IdeogramBase):
     endpoint = "https://api.ideogram.ai/v1/ideogram-v4/generate"
     prompt_field = "text_prompt"
+    supports_json_prompt = True
 
 
 class Ideogram4TurboProvider(_IdeogramV4Base):

@@ -226,7 +226,34 @@ a typo becoming a layer edit instead of a full regeneration, which is the main
 cause of style drift across a carousel — needs a retry-loop change, not a
 provider one.
 
-Tests: 721 → 795.
+### Added — structured layout prompts, the other half of the Ideogram item
+
+Ideogram 4 accepts `json_prompt`: layout as structure — headline here, image
+there — instead of a sentence the model has to re-infer an arrangement from.
+That re-inference is why two runs of the same prose prompt put the headline in
+two places, and why an aspect set stops looking like one thing.
+
+The provider sends `json_prompt` or the prose field, never both, because the API
+documents them as mutually exclusive. On a v3 tier it **refuses**: v3 has no such
+field, so the call would succeed and return a picture built from nothing the
+caller specified, which is worse than an error.
+
+The contract is written once, in `common/references/json-prompt.md`;
+`banner-maker`, `flyer-maker` and `logo-maker` each point at it. They already
+held the structure internally — this is them no longer flattening it on the way
+out.
+
+### Fixed — `validate.sh` reported a correct link as broken
+
+The cross-link check grepped for a path *shape*: one optional `../`, then
+`references/`. A correct `../../common/references/json-prompt.md` matched only
+its tail and was reported broken as `../common/…`, while a path merely mentioned
+in prose was checked as though it were a link. It now extracts markdown link
+targets and asks the filesystem, which also means it covers links that are not
+under `references/` at all — and it reports how many it checked, so "no links"
+and "every link resolves" stop printing the same thing.
+
+Tests: 721 → 799.
 
 ## [2.24.0] — 2026-08-08
 
