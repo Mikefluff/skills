@@ -1,7 +1,7 @@
 """The proposal authoring brief — the markdown the orchestrator works from.
 
-Split out of proposal_kit.py, which had grown past the module-size gate.
-proposal_kit turns HTML into a PDF and sources photos; this writes the document
+Split out of kit.py, which had grown past the module-size gate.
+kit turns HTML into a PDF and sources photos; this writes the document
 that tells the orchestrator what to build and what it may not change.
 
 The brief is prompt material, so its wording is the interface. Sections 1-3 are
@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .proposal_kit import _fmt_price
+from .kit import _fmt_price
 
 @dataclass(frozen=True)
 class BriefContext:

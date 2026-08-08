@@ -68,7 +68,7 @@ harnesses were sound and the proofs are worth keeping:
    outlier.
 
 Golden-file or hash-pinned, either is fine. The point is that the next person to
-touch `typography.py`, `proposal_render.py` or `proposal_brief.py` finds out from
+touch `typography.py`, `proposal/render.py` or `proposal/brief.py` finds out from
 a test rather than from a client.
 
 ## C — the four known defects
@@ -105,7 +105,7 @@ actually catch:
 1. **`cli/proposal.py`** — the paydown's decomposition broke `_run_kit` with an
    unbound name and only an end-to-end run found it. Exit codes plus the two
    output modes' manifests.
-2. **`proposal_brand.extract`** — the palette and font pickers are pure functions
+2. **`proposal/brand.extract`** — the palette and font pickers are pure functions
    over HTML and were verified by diff, never by test.
 3. **`cli/styles.py` + `_styles_submit.py`** — `submit` writes a package a human
    carries to GitHub; the `.format()` templates in it are one typo from shipping

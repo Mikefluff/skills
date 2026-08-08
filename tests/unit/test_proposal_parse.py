@@ -1,4 +1,4 @@
-"""Unit tests for the amount parser in common/runners/proposal_parse.py.
+"""Unit tests for the amount parser in common/runners/proposal/parse.py.
 
 proposal-maker's whole promise is "prices stay exact". The offers it reads are
 pasted from Telegram, so the same number arrives as `5 154 000`, `5,154,000` or
@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from common.runners.proposal_parse import _norm_currency, _parse_amount, parse  # noqa: E402
+from common.runners.proposal.parse import _norm_currency, _parse_amount, parse  # noqa: E402
 
 
 class TestParseAmount(unittest.TestCase):

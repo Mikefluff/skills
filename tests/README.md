@@ -33,7 +33,7 @@ tests/
 ## Three layers, three failure modes
 
 - **`fixtures/` + `snapshots/`** lock the *linter*: a regex tweak that silently weakens detection fails here.
-- **`unit/`** locks the *runner*: the executable layer that spends the user's API budget. Chosen by risk, not by coverage percentage — `cost.py` decides what you get billed, `keysfile.py` handles secrets, `proposal_parse.py` reads the prices that reach a client. Plain `unittest`, no pytest, because the README promises no required dependencies.
+- **`unit/`** locks the *runner*: the executable layer that spends the user's API budget. Chosen by risk, not by coverage percentage — `cost.py` decides what you get billed, `keysfile.py` handles secrets, `proposal/parse.py` reads the prices that reach a client. Plain `unittest`, no pytest, because the README promises no required dependencies.
 - **`evals/`** locks the *skill*: whether the model invented a statistic or deleted the CTA. Needs a model, so it is not in CI.
 
 Run the unit layer alone with `make test-unit`; see [evals/README.md](evals/README.md) for the model-in-the-loop layer.

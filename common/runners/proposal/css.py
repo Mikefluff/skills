@@ -1,7 +1,7 @@
 """Proposal stylesheet — base CSS, per-theme overrides, and the custom properties.
 
-Split out of proposal_render.py, which had grown past the module-size gate.
-This half is the look; proposal_render.py is the document structure. Keeping
+Split out of render.py, which had grown past the module-size gate. This half
+is the look; render.py is the document structure. Keeping
 them apart means a CSS tweak does not sit in the same file as the HTML the
 renderer assembles.
 

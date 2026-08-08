@@ -175,7 +175,7 @@ def _parse_item_line(line: str) -> dict[str, Any] | None:
         "qty": qty,
         "price": price,
         "currency": currency,
-        # enrichment slots (filled later by proposal_brand.enrich_items)
+        # enrichment slots (filled later by brand.enrich_items)
         "thumb": None,
         "desc": None,
         "canonical_name": None,

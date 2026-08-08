@@ -26,8 +26,8 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from common.runners import proposal_brand as brand_mod  # noqa: E402
-from common.runners import proposal_kit as kit_mod  # noqa: E402
+from common.runners.proposal import brand as brand_mod  # noqa: E402
+from common.runners.proposal import kit as kit_mod  # noqa: E402
 from common.runners.cli import proposal as cli  # noqa: E402
 
 OFFER = """\

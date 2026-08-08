@@ -21,11 +21,11 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from .. import proposal_brand as brand_mod
-from .. import proposal_brief as brief_mod
-from .. import proposal_kit as kit_mod
-from .. import proposal_parse as parse_mod
-from .. import proposal_render as render_mod
+from ..proposal import brand as brand_mod
+from ..proposal import brief as brief_mod
+from ..proposal import kit as kit_mod
+from ..proposal import parse as parse_mod
+from ..proposal import render as render_mod
 
 
 def _slugify(*parts: str, max_len: int = 50) -> str:

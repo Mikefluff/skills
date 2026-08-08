@@ -1,6 +1,6 @@
 """render_html across every language, theme and brand shape it supports.
 
-The paydown split proposal_render.py from its stylesheet and proved the split
+The paydown split render.py from its stylesheet and proved the split
 byte-identical with a throwaway script: render the same offer across the whole
 matrix, sha256 each document, compare before and after. The script was deleted;
 the proof is here.
@@ -30,8 +30,8 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from common.runners import proposal_render as render_mod  # noqa: E402
-from common.runners.proposal_parse import parse  # noqa: E402
+from common.runners.proposal import render as render_mod  # noqa: E402
+from common.runners.proposal.parse import parse  # noqa: E402
 
 OFFER = """\
 Client: Acme Events

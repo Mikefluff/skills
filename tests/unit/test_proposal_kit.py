@@ -1,4 +1,4 @@
-"""Unit tests for common/runners/proposal_kit.py photo generation.
+"""Unit tests for common/runners/proposal/kit.py photo generation.
 
 generate_photo() is wrapped in a bare `except Exception: return False` — it is a
 best-effort enrichment step and must never take down a proposal build. That also
@@ -16,7 +16,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from common.runners import proposal_kit  # noqa: E402
+from common.runners.proposal import kit as proposal_kit  # noqa: E402
 from common.runners.providers.base import GenerationResult, JobHandle, Provider  # noqa: E402
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"0" * 32

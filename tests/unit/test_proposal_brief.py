@@ -1,7 +1,7 @@
 """write_brief across screenshot x logo x language, over a difficult offer.
 
-The third of the paydown's throwaway proofs. proposal_brief.py was split out of
-proposal_kit.py and verified byte-identical by rendering the brief across every
+The third of the paydown's throwaway proofs. brief.py was split out of
+kit.py and verified byte-identical by rendering the brief across every
 combination of the three things BriefContext carries, then hashing. The script
 is gone; this is the same harness, committed.
 
@@ -27,8 +27,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from common.runners import proposal_brief as brief_mod  # noqa: E402
-from common.runners.proposal_parse import parse  # noqa: E402
+from common.runners.proposal import brief as brief_mod  # noqa: E402
+from common.runners.proposal.parse import parse  # noqa: E402
 
 # Stated total is 200 000 while the items sum to 5 243 500 — a mismatch the
 # brief must surface — and Logistics is the outlier at 5 000 000.

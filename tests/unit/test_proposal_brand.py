@@ -20,7 +20,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from common.runners import proposal_brand as brand  # noqa: E402
+from common.runners.proposal import brand  # noqa: E402
 
 
 class CollectColors(unittest.TestCase):

@@ -1,4 +1,4 @@
-# Offer parse contract (`proposal_parse.py`)
+# Offer parse contract (`proposal/parse.py`)
 
 The parser is forgiving — it reads the messy, real-world Telegram/WhatsApp offer as-is.
 This documents what it understands so you can fix an offer when something parses wrong.

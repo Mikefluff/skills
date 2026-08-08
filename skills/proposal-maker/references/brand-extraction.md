@@ -1,4 +1,4 @@
-# Brand extraction (`proposal_brand.py`)
+# Brand extraction (`proposal/brand.py`)
 
 "Copy the style from a site" = read the brand's public HTML/CSS and lift the design tokens
 a proposal needs. Pure `requests` + stdlib regex — no headless browser, no API key. Works
@@ -25,7 +25,7 @@ name `Ивент-Агентство на Пхукете`.
 
 Token scraping alone misreads mood — a dark Tilda/Webflow site serves white-heavy CSS and
 gets ranked as light. So the default mode also captures a **screenshot** of the brand site
-(`proposal_kit.capture_screenshot()` via any headless Chrome/Chromium/Edge/Brave, found by
+(`proposal/kit.capture_screenshot()` via any headless Chrome/Chromium/Edge/Brave, found by
 `find_browser()`), downloads the logo locally, and writes `BRIEF.md`. The orchestrator
 **looks at `site.png`** and authors HTML from what it sees — the screenshot overrides the
 `is_dark` heuristic. No browser installed → the kit ships without a screenshot and says so.

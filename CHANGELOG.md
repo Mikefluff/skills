@@ -136,6 +136,25 @@ category names pointing at the catalogue rather than a copy of it. Nothing to
 move. `tests/unit/test_skill_size.py` holds the line for the next skill instead:
 400 lines maximum, and a `references/` link required past 10,000 characters.
 
+### Changed — `proposal_*.py` became `common/runners/proposal/`
+
+Six modules, 1,747 lines, one skill's implementation occupying a fifth of the
+runner's top level — reading the layout told you more about `proposal-maker`
+than about the runner. Now a package, beside `providers/`, `publishers/`,
+`cli/` and `storage/`. Top level: 31 modules → 25.
+
+Import paths change: `common.runners.proposal_parse` → `common.runners.proposal.parse`.
+
+The move was not free, which is the argument for having made it deliberately.
+Two lazy imports inside `kit.py` — `from . import config, keysfile` and
+`from .providers.base import JobHandle` — silently changed meaning, and both sit
+inside a bare `except Exception` that returns `False`. The second was caught by
+a test written because that swallow makes mistakes invisible; the first had no
+test and would have disabled photo generation without printing anything.
+
+`styles*` and `typography*` stay flat: shared infrastructure rather than one
+skill's guts, with `styles.py` already acting as a facade over the other two.
+
 Tests: 721 → 769.
 
 ## [2.24.0] — 2026-08-08

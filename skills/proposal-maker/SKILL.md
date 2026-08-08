@@ -24,13 +24,13 @@ colours by frequency and gets the mood wrong. So instead: a Python step assemble
 **brand kit**, and you (the orchestrator) *look at the brand* and *write the markup*.
 
 Execute-layer modules under `common/runners/`:
-1. `proposal_parse.py` — offer text → structured `skills.proposal.plan.v1` (items, prices,
+1. `proposal/parse.py` — offer text → structured `skills.proposal.plan.v1` (items, prices,
    recomputed subtotal, mismatch + outlier flags).
-2. `proposal_brand.py` — scrape brand tokens (accent / fonts / logo / name) + enrich each
+2. `proposal/brand.py` — scrape brand tokens (accent / fonts / logo / name) + enrich each
    item with its real catalogue photo + description (`og:` tags).
-3. `proposal_kit.py` — screenshot the brand site (headless Chrome), download the logo,
+3. `proposal/kit.py` — screenshot the brand site (headless Chrome), download the logo,
    write `BRIEF.md` bundling tokens + the item table + authoring rules.
-4. `proposal_render.py` — the `--quick` deterministic themed template + HTML→PDF helper.
+4. `proposal/render.py` — the `--quick` deterministic themed template + HTML→PDF helper.
 
 Why a document and NOT an image deck: a proposal carries **exact prices** and **clickable
 product links**. AI image generation garbles both. You write real HTML text.
@@ -107,7 +107,7 @@ loop or no network.
      --hide-scrollbars --window-size=1100,3600 --screenshot=/tmp/check.png \
      "file://$PWD/generated/proposal/<slug>/proposal.html"
    ```
-   `Read` `/tmp/check.png`. Iterate until it genuinely reads as the brand. (`proposal_kit`
+   `Read` `/tmp/check.png`. Iterate until it genuinely reads as the brand. (`proposal/kit`
    exposes `find_browser()` for the binary path across platforms.)
 
 7. **PDF (optional).** Render the authored HTML to PDF via the system browser (no extra
@@ -122,7 +122,7 @@ loop or no network.
 
 ## --quick (deterministic, offline / no-LLM)
 
-Renders one of three CSS themes (editorial / invoice / dark) from `proposal_render.py` —
+Renders one of three CSS themes (editorial / invoice / dark) from `proposal/render.py` —
 no screenshot, no authoring. Use when offline, when there's no LLM loop, or for a fast
 draft. Themes + auto-pick: see `references/templates.md`.
 

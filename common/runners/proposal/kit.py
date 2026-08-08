@@ -221,9 +221,9 @@ def _render_pdf(src_path: Path, raw: Path, timeout: int) -> bool:
     if browser and _print_via_browser(browser, src_path, raw, timeout):
         return True
     try:
-        from . import proposal_render
+        from . import render
 
-        return bool(proposal_render.to_pdf(src_path.read_text(encoding="utf-8"), raw))
+        return bool(render.to_pdf(src_path.read_text(encoding="utf-8"), raw))
     except Exception:  # noqa: BLE001
         return False
 
@@ -279,7 +279,7 @@ def _brand_mood(brand: dict[str, Any]) -> str:
 def _pick_image_provider():
     """First available image provider (keys from ~/.skills.env), or None."""
     try:
-        from . import config, keysfile
+        from .. import config, keysfile
         keysfile.load_into_env()
         config.load_all_providers()
     except Exception:
@@ -311,7 +311,7 @@ def generate_photo(item_name: str, brand: dict[str, Any], out_path: Path,
         "no text, no watermark, no logo, no people staring at camera"
     )
     try:
-        from .providers.base import JobHandle
+        from ..providers.base import JobHandle
         res = provider.generate(prompt, size=size, quality="medium")
         if isinstance(res, JobHandle):
             res = provider.poll(res, timeout=180)

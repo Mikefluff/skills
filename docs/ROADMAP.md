@@ -145,13 +145,23 @@ needs a recorded response fixture and a key, and remains open. The social
 publishers (Instagram / Threads / TikTok / X / YouTube / LinkedIn) have no
 `_body()` seam yet, so they are not covered either.
 
-**Still open — `common/runners/` layering.** Measured: 31 top-level modules
-beside four packages. Six of them are `proposal_*` (1,747 lines, one skill's
-implementation occupying a fifth of the top level) and three are `styles*`. The
-package convention already exists — `providers/`, `publishers/`, `cli/`,
-`storage/` — these simply never got grouped. It is a pure move with no
-behavioural change, which is why it was not folded into a release that was
-already adding four gates; do it alone, where the diff is legible.
+**Done — `common/runners/` layering.** Was 31 top-level modules beside four
+packages; six of them were `proposal_*`, 1,747 lines of one skill's
+implementation occupying a fifth of the top level, so reading the runner's
+layout told you more about `proposal-maker` than about the runner. They are now
+`common/runners/proposal/` — 25 modules beside five packages.
+
+The move was not free, which is the argument for having done it: two lazy
+imports inside `kit.py` (`from . import config, keysfile` and
+`from .providers.base import JobHandle`) silently changed meaning, and both sat
+inside a bare `except Exception` that returns `False`. One was caught by a test
+written for exactly that reason; the other had no test and would have disabled
+photo generation without a message.
+
+`styles*` (3 modules) and `typography*` (2) stay flat on purpose. They are
+shared infrastructure rather than one skill's guts, `styles.py` already acts as
+a facade re-exporting the other two, and grouping them would be churn for
+symmetry.
 
 ---
 

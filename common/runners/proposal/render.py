@@ -20,7 +20,7 @@ import time
 from typing import Any
 from urllib.parse import urlparse
 
-from .proposal_css import _BASE_CSS, _THEMES, _theme_vars
+from .css import _BASE_CSS, _THEMES, _theme_vars
 
 try:
     import requests
@@ -365,7 +365,7 @@ def to_pdf(html_str: str, out_path) -> bool:
 
 if __name__ == "__main__":  # pragma: no cover
     import sys
-    import common.runners.proposal_parse as P  # type: ignore
+    from . import parse as P  # type: ignore
 
     src = open(sys.argv[1], encoding="utf-8").read() if sys.argv[1:] else sys.stdin.read()
     plan = P.parse(src)
