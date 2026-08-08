@@ -103,6 +103,7 @@ def load_all_providers() -> None:
         replicate,
         runway,
         suno,
+        tripo,
     )
 
 

@@ -65,7 +65,7 @@ if [ -n "$staged_md" ]; then
     # a hard ban returns 3, which would otherwise mask a "neuroslop suspected"
     # density verdict and let the worse file through.
     read -r verdict gate <<EOF
-$(python3 "$ROOT/writer/scripts/lint.py" "$ROOT/$f" --json 2>/dev/null \
+$(python3 "$ROOT/skills/writer/scripts/lint.py" "$ROOT/$f" --json 2>/dev/null \
   | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["verdict"].split()[0], d["gate"])' 2>/dev/null \
   || echo "clean pass")
 EOF

@@ -59,6 +59,11 @@ PRICE_TABLE: dict[str, dict[str, Decimal]] = {
     # been carrying $0.02/$0.04/$0.08 here, which is under what the vendor charges —
     # the one direction this table is not allowed to be wrong in, and the default
     # path for logo-maker. FLASH bills at TURBO's rate or lower.
+    # Tripo, read from docs.tripo3d.ai/get-started/pricing on 2026-08-08.
+    # $1.00 = 100 credits; text-to-model runs 10 credits untextured on the H
+    # series to 40 textured on P1. Priced at the ceiling: the tier is chosen per
+    # call and the estimate may not come in under the receipt.
+    "tripo-v3": {"per_model": Decimal("0.40")},
     "ideogram-4-turbo": {"per_image": Decimal("0.03")},
     "ideogram-4": {"per_image": Decimal("0.06")},
     "ideogram-4-quality": {"per_image": Decimal("0.10")},
@@ -96,12 +101,13 @@ def estimate(provider: str, **kwargs: Any) -> Decimal | None:
             return entry[f"{key}_4k"]
         return entry[key]
 
+    # Units billed once per produced thing, in the order a provider is likeliest
+    # to declare them. `per_image` alone can be upgraded to a 4K tier.
     if "per_image" in entry:
         return unit("per_image") * variants
-    if "per_edit" in entry:
-        return entry["per_edit"] * variants
-    if "per_song" in entry:
-        return entry["per_song"] * variants
+    for flat in ("per_model", "per_edit", "per_song"):
+        if flat in entry:
+            return entry[flat] * variants
     if "per_second" in entry:
         duration = float(kwargs.get("duration_seconds", 8))
         return unit("per_second") * Decimal(str(duration)) * variants

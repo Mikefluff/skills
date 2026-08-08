@@ -62,6 +62,7 @@ Jump straight to the section for what you want to do.
 | Image prompt (14+ models) | [§ image-prompt](#i-want-to-write-an-ai-image-prompt) |
 | Video prompt (20+ models) | [§ video-prompt](#i-want-to-write-an-ai-video-prompt) |
 | Music prompt (10+ models) | [§ music-prompt](#i-want-to-write-an-ai-music-prompt) |
+| 3D mesh from text or a photo | [§ model-maker](#i-want-a-3d-model) |
 
 ### Orchestrators (end-to-end)
 
@@ -87,10 +88,10 @@ Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ## The collection in one paragraph
 
-Forty-three skills layered on top of one base linter (`writer`):
+Forty-four skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 25 catalogued categories of LLM-prose tells from any text, in RU or EN, plus chatbot copy-paste artifacts and rhythm metrics. Runs as a final pass under every other prose skill.
-- **Wrappers** (22): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`, `schema-maker`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`).
+- **Wrappers** (22): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`, `schema-maker`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`, `model-maker`).
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint and AI-detection audits, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
 - **Orchestrators** (14, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; `post-publisher` sends any of that to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs; `proposal-maker` turns a raw offer into a brand-faithful HTML proposal; `style-suggest` turns a description or reference image into a new visual-style entry; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
 - **Meta** (3): `skills-update` (apply a newer release of this collection), `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer), `skills-styles` (manage the local style library).
@@ -445,6 +446,26 @@ For details: [skills/cover-maker/SKILL.md](../skills/cover-maker/SKILL.md).
 ```
 
 For details: [skills/thumbnail-maker/SKILL.md](../skills/thumbnail-maker/SKILL.md).
+
+---
+
+### "I want a 3D model" {#i-want-a-3d-model}
+
+`/model-maker "a weathered iron lantern"` returns a GLB mesh — a real file for
+Blender, Unity, Unreal, Godot or AR, not a render of one. From a photo, pass
+`--image-url ./ref.jpg` and keep the prompt for what the photo cannot show.
+
+```bash
+python3 -m common.runners.cli.model3d --model tripo-v3 --prompt "..." --cost-only
+```
+
+$0.40 a model, or roughly half that with `--no-texture` when the mesh is going to
+be re-materialised in the target engine anyway. Needs `TRIPO_API_KEY`.
+
+Two things worth saying before someone opens the file: the topology is generated,
+so it is triangles without edge loops — a prop or a sculpting base rather than
+something to rig. And nothing here checks watertightness, so it is not a
+print-ready model until a repair pass says it is.
 
 ---
 
@@ -1027,7 +1048,7 @@ See [`README.md § What's in the box`](../README.md#whats-in-the-box) for the up
 - [QUICKSTART](QUICKSTART.md) — 5-minute first run
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
-- [COMPOSING](COMPOSING.md) — how the 43 skills compose; recipe library
+- [COMPOSING](COMPOSING.md) — how the 44 skills compose; recipe library
 - [SKILL-INDEX](SKILL-INDEX.md) — every skill indexed by layer / domain / language
 - [walkthroughs/README.md](walkthroughs/README.md) — 19 walkthroughs, categorized
 - [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection

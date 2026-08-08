@@ -77,6 +77,12 @@ count, not separate prices.
 |---|---|---|
 | `kling-3` | per second | $0.12 |
 
+## Tripo (3D)
+
+| Model | Unit | USD |
+|---|---|---|
+| `tripo-v3` | per 3D model | $0.40 |
+
 ## Suno
 
 | Model | Unit | USD |

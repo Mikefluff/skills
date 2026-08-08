@@ -295,7 +295,45 @@ collection could enforce does not. 3D stays open and is the one real modality
 gap: Tripo, Meshy and Rodin all have APIs, and a `model-maker` would reuse the
 existing plan/batch/receipt path rather than needing a new one.
 
-Tests: 721 → 803.
+### Added — `model-maker`, and a fifth modality to hold it
+
+3D was the one real gap the ecosystem check turned up, so it is filled: text or
+a reference photo in, a GLB mesh out, via Tripo v3.
+
+`Modality` grew `model`. That is the honest shape — a mesh is not an image with
+extra steps, it lands in `./generated/model/`, and `cost.py` bills it per model
+rather than per second or per image. `cli/_shared.py` turned out to be entirely
+modality-agnostic already, so the CLI is a 25-line declaration like `image.py`.
+
+Two things the provider does that the others do not:
+
+- **It downloads inside the poll.** A finished Tripo URL expires five minutes
+  after the task succeeds, and the asset is already billed. Handing back a link
+  and fetching later loses paid work on any slow path — a batch queue, a retry,
+  a user reading the output before acting on it.
+- **It quotes the ceiling.** Text-to-model runs 10 to 40 credits by tier and the
+  tier is chosen per call, so the estimate says $0.40. The receipt may come in
+  lower; it may not come in higher.
+
+The skill is deliberately blunt about what a generated mesh is not. Topology is
+triangles without edge loops — a prop or a sculpting base, not something to rig —
+and nothing checks watertightness, so it is not print-ready until a repair pass
+says so. Both are in `references/limits.md` rather than discovered in Blender.
+
+### Fixed — the pre-commit hook had not linted anything since the `skills/` move
+
+`scripts/install-precommit-hook.sh` calls the writer linter at
+`$ROOT/writer/scripts/lint.py`. It has lived at `skills/writer/scripts/lint.py`
+since the move, and the call is wrapped in `2>/dev/null || echo "clean pass"` —
+so every commit since then got a fabricated clean verdict from a script that was
+never found.
+
+That is the fourth gate this release found passing without looking: two in
+`check-docs-consistency.sh`, one in `validate.sh`'s link check, and this. The
+common shape is a fallback that cannot tell "nothing wrong" from "nothing
+happened".
+
+Tests: 721 → 820.
 
 ## [2.24.0] — 2026-08-08
 

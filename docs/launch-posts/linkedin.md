@@ -4,7 +4,7 @@
 <!-- Launch copy quotes the patterns it describes, so linting it for slop measures the examples. -->
 
 ```
-I open-sourced Mikefluff/skills — 43 Claude Code skills for writing and AI media generation.
+I open-sourced Mikefluff/skills — 44 Claude Code skills for writing and AI media generation.
 
 The problem it started from: LLMs make writing faster, and the output converges. Everyone's drafts pick up the same tells — "it's important to note that", "we're excited to announce", the balance paragraph that argues both sides and commits to neither. Readers who have seen a thousand of those recognize the shape and discount the whole text.
 

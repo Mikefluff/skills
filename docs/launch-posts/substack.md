@@ -8,7 +8,7 @@
 
 I've been writing with LLMs for two years. The output saves time. The output also reads more and more like everyone else's LLM output. "It's important to note that..." "delve into..." "rich tapestry of..." "navigate the complexities..." "we're excited to announce..." "revolutionary, game-changing..." — every LinkedIn post, every product update, every newsletter.
 
-So I built a tool that strips them. Then I kept extending it. It is now 43 Claude Code skills, MIT-licensed, one curl to install.
+So I built a tool that strips them. Then I kept extending it. It is now 44 Claude Code skills, MIT-licensed, one curl to install.
 
 ## The shape
 

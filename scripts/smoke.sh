@@ -121,7 +121,13 @@ from common.runners import config
 config.load_all_providers()
 provs = config.all_providers()
 assert len(provs) >= 25, f'expected >=25 providers, got {len(provs)}'
-print(f'  ✓ {len(provs)} providers registered ({len(config.all_providers(\"image\"))} image / {len(config.all_providers(\"video\"))} video / {len(config.all_providers(\"music\"))} music / {len(config.all_providers(\"audio\"))} audio)')
+by_modality = ' / '.join(
+    f'{len(config.all_providers(m))} {m}'
+    for m in ('image', 'video', 'music', 'audio', 'model')
+)
+counted = sum(len(config.all_providers(m)) for m in ('image', 'video', 'music', 'audio', 'model'))
+assert counted == len(provs), f'{len(provs) - counted} provider(s) in no counted modality'
+print(f'  ✓ {len(provs)} providers registered ({by_modality})')
 " || { red "  ✗ runners import failed"; exit 3; }
   green "  ✓ common/runners imports OK"
 else

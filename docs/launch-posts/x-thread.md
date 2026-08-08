@@ -12,7 +12,7 @@ python3 scripts/check-tweet-length.py
 ## Single tweet
 
 ```
-Open-sourced 43 Claude Code skills for writing and AI media.
+Open-sourced 44 Claude Code skills for writing and AI media.
 
 Base is an offline regex linter over 25 categories of LLM-prose tells, RU + EN, no deps. On top: prompt skills for image/video/music and orchestrators that chain them.
 
@@ -24,7 +24,7 @@ github.com/Mikefluff/skills
 ## Thread (10 tweets)
 
 ```
-1/ Open-sourced 43 Claude Code skills for writing and AI media generation.
+1/ Open-sourced 44 Claude Code skills for writing and AI media generation.
 
 1 base linter, 21 wrappers, 3 read-only linters, 13 orchestrators, 3 meta. MIT, no required deps.
 

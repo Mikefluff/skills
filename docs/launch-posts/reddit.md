@@ -8,7 +8,7 @@ Suitable subreddits: r/ClaudeAI, r/LocalLLaMA, r/programming, r/copywriting (for
 **Title** (r/ClaudeAI, r/programming):
 
 ```
-I open-sourced 43 Claude Code skills, built around an offline linter for LLM-prose tells
+I open-sourced 44 Claude Code skills, built around an offline linter for LLM-prose tells
 ```
 
 **Body**:
@@ -54,7 +54,7 @@ Open-sourced a set of writing tools that strip the "AI-generated" feel from copy
 **Body**:
 
 ```
-43 Claude Code skills built on an offline regex linter that catches the patterns marking copy as LLM-generated. No API call for the linter — it is pure regex and runs in under a tenth of a second.
+44 Claude Code skills built on an offline regex linter that catches the patterns marking copy as LLM-generated. No API call for the linter — it is pure regex and runs in under a tenth of a second.
 
 25 catalogued categories, including the marketing-specific set: revolutionary, world-class, game-changing, industry-leading, cutting-edge, "click here", "learn more", bare "get started", "we're excited to announce", "save time", "boost productivity", and future tense for already-shipped features. English and Russian.
 

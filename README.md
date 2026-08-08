@@ -4,7 +4,7 @@
 [![version](https://img.shields.io/github/v/release/Mikefluff/skills?label=version)](https://github.com/Mikefluff/skills/releases/latest)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**43 skills for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) that make content — and refuse to let it read like a machine made it.**
+**44 skills for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) that make content — and refuse to let it read like a machine made it.**
 
 Prose editing that strips the tells. Prompt engineering for 40+ image, video and
 music models, with optional one-command execution against the real APIs. And
@@ -88,7 +88,7 @@ route through it rather than restating its rules. `viral-text` knows about hooks
 and platforms; it does not know about em-dashes, because `writer` does. The same
 shape holds for media: nine skills build on [`image-prompt`](skills/image-prompt/).
 
-That is the whole architecture. 43 skills: 1 base, 22 wrappers, 3 linters,
+That is the whole architecture. 44 skills: 1 base, 22 wrappers, 3 linters,
 14 orchestrators, 3 meta.
 
 ---
@@ -215,6 +215,7 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 | [`logo-maker`](skills/logo-maker/) | orchestrator | en/ru | Brand mark / wordmark / logo generator. Defaults to ideogram-3-quality (cleanest embedded text). Six style presets (wordmark / minimal / illustrated / typographic / geometric / emblem) + optional palette hint. Single-image output, N stochastic variants per call. Outputs: ./generated/logo/<slug>/logo-v<N>.png + manifest.json. |
 | [`meme-card-maker`](skills/meme-card-maker/) | orchestrator | en/ru | Meme-format graphic generator — top text + bottom text + optional centerpiece image. Wraps image-prompt --execute with Impact-style typography (bold white text + thick black stroke). Supports 5 template hints (drake / distracted-boyfriend / expanding-brain / two-buttons / change-my-mind) + custom mode. Optional --base-photo for user-image centerpiece. Default model gpt-image-2. Outputs: ./generated/meme/<slug>/meme-v<N>.png + manifest.json. |
 | [`microcopy`](skills/microcopy/) | wrapper | en/ru | Write UX microcopy — error messages, empty states, tooltips, button labels, helper text, modals, 404/500 pages, onboarding. Plain language, action-oriented, never blame user, length budgets per element type. Wraps writer for final cleanup. |
+| [`model-maker`](skills/model-maker/) | wrapper | en/ru | Generate a 3D mesh (GLB) from a text description or a reference photo via Tripo. Textured or bare geometry, PBR materials, polygon budget. The output is a real file for Blender / Unity / Unreal / AR, not a render of one — topology is generated, so it is a prop or a sculpting base rather than a riggable character. |
 | [`music-prompt`](skills/music-prompt/) | wrapper | en/ru | Write prompts for 10+ frontier AI music generators (Suno v5.5, Udio v4, Google Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen, Tencent SongGeneration, Sonauto v2, Riffusion, Mubert). 2026 canonical 8-category meta-tag taxonomy, `\|` stacking, two-box Style+Lyrics workflow (Suno), exclude-styles (Eleven), field-driven (Lyria). 12 genre recipes. |
 | [`pelevin-digression`](skills/pelevin-digression/) | wrapper | ru | Write a Pelevin-style digression for a fiction or non-fiction passage — 12 structural techniques + 5 banned constructions. Wraps prose-edit (fiction) or essay-write (non-fic). Invoked by request, not auto-applied. |
 | [`post-publisher`](skills/post-publisher/) | orchestrator | en/ru | Publishes finished assets to Instagram, Threads, TikTok, X, YouTube, Telegram and LinkedIn through the official APIs, and syndicates articles to dev.to, Telegraph and Hashnode with a canonical URL so the ranking signal stays on your own domain. Dry-run by default; generates submission packets for the platforms with no API. |
@@ -358,7 +359,7 @@ skills/
 ├── CODE_OF_CONDUCT.md       # short; scales up if the project does
 ├── SECURITY.md              # how to report a vulnerability
 │
-├── skills/                  # the 43 skills, one folder each
+├── skills/                  # the 44 skills, one folder each
 │   └── <skill-name>/
 │       ├── SKILL.md         # frontmatter + the rules; this IS the skill
 │       ├── references/      # deep material loaded on demand

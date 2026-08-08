@@ -51,6 +51,10 @@ def build_parser(modality: Modality, models_hint: list[str] | None = None) -> ar
     parser.add_argument("--lang", help="language hint for TTS (provider-dependent; Eleven multilingual auto-detects)")
     parser.add_argument("--fal-model", help="override fal.ai hosted model id")
     parser.add_argument("--replicate-model", help="override Replicate model id")
+    parser.add_argument("--model-version", dest="model_version", help="vendor model string (3D)")
+    parser.add_argument("--no-texture", action="store_true", help="untextured geometry only (3D)")
+    parser.add_argument("--pbr", action="store_true", help="physically-based materials (3D)")
+    parser.add_argument("--face-limit", dest="face_limit", type=int, help="polygon budget (3D)")
     if models_hint:
         parser.epilog = "Common models: " + ", ".join(models_hint)
     return parser
@@ -108,6 +112,7 @@ def read_prompt(args: argparse.Namespace) -> str:
 _PASSTHROUGH = (
     "image_url", "video_url", "size", "quality",
     "voice", "voice_id", "lang", "fal_model", "replicate_model",
+    "model_version", "face_limit",
 )
 
 
@@ -135,6 +140,12 @@ def gather_kwargs(args: argparse.Namespace) -> dict[str, Any]:
     # Guarded on None, not truthiness: 0.0 is a legal speed.
     if getattr(args, "speed", None) is not None:
         kwargs["speed"] = args.speed
+    # Texture is on by default at the vendor, so only the opt-out is sent —
+    # passing texture=True to a provider that has never heard of it is noise.
+    if getattr(args, "no_texture", False):
+        kwargs["texture"] = False
+    if getattr(args, "pbr", False):
+        kwargs["pbr"] = True
     return kwargs
 
 

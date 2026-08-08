@@ -286,6 +286,21 @@
       ]
     },
     {
+      "name": "model-maker",
+      "dir": "skills/model-maker",
+      "layer": "wrapper",
+      "description": "Generate a 3D mesh (GLB) from a text description or a reference photo via Tripo. Textured or bare geometry, PBR materials, polygon budget. The output is a real file for Blender / Unity / Unreal / AR, not a render of one — topology is generated, so it is a prop or a sculpting base rather than a riggable character.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "generation"
+      ],
+      "deps": []
+    },
+    {
       "name": "music-prompt",
       "dir": "skills/music-prompt",
       "layer": "wrapper",

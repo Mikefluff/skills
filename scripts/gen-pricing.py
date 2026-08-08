@@ -33,6 +33,7 @@ TARGET = ROOT / "common" / "references" / "model-pricing.md"
 
 UNIT_LABEL = {
     "per_image": "per image",
+    "per_model": "per 3D model",
     "per_image_4k": "per image (4K)",
     "per_edit": "per edit",
     "per_song": "per song",
@@ -55,6 +56,7 @@ VENDOR_ORDER = [
                   "ideogram-3-turbo", "ideogram-3", "ideogram-3-quality")),
     ("Runway", ("gen-4", "gen-4-turbo", "gen-4-5", "aleph")),
     ("Kling", ("kling-3",)),
+    ("Tripo (3D)", ("tripo-v3",)),
     ("Suno", ("suno-v5-5",)),
     ("ElevenLabs", ("eleven-music", "eleven-tts")),
     ("Aggregators (median estimate)", ("fal/any", "replicate/any")),

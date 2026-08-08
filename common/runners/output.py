@@ -10,7 +10,7 @@ from typing import Any, Literal
 
 from .storage import s3_configured, write_local, write_s3
 
-Modality = Literal["image", "video", "music", "audio"]
+Modality = Literal["image", "video", "music", "audio", "model"]
 
 _MIME_BY_EXT = {
     "png": "image/png",
@@ -25,6 +25,11 @@ _MIME_BY_EXT = {
     "wav": "audio/wav",
     "ogg": "audio/ogg",
     "flac": "audio/flac",
+    "glb": "model/gltf-binary",
+    "gltf": "model/gltf+json",
+    "fbx": "application/octet-stream",
+    "obj": "text/plain; charset=utf-8",
+    "usdz": "model/vnd.usdz+zip",
     "txt": "text/plain; charset=utf-8",
 }
 

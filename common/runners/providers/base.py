@@ -10,7 +10,7 @@ from typing import Any, Literal
 
 from ..errors import KeyMissingError
 
-Modality = Literal["image", "video", "music", "audio"]
+Modality = Literal["image", "video", "music", "audio", "model"]
 
 
 @dataclass

@@ -83,7 +83,7 @@ public index is skills.sh. It finds skills by walking a repo — root, `skills/`
 `skills/` is where this collection already keeps them, so nothing had to change:
 
 ```bash
-npx skills add Mikefluff/skills --list      # verified 2026-08-08: 43 skills found
+npx skills add Mikefluff/skills --list      # verified 2026-08-08: 44 skills found
 ```
 
 Two things follow. Compatibility with the standard installer is now a property
