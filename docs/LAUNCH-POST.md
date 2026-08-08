@@ -3,7 +3,7 @@
 <!-- lint-role: catalogue -->
 <!-- Launch copy quotes the patterns it describes, so linting it for slop measures the examples. -->
 
-Per-platform copy-paste drafts, current as of v2.20.0 — 41 skills, 25 linter categories, the AI-media half and the orchestrators.
+Per-platform copy-paste drafts, current as of v2.24.0 — 43 skills, 25 linter categories, the AI-media half and the orchestrators.
 
 Pick the file that matches the audience and edit before posting. Every draft quotes the patterns it describes, so linting one for slop measures the examples rather than the copy; the files are marked accordingly. Tweet lengths are verified by `scripts/check-tweet-length.py`.
 
@@ -43,7 +43,7 @@ There is also a class regex handles better than a judge would: chatbot copy-past
 
 **Q: Why so many skills instead of one big one?**
 
-Discovery. Claude Code matches user requests against the `description:` field. A single mega-skill would match too broadly and hurt precision. Splitting lets each skill carry a sharp discriminator, so the boundary is a discovery contract rather than taste. See `docs/COMPOSING.md` for the named recipes showing how the 41 skills chain into workflows.
+Discovery. Claude Code matches user requests against the `description:` field. A single mega-skill would match too broadly and hurt precision. Splitting lets each skill carry a sharp discriminator, so the boundary is a discovery contract rather than taste. See `docs/COMPOSING.md` for the named recipes showing how the 43 skills chain into workflows.
 
 **Q: Russian-first sounds limiting. What about English?**
 

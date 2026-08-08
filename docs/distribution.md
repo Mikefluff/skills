@@ -41,7 +41,7 @@ fails the same test, because a free-text column is how the npm row came to say
 | Directory | Link | Route | Status |
 |---|---|---|---|
 | npm registry | dofollow | `make publish-npm` | listed |
-| skills.sh index (`npx skills`) | unknown | site submission | not submitted |
+| skills.sh index (`npx skills`) | unknown | GitHub topics, then an issue | submitted |
 | Anthropic community plugin directory | dofollow | form at clau.de | not submitted |
 | awesome-claude-code | dofollow | issue form, by hand | drafted |
 | travisvn/awesome-claude-skills | dofollow | pull request | not submitted |
@@ -90,7 +90,18 @@ Two things follow. Compatibility with the standard installer is now a property
 worth *not* breaking — moving the skills again would silently drop the repo out
 of the ecosystem, the same class of accident as the two documentation gates that
 scanned the old layout. And the index itself is a listing this page had not
-noticed: submission is not automatic, GitHub presence is not enough.
+noticed: GitHub presence alone does not put a repo on skills.sh.
+
+Vercel Labs never published a submission process. What repos that made it in
+appear to have in common is the `agents-skills` and `skills-sh` GitHub topics,
+which the crawler is reported to key on; both were added to this repo on
+2026-08-08, along with the repository description, which had been one behind the
+count for a release. If a crawl cycle passes with nothing appearing, others have
+used an issue on `vercel-labs/skills` titled "Request to index skill" — the
+only route anyone has documented, and not a guaranteed one.
+
+Ranking there reportedly weighs install count and stars, so the listing is where
+visibility starts rather than where it ends.
 
 ### Anthropic community plugin directory — newly possible
 

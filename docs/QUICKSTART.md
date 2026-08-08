@@ -37,7 +37,7 @@ To list what's installed:
 ls ~/.claude/skills/
 ```
 
-You should see 22 skill folders + `common/`.
+You should see 43 skill folders + `common/`.
 
 ---
 

@@ -113,6 +113,37 @@ SPECS: dict[str, DirectorySpec] = {
             "Keep the description to a single clause; these lists reject marketing copy.",
         ),
     ),
+    "skills-sh": DirectorySpec(
+        slug="skills-sh",
+        label="skills.sh (the `npx skills` index)",
+        url="https://www.skills.sh/",
+        why=(
+            "The ecosystem's default installer indexes here. `npx skills add "
+            "Mikefluff/skills` already resolves — being findable is the missing half."
+        ),
+        route="No documented form. GitHub topics, then an index-request issue if that fails",
+        link="unknown",
+        needs=("SKILL.md frontmatter with name + description on every skill", "public repo"),
+        steps=(
+            "Verify discovery first: `npx skills add Mikefluff/skills --list` "
+            "(43 skills found on 2026-08-08).",
+            "Ensure the repo carries the `agents-skills` and `skills-sh` GitHub topics — "
+            "reported to be what the crawler keys on. Added 2026-08-08.",
+            "If it has not appeared after a crawl cycle, open an issue on "
+            "vercel-labs/skills titled 'Request to index skill' — others have been "
+            "accepted that way, and it is the only route anyone has documented.",
+        ),
+        notes=(
+            "Vercel Labs published no submission process, so this spec describes what "
+            "worked for other repos rather than an official route. Do not treat the "
+            "issue as guaranteed.",
+            "Ranking reportedly weighs install count and GitHub stars, so a listing is "
+            "the start of visibility here rather than the end of it.",
+            "Compatibility is accidental: the CLI walks `skills/`, which is where this "
+            "collection already keeps them. Moving that directory would drop the repo "
+            "out of the ecosystem with nothing failing.",
+        ),
+    ),
     "claudemarketplaces": DirectorySpec(
         slug="claudemarketplaces",
         label="claudemarketplaces.com",
@@ -175,6 +206,7 @@ SPECS: dict[str, DirectorySpec] = {
 
 DEFAULT_ORDER = (
     "npm",
+    "skills-sh",
     "claude-community",
     "awesome-claude-code",
     "awesome-claude-skills",
