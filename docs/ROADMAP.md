@@ -32,6 +32,86 @@ Last updated: 2026-08-03 (post v2.22.0).
 
 ---
 
+## Next session — brief
+
+Two jobs, written down so the next session starts from what is already known
+rather than re-deriving it.
+
+### Job 1 — research what is worth adding
+
+**Time-critical first.** The Sora 2 removal lands **2026-09-24**. After that
+date the providers and their price entries should be deleted rather than left
+warning, and the migration table in
+[`skills/video-prompt/references/execute.md`](../skills/video-prompt/references/execute.md)
+stops earning its space. Check the date before anything else.
+
+**Registry re-verification is due 2026-12-03.** `tests/unit/test_model_registry.py`
+fails after 120 days without a manual check; `LAST_REVIEWED` is 2026-08-03. Do
+not just move the date — re-verify `PINNED_MODEL_IDS` and `PRICE_TABLE` against
+vendor docs, which is the whole point of the marker.
+
+**Known-pending items** already researched, waiting on someone else to ship:
+
+- Ideogram 4 — open weights out, no v4 API endpoint. Wire when one appears, and
+  teach `banner-maker` / `flyer-maker` / `logo-maker` to emit layout as JSON
+  instead of flattening structure into prose.
+- Seedream 5 Pro layered PNG output — no host exposes the field yet. This is the
+  one that would change the retry loop for every text-in-image skill.
+- FLUX 3, Meta Muse Image — early access, no API.
+- Hashnode — API works but needs Pro; check whether that changed.
+
+**Open questions worth actual research**, none of which this session covered:
+
+- Modalities the collection has no answer for. 3D / spatial, voice cloning with
+  consent workflows, realtime/streaming, document generation (the pre-built
+  pptx/xlsx/docx Skills exist on the API surface but not in Claude Code).
+- Claude Code platform features the skills do not use. Hooks beyond the
+  pre-commit example, MCP servers as a distribution shape, subagents, whatever
+  has shipped since. The plugin manifest landed in v2.23.0 and immediately
+  unlocked a directory submission — there may be more of that kind.
+- Whether anything has displaced the AEO findings from 2026-08. That research
+  has a short half-life; the 17.3% structural-lift study and the citation
+  overlap numbers should be re-checked, not assumed.
+
+### Job 2 — audit the structure
+
+Specific smells observed while working, not a generic "review the code":
+
+**Two sources of truth for skill descriptions.** `skills.json` is hand-maintained
+and restates every SKILL.md `description:`. They already drift — `skills.json`
+carried "17 Claude Code skills" long after there were 42. Either generate one
+from the other or add a parity test.
+
+**Eight near-identical single-image orchestrators.** `flyer-maker`, `cover-maker`,
+`thumbnail-maker`, `avatar-maker`, `logo-maker`, `quote-card-maker`,
+`banner-maker`, `meme-card-maker` share a pipeline and differ mostly in aspect
+presets and a model default. This roadmap flagged the risk when `cover-maker`
+was proposed ("could be merged into one skill with `--type`") and shipped seven
+more anyway. Worth deciding deliberately: is the duplication buying discovery,
+or is it now maintenance debt spread across eight `model-picker.md` files that
+have to be updated together every time a vendor moves? The last model refresh
+touched all of them.
+
+**Hand-maintained status columns rot.** `docs/distribution.md` tracks submission
+state by hand. That is exactly how the npm version reached 1.9.0. If it is not
+being updated, apply the pattern that worked: a dated marker and a test.
+
+**`writer/SKILL.md` is ~27 KB.** It is the base every prose skill loads. Check
+whether progressive disclosure is actually happening or whether the body should
+move into `references/`.
+
+**No round-trip test for any publisher.** 721 tests, all offline. Nothing proves
+a publisher's request body is what the vendor accepts — the two live bugs found
+in ElevenLabs (wrong duration field, dropped lyrics) were caught by reading
+docs, not by the suite. Consider recorded-fixture tests against real response
+shapes.
+
+**`common/runners/` is 30+ modules.** Check the layering still reads: providers,
+publishers, CLI, and now `syndication` / `directories` / `staticblog` / `schema_ld`
+sitting at top level next to `cost` and `config`.
+
+---
+
 ## Open — model platform
 
 Found by the 2026-08-03 registry audit. These are not new skills; they are the
