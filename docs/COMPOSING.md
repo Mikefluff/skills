@@ -1,6 +1,6 @@
 # Composing skills — workflow recipes
 
-The 42 skills aren't independent — they stack. `writer` is the foundation; wrappers extend it; linters audit without mutating; orchestrators chain multiple wrappers + the execute layer + style libraries; meta-skills manage the collection.
+The 43 skills aren't independent — they stack. `writer` is the foundation; wrappers extend it; linters audit without mutating; orchestrators chain multiple wrappers + the execute layer + style libraries; meta-skills manage the collection.
 
 This file is the **recipe book**: named workflows showing concrete skill chains for typical jobs.
 
@@ -23,7 +23,7 @@ This file is the **recipe book**: named workflows showing concrete skill chains 
 
 ## Core composition rules
 
-1. **`writer` is the base.** 12 of 42 skills run `writer` as their final cleanup pass. You rarely call `writer` directly except for raw clean-up.
+1. **`writer` is the base.** 12 of 43 skills run `writer` as their final cleanup pass. You rarely call `writer` directly except for raw clean-up.
 2. **Linters are read-only.** `style-check`, `translation-sync`, `canon-check` produce reports, never mutate text. Use as quality gates.
 3. **One wrapper per pass.** Don't try to chain `prose-edit` + `essay-write` on the same text in one go. Pick the right one for the genre.
 4. **Linters AFTER wrappers.** Apply rewrites first, then lint. The opposite order tells you what you already know.
@@ -401,7 +401,7 @@ Checks for newer release, shows CHANGELOG diff, asks confirmation, runs `install
 
 ## Cross-references
 
-- [All 42 skills (auto-generated table)](../README.md#whats-in-the-box)
+- [All 43 skills (auto-generated table)](../README.md#whats-in-the-box)
 - [Scenario-based picker](USER-GUIDE.md)
 - [Walkthroughs (categorized index)](walkthroughs/)
 - [Quickstart (5-minute first run)](QUICKSTART.md)

@@ -21,7 +21,7 @@ For the project overview + install + the skills table, go back to the top-level 
 | Doc | What it's for | Length |
 |---|---|---|
 | [SKILL-INDEX.md](SKILL-INDEX.md) | Every skill indexed by layer / domain / language. Auto-generated from `skills.json` | ~75 lines |
-| [COMPOSING.md](COMPOSING.md) | How the 42 skills compose — dependency graph + named workflows + data flow table + anti-patterns | ~290 lines |
+| [COMPOSING.md](COMPOSING.md) | How the 43 skills compose — dependency graph + named workflows + data flow table + anti-patterns | ~290 lines |
 | [walkthroughs/](walkthroughs/) | 19 step-by-step recipes with categorized [index](walkthroughs/README.md) | ~200 lines each |
 | [LINTER-COVERAGE.md](LINTER-COVERAGE.md) | Auto-generated regex coverage table for the `writer` linter (25 categories) | ~50 lines |
 
@@ -35,6 +35,7 @@ For the project overview + install + the skills table, go back to the top-level 
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Known failure modes + fixes (install, runtime, key issues, ffmpeg, …) | ~335 lines |
 | [VERSIONING.md](VERSIONING.md) | Semver policy + manual release flow (auto-bump was removed in v2.1) | ~75 lines |
 | [ROADMAP.md](ROADMAP.md) | Identified gaps + planned skills (cover-maker, avatar-maker, voiceover-maker, …) + non-goals | ~200 lines |
+| [distribution.md](distribution.md) | Where the project is listed and where it should be — npm, the Claude plugin directories, awesome lists — with what each listing is actually worth | ~120 lines |
 | [LAUNCH-POST.md](LAUNCH-POST.md) | Frozen launch copy from v1.9 — kept for posterity, not maintained | ~55 lines |
 
 ---

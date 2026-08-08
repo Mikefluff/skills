@@ -183,6 +183,37 @@ def check_media_hosting(pub: "Publisher", post: Post, draft: bool) -> list[Viola
     ]
 
 
+def check_article_shape(pub: "Publisher", post: Post, draft: bool) -> list[Violation]:
+    """An article needs a headline, a body, and somewhere to point home.
+
+    The canonical warning is the one that matters. Syndicating without it is
+    worse than not syndicating: search engines see the same text on several
+    domains, pick one, and it is rarely the author's.
+    """
+    if post.kind != "article":
+        return []
+
+    out: list[Violation] = []
+    if not post.title.strip():
+        out.append(Violation("block", "title", "an article needs a title"))
+    if not post.text.strip():
+        out.append(Violation("block", "text", "an article needs a body"))
+    if not post.canonical_url:
+        out.append(
+            Violation(
+                "warn",
+                "canonical_url",
+                "no canonical URL — this platform becomes the original. Pass "
+                "--canonical <your-url> to keep the ranking signal on your own domain",
+            )
+        )
+    elif not post.canonical_url.startswith(("http://", "https://")):
+        out.append(
+            Violation("block", "canonical_url", f"not an absolute URL: {post.canonical_url}")
+        )
+    return out
+
+
 def check_draft_support(pub: "Publisher", post: Post, draft: bool) -> list[Violation]:
     if draft and not pub.supports_draft:
         return [Violation("block", "draft", f"{pub.name} has no draft concept")]
@@ -200,5 +231,6 @@ GENERIC_RULES: tuple[Rule, ...] = (
     check_media_files,
     check_alt_text,
     check_media_hosting,
+    check_article_shape,
     check_draft_support,
 )

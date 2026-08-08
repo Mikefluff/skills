@@ -143,11 +143,17 @@ def load_all_publishers() -> None:
     except Exception:  # noqa: BLE001 — never break runners over keysfile errors
         pass
     from .publishers import (  # noqa: F401
+        devto,
+        hashnode,
         instagram,
         linkedin,
+        micropub,
+        qiita,
         telegram,
+        telegraph,
         threads,
         tiktok,
+        tumblr,
         x,
         youtube,
     )

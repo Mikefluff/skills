@@ -1,6 +1,6 @@
 ---
 name: post-publisher
-description: "Publish finished assets to Instagram, Threads, TikTok, X, YouTube, Telegram or LinkedIn via official APIs. Dry-run by default; --draft where supported. Use when: 'опубликуй это', 'выложи карусель в треды', 'post this to Instagram'. Downstream of carousel-builder / reel-builder, which only make files."
+description: "Publish assets to Instagram, Threads, TikTok, X, YouTube, Telegram or LinkedIn, and syndicate articles to dev.to, Telegraph or Hashnode with a canonical URL. Dry-run by default. Use when: 'опубликуй это', 'выложи карусель в треды', 'post this to Instagram', 'кросс-постинг статьи', 'syndicate this article'."
 
 license: MIT
 allowed-tools:
@@ -64,7 +64,7 @@ Resolve a source directory → build one platform-neutral `Post` → preflight i
 ### Targeting
 - `--platform a,b,c` — comma-separated; each is confirmed separately
 - `--draft` — stage instead of publish. A platform without drafts is **skipped**, not published live
-- `--kind text|image|carousel|video` — override auto-detection
+- `--kind text|image|carousel|video|article` — override auto-detection
 
 ### Content
 - `--text` / `--text-file` — caption (overrides `captions.md`)
@@ -72,6 +72,14 @@ Resolve a source directory → build one platform-neutral `Post` → preflight i
 - `--hashtags "a,b,c"` — kept separate from the body so preflight can count them
 - `--alt "..."` — repeat once per media file, in order
 - `--link` — attached where the platform supports it
+
+### Article syndication (`--kind article`)
+
+- `--canonical <url>` — **the important one.** The URL of the original on your own domain
+- `--description` — SEO excerpt / subtitle
+- `--series` — dev.to series name, Hashnode series id
+- `--cover-url` — cover image, already hosted
+- `--packets <dir>` — write submission packets for the platforms with no API
 
 ### Execution
 - *(nothing)* — dry-run. Prints what would happen and stops
@@ -106,6 +114,7 @@ were blocked.
 
 | File | When to load |
 |---|---|
+| [references/syndication.md](references/syndication.md) | `--kind article` — why canonical decides whether syndication helps or hurts, which platforms have an API, and the order to publish in |
 | [references/oauth-setup.md](references/oauth-setup.md) | **First** — per-platform app registration, scopes, account type, which env vars go in `~/.skills.env` |
 | [references/platform-limits.md](references/platform-limits.md) | Step 3 — the limit matrix `preflight` enforces, with what to verify against live docs |
 | [references/browser-fallback.md](references/browser-fallback.md) | When the API path is closed: unaudited TikTok, personal Instagram, org LinkedIn pages |

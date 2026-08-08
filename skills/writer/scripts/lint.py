@@ -188,6 +188,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Only emit when verdict is not clean.",
     )
     parser.add_argument(
+        "--aeo",
+        action="store_true",
+        help=("Answer-engine extractability check instead of the prose scan. "
+              "A separate axis: a clean text can still be unquotable."),
+    )
+    parser.add_argument(
         "--fiction",
         action="store_true",
         help=("Fiction / book-typesetting mode: demote the RU em-dash ban to an "
@@ -200,6 +206,26 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     text = read_input(args.path)
+
+    # Extractability is orthogonal to slop density — deliberately a separate
+    # report with its own exit codes rather than extra hits on the prose one.
+    if args.aeo:
+        import lint_aeo
+
+        report = lint_aeo.scan(text)
+        if args.json:
+            import json as _json
+
+            code, label = report.verdict()
+            print(_json.dumps(
+                {"verdict": label, "code": code, "stats": report.stats,
+                 "findings": [f.to_dict() for f in report.findings]},
+                ensure_ascii=False, indent=2,
+            ))
+        else:
+            sys.stdout.write(lint_aeo.format_human(report))
+        return report.verdict()[0]
+
     report = scan(text, skip_code_blocks=not args.scan_code_blocks, fiction=args.fiction)
     code, label = report.verdict()
 

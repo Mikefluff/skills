@@ -40,13 +40,33 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("source", nargs="?", help="output dir (./generated/...) or a single media file")
     p.add_argument("--platform", "--platforms", dest="platform", help="comma-separated: telegram,threads,...")
-    p.add_argument("--kind", choices=["text", "image", "carousel", "video"], help="override auto-detection")
+    p.add_argument(
+        "--kind",
+        choices=["text", "image", "carousel", "video", "article"],
+        help="override auto-detection",
+    )
     p.add_argument("--text", help="caption/body (overrides captions.md)")
     p.add_argument("--text-file", type=Path, help="read caption from this file verbatim")
     p.add_argument("--title", default="", help="video/article title (YouTube, LinkedIn)")
     p.add_argument("--hashtags", default="", help="comma-separated, with or without '#'")
     p.add_argument("--alt", action="append", default=[], help="alt text, repeat per media file in order")
     p.add_argument("--link", help="URL to attach where the platform supports it")
+    p.add_argument(
+        "--canonical",
+        metavar="URL",
+        help="article: canonical URL of the original. Without it the syndicated copy "
+        "becomes the original and the ranking signal goes to the platform, not to you",
+    )
+    p.add_argument("--description", default="", help="article: SEO excerpt / subtitle")
+    p.add_argument("--series", help="article: series name (dev.to) or series id (Hashnode)")
+    p.add_argument("--cover-url", help="article: cover image URL (already hosted)")
+    p.add_argument(
+        "--packets",
+        metavar="DIR",
+        type=Path,
+        help="article: write submission packets for the platforms with no API "
+        "(medium, hackernoon, habr, vc, dzen) into DIR",
+    )
     p.add_argument("--draft", action="store_true", help="create a draft instead of publishing")
     p.add_argument("--yes", action="store_true", help="leave dry-run mode (still asks per platform)")
     p.add_argument("--dry-run", action="store_true", help="explicit no-op preview (the default)")
@@ -74,6 +94,10 @@ def post_from_args(args: argparse.Namespace) -> tuple[Post, Path | None]:
             hashtags=tuple(h.strip() for h in args.hashtags.split(",") if h.strip()),
             alt_texts=tuple(args.alt),
             link=args.link,
+            canonical_url=args.canonical,
+            description=args.description,
+            series=args.series,
+            extra={"cover_url": args.cover_url} if args.cover_url else {},
         ),
     )
 
@@ -243,11 +267,45 @@ def _informational(args: argparse.Namespace, names: list[str]) -> int | None:
     return None
 
 
+def write_packets(args: argparse.Namespace) -> int:
+    """Render submission packets for the platforms that cannot be posted to."""
+    from .. import syndication
+
+    try:
+        post, _ = post_from_args(args)
+    except RunnerError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    if post.kind != "article":
+        print("--packets needs --kind article", file=sys.stderr)
+        return 2
+
+    written = syndication.write_packets(post, args.packets, devto_url=args.link)
+    print("Syndication order:\n")
+    for step in syndication.plan(post):
+        print(f"  {step}")
+    print("\nPackets written:")
+    for path in written:
+        print(f"  {path}")
+    if not post.canonical_url:
+        print(
+            "\nwarn: no --canonical. Syndicating without one hands the ranking "
+            "signal to the platform instead of your own domain.",
+            file=sys.stderr,
+        )
+    return 0
+
+
 def main() -> int:
     args = build_parser().parse_args()
     config.load_all_publishers()
 
     names = [n.strip() for n in (args.platform or "").split(",") if n.strip()]
+    if args.packets:
+        # Packets are a local render, not a publish — they need no platform and
+        # no --yes, so this returns before any of the safety gating below.
+        return write_packets(args)
     early = _informational(args, names)
     if early is not None:
         return early

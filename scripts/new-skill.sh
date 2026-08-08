@@ -27,13 +27,18 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-if [ -d "$NAME" ]; then
-  echo "directory $NAME already exists — aborting" >&2; exit 1
+# Skills moved under skills/ in v2.22.0; this script kept scaffolding into the
+# repo root, which put every new skill somewhere validate.sh does not look.
+# NAME stays bare — it is the frontmatter `name:` — and DIR carries the path.
+DIR="skills/$NAME"
+
+if [ -d "$DIR" ]; then
+  echo "directory $DIR already exists — aborting" >&2; exit 1
 fi
 
-mkdir -p "$NAME/references" "$NAME/examples"
+mkdir -p "$DIR/references" "$DIR/examples"
 
-cat >"$NAME/SKILL.md" <<EOF
+cat >"$DIR/SKILL.md" <<EOF
 ---
 name: $NAME
 description: "${DESC:-TODO: one-line description suitable for skill discovery}"
@@ -66,21 +71,21 @@ TODO. If this skill wraps \`writer\`, add: "Final step: apply skills/writer/SKIL
 | [references/TODO.md](references/TODO.md) | TODO |
 EOF
 
-cat >"$NAME/references/.gitkeep" <<'EOF'
+cat >"$DIR/references/.gitkeep" <<'EOF'
 # Move heavy rule tables, checklists, and exhaustive catalogues here.
 # Link from SKILL.md as [references/<name>.md](references/<name>.md).
 EOF
 
-cat >"$NAME/examples/.gitkeep" <<'EOF'
+cat >"$DIR/examples/.gitkeep" <<'EOF'
 # Calibration BEFORE/AFTER pairs or canonical input/output samples.
 EOF
 
-echo "✓ scaffolded $NAME/"
+echo "✓ scaffolded $DIR/"
 echo
 echo "Next:"
-echo "  1. Fill $NAME/SKILL.md (frontmatter description + objective + pipeline)"
-echo "  2. Move heavy rules into $NAME/references/"
-echo "  3. Add a calibration example to $NAME/examples/"
+echo "  1. Fill $DIR/SKILL.md (frontmatter description + objective + pipeline)"
+echo "  2. Move heavy rules into $DIR/references/"
+echo "  3. Add a calibration example to $DIR/examples/"
 echo "  4. Register in skills.json (deps: $DEPS, layer: $LAYER)"
 echo "  5. Add to README.md table"
 echo "  6. bash scripts/validate.sh   # confirm frontmatter + cross-links"

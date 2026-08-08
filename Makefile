@@ -128,8 +128,21 @@ release: ## Tag current VERSION and push (assumes VERSION already bumped + commi
 	git tag -a "v$$v" -m "release: v$$v" && \
 	git push origin "v$$v" && \
 	echo "tagged + pushed v$$v"; \
+	$(MAKE) --no-print-directory publish-npm; \
 	echo "NOTE: install.sh --version latest resolves the newest GitHub *release*."; \
 	echo "      Publish the release for v$$v on GitHub, or curl installs stay on the previous tag."
+
+publish-npm: ## Publish the current VERSION to npm (idempotent; skips if already up there)
+	@v=$$(cat VERSION); \
+	if npm view "@mikefluff/skills@$$v" version >/dev/null 2>&1; then \
+	  echo "npm: @mikefluff/skills@$$v is already published"; exit 0; \
+	fi; \
+	if ! npm whoami >/dev/null 2>&1; then \
+	  echo "npm: not logged in — run 'npm login', then 'make publish-npm'"; \
+	  echo "     (the git tag is already pushed; this step is safe to re-run alone)"; \
+	  exit 0; \
+	fi; \
+	npm publish --access public && echo "npm: published $$v"
 
 # ── housekeeping ─────────────────────────────────────────────────────────
 

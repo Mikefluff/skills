@@ -9,6 +9,99 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.24.0] — 2026-08-08
+
+The collection could make content and post it to social platforms. It could not
+publish an article anywhere, and nothing in it knew that being *quoted* by an
+answer engine is decided by different things than being *ranked* by a search
+engine. Both are now covered, and both came with a correction to a premise.
+
+### Added — article syndication, canonical-first
+
+Six article publishers alongside the seven social ones: `devto`, `telegraph`,
+`hashnode`, `tumblr`, `qiita`, `micropub`. `Post` grew an article shape
+(`canonical_url`, `description`, `series`) rather than a parallel system, so
+preflight, receipts and the CLI all carry over.
+
+The field that matters is `--canonical`. Syndicating without one is worse than
+not syndicating: the same text on several domains makes search engines pick a
+winner, and it is rarely the author's. Preflight warns when it is missing and
+blocks a relative URL.
+
+- **`micropub` is a protocol, not a vendor** — one adapter reaches Micro.blog,
+  WordPress with the plugin, and anything else implementing the spec.
+- **`devto` is the anchor** because it is the only platform in the set whose
+  outbound links are dofollow. It is also the URL Medium's "Import a Story"
+  pulls from, which is how a platform with no usable API still ends up pointing
+  home: Medium sets canonical back to the source itself.
+- **`cli.origin`** closes the chain at the other end. For a static site there is
+  no publishing API, so it writes the markdown with frontmatter and prints the
+  URL the post *will* have after the rebuild — which is what every later
+  `--canonical` needs. Cyrillic titles transliterate; Jekyll's dated filenames
+  are a pattern flag. It writes a file and stops: committing somebody's blog
+  repository is not this layer's decision.
+- **Submission packets** for the platforms that have no API at all — Medium,
+  HackerNoon, Habr, VC.ru, Dzen — with the canonical instruction per platform
+  and what each audience actually rewards.
+
+### Added — AEO, kept off the prose verdict
+
+`writer --aeo` is a third axis next to slop density and the hard-ban gate.
+Mixing it into either would repeat the mistake `Report.verdict()` already
+documents. A text can read beautifully and still be unquotable.
+
+The rules encode how engines actually work: they do not read pages, they chunk
+them into passages and cite the strongest one. So the checks are structural —
+a direct answer inside the first 40-75 words, question-form headings, paragraphs
+that survive chunking, a table on comparison pages. Offline, no model.
+
+**`schema-maker`** (43rd skill) generates the JSON-LD. Question-form headings
+become `FAQPage` pairs automatically, so the structure the linter asks for is
+not authored twice. Google retired the FAQ rich result on 2026-05-07; the markup
+outlived it and changed job — engines parse `FAQPage` first when choosing whose
+answer to quote. The generator refuses to emit a statement inside a `Question`
+node, or a headline past the documented 110-character limit.
+
+`essay-write` gained the answer-first opening as a **conditional** mode, for web
+publication only — a book chapter's first paragraph works on voice, and forcing
+search discipline there would fight the skill's own guidance. `viral-text` says
+plainly that a social post is not an AEO surface.
+
+### Added — distribution map
+
+`cli.distribute` writes submission packets for directories and registries, with
+project facts read from the repo so a packet cannot describe a stale version.
+`docs/distribution.md` records where the project is listed, where it should be,
+and what each listing is worth.
+
+### Fixed — npm was publishing a two-year-old version, and shipping bytecode
+
+The registry showed 1.9.0 while the repo was on 2.23.0, because nothing tied
+`npm publish` to cutting a release. `make release` now calls `make publish-npm`,
+after the tag so a failed login leaves the tag intact and the step re-runnable.
+
+The tarball was also shipping `__pycache__/*.pyc`: `.npmignore` never applied,
+because `package.json` sets a `files` allow-list and that takes precedence.
+Negation patterns fixed it — 656 files down to 552.
+
+### Fixed — new-skill.sh had been scaffolding into the wrong directory
+
+Skills moved under `skills/` in v2.22.0 and the scaffolder kept writing to the
+repo root, so any new skill landed where `validate.sh` does not look. Found by
+using it.
+
+### Honest about what does not work
+
+- **Substack** has no official API. A third-party service sells one for $9/month
+  that authenticates with your browser session cookie — handing a live session
+  to someone else's server, against Substack's terms. Not wired, not recommended.
+- **llms.txt** is generated, with the caveat in the docs: a community convention
+  with no standards body, no vendor committed to reading it in production, and
+  no place in any documented citation pipeline. Cheap and harmless, not a lever.
+- **Backlinks from these platforms are mostly nofollow.** The mechanism that
+  works is canonical consolidation, not link equity. And ТИЦ, the metric that
+  prompted the question, was retired in 2018.
+
 ## [2.23.0] — 2026-08-03
 
 A vendor-drift release. Nothing in the collection knew the difference between a

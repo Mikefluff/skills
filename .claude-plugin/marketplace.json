@@ -1,7 +1,7 @@
 {
   "name": "mikefluff",
   "description": "Content skills for Claude Code — prose that does not read like a machine wrote it, plus prompt engineering for 40+ image, video and music models.",
-  "version": "2.23.0",
+  "version": "2.24.0",
   "owner": {
     "name": "Mikefluff",
     "url": "https://github.com/Mikefluff"
@@ -11,8 +11,8 @@
       "name": "mikefluff-skills",
       "displayName": "Mikefluff Skills",
       "source": "./",
-      "description": "42 skills: a clean-prose engine with an offline linter, wrappers for viral posts, essays, cold email and landing copy, and orchestrators that carry a job from research question to published carousel or reel.",
-      "version": "2.23.0",
+      "description": "43 skills: a clean-prose engine with an offline linter, wrappers for viral posts, essays, cold email and landing copy, and orchestrators that carry a job from research question to published carousel or reel.",
+      "version": "2.24.0",
       "author": {
         "name": "Mikefluff",
         "url": "https://github.com/Mikefluff"

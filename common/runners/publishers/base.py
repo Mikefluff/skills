@@ -24,7 +24,7 @@ from typing import Any, Literal
 
 from ..errors import KeyMissingError
 
-PostKind = Literal["text", "image", "carousel", "video"]
+PostKind = Literal["text", "image", "carousel", "video", "article"]
 PostState = Literal["published", "draft", "pending_review"]
 Severity = Literal["block", "warn"]
 
@@ -87,6 +87,19 @@ class Post:
     hashtags: tuple[str, ...] = ()
     extra: dict[str, Any] = field(default_factory=dict)
 
+    # ── article fields (kind="article") ─────────────────────────────────────
+    # For an article, `text` is the markdown body, `title` is the headline,
+    # `media[0]` is the cover image and `hashtags` are the platform's tags.
+    #
+    # `canonical_url` is the field that makes syndication safe rather than
+    # harmful. Publishing the same text to several platforms without it splits
+    # ranking signals across them and lets the platform with the bigger domain
+    # outrank the author's own page for the author's own words. Every article
+    # publisher here sends it, and preflight warns when it is missing.
+    canonical_url: str | None = None
+    description: str = ""  # SEO excerpt / subtitle
+    series: str | None = None  # dev.to series, Hashnode series slug
+
     def __post_init__(self) -> None:
         # Accept lists/strings/Paths from callers and normalise once, so every
         # publisher downstream can assume tuples of Path.
@@ -125,6 +138,8 @@ class Post:
         h.update(self.title.strip().encode())
         h.update(b"\x00")
         h.update(" ".join(self.hashtags).encode())
+        h.update(b"\x00")
+        h.update((self.canonical_url or "").encode())
         for m in self.media:
             h.update(b"\x00")
             h.update(m.name.encode())

@@ -2,6 +2,25 @@
 
 Every page has three "preview" surfaces: Google search result, Facebook/LinkedIn share, X (Twitter) share. Each has its own char limit + best practices.
 
+> **These surfaces are necessary and no longer sufficient.** Everything below is
+> about being *clicked* from a results page. A growing share of queries never
+> reach one: the answer is assembled by an engine that cites a handful of
+> sources. Getting cited is decided by different things — page structure and
+> structured data — and neither is a meta tag.
+>
+> The split is measurable. Of the pages an engine cites, the overlap with
+> Google's own organic top-10 is about 76% for AI Overviews, 28% for Perplexity
+> and **8% for ChatGPT**. Ranking well is close to unrelated to being quoted by
+> ChatGPT.
+>
+> So treat this file as one of three layers:
+>
+> | Layer | What it decides | Where it lives |
+> |---|---|---|
+> | Meta + OG + cards | whether a human clicks | this file |
+> | Page structure | whether an engine can extract a passage | `writer --aeo` |
+> | Structured data | whether an engine picks yours to quote | [`schema-maker`](../../schema-maker/SKILL.md) |
+
 ---
 
 ## Page title (HTML `<title>`)
@@ -249,8 +268,64 @@ Used by:
 
 ---
 
+## Structured data — the layer that decides citation
+
+Schema used to buy a rich result. Google retired the FAQ rich result on
+2026-05-07, and the expandable SERP block went with it. The markup did not stop
+mattering; it changed job. Answer engines parse `FAQPage` first when choosing
+whose answer to quote, and pages carrying Tier 1 types turn up in AI summaries
+markedly more often than pages without.
+
+What to add, in order of payoff:
+
+| Type | Page | Note |
+|---|---|---|
+| `FAQPage` | anything with question headings | Highest impact — pairs lift verbatim |
+| `HowTo` | tutorials, processes | Steps are pre-chunked, each independently quotable |
+| `Article` | blog posts | Carries the author entity and both dates |
+| `Organization` | site-wide, once | The publisher entity `Article` points at |
+
+Generate it rather than hand-writing it:
+
+```bash
+python3 -m common.runners.cli.schema --from ./post.md \
+  --url "https://you.dev/posts/slug/" \
+  --author-name "Your Name" --knows-about "CRM,sales ops"
+```
+
+Three properties do disproportionate work and are easy to leave out:
+
+- **`author` as a `Person` node**, not a string. A bare name is not an entity.
+- **`knowsAbout`** on that person. Author authority became a direct ranking
+  input in the March 2026 update, and this is where topical alignment is stated.
+- **`dateModified`** as well as `datePublished`. Both feed freshness; a page with
+  no modification date reads as abandoned regardless of when it last changed.
+
+**The one thing here that can hurt.** Schema describing content that is not
+visible on the page is spam under Google's structured-data policy and draws a
+manual action. Every other item in this file either helps or does nothing;
+this one has a downside. Describe what is actually there.
+
+---
+
+## Writing the meta so an engine can use it too
+
+Small changes that serve both surfaces:
+
+- **Meta description as a standalone claim.** Written as a complete sentence with
+  the specific number in it, it can be lifted as an answer. Written as a teaser
+  ("Find out how we…"), it cannot.
+- **Question-form `<title>` for question-intent pages.** Engines match headings
+  and titles against queries, and queries are questions.
+- **Comparison pages need a table on the page**, not just in the description.
+  Comparison queries are answered from tables far more often than from prose.
+
+---
+
 ## Cross-references
 
 - Char limits for every surface: [`char-limits.md`](char-limits.md)
 - What to strip: [`banned-patterns.md`](banned-patterns.md)
 - Hero writing (related, longer-form): [`hero-formula.md`](hero-formula.md)
+- Structured data generation: [`schema-maker`](../../schema-maker/SKILL.md)
+- Extractability check: `python3 skills/writer/scripts/lint.py <file> --aeo`

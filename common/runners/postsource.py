@@ -19,7 +19,7 @@ is visible beats a strict parser that refuses a file someone hand-edited.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .errors import RunnerError
@@ -138,6 +138,11 @@ class PostOverrides:
     hashtags: tuple[str, ...] = ()
     alt_texts: tuple[str, ...] = ()
     link: str | None = None
+    # Article-only. Ignored by the social publishers, which never read them.
+    canonical_url: str | None = None
+    description: str = ""
+    series: str | None = None
+    extra: dict[str, object] = field(default_factory=dict)
 
 
 def build_post(
@@ -159,6 +164,10 @@ def build_post(
         title=spec.title,
         link=spec.link,
         hashtags=spec.hashtags,
+        canonical_url=spec.canonical_url,
+        description=spec.description,
+        series=spec.series,
+        extra=dict(spec.extra),
     )
     return post, receipt_dir
 

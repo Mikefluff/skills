@@ -53,6 +53,7 @@ Jump straight to the section for what you want to do.
 | Release notes / changelog | [§ release-notes](#i-want-to-write-release-notes) |
 | RFC / ADR / design doc | [§ rfc-writer](#i-want-to-write-an-rfc--design-doc) |
 | Landing / SEO / ad copy | [§ landing-copy](#i-want-to-write-marketing-copy) |
+| Get cited by AI answer engines | [§ AEO](#i-want-to-be-cited-by-ai) |
 
 ### AI media generation
 
@@ -86,10 +87,10 @@ Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ## The collection in one paragraph
 
-Forty-two skills layered on top of one base linter (`writer`):
+Forty-three skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 25 catalogued categories of LLM-prose tells from any text, in RU or EN, plus chatbot copy-paste artifacts and rhythm metrics. Runs as a final pass under every other prose skill.
-- **Wrappers** (21): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`).
+- **Wrappers** (22): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`, `schema-maker`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`).
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint and AI-detection audits, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
 - **Orchestrators** (14, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; `post-publisher` sends any of that to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs; `proposal-maker` turns a raw offer into a brand-faithful HTML proposal; `style-suggest` turns a description or reference image into a new visual-style entry; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
 - **Meta** (3): `skills-update` (apply a newer release of this collection), `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer), `skills-styles` (manage the local style library).
@@ -332,6 +333,39 @@ Structure: context / problem / proposal / alternatives / consequences / decision
 Julian Shapiro hero formula, char limits per platform, i18n expansion factor, banned-pattern strip (no "revolutionary" / "world-class" / "Click here"). For viral organic posts → `viral-text`. For product UI strings → `microcopy`.
 
 ---
+
+### "I want AI answer engines to cite my page" {#i-want-to-be-cited-by-ai}
+
+Being cited is decided by different things than being clicked. Engines chunk a
+page into passages, score each on its own and quote the strongest — so structure
+and structured data matter more than meta tags. The overlap between Google's
+organic top-10 and what gets cited is about 76% for AI Overviews, 28% for
+Perplexity and **8% for ChatGPT**: ranking well barely predicts being quoted.
+
+Two steps, both offline:
+
+```
+python3 skills/writer/scripts/lint.py post.md --aeo
+```
+
+Checks extractability — a direct answer in the first 40-75 words, question-form
+headings, paragraphs small enough to survive chunking, a table on comparison
+pages. Its own exit codes, kept separate from the prose verdict: a text can read
+beautifully and still be unquotable.
+
+```
+/schema-maker
+python3 -m common.runners.cli.schema --from post.md --url <canonical> \
+  --author-name "You" --knows-about "topic,topic"
+```
+
+Emits JSON-LD. Question-form headings become `FAQPage` pairs automatically, which
+is the type engines parse first when choosing whose answer to quote. Google
+retired the FAQ rich result in May 2026; the markup outlived it and changed job.
+
+For the meta tags themselves → `landing-copy seo-meta`. For the longform itself →
+`essay-write`. Social posts are not an AEO surface — `viral-text` output is not
+what gets cited.
 
 ---
 
@@ -993,7 +1027,7 @@ See [`README.md § What's in the box`](../README.md#whats-in-the-box) for the up
 - [QUICKSTART](QUICKSTART.md) — 5-minute first run
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
-- [COMPOSING](COMPOSING.md) — how the 42 skills compose; recipe library
+- [COMPOSING](COMPOSING.md) — how the 43 skills compose; recipe library
 - [SKILL-INDEX](SKILL-INDEX.md) — every skill indexed by layer / domain / language
 - [walkthroughs/README.md](walkthroughs/README.md) — 19 walkthroughs, categorized
 - [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection
