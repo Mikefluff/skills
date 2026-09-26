@@ -13,6 +13,26 @@ The roadmap asked the next session to audit the structure. The audit found that
 two of the nine documentation gates had never run, and that the numbers the
 skills quote for what a run costs had drifted from the table that bills for it.
 
+### Added — writer learns the props a book edit kept reintroducing
+
+A full proofread of a Russian non-fiction manuscript turned up more than a
+hundred constructions the linter passed as clean, and most of them had been
+inserted by the editor itself while fixing other hits. They share a shape: the
+phrase announces a thought instead of stating it.
+
+- **29. PROP_TURN** — announcing props («самое интересное», «ирония в том, что»,
+  «откуда его меньше всего ждали», «стоит запомнить простую вещь», «и в этом весь
+  смысл»), bodily reactions used as drama («сказал вещь, от которой вздрогнули»),
+  figurative «держится на / держит на себе / удержаться от соблазна», and the
+  abstract middleman «разрыв между X и Y».
+- **30. ORDINAL_SCAFFOLD** — a chapter read as a report: «Вторая сцена. … Третья
+  сцена», «Второй слой … Седьмой слой», «Дальше --- права».
+
+Categories 26–28 (PERCEPT_METAPHOR, SYNTH_WORD, ANGLICISM) and 56 further
+patterns had been living only in a local install and never reached the repo;
+they are ported here with their catalogue sections. Six snapshots drift, each by
+a true positive the old list missed («через призму», «как водится», «скилл»).
+
 ### Fixed — two gates that reported green without looking at anything
 
 `check-docs-consistency.sh` check 2 globbed `*/` at the repo root for

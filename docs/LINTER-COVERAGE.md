@@ -8,13 +8,13 @@
 |---|---|---|---|
 | 1 | `AI_QA` | ✓ covered | 12 |
 | 2 | `NE_X_A_Y` | ✓ covered | 8 |
-| 3 | `PSEUDO_SMART` | ✓ covered | 15 |
+| 3 | `PSEUDO_SMART` | ✓ covered | 21 |
 | 4 | `AI_INTENSIFIER` | ✓ covered | 24 |
 | 5 | `BUREAU_INV` | ✓ covered | 16 |
 | 6 | `CORPORATE` | ✓ covered | 22 |
-| 7 | `GPT_FILLER` | ✓ covered | 20 |
+| 7 | `GPT_FILLER` | ✓ covered | 25 |
 | 8 | `AI_BRIDGE` | ✓ covered | 13 |
-| 9 | `STOCK_METAPHOR` | ✓ covered | 20 |
+| 9 | `STOCK_METAPHOR` | ✓ covered | 34 |
 | 10 | `AI_HEDGE` | ✓ covered | 10 |
 | 11 | `SELF_REF` | ✓ covered | 7 |
 | 12 | `PSEUDO_CAUSAL` | ✓ covered | 10 |
@@ -29,14 +29,19 @@
 | 21 | `BALANCE_HEDGE` | ✗ missing | 0 |
 | 22 | `NEURAL_METAPHOR` | ✓ covered | 11 |
 | 23 | `TYPOGRAPHY` | ⚠ partial | 2 |
-| 24 | `THERAPEUTIC` | ✓ covered | 11 |
+| 24 | `THERAPEUTIC` | ✓ covered | 21 |
 | 25 | `FALSE_RANGE` | ✗ missing | 0 |
+| 26 | `PERCEPT_METAPHOR` | ✓ covered | 21 |
+| 27 | `SYNTH_WORD` | ✓ covered | 25 |
+| 28 | `ANGLICISM` | ⚠ partial | 1 |
+| 29 | `PROP_TURN` | ✓ covered | 31 |
+| 30 | `ORDINAL_SCAFFOLD` | ✓ covered | 6 |
 
 ## Summary
 
-- Total categories: **25**
-- Covered (≥ 3 patterns): **21**
-- Partial (1-2 patterns): **1**
+- Total categories: **30**
+- Covered (≥ 3 patterns): **25**
+- Partial (1-2 patterns): **2**
 - Missing (0 patterns): **3**
 
 ## Why some categories are intentionally LLM-only

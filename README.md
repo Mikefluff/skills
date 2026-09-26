@@ -245,7 +245,7 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 | [`video-prompt`](skills/video-prompt/) | wrapper | en/ru | Write prompts for 20+ frontier AI video generators (Veo 3.1 + Fast + Lite with native audio, Kling 3.0 / Elements, Runway Gen-4 / Gen-4.5 / Aleph V2V / Act-One, Luma Ray 3 / Modify, Pika 2.2 / Pikaframes, Hailuo 02, Higgsfield, LTX-2, HunyuanCustom, Wan 2.2, Seedance). Modes: T2V / I2V / V2V / extend / multi-shot / dialogue+audio. CHARACTER FIRST law, beat structure, exact camera vocabulary, identity-reference grammar, pacing modes (incl. dialogue-scene + music-video). |
 | [`viral-text`](skills/viral-text/) | wrapper | ru/en | Write viral social media content — hooks, numbered points, micro-conclusion with NLP question, CTA. 41 viral content rules + platform adaptation. |
 | [`voiceover-maker`](skills/voiceover-maker/) | wrapper | en/ru | Text-to-speech skill — script in, MP3 out. Wraps the runner's audio modality (ElevenLabs eleven-tts on Eleven v3 + OpenAI gpt-4o-mini-tts). Supports voice picker, multilingual TTS across 70+ languages, speed control, long-form scripts. Auto-picks provider based on language + script length + brand-voice needs. Saves to ./generated/audio/<timestamp>-<model>.mp3. |
-| [`writer`](skills/writer/) | base | ru/en | Base clean-prose editor — antinyeyroslop (25 catalogued categories + copy-paste artifacts + rhythm metrics), typography, structural synthetics, RU calques. Invoked by all other prose skills. |
+| [`writer`](skills/writer/) | base | ru/en | Base clean-prose editor — antinyeyroslop (30 catalogued categories + copy-paste artifacts + rhythm metrics), typography, structural synthetics, RU calques. Invoked by all other prose skills. |
 
 <!-- END skills-table -->
 

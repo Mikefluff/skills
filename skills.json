@@ -735,7 +735,7 @@
       "name": "writer",
       "dir": "skills/writer",
       "layer": "base",
-      "description": "Base clean-prose editor — antinyeyroslop (25 catalogued categories + copy-paste artifacts + rhythm metrics), typography, structural synthetics, RU calques. Invoked by all other prose skills.",
+      "description": "Base clean-prose editor — antinyeyroslop (30 catalogued categories + copy-paste artifacts + rhythm metrics), typography, structural synthetics, RU calques. Invoked by all other prose skills.",
       "languages": [
         "ru",
         "en"

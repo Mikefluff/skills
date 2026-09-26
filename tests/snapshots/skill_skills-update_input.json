@@ -1,18 +1,26 @@
 {
-  "verdict": "clean",
+  "verdict": "borderline",
   "gate": "fail",
-  "total": 3,
+  "total": 5,
   "hard_bans": 3,
   "by_category": {
+    "ANGLICISM": 2,
     "EM_DASH_RU": 2,
     "MATH_SIGN_PROSE": 1
   },
   "by_severity": {
     "blocker": 3,
-    "caution": 0,
+    "caution": 2,
     "nit": 0
   },
   "hits": [
+    {
+      "line": 3,
+      "col": 20,
+      "category": "ANGLICISM",
+      "severity": "caution",
+      "match": "скилл"
+    },
     {
       "line": 3,
       "col": 36,
@@ -26,6 +34,13 @@
       "category": "EM_DASH_RU",
       "severity": "blocker",
       "match": "—"
+    },
+    {
+      "line": 18,
+      "col": 20,
+      "category": "ANGLICISM",
+      "severity": "caution",
+      "match": "скилла"
     },
     {
       "line": 18,

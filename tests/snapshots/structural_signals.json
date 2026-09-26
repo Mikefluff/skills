@@ -1,7 +1,7 @@
 {
   "verdict": "neuroslop suspected",
   "gate": "pass",
-  "total": 10,
+  "total": 11,
   "hard_bans": 0,
   "by_category": {
     "HEDGE_CASCADE": 1,
@@ -9,13 +9,14 @@
     "VERB_ECHO": 1,
     "HEADING_ECHO": 1,
     "COLON_REVEAL": 1,
+    "PROP_TURN": 1,
     "DANGLING_GERUND": 1,
     "CALQUE_COLLOCATION": 2,
     "THERAPEUTIC": 2
   },
   "by_severity": {
     "blocker": 0,
-    "caution": 10,
+    "caution": 11,
     "nit": 0
   },
   "hits": [
@@ -53,6 +54,13 @@
       "category": "COLON_REVEAL",
       "severity": "caution",
       "match": "Самое интересное:"
+    },
+    {
+      "line": 7,
+      "col": 1,
+      "category": "PROP_TURN",
+      "severity": "caution",
+      "match": "Самое интересное"
     },
     {
       "line": 11,

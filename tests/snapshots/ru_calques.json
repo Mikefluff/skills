@@ -1,17 +1,25 @@
 {
   "verdict": "clean",
   "gate": "fail",
-  "total": 1,
+  "total": 2,
   "hard_bans": 1,
   "by_category": {
+    "ANGLICISM": 1,
     "EM_DASH_RU": 1
   },
   "by_severity": {
     "blocker": 1,
-    "caution": 0,
+    "caution": 1,
     "nit": 0
   },
   "hits": [
+    {
+      "line": 1,
+      "col": 14,
+      "category": "ANGLICISM",
+      "severity": "caution",
+      "match": "пайплайн"
+    },
     {
       "line": 3,
       "col": 18,

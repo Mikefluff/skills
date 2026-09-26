@@ -1,7 +1,7 @@
 {
   "verdict": "neuroslop suspected",
   "gate": "fail",
-  "total": 10,
+  "total": 11,
   "hard_bans": 5,
   "by_category": {
     "RHYTHM_MONOTONE": 1,
@@ -9,12 +9,13 @@
     "AI_HEDGE": 1,
     "FILLER_INTRO": 1,
     "NEG_PARALLEL": 1,
+    "PROP_TURN": 1,
     "PSEUDO_SMART": 1,
     "SYNTHETIC": 1
   },
   "by_severity": {
     "blocker": 5,
-    "caution": 5,
+    "caution": 6,
     "nit": 0
   },
   "hits": [
@@ -73,6 +74,13 @@
       "category": "EM_DASH_RU",
       "severity": "blocker",
       "match": "—"
+    },
+    {
+      "line": 19,
+      "col": 106,
+      "category": "PROP_TURN",
+      "severity": "caution",
+      "match": "как водится"
     },
     {
       "line": 21,

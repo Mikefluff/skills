@@ -1,17 +1,18 @@
 {
   "verdict": "borderline",
   "gate": "fail",
-  "total": 11,
+  "total": 12,
   "hard_bans": 8,
   "by_category": {
     "RHYTHM_MONOTONE": 1,
     "VERB_ECHO": 1,
     "EM_DASH_RU": 8,
-    "DOUBLE_NEG_REGEX": 1
+    "DOUBLE_NEG_REGEX": 1,
+    "SYNTH_WORD": 1
   },
   "by_severity": {
     "blocker": 8,
-    "caution": 3,
+    "caution": 4,
     "nit": 0
   },
   "hits": [
@@ -77,6 +78,13 @@
       "category": "EM_DASH_RU",
       "severity": "blocker",
       "match": "—"
+    },
+    {
+      "line": 9,
+      "col": 132,
+      "category": "SYNTH_WORD",
+      "severity": "caution",
+      "match": "через призму"
     },
     {
       "line": 11,
