@@ -13,6 +13,9 @@ published post; raw price list → a proposal styled from the client's own websi
 
 Russian-first, English throughout. Plain markdown, MIT, no required dependencies.
 
+The writing tools, with before-and-after examples in English, Russian, Portuguese
+and Spanish: [mikefluff.com/skills](https://www.mikefluff.com/en/skills).
+
 ## What it actually does
 
 The same cold email, before and after `cold-email` → `writer`:
@@ -425,4 +428,4 @@ Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Made by [Mike Fluff](https://www.mikefluff.com/en).
