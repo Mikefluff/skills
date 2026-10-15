@@ -9,6 +9,16 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.25.0] — 2026-10-15
+
+Two modalities were missing or only half there. 3D had no skill at all, and
+`model-maker` now returns a GLB from text or a photo. Video could illustrate a
+voice but not direct it: reel-builder's film mode now records the take, draws a
+storyboard, designs every camera move as a clay previs in Blender and fits the
+voice back to the lips, all before or after the one paid step. Around them, two
+gates that reported green without looking now look, thirteen prices no longer
+understate the bill, and writer catches the props a book edit kept putting back.
+
 ### Changed — film mode directs instead of illustrating
 
 The first paid film had held seams and timings but no direction. It was a run of centred, static medium shots in grey, even light, with a picture that repeated every line. Its lips were also seconds off the take, and the cause was the prompt, not the model. Seedance re-performs the audio reference through a mouth on screen, and our prompt put lines over shots with no face in them. BytePlus's own 2.5 guide documents the fixes, and the chain now follows it.
