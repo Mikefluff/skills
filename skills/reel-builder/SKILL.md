@@ -1,6 +1,6 @@
 ---
 name: reel-builder
-description: "Turn a topic / research brief / script into a 9:16 vertical reel: 1-4 shots + matched music + ffmpeg-stitched final.mp4 with optional burned-in captions. Modes: --topic / --research / --script-file; --shots; --style; --music-style; --aspect; --captions. Use when: 'make a reel about X', 'short video on Y', 'TikTok / Reels / Shorts about Z'."
+description: "Turn a topic / research brief / script into a 9:16 vertical reel: 1-4 shots + matched music + ffmpeg-stitched final.mp4 with optional burned-in captions; film mode makes a voiced film — ElevenLabs take, Seedance lip-sync to a character photo, cuts only in speech pauses, beats pinned to word timings. Use when: 'make a reel about X', 'short video on Y', 'TikTok / Reels / Shorts about Z', 'voiced Seedance film', 'озвученный ролик'."
 
 license: MIT
 allowed-tools:
@@ -24,9 +24,11 @@ This skill orchestrates:
 
 Use when the user wants a finished reel, not just video prompts. Without `--execute`, returns assembled prompts; with `--execute`, generates the MP4.
 
+**Film mode** is the voiced variant: an ElevenLabs take, a character who lip-syncs to it via Seedance 2.x, and a dramatic arc whose events land on the words. It has its own five-phase pipeline — see [FILM MODE](#film-mode) below.
+
 This skill does NOT:
-- Add a voiceover / TTS narrator (out of scope for v1 — would need ducking/mixing logic; planned v2.4.0)
-- Composite multi-track edits beyond hard cuts (no dissolves, no transitions other than concat)
+- Add a narrator over an ordinary reel — voice is film mode only, where the picture is cut against it
+- Composite multi-track edits beyond hard cuts (no dissolves; designed transitions happen inside a generation)
 - Beat-sync shots to music BPM (would need BPM detection; planned later)
 - Post to platforms — that is `post-publisher`, which takes this skill's output directory (the `final.mp4`) as its input
 - Run editing software (Premiere / DaVinci / CapCut) — uses ffmpeg only
@@ -115,6 +117,19 @@ Topic / research / script → build 1-4 shot screenplay with timing → resolve 
     Components: ./generated/reel/<slug>/{shots/, music.mp3, script.md}
     ```
 
+## FILM MODE
+
+A voiced film, ≤30 s in one Seedance 2.5 generation (no seams) or longer in segments cut in speech pauses. Full pipeline, rationale and a worked rewrite of a real prompt in [references/film-mode.md](references/film-mode.md).
+
+1. **Voice** — `python3 -m common.runners.cli.reel_voice --script-file vo.txt --voice-id <id> --output-dir <out> [--max-seconds 30|15] [--lead 0.8] [--tail 1.5]`. ElevenLabs TTS with timestamps (forced alignment as fallback, or `--voice-file` for an existing take) → `voice/master.wav` on the film clock, per-segment lip-sync slices, `timing.json`.
+2. **Direction** — ONE Agent with [`film-system-prompt.md`](../../common/video-prompt-library/film-system-prompt.md). It sets the dramaturgy first: the controlling image, counterpoint rather than illustration, a colour arc, a quiet turn, hits pinned to word timings. It then writes 6–10 shots per 30 s, cut on action, with the camera and the subject moving in every shot, plus one keyframe prompt per shot. By default each shot is its own Seedance generation, 4–6 s long with head and tail handles, and the film is cut afterwards. Lip-sync shots get their own stretch of the master as `@Audio1`; voice-over shots open on their keyframe with the mouth closed. One generation for the whole film, in BytePlus's official 2.5 multi-shot format, is the alternative. Lines are verbatim in `{}`, either on camera or `(V.O.)` with the lips closed. The result is `plan.json` with `board`, `voiceover`, `trim_seconds` and `sound`.
+3. **Storyboard** — `python3 -m common.runners.cli.reel_board --plan-file <out>/plan.json`. Nano Banana Pro renders one keyframe per shot through OpenRouter. A Gemini critic scores each against its shot (framing, light, identity, idea, craft), and frames below 8/10 are re-rolled with the critic's fix, about $0.14 a frame. The approved frames become the shot's ordered keyframe references. Look at `board/contact.jpg` before paying for video.
+3b. **Previs** — `python3 -m common.runners.cli.reel_previs --plan-file <out>/plan.json`. Blender, headless and free, renders a clay blocking clip for each shot from the chain's `previs` spec: sets, camera keys including orbits and dolly zooms, hand-held shake, the hero's moves, and the moments lights fire. The clips go to Seedance as `@Video1`, which follows a previs's camera, speed and timing far more faithfully than any sentence. Watch `previs/contact.jpg` and the clips before paying for video. Blender is found through `$BLENDER`, `blender` on PATH, or `/Applications/Blender.app`.
+4. **Sound** — `python3 -m common.runners.cli.reel_sound --plan-file <out>/plan.json`. The chain's `sound` block becomes Eleven Music cues plus ElevenLabs effects and beds, placed on the film clock (kills, dips and "distant" re-use are edits, not generations), ducked under the voice and mastered to −14 LUFS. The result is `soundtrack.wav`, which you can hear before paying for the picture. Seedance's own audio is never used.
+5. **Render** — `python3 -m common.runners.cli.reel --plan-file <out>/plan.json`. Chained segments run in order, and each opens on the frame the previous one was cut on. The join is frame-exact, effects marked `snap` move onto the frames where the flashes really are, and the soundtrack is muxed over. If the lips drift from the take, run `python3 -m common.runners.cli.reel_conform --plan-file <out>/plan.json --picture <shot>` and then `reel --resume`.
+
+Providers: `seedance-2-5` / `seedance-2-0` (BytePlus ModelArk, `ARK_API_KEY`), `openrouter-seedance-2-5` (`OPENROUTER_API_KEY`, BytePlus price, audio references honoured), `fal-seedance-2-5` (`FAL_KEY`). The user's brief stays theirs — the chain restructures it, it does not replace the idea.
+
 ## MODES
 
 ### Input
@@ -138,7 +153,7 @@ Topic / research / script → build 1-4 shot screenplay with timing → resolve 
 
 ### Providers
 
-- `--video-provider auto|veo-3-1|veo-3-1-fast|veo-3-1-lite|kling-3|runway-gen-4-5|fal-video` — video API
+- `--video-provider auto|veo-3-1|veo-3-1-fast|veo-3-1-lite|kling-3|runway-gen-4-5|fal-video|seedance-2-5|seedance-2-0|openrouter-seedance-2-5|fal-seedance-2-5` — video API (Seedance = film mode)
 - `--music-provider auto|suno-v5-5|stable-audio-2-5|eleven-music|lyria-3-pro` — music API
 - `--video-instrumental on|off` — for music: pure instrumental (default on for reels — voiceover is out of scope v1)
 
@@ -174,6 +189,7 @@ Topic / research / script → build 1-4 shot screenplay with timing → resolve 
 | [references/ffmpeg-stitch.md](references/ffmpeg-stitch.md) | Step 10 — concat, audio mix, fade-out, burn-in caption filter syntax, ffmpeg gating |
 | [references/captions.md](references/captions.md) | Caption writing — placement, line length, timing, accessibility |
 | [references/troubleshoot.md](references/troubleshoot.md) | When shots fail, music doesn't match, ffmpeg errors, sync issues |
+| [references/film-mode.md](references/film-mode.md) | Voiced film — voice phase, dramaturgy rules and why, Seedance routes, seams, worked example |
 
 ## EXAMPLES
 
@@ -187,9 +203,11 @@ See [examples/before-after.md](examples/before-after.md) — 3 calibration runs:
 
 - **Music duration ≥ total video duration.** ffmpeg `-shortest` clips music to video length, so generate music a bit longer than reel. Default: reel_duration + 2s of music.
 
-- **No voiceover / TTS in v1.** If the user asks "narrate this", suggest pasting voiceover separately via ElevenLabs TTS UI + manual mix. Voiceover orchestration with ducking is v2.4.0+.
+- **Voice means film mode.** A narrated reel is built against its take: voice phase first, prompts from `timing.json`, never prompts first and voice after.
 
-- **Hard cuts only.** ffmpeg concat does straight cuts. No dissolves / wipes / fancy transitions.
+- **In film mode the master take is the only voice.** Seedance's own audio is dropped at stitch; music, if any, is ducked under the take.
+
+- **Hard cuts only at seams.** ffmpeg joins without dissolves; a transition the film needs is staged inside a generation (smoke whiteout, occlusion) and, when it can, placed on a seam.
 
 - **First 1-2 seconds carry the hook.** Reel feeds scroll fast — if the opening doesn't land, audience leaves. The shot-planning reference enforces this in script structure.
 
@@ -225,6 +243,7 @@ RU triggers:
 - «рил про X», «короткое видео про Y»
 - «TikTok / Reels / Shorts про Z»
 - «15-секундное видео», «30-секундный рил»
+- «озвученный ролик», «ролик с озвучкой ElevenLabs», «Seedance с липсинком», «персонаж говорит в кадре» → film mode
 - «вертикальное видео про Q»
 
 Defaults: `--shots 3 --shot-duration 5 --aspect vertical --captions on --video-provider auto --music-provider auto --video-instrumental on`. Without `--execute`, returns plan + prompts; with `--execute`, generates the MP4.

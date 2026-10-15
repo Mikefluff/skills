@@ -102,19 +102,27 @@ class BatchSpec:
     poll_timeout: float = 600.0
     extension_hint: str = "png"
     resume: bool = False
+    # With resume: labels to generate again even though they succeeded — a take
+    # that rendered but is wrong (a duplicate face, a frozen shot).
+    redo: frozenset[str] = frozenset()
     extra_meta: dict[str, Any] | None = None
+    # Runs in the worker just before an item generates; raising fails the item.
+    # A voiced film uses it to hand each segment the frame the previous one was
+    # cut on, which only exists once that segment is done — so it pairs with
+    # parallelism=1, where the pool runs items in submission order.
+    before_item: Callable[[BatchItem], None] | None = None
 
     def save_modality(self) -> Modality:
         """output.save only knows the four asset kinds; anything else is an image."""
         return self.modality if self.modality in {"image", "video", "music", "audio"} else "image"
 
 
-def _restore_succeeded(items: list[BatchItem], manifest_path: Path) -> None:
-    """--resume: carry forward items a previous run already paid for."""
+def _restore_succeeded(items: list[BatchItem], manifest_path: Path, redo: frozenset[str] = frozenset()) -> None:
+    """--resume: carry forward items a previous run already paid for, except those asked to be redone."""
     prior = {item.index: item for item in load_manifest(manifest_path)}
     for current in items:
         previous = prior.get(current.index)
-        if previous and previous.status == "succeeded":
+        if previous and previous.status == "succeeded" and current.label not in redo:
             current.status = "succeeded"
             current.output_path = previous.output_path
             current.s3_url = previous.s3_url
@@ -154,6 +162,8 @@ def _run_item(provider: Provider, item: BatchItem, spec: BatchSpec) -> BatchItem
     """Worker body — one item must never be able to end the batch."""
     item.started_at = time.time()
     try:
+        if spec.before_item is not None:
+            spec.before_item(item)
         _generate_one(provider, item, spec)
     except (ProviderError, RunnerTimeoutError, RunnerError) as exc:
         item.status = "failed"
@@ -185,7 +195,7 @@ def run_batch(
     spec.output_dir.mkdir(parents=True, exist_ok=True)
 
     if spec.resume:
-        _restore_succeeded(items, spec.manifest_path)
+        _restore_succeeded(items, spec.manifest_path, spec.redo)
 
     write_manifest(spec.manifest_path, items, spec.extra_meta)
     result = BatchResult(

@@ -54,6 +54,14 @@ PINNED_MODEL_IDS = {
     "gpt-4o-mini-transcribe": "gpt-4o-mini-transcribe",
     "lyria-3-pro": "lyria-3-pro-preview",
     "lyria-3-clip": "lyria-3-clip-preview",
+    # Read from the BytePlus schema mirror on docs.comfy.org on 2026-10-11; the
+    # BytePlus pages themselves render client-side and could not be fetched.
+    "seedance-2-5": "dreamina-seedance-2-5-260628",
+    "seedance-2-0": "dreamina-seedance-2-0-260128",
+    "fal-seedance-2-5": "bytedance/seedance-2.5/reference-to-video",
+    "eleven-sfx": "eleven_text_to_sound_v2",
+    "openrouter-seedance-2-5": "bytedance/seedance-2.5",
+    "openrouter-nano-banana-pro": "google/gemini-3-pro-image",
 }
 
 # How long a snapshot of vendor model ids is allowed to go unverified. Vendors

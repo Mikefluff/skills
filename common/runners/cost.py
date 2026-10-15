@@ -50,11 +50,27 @@ PRICE_TABLE: dict[str, dict[str, Decimal]] = {
     "aleph": {"per_second": Decimal("0.18")},
     # Kling — standard runs $0.084/sec, Pro with video input up to $0.168.
     "kling-3": {"per_second": Decimal("0.12")},
+    # BytePlus bills Seedance by tokens: seconds × width × height × fps / 1024,
+    # $10.70 per million without video input (2.5; cometapi/argolink, 2026-10).
+    # A 30 s 9:16 720p clip is 648k tokens ≈ $6.93 — a per-second price would
+    # have to be pinned to one resolution and was quoting $18 for it. 2.0 is
+    # priced at the 2.5 rate until a vendor page states its own.
+    "seedance-2-5": {"per_1m_tokens": Decimal("10.70")},
+    "seedance-2-0": {"per_1m_tokens": Decimal("10.70")},
+    # OpenRouter passes the BytePlus token price through (openrouter.ai, 2026-10).
+    "openrouter-seedance-2-5": {"per_1m_tokens": Decimal("10.70")},
+    # Measured 2026-10-14: 1120 image tokens + reasoning ≈ $0.138 per 2K frame.
+    "openrouter-nano-banana-pro": {"per_image": Decimal("0.14")},
+    # fal resells per second: ~$0.47/s at 720p (fal.ai/learn); 1080p unpublished.
+    "fal-seedance-2-5": {"per_second": Decimal("0.60")},
     # Suno
     "suno-v5-5": {"per_song": Decimal("0.10")},
     # ElevenLabs
     "eleven-music": {"per_minute": Decimal("0.20")},
     "eleven-tts": {"per_1k_chars": Decimal("0.12")},
+    # Sound generation bills credits per second of output; priced as a ceiling
+    # until the vendor page states a dollar rate for the API.
+    "eleven-sfx": {"per_second": Decimal("0.02")},
     # Ideogram, re-read from ideogram.ai/api-pricing on 2026-08-08. The v3 tiers had
     # been carrying $0.02/$0.04/$0.08 here, which is under what the vendor charges —
     # the one direction this table is not allowed to be wrong in, and the default
@@ -111,16 +127,24 @@ def estimate(provider: str, **kwargs: Any) -> Decimal | None:
     if "per_second" in entry:
         duration = float(kwargs.get("duration_seconds", 8))
         return unit("per_second") * Decimal(str(duration)) * variants
-    if "per_minute" in entry:
-        minutes = float(kwargs.get("duration_minutes", 1))
-        return entry["per_minute"] * Decimal(str(minutes)) * variants
-    if "per_1k_chars" in entry:
-        chars = int(kwargs.get("char_count", 0))
-        return entry["per_1k_chars"] * Decimal(str(chars / 1000)) * variants
+    metered = _metered(entry, kwargs)
+    if metered is not None:
+        return metered * variants
     # quality tier (gpt-image-2)
     quality = kwargs.get("quality", "medium")
     if quality in entry:
         return entry[quality] * variants
+    return None
+
+
+def _metered(entry: dict[str, Decimal], kwargs: dict[str, Any]) -> Decimal | None:
+    """One unit of a usage-metered price: minutes of audio, characters, tokens."""
+    if "per_minute" in entry:
+        return entry["per_minute"] * Decimal(str(float(kwargs.get("duration_minutes", 1))))
+    if "per_1m_tokens" in entry:
+        return entry["per_1m_tokens"] * Decimal(int(kwargs.get("tokens", 0))) / Decimal(1_000_000)
+    if "per_1k_chars" in entry:
+        return entry["per_1k_chars"] * Decimal(str(int(kwargs.get("char_count", 0)) / 1000))
     return None
 
 

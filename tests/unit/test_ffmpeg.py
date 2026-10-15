@@ -41,17 +41,21 @@ class MusicFilter(unittest.TestCase):
         opts = ffmpeg.MixOptions(audio_volume=0.5, fade_in=0.0, fade_out=0.0)
         self.assertEqual(opts.music_filter(), "volume=0.5")
 
-    def test_fade_out_is_on_by_default(self):
+    def test_fade_out_ends_where_the_video_ends(self):
+        # st=0 used to fade every reel's music to silence 0.5 s in.
         self.assertEqual(
-            ffmpeg.MixOptions().music_filter(),
-            "volume=0.8,afade=t=out:st=0:d=0.5",
+            ffmpeg.MixOptions(video_seconds=15.0).music_filter(),
+            "volume=0.8,afade=t=out:st=14.500:d=0.5",
         )
 
+    def test_no_fade_out_when_the_end_is_unknown(self):
+        self.assertEqual(ffmpeg.MixOptions().music_filter(), "volume=0.8")
+
     def test_both_fades_in_order(self):
-        opts = ffmpeg.MixOptions(audio_volume=1.0, fade_in=2.0, fade_out=3.0)
+        opts = ffmpeg.MixOptions(audio_volume=1.0, fade_in=2.0, fade_out=3.0, video_seconds=30.0)
         self.assertEqual(
             opts.music_filter(),
-            "volume=1.0,afade=t=in:st=0:d=2.0,afade=t=out:st=0:d=3.0",
+            "volume=1.0,afade=t=in:st=0:d=2.0,afade=t=out:st=27.000:d=3.0",
         )
 
 
@@ -59,7 +63,7 @@ class MixModes(FfmpegCase):
     def test_replace_maps_the_music_as_the_only_audio(self):
         ffmpeg.mix_audio_with_modes(VIDEO, AUDIO, Path("/tmp/out.mp4"))
         cmd = self.calls()[0]
-        self.assertEqual(self.flag(cmd, "-af"), "volume=0.8,afade=t=out:st=0:d=0.5")
+        self.assertEqual(self.flag(cmd, "-af"), "volume=0.8")
         # 0:v from the video, 1:a from the music file — the original audio is dropped.
         self.assertEqual([cmd[i + 1] for i, a in enumerate(cmd) if a == "-map"], ["0:v", "1:a"])
         self.assertNotIn("-filter_complex", cmd)
@@ -96,7 +100,7 @@ class MixModes(FfmpegCase):
         )
         cmd = self.calls()[0]
         self.assertNotIn("-filter_complex", cmd)
-        self.assertEqual(self.flag(cmd, "-af"), "volume=0.8,afade=t=out:st=0:d=0.5")
+        self.assertEqual(self.flag(cmd, "-af"), "volume=0.8")
 
 
 class Captions(FfmpegCase):

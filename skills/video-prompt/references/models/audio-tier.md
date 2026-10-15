@@ -1,6 +1,6 @@
 # Audio-tier models
 
-Models with native synchronized audio (dialogue + SFX + ambient) generated in one pass — no separate audio post. Beat 1/2/3 still applies. Audio-bearing examples (Veo 3.1, Sora 2, LTX-2, Kling 3.0 Omni) include a Dialogue / SFX / Ambient block. Seedance 2.0 lives in this file because it's the visual-multi-shot peer in this tier; its audio support is unconfirmed and its example omits the audio block by design.
+Models with native synchronized audio (dialogue + SFX + ambient) generated in one pass — no separate audio post. Beat 1/2/3 still applies. Audio-bearing examples (Veo 3.1, Sora 2, LTX-2, Kling 3.0 Omni) include a Dialogue / SFX / Ambient block. Seedance 2.x generates audio natively and lip-syncs to a supplied audio reference (`@Audio1`); its section below covers the reference syntax.
 
 ---
 
@@ -251,18 +251,21 @@ Camera: static medium two-shot held throughout, subtle handheld vibration, focus
 
 ---
 
-# Seedance 2.0 (ByteDance)
+# Seedance 2.0 / 2.5 (ByteDance)
 
-**Strengths**: multi-shot narrative in a single prompt (up to 6 shots, 30s total); 1080p in ~41s on hosted endpoints; real-time interactive variant (Seaweed APT2); strong character consistency across shots in one generation; available via Higgsfield Cinema Studio as a backend.
-**Weaknesses**: <!-- TODO: confirm Seedance 2.0 native audio status — community reports unclear --> audio support beyond ambient is inconsistent; English documentation thinner than Sora 2 / Kling.
-**Execute via**: prompt-only — no native ByteDance video adapter in v2.2. Workaround: `--execute --model fal-video --fal-model fal-ai/bytedance/seedance-1-0-pro` (env: `FAL_KEY`) if mirror available.
+**Strengths**: multimodal references addressed by name in the prompt — `@Image1..`, `@Video1..`, `@Audio1..` numbered in upload order (2.0: up to 9 images, 3 videos, 3 audio; 2.5: up to 30 / 10 / 10). It lip-syncs a character to a supplied voice take (`@Audio1`). Native audio is on by default. **2.5 renders 4-30 s in one generation** (2.0: 4-15 s), takes timecoded shot lists inside one generation, and has native clip extension. 2.5 shipped on 2026-07-31.
+**Weaknesses**: identifiable real faces are blocked unless the account passes real-human verification. Multi-speaker lip-sync is weak. An overloaded prompt keeps 4-5 of its instructions and drops the rest. Quoted dialogue in the prompt makes the model speak it itself.
+**Execute via**: `--execute --model seedance-2-5` / `seedance-2-0` (BytePlus ModelArk, env `ARK_API_KEY`) or `fal-seedance-2-5` (env `FAL_KEY`). Kwargs `reference_images` / `reference_audio` / `reference_videos` keep their order on the wire. For a voiced film with an ElevenLabs take, use `reel-builder` film mode: it times the voice, cuts in pauses and writes the prompts against the word timings.
 
 ## Format rules
 
 - Multi-shot block format: `Shot 1 (Xs, <framing>): <action> / Shot 2 (Ys, <framing>): <action>` — see [`multi-shot.md`](../multi-shot.md).
 - Style anchor sentence at the END applies across all shots — lighting, grade, identity.
 - Identity labels (`[ref:Name]`) for consistent characters across shots.
-- Audio: where supported, follow Veo / Sora syntax — `Character: "{line}"`, `SFX:`, `Ambient:`.
+- References get an explicit role line each: `@Image1 is the man's identity: face, hairstyle, build, clothing.`, `@Audio1 is his voice; his lips and breath follow @Audio1 exactly.` A reference without a role leaks its lighting and framing into the shot.
+- With a voice reference, never quote the dialogue. Point at the time window instead: `[12.4–14.0s] he speaks`.
+- Long single generations (2.5, >8 s): a timecoded timeline `[0–3.2s] … [3.2–7.0s] …`, with one camera move and one action per line.
+- End with a sound line (`Sound: … no music, no other voices`) and at most one `Avoid:` line; otherwise you get an unrequested soundtrack.
 
 ## Seedance 2.0 template
 
@@ -290,7 +293,8 @@ Camera: locked compositions per shot, subtle handheld vibration only.
 
 - Multi-shot total stays ≤30s in one generation; longer scenes via chained generations with style-anchor continuity.
 - Style anchor is mandatory for cross-shot lighting / grade / identity consistency — without it, every shot reads as a separate scene.
-- For audio-led scenes, prefer Sora 2 or Veo 3.1 until Seedance 2.0 audio support is confirmed; use Seedance 2.0 when visual multi-shot continuity is the priority.
+- For a character speaking a pre-made voice take, Seedance is the pick: it lip-syncs to the reference rather than inventing its own line, which Veo 3.1 does.
+- Speech belongs on close and medium shots with the face visible; lip-sync degrades on profiles, backs and small faces.
 
 ---
 

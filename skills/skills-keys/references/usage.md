@@ -190,6 +190,7 @@ Exit: 0 if no invalid found, 1 if any key returned `invalid`.
 Not yet supported (return `unsupported`):
 - `SUNO_API_KEY` — no public verify endpoint
 - `KLING_ACCESS_KEY_ID` + `KLING_ACCESS_KEY_SECRET` — requires JWT signing flow
+- `ARK_API_KEY` (BytePlus ModelArk, Seedance 2.x) — no free probe endpoint; a bad key surfaces as 401 on the first generation
 - All `S3_*` keys
 - All gate flags + `SKILLS_*` env vars
 

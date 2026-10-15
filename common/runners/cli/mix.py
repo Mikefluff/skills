@@ -81,6 +81,7 @@ def main() -> int:
                 fade_in=float(args.fade_in),
                 fade_out=float(args.fade_out),
                 duck_amount=float(args.duck_amount),
+                video_seconds=ff_mod.get_duration(args.video),
             ),
             ffmpeg_bin=probe.binary or "ffmpeg",
         )

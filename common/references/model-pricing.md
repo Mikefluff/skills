@@ -109,8 +109,14 @@ count, not separate prices.
 
 | Model | Unit | USD |
 |---|---|---|
+| `eleven-sfx` | per second | $0.02 |
+| `fal-seedance-2-5` | per second | $0.60 |
 | `ideogram-3-flash` | per image | $0.03 |
 | `lyria-3-clip` | per minute | $0.10 |
+| `openrouter-nano-banana-pro` | per image | $0.14 |
+| `openrouter-seedance-2-5` | per_1m_tokens | $10.70 |
+| `seedance-2-0` | per_1m_tokens | $10.70 |
+| `seedance-2-5` | per_1m_tokens | $10.70 |
 
 ## Confirmation thresholds
 

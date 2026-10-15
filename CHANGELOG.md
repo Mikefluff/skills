@@ -9,6 +9,70 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+### Changed — film mode directs instead of illustrating
+
+The first paid film had held seams and timings but no direction. It was a run of centred, static medium shots in grey, even light, with a picture that repeated every line. Its lips were also seconds off the take, and the cause was the prompt, not the model. Seedance re-performs the audio reference through a mouth on screen, and our prompt put lines over shots with no face in them. BytePlus's own 2.5 guide documents the fixes, and the chain now follows it.
+
+- **Director system prompt rewritten** for the official 2.5 format. It writes a shot list with integer-second ranges and dual-contrast hard cuts. Lines go in verbatim in `{}`, either on camera or `(V.O.)` with "his lips stay closed". The prompt also carries `[Overall style]`, an audio policy and `[Strictly exclude]`, and runs 350–700 words where it used to be capped at 330. The dramaturgy rules add counterpoint over illustration, a colour and light arc, acting through physical action, and a poster frame.
+- **`reel_board` CLI**: a storyboard before the video. Nano Banana Pro renders one keyframe per shot through OpenRouter (new provider `openrouter-nano-banana-pro`, about $0.14 a frame). A Gemini critic scores each frame against its shot, and frames below 8/10 are re-rolled with the critic's fix. Approved frames go to Seedance as ordered keyframe references.
+- **`reel_previs` CLI.** The camera is designed as a clay previs, and Blender renders it headless (`common/runners/previs.py` holds the spec, checks and orbit expansion; `common/runners/blender/previs_scene.py` builds the scene). Each shot gets its clip as `@Video1`. On the trial shot Seedance followed the previs frame for frame, and motion went from 0.2–5 to 8–12. OpenRouter video references go up through `media_host` (`audio_host` still works). `reel --redo <labels>` regenerates individual shots.
+- **One generation per shot**, the new default. The keyframed one-generation film measured as a slideshow, with near-zero motion for seconds at a time. Each shot is now generated from its keyframe with handles. The runner cuts shots frame-exact (`trim_start` / `trim_seconds`), and `lip_sync` shots get their own slice of the master. New rules: every shot moves, cuts land on action, and the ending stays in a known space.
+- **`reel_conform` CLI**: the salvage step for a picture that is already paid for. ElevenLabs speech-to-text reads what the picture's mouth says, and each phrase of the master take is moved there, with stretching capped at ±15%. On the trial film the median voice-to-lip offset dropped from 1.13 s to 0.25 s.
+- **OpenRouter audio references** go up through a one-hour Litterbox link, and only when the plan sets `audio_host: "litterbox"`, because OpenRouter refuses inline audio.
+
+### Added — film mode: voiced Seedance films that hold together at the seams
+
+A voiced Seedance film came out with the picture jumping at the seams, the voice
+breaking mid-word, events missing their lines, and about twenty staged events
+in thirty seconds. Each of those has a cause in how the film was made, and each
+cause now has a component.
+
+- **`reel_voice` CLI** (`python3 -m common.runners.cli.reel_voice`): script →
+  ElevenLabs take with character timestamps (`/with-timestamps`, falling back
+  to `/v1/forced-alignment`, or `--voice-file` for an existing take) → master
+  track on the film clock → cut plan → `timing.json`. Cuts are chosen by an
+  exact shortest-path over the pauses (`common/runners/voice_timing.py`):
+  never mid-word, never past the model's limit, no runt segment at the end.
+- **Seedance providers**: `seedance-2-5` and `seedance-2-0` (BytePlus ModelArk,
+  `ARK_API_KEY`), `fal-seedance-2-5` (`FAL_KEY`). One kwarg contract on all
+  three, and reference order is preserved on the wire, because `@Image1` and
+  `@Audio1` are positional. 2.5 renders 4-30 s, so a ≤30 s film is one
+  generation with no seams.
+- **Chained segments** in `reel`: `continue_from_previous` hands each segment
+  the frame its predecessor was cut on (as the last `@Image`, or `first_frame`
+  on BytePlus). `trim_seconds` cuts frame-exact, and `voiceover` lays the one
+  master take over the join. Seedance's re-voiced audio is dropped.
+- **Film system prompt** (`common/video-prompt-library/film-system-prompt.md`):
+  dramaturgy before prompts. It enforces one controlling image, at most one
+  event per 4 s, and a quiet turn. Hits land on word starts, speech goes only
+  on visible faces, and each prompt has role lines per reference, a timecoded
+  timeline, no quoted dialogue and no meta-commentary.
+- **Designed soundtrack** (`common/runners/soundtrack.py`, `reel_sound` CLI,
+  `eleven-sfx` provider): Seedance's audio is discarded. The chain writes music
+  cues (Eleven Music composition plans), effects and ambience beds
+  (`/v1/sound-generation`) plus their placements on the film clock. Kills,
+  dips and "distant" re-use are edits of one cue, not separate generations.
+  Effects marked `snap` move to the brightness jump where the rendered flash
+  actually is. The mix ducks music under the voice and is mastered to
+  −14 LUFS / −1 dBTP. `reel_sound` renders it before the picture is paid for.
+- `reel-builder/references/film-mode.md`: the pipeline, why each rule exists,
+  and a worked rewrite of a 1,800-word prompt into a 330-word one.
+
+### Fixed
+
+- **Reel music went silent half a second in.** `MixOptions.music_filter`
+  emitted `afade=t=out:st=0`, a fade-out starting at zero. Every reel and every
+  `mix` run since the option-object refactor faded its music out at 0.5 s, and
+  the tests pinned the string. The fade now starts `fade_out` seconds before
+  the video ends, and is omitted when the end is unknown.
+
+### Changed
+
+- `video-prompt` Seedance reference: 2.5 added, and the audio claims corrected
+  (native audio plus lip-sync to an `@Audio` reference, not "unconfirmed").
+  The `--model` list now names `seedance-2-5` / `seedance-2-0` instead of
+  `seedance-1-pro`.
+
 The roadmap asked the next session to audit the structure. The audit found that
 two of the nine documentation gates had never run, and that the numbers the
 skills quote for what a run costs had drifted from the table that bills for it.

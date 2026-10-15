@@ -44,14 +44,20 @@ class MixOptions:
     fade_in: float = 0.0
     fade_out: float = 0.5
     duck_amount: float = 0.6
+    # Where the output ends. A fade-out has to start `fade_out` seconds before
+    # it, and the music file cannot say where that is: it is generated longer
+    # than the video and clipped by -shortest. This used to be `st=0`, which
+    # faded every track to silence half a second in. Unknown → no fade-out.
+    video_seconds: float | None = None
 
     def music_filter(self) -> str:
         """The -af chain applied to the music input before mixing."""
         parts = [f"volume={self.audio_volume}"]
         if self.fade_in > 0:
             parts.append(f"afade=t=in:st=0:d={self.fade_in}")
-        if self.fade_out > 0:
-            parts.append(f"afade=t=out:st=0:d={self.fade_out}")
+        if self.fade_out > 0 and self.video_seconds:
+            start = max(0.0, self.video_seconds - self.fade_out)
+            parts.append(f"afade=t=out:st={start:.3f}:d={self.fade_out}")
         return ",".join(parts)
 
 
@@ -342,3 +348,4 @@ def get_duration(path: Path, *, ffmpeg_bin: str = "ffmpeg") -> float | None:
         return float(out.stdout.strip())
     except (subprocess.CalledProcessError, ValueError, OSError):
         return None
+

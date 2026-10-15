@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from common.runners import batch as batch_mod  # noqa: E402
 from common.runners import ffmpeg as ff_mod  # noqa: E402
+from common.runners import ffmpeg_film  # noqa: E402
 from common.runners.cli import _reel_stitch as stitch_mod  # noqa: E402
 
 
@@ -232,5 +233,62 @@ class HardFailures(StitchCase):
         self.assertIn("stitch skipped", err)
 
 
+class VoicedFilm(StitchCase):
+    """A plan with a voiceover is trimmed to its cuts and carries the master take.
+
+    The ordinary concat would join untrimmed segments, and every word after the
+    first seam would arrive late by that segment's overshoot.
+    """
+
+    def film_job(self, voice: Path):
+        plan = {
+            "voiceover": {"path": str(voice)},
+            "shots": [{"index": 0, "trim_seconds": 14.2}, {"index": 1, "trim_seconds": 13.1}],
+        }
+        job = mock.Mock(plan=plan, output_dir=self.dir)
+        job.cut_seconds = lambda i: {0: 14.2, 1: 13.1}[i]
+        return job
+
+    def test_segments_are_trimmed_and_the_master_voice_laid_over(self):
+        voice = self.dir / "master.wav"
+        voice.write_bytes(b"vo")
+        seen = {}
+
+        def concat(cuts, dest, ffmpeg_bin="ffmpeg"):
+            seen["cuts"] = [round(c, 1) for _, c in cuts]
+            Path(dest).write_bytes(b"picture")
+
+        def mix(video, vo, dest, bed, ffmpeg_bin="ffmpeg"):
+            seen["voice"], seen["bed"] = vo, bed
+            Path(dest).write_bytes(Path(video).read_bytes() + b"+voice")
+
+        probe = ff_mod.FfmpegProbe(found=True, binary="ffmpeg")
+        with mock.patch.object(ff_mod, "detect_ffmpeg", return_value=probe), \
+                mock.patch.object(ffmpeg_film, "concat_trimmed", side_effect=concat), \
+                mock.patch.object(ffmpeg_film, "mix_voice", side_effect=mix), \
+                redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            code = stitch_mod.stitch(self.film_job(voice), FakeShots([self.shot(1), self.shot(0)]), None)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(seen["cuts"], [14.2, 13.1])
+        self.assertEqual(seen["voice"], voice)
+        self.assertIsNone(seen["bed"], "no music file, no bed")
+        self.assertEqual(self.final.read_bytes(), b"picture+voice")
+
+
 if __name__ == "__main__":
     unittest.main()
+
+
+class Redo(unittest.TestCase):
+    def test_a_redone_shot_is_generated_again_and_the_rest_reused(self):
+        from common.runners import batch as batch_mod
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = Path(tmp) / "manifest.json"
+            done = [batch_mod.BatchItem(index=i, label=f"s{i:02d}", prompt="p", kwargs={}) for i in (1, 2)]
+            for it in done:
+                it.status, it.output_path = "succeeded", f"{tmp}/{it.label}.mp4"
+            batch_mod.write_manifest(manifest, done, None)
+            fresh = [batch_mod.BatchItem(index=i, label=f"s{i:02d}", prompt="p", kwargs={}) for i in (1, 2)]
+            batch_mod._restore_succeeded(fresh, manifest, frozenset({"s02"}))
+            self.assertEqual([it.status for it in fresh], ["succeeded", "pending"])

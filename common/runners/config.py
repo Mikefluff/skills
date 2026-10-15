@@ -100,8 +100,11 @@ def load_all_providers() -> None:
         openai_image,
         openai_transcribe,
         openai_video,
+        openrouter_image,
+        openrouter_video,
         replicate,
         runway,
+        seedance,
         suno,
         tripo,
     )

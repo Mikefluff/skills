@@ -85,7 +85,7 @@ Read request → identify subject + action + emotional beat → pick mode (T2V /
 
 ## MODES
 
-- `video-prompt <action> --model <name>` — generate model-specific prompt. Valid: `veo-3-1`, `veo-3-1-fast`, `sora-2`, `sora-2-pro`, `kling-3`, `kling-master`, `kling-elements`, `runway-gen-4`, `runway-gen-4-turbo`, `runway-aleph`, `runway-act-one`, `hailuo-02`, `hailuo-02-pro`, `pika-2-2`, `ray-3`, `ray-3-modify`, `ltx-2`, `hunyuan-1-5`, `hunyuan-custom`, `wan-2-2`, `seedance-1-pro`, `higgsfield`
+- `video-prompt <action> --model <name>` — generate model-specific prompt. Valid: `veo-3-1`, `veo-3-1-fast`, `sora-2`, `sora-2-pro`, `kling-3`, `kling-master`, `kling-elements`, `runway-gen-4`, `runway-gen-4-turbo`, `runway-aleph`, `runway-act-one`, `hailuo-02`, `hailuo-02-pro`, `pika-2-2`, `ray-3`, `ray-3-modify`, `ltx-2`, `hunyuan-1-5`, `hunyuan-custom`, `wan-2-2`, `seedance-2-5`, `seedance-2-0`, `higgsfield`
 - `video-prompt <action> --mode t2v|i2v|v2v|extend` — pick mode explicitly; routes to the right reference
 - `video-prompt <action> --audio` — append Dialogue / SFX / Ambient blocks (default ON for Veo 3.1 / Sora 2 / LTX-2)
 - `video-prompt <action> --dialogue "<line>"` or `--dialogue file:<path>` — explicit dialogue input; auto-formats with `Character: "..."` syntax

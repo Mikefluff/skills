@@ -4,6 +4,7 @@ Vendor: ElevenLabs Music + Text-to-Speech APIs.
 
 from __future__ import annotations
 
+import base64
 import os
 import time
 from decimal import Decimal
@@ -158,7 +159,7 @@ class ElevenTtsProvider(Provider):
 
     @staticmethod
     def _voice_settings(model_id: str, kwargs: dict[str, Any]) -> dict[str, float]:
-        """v3 rejects the v2 similarity_boost knob, so only send what the model takes.
+        """v3/v4 reject the v2 similarity_boost knob, so only send what the model takes.
 
         Both families accept an explicit stability; nothing is sent unless asked for,
         which lets the vendor's own per-voice defaults stand.
@@ -166,7 +167,8 @@ class ElevenTtsProvider(Provider):
         settings: dict[str, float] = {}
         if "stability" in kwargs:
             settings["stability"] = float(kwargs["stability"])
-        if model_id.startswith("eleven_v3"):
+        # v3 and v4 share the newer settings surface: no similarity_boost.
+        if model_id.startswith(("eleven_v3", "eleven_v4")):
             return settings
         settings.setdefault("stability", 0.5)
         settings["similarity_boost"] = float(kwargs.get("similarity_boost", 0.75))
@@ -188,6 +190,11 @@ class ElevenTtsProvider(Provider):
             "Accept": "audio/mpeg",
         }
 
+        extra: dict[str, Any] = {"voice_id": voice_id, "model_id": model_id, "char_count": len(prompt)}
+        if kwargs.get("with_timestamps"):
+            content, extra["alignment"] = self._with_timestamps(voice_id, body, headers)
+            return GenerationResult(content=content, mime="audio/mpeg", extension="mp3", extra=extra)
+
         # TTS is synchronous and returns the audio inline, so it gets a longer
         # timeout than a job submission.
         resp = _http.post(
@@ -198,15 +205,113 @@ class ElevenTtsProvider(Provider):
             timeout=120,
         )
 
-        return GenerationResult(
-            content=resp.content,
-            mime="audio/mpeg",
-            extension="mp3",
-            extra={"voice_id": voice_id, "model_id": model_id, "char_count": len(prompt)},
+        return GenerationResult(content=resp.content, mime="audio/mpeg", extension="mp3", extra=extra)
+
+    def _with_timestamps(
+        self, voice_id: str, body: dict[str, Any], headers: dict[str, str]
+    ) -> tuple[bytes, dict[str, Any] | None]:
+        """Same speech, plus when each character is spoken — what a film is cut against.
+
+        The response is JSON, not audio. `alignment` is nullable in the schema;
+        a None here is passed up rather than papered over, and the caller falls
+        back to forced alignment on the audio it did get.
+        """
+        resp = _http.post(
+            self.name,
+            f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/with-timestamps",
+            json=body,
+            headers={**headers, "Accept": "application/json"},
+            timeout=180,
         )
+        payload = resp.json()
+        audio = payload.get("audio_base64")
+        if not audio:
+            raise ProviderError(self.name, resp.status_code, "with-timestamps response has no audio_base64")
+        return base64.b64decode(audio), payload.get("alignment") or payload.get("normalized_alignment")
+
+
+def forced_alignment(audio: bytes, text: str) -> list[dict[str, Any]]:
+    """Word timings for audio that already exists: [{"text", "start", "end"}, ...].
+
+    The fallback when TTS came back without an alignment, and the only route for
+    a voice that was recorded rather than synthesised.
+    """
+    resp = _http.post(
+        "eleven-tts",
+        "https://api.elevenlabs.io/v1/forced-alignment",
+        files={"file": ("voice.mp3", audio, "audio/mpeg")},
+        data={"text": text},
+        headers={"xi-api-key": os.environ["ELEVENLABS_API_KEY"]},
+        timeout=180,
+    )
+    words = resp.json().get("words") or []
+    return [{"text": w["text"], "start": float(w["start"]), "end": float(w["end"])} for w in words]
+
+
+def transcribe(audio: bytes, language: str | None = None) -> list[dict[str, Any]]:
+    """What was actually said, with word timings — speech-to-text, not alignment.
+
+    Forced alignment assumes the text was spoken and places every word somewhere;
+    a video model re-performing a script drops and garbles words, and those have
+    to come back as missing, not as invented timings.
+    """
+    data = {"model_id": "scribe_v1"}
+    if language:
+        data["language_code"] = language
+    resp = _http.post(
+        "eleven-tts",
+        "https://api.elevenlabs.io/v1/speech-to-text",
+        files={"file": ("speech.mp3", audio, "audio/mpeg")},
+        data=data,
+        headers={"xi-api-key": os.environ["ELEVENLABS_API_KEY"]},
+        timeout=180,
+    )
+    words = [w for w in resp.json().get("words") or [] if w.get("type", "word") == "word"]
+    return [{"text": w["text"], "start": float(w["start"]), "end": float(w["end"])} for w in words]
+
+
+class ElevenSfxProvider(Provider):
+    """Sound effects and ambience beds from a text description — POST /v1/sound-generation.
+
+    Synchronous: the response body is the audio. `loop=True` asks for a bed
+    that repeats without a seam, which is what a room tone under a whole film is.
+    """
+
+    name = "eleven-sfx"
+    modality = "audio"
+    requires_env = ("ELEVENLABS_API_KEY",)
+    model_id = "eleven_text_to_sound_v2"
+
+    def estimate_cost(self, **kwargs: Any) -> Decimal | None:
+        duration = float(kwargs.get("duration_seconds") or 5)
+        return cost.estimate(self.name, duration_seconds=duration, variants=kwargs.get("variants", 1))
+
+    def generate(self, prompt: str, **kwargs: Any) -> GenerationResult:
+        self.ensure_available()
+        body: dict[str, Any] = {"text": prompt, "model_id": self.model_id}
+        if kwargs.get("duration_seconds") is not None:
+            # Vendor range is 0.5-30 s; outside it is a 422, not a clamp.
+            body["duration_seconds"] = max(0.5, min(float(kwargs["duration_seconds"]), 30.0))
+        if kwargs.get("prompt_influence") is not None:
+            body["prompt_influence"] = float(kwargs["prompt_influence"])
+        if kwargs.get("loop"):
+            body["loop"] = True
+        resp = _http.post(
+            self.name,
+            "https://api.elevenlabs.io/v1/sound-generation",
+            json=body,
+            headers={
+                "xi-api-key": os.environ["ELEVENLABS_API_KEY"],
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg",
+            },
+            timeout=120,
+        )
+        return GenerationResult(content=resp.content, mime="audio/mpeg", extension="mp3", extra={"model_id": self.model_id})
 
 
 from ..config import register
 
 register(ElevenMusicProvider())
 register(ElevenTtsProvider())
+register(ElevenSfxProvider())

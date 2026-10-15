@@ -31,6 +31,21 @@ Plan format (schema = "skills.reel.plan.v1"):
     ]
   }
 
+Voiced film (optional — written by the film prompt chain from timing.json):
+
+  "voiceover": {"path": "<out>/voice/master.wav"},   # the one take the viewer hears
+  "continuity": "reference" | "first_frame",          # how a segment receives the seam frame
+  shots[i].trim_seconds: 13.48                        # cut here; the overshoot is discarded
+  shots[i].continue_from_previous: true               # open on the frame shot i-1 was cut on
+  shots[i].seam_frame_at: 7.0                         # ...or hand over this earlier frame instead
+                                                      # (a whiteout seam has nothing at the cut)
+  shots[i].trim_start: 0.5                            # head handle: the cut starts here in the clip
+  shots[i].lip_sync: true                             # one generation per shot: this shot gets
+                                                      # its stretch of the master as @Audio1
+
+A chained plan generates in order, one segment at a time, because each seam
+frame exists only once the segment before it is done.
+
 Pipeline:
 1. Generate shots in parallel (async polling).
 2. Generate music in parallel with shots.
@@ -43,7 +58,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -52,6 +67,8 @@ from .. import batch as batch_mod
 from .. import config
 from .. import cost as cost_mod
 from ..errors import CostConfirmationDeclined
+from . import _reel_sound
+from ._reel_seams import lip_slices, seam_hook
 from ._reel_stitch import stitch
 
 
@@ -81,6 +98,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="common.runners.cli.reel")
     parser.add_argument("--plan-file", type=Path, required=True, help="path to plan.json")
     parser.add_argument("--resume", action="store_true", help="reuse succeeded items from manifest")
+    parser.add_argument("--redo", default="",
+                        help="comma-separated shot labels to generate again (implies --resume for the rest)")
     parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
     parser.add_argument(
         "--cost-only", action="store_true",
@@ -139,6 +158,8 @@ class ReelJob:
     shot_items: list[batch_mod.BatchItem]
     music_item: batch_mod.BatchItem | None
     output_dir: Path
+    # Film mode's designed soundtrack, generated after the shots: id → file.
+    sound_sources: dict[str, Path] = field(default_factory=dict)
 
     @property
     def shots_dir(self) -> Path:
@@ -147,6 +168,16 @@ class ReelJob:
     @property
     def manifest_path(self) -> Path:
         return self.output_dir / "manifest.json"
+
+    @property
+    def chained(self) -> bool:
+        return any(entry.get("continue_from_previous") for entry in self.plan["shots"])
+
+    def cut_seconds(self, index: int) -> float:
+        """Where shot `index` is cut — its trim if the plan has one, else its full length."""
+        entry = next(e for e in self.plan["shots"] if int(e["index"]) == index)
+        kwargs = entry.get("kwargs") or {}
+        return float(entry.get("trim_seconds") or kwargs.get("duration_seconds") or entry.get("duration_seconds") or 5)
 
 
 def prepare(plan: dict[str, Any]) -> ReelJob:
@@ -158,13 +189,14 @@ def prepare(plan: dict[str, Any]) -> ReelJob:
     music_slug = plan.get("music_provider")
     music_provider = resolve_provider(music_slug, "music") if music_block and music_slug else None
 
+    output_dir = Path(plan.get("output_dir") or "./generated/reel/batch")
+    lip_slices(plan, output_dir)
     shot_items = [
         _make_item(entry, default_label=f"shot-{int(entry['index']):02d}")
         for entry in plan["shots"]
     ]
     music_item = _build_music_item(music_block) if music_block and music_provider else None
 
-    output_dir = Path(plan.get("output_dir") or "./generated/reel/batch")
     job = ReelJob(plan, video_provider, music_provider, shot_items, music_item, output_dir)
     job.output_dir.mkdir(parents=True, exist_ok=True)
     job.shots_dir.mkdir(parents=True, exist_ok=True)
@@ -196,7 +228,8 @@ def estimate(job: ReelJob) -> tuple[Decimal, Decimal]:
         per_music = job.music_provider.estimate_cost(**job.music_item.kwargs)
         if per_music is not None:
             music = per_music
-    return video, music
+    # A film's designed soundtrack (cues + effects) is billed under music.
+    return video, music + _reel_sound.estimate(job.plan.get("sound"))
 
 
 def print_cost(job: ReelJob, video: Decimal, music: Decimal) -> int:
@@ -225,18 +258,21 @@ def _meta(job: ReelJob, total: Decimal) -> dict[str, Any]:
 # ── generation ──────────────────────────────────────────────────────────────
 
 
-def run_shots(job: ReelJob, meta: dict[str, Any], *, resume: bool):
+def run_shots(job: ReelJob, meta: dict[str, Any], *, resume: bool, redo: frozenset[str] = frozenset()):
+    chained = job.chained
     return batch_mod.run_batch(
         job.video_provider,
-        job.shot_items,
+        sorted(job.shot_items, key=lambda it: it.index) if chained else job.shot_items,
         batch_mod.BatchSpec(
             modality="video",
             output_dir=job.shots_dir,
             manifest_path=job.manifest_path,
-            parallelism=int(job.plan.get("parallelism") or 2),
+            parallelism=1 if chained else int(job.plan.get("parallelism") or 2),
             resume=resume,
+            redo=redo,
             extension_hint="mp4",
             extra_meta=meta,
+            before_item=seam_hook(job) if chained else None,
         ),
         on_progress=_print_progress,
     )
@@ -281,6 +317,17 @@ def _normalise_music_name(path: Path, output_dir: Path) -> Path:
 # ── main ────────────────────────────────────────────────────────────────────
 
 
+def _announce(job: ReelJob, total: Decimal) -> None:
+    print(
+        f"Reel batch: {len(job.shot_items)} shots via {job.plan['video_provider']}"
+        + (f" + music via {job.plan.get('music_provider')}" if job.music_item else "")
+        + f". Estimated {cost_mod.format_cost(total)}. "
+        + ("Chained: segments run in order." if job.chained
+           else f"Parallelism: {job.plan.get('parallelism') or 2}."),
+        file=sys.stderr,
+    )
+
+
 def main() -> int:
     args = build_parser().parse_args()
 
@@ -307,15 +354,12 @@ def main() -> int:
         return 3
 
     meta = _meta(job, total)
-    print(
-        f"Reel batch: {len(job.shot_items)} shots via {job.plan['video_provider']}"
-        + (f" + music via {job.plan.get('music_provider')}" if job.music_item else "")
-        + f". Estimated {cost_mod.format_cost(total)}. "
-        f"Parallelism: {job.plan.get('parallelism') or 2}.",
-        file=sys.stderr,
-    )
+    _announce(job, total)
 
-    shots_result = run_shots(job, meta, resume=args.resume)
+    redo = frozenset(x.strip() for x in args.redo.split(",") if x.strip())
+    if redo:
+        args.resume = True
+    shots_result = run_shots(job, meta, resume=args.resume, redo=redo)
     if not shots_result.ok:
         print(
             f"  {len(shots_result.failed)} shot(s) failed. Components saved; "
@@ -325,6 +369,9 @@ def main() -> int:
         return 1
 
     music_path = run_music(job, meta, resume=args.resume)
+    if job.plan.get("sound"):
+        # resume=True: sources already rendered by `reel_sound` are not paid for twice.
+        job.sound_sources = _reel_sound.generate(job.plan["sound"], job.output_dir, resume=True)
 
     if args.skip_stitch:
         print(f"\nReel components: {job.output_dir} (ffmpeg skipped via --skip-stitch)")
