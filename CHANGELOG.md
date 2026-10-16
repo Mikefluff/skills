@@ -9,6 +9,15 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+### Added
+
+- **reel-builder drama mode.** Episodes of 8-12 minutes built from 15-second Seedance 2.5 scenes, in which several characters speak the series' language and Seedance voices them.
+  - A series is planned by three prompts in `common/video-prompt-library/drama-system-prompt.md`. The first writes the bible: cast, places per weather and time, episode outlines. The second writes a director whose rules extend `directors/base.md`, 24 rules for long narrative film. The third writes each episode.
+  - `reel_cast` renders each face and place once per series and judges it. It gives every scene its references and writes the line saying which image is whom.
+  - `reel_check` transcribes each rendered scene in the series' language and compares it with the script letter by letter, so it works for scripts without spaces. It checks faces against the portraits and prints the `--redo` line for the scenes that failed.
+  - Every speaking character gets a voice designed by ElevenLabs from its description, 7 s long. Each scene the character speaks in carries it as a voice reference, so the voice does not change from scene to scene. The dialogue follows the 2.5 syntax (`Dialogue language: …`, `Name says: {…}`). What is published about Seedance's languages, word accuracy and voice matching is collected in `references/drama-mode.md`, with sources.
+  - Scenes keep their own dialogue at the stitch (`"audio": "native"`), with any music ducked under it.
+
 ## [2.25.0] — 2026-10-15
 
 Two modalities were missing or only half there. 3D had no skill at all, and

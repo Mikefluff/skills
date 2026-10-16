@@ -1,6 +1,6 @@
 ---
 name: reel-builder
-description: "Turn a topic / research brief / script into a 9:16 vertical reel: 1-4 shots + matched music + ffmpeg-stitched final.mp4 with optional burned-in captions; film mode makes a voiced film — ElevenLabs take, Seedance lip-sync to a character photo, cuts only in speech pauses, beats pinned to word timings. Use when: 'make a reel about X', 'short video on Y', 'TikTok / Reels / Shorts about Z', 'voiced Seedance film', 'озвученный ролик'."
+description: "Turn a topic / research brief / script into a 9:16 vertical reel: 1-4 shots + matched music + ffmpeg-stitched final.mp4 with optional burned-in captions; film mode makes a voiced film — ElevenLabs take, Seedance lip-sync to a character photo, cuts only in speech pauses, beats pinned to word timings; drama mode makes episodes of dialogue films with a recurring cast, scenes voiced by Seedance in the series' language and the speech checked by transcription. Use when: 'make a reel about X', 'short video on Y', 'TikTok / Reels / Shorts about Z', 'voiced Seedance film', 'next episode of the series', 'озвученный ролик', 'сними кино на тайском'."
 
 license: MIT
 allowed-tools:
@@ -25,6 +25,8 @@ This skill orchestrates:
 Use when the user wants a finished reel, not just video prompts. Without `--execute`, returns assembled prompts; with `--execute`, generates the MP4.
 
 **Film mode** is the voiced variant: an ElevenLabs take, a character who lip-syncs to it via Seedance 2.x, and a dramatic arc whose events land on the words. It has its own five-phase pipeline — see [FILM MODE](#film-mode) below.
+
+**Drama mode** is the long form: a series bible, a director's rules, a judged cast, and episodes of 15-second scenes in which the characters speak and Seedance voices them — see [DRAMA MODE](#drama-mode).
 
 This skill does NOT:
 - Add a narrator over an ordinary reel — voice is film mode only, where the picture is cut against it
@@ -130,6 +132,17 @@ A voiced film, ≤30 s in one Seedance 2.5 generation (no seams) or longer in se
 
 Providers: `seedance-2-5` / `seedance-2-0` (BytePlus ModelArk, `ARK_API_KEY`), `openrouter-seedance-2-5` (`OPENROUTER_API_KEY`, BytePlus price, audio references honoured), `fal-seedance-2-5` (`FAL_KEY`). The user's brief stays theirs — the chain restructures it, it does not replace the idea.
 
+## DRAMA MODE
+
+A series of dialogue films: episodes of 8-12 minutes cut from 15-second Seedance 2.5 scenes, several characters speaking in the series' language, voiced by Seedance itself. The cast, places and director carry over from episode to episode. Full sequence, costs and the language check are in [references/drama-mode.md](references/drama-mode.md).
+
+1. **Series**: ONE Agent with SERIES from [`drama-system-prompt.md`](../../common/video-prompt-library/drama-system-prompt.md) produces `<series>/bible.json` (language, look, cast with portrait prompts, places per weather and time, episode outlines). Research what gets views first with `research-brief` when the user asks for a hit in a given market.
+2. **Director**: ONE Agent with DIRECTOR plus [`directors/base.md`](../../common/video-prompt-library/directors/base.md) writes `<series>/director.md`, rules that extend the base by number.
+3. **Episode**: ONE Agent with EPISODE plus the merged rules (`drama.director(path)`) writes `<series>/epNN/plan.json`. Every scene carries its cast, location, dialogue in the series language, and a shot list.
+4. **Cast**: `python3 -m common.runners.cli.reel_cast --plan-file <series>/ep01/plan.json` renders and judges each face and place once per series. It then gives every scene its references and composes the prompt.
+5. **Render**: `python3 -m common.runners.cli.reel --plan-file <series>/ep01/plan.json` (first `--cost-only`, then one scene with `--redo sc01`). Scenes keep their own dialogue. A `music` block is ducked under it.
+6. **Check**: `python3 -m common.runners.cli.reel_check --plan-file <series>/ep01/plan.json` compares each scene's transcribed speech with its script, letter by letter. It also checks faces against the portraits and catches doubles or subtitles, then prints the `--redo` line for what failed.
+
 ## MODES
 
 ### Input
@@ -190,6 +203,7 @@ Providers: `seedance-2-5` / `seedance-2-0` (BytePlus ModelArk, `ARK_API_KEY`), `
 | [references/captions.md](references/captions.md) | Caption writing — placement, line length, timing, accessibility |
 | [references/troubleshoot.md](references/troubleshoot.md) | When shots fail, music doesn't match, ffmpeg errors, sync issues |
 | [references/film-mode.md](references/film-mode.md) | Voiced film — voice phase, dramaturgy rules and why, Seedance routes, seams, worked example |
+| [references/drama-mode.md](references/drama-mode.md) | Series of dialogue films — bible, director, episode, cast, speech check, costs |
 
 ## EXAMPLES
 
@@ -238,6 +252,7 @@ When the user says any of:
 - "short video on Y", "15-second video", "30-second video"
 - "make a TikTok / reel / shorts about Z"
 - "vertical video on Q"
+- "make a film / series / episode", "next episode", "characters talk in Thai", "a director who shoots like …" → drama mode
 
 RU triggers:
 - «рил про X», «короткое видео про Y»
@@ -245,6 +260,7 @@ RU triggers:
 - «15-секундное видео», «30-секундный рил»
 - «озвученный ролик», «ролик с озвучкой ElevenLabs», «Seedance с липсинком», «персонаж говорит в кадре» → film mode
 - «вертикальное видео про Q»
+- «сними кино / сериал / фильм на 10 минут», «новая серия», «на тайском / японском», «персонажи разговаривают», «режиссёр в стиле …» → drama mode
 
 Defaults: `--shots 3 --shot-duration 5 --aspect vertical --captions on --video-provider auto --music-provider auto --video-instrumental on`. Without `--execute`, returns plan + prompts; with `--execute`, generates the MP4.
 

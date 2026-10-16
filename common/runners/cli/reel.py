@@ -135,6 +135,8 @@ def load_plan(plan_file: Path) -> dict[str, Any]:
         raise PlanError("plan missing 'video_provider'")
     if not (plan.get("shots") or []):
         raise PlanError("plan has no shots")
+    if plan.get("bible") and not all(s.get("prompt") for s in plan["shots"]):
+        raise PlanError("drama scenes have no prompts yet: run common.runners.cli.reel_cast on this plan first")
     return plan
 
 

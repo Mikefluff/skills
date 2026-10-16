@@ -248,6 +248,29 @@ def forced_alignment(audio: bytes, text: str) -> list[dict[str, Any]]:
     return [{"text": w["text"], "start": float(w["start"]), "end": float(w["end"])} for w in words]
 
 
+def design_voice(description: str, text: str, *, seed: int | None = None) -> bytes:
+    """A new voice from a description, speaking `text` (100-1000 characters) — POST /v1/text-to-voice/design.
+
+    Returns the first preview as MP3. A drama gives each character one such
+    sample and hands it to every scene as that character's voice reference, so
+    the same person does not sound different from scene to scene.
+    """
+    body: dict[str, Any] = {"voice_description": description, "text": text, "model_id": "eleven_multilingual_ttv_v2"}
+    if seed is not None:
+        body["seed"] = seed
+    resp = _http.post(
+        "eleven-tts",
+        "https://api.elevenlabs.io/v1/text-to-voice/design?output_format=mp3_44100_128",
+        json=body,
+        headers={"xi-api-key": os.environ["ELEVENLABS_API_KEY"]},
+        timeout=180,
+    )
+    previews = resp.json().get("previews") or []
+    if not previews:
+        raise ProviderError("eleven-tts", None, "voice design returned no preview")
+    return base64.b64decode(previews[0]["audio_base_64"])
+
+
 def transcribe(audio: bytes, language: str | None = None) -> list[dict[str, Any]]:
     """What was actually said, with word timings — speech-to-text, not alignment.
 

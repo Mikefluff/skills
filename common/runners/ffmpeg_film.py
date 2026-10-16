@@ -120,15 +120,16 @@ def extract_frame(video: Path, output: Path, *, at: float, ffmpeg_bin: str = "ff
 
 def concat_trimmed(
     shots: list[tuple[Path, float] | tuple[Path, float, float]], output: Path, *, fps: int = 24,
-    ffmpeg_bin: str = "ffmpeg",
+    ffmpeg_bin: str = "ffmpeg", audio: bool = False,
 ) -> list[str]:
-    """Each (path, seconds[, start]) cut to [start, start + seconds), joined, picture only.
+    """Each (path, seconds[, start]) cut to [start, start + seconds), joined; picture only unless `audio`.
 
     `start` is the head handle of a shot generated longer than it is used: the
     first half-second of a generation is the model settling into its frame,
     and an editor cuts in after it. Re-encodes: a stream copy can only cut on
     keyframes, and a cut that drifts by half a second is a lip-sync error for
-    the rest of the film.
+    the rest of the film. `audio` keeps each clip's own sound, cut on the same
+    frames — a drama scene's dialogue is Seedance's, there is no master take.
     """
     output.parent.mkdir(parents=True, exist_ok=True)
     cmd = [ffmpeg_bin, "-y", "-loglevel", "error"]
@@ -145,10 +146,14 @@ def concat_trimmed(
             f"[{i}:v]trim={start:.3f}:{start + seconds:.3f},setpts=PTS-STARTPTS,{fit},fps={fps},setsar=1[v{i}]"
         )
         labels.append(f"[v{i}]")
-    graph = ";".join(chains) + f";{''.join(labels)}concat=n={len(shots)}:v=1:a=0[v]"
+        if audio:
+            chains.append(f"[{i}:a]atrim={start:.3f}:{start + seconds:.3f},asetpts=PTS-STARTPTS,"
+                          f"aformat=sample_rates=48000:channel_layouts=stereo[a{i}]")
+            labels.append(f"[a{i}]")
+    graph = ";".join(chains) + f";{''.join(labels)}concat=n={len(shots)}:v=1:a={int(audio)}[v]" + ("[a]" if audio else "")
+    maps = ["-map", "[v]", "-map", "[a]", "-c:a", "aac", "-b:a", "192k"] if audio else ["-map", "[v]", "-an"]
     cmd += [
-        "-filter_complex", graph,
-        "-map", "[v]", "-an",
+        "-filter_complex", graph, *maps,
         "-c:v", "libx264", "-crf", "17", "-preset", "medium", "-pix_fmt", "yuv420p",
         str(output),
     ]
@@ -208,6 +213,16 @@ def render_mix(inputs: list[str], graph: str, output: Path, *, ffmpeg_bin: str =
         "-ar", "48000", "-c:a", "pcm_s16le",
         str(output),
     ])
+
+
+def extract_audio(video: Path, output: Path, *, start: float = 0.0, length: float | None = None,
+                  ffmpeg_bin: str = "ffmpeg") -> list[str]:
+    """A clip's sound, 48 kHz, WAV or MP3 by the output's suffix, optionally only [start, start + length)."""
+    output.parent.mkdir(parents=True, exist_ok=True)
+    window = ["-ss", f"{start:.3f}"] + (["-t", f"{length:.3f}"] if length else [])
+    codec = ["-c:a", "libmp3lame", "-b:a", "128k"] if output.suffix == ".mp3" else ["-c:a", "pcm_s16le"]
+    return _run([ffmpeg_bin, "-y", "-loglevel", "error", *window, "-i", str(video),
+                 "-vn", "-ar", "48000", *codec, str(output)])
 
 
 def mux(picture: Path, audio: Path, output: Path, *, ffmpeg_bin: str = "ffmpeg") -> list[str]:

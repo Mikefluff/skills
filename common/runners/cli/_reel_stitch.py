@@ -39,6 +39,8 @@ def stitch(job: "ReelJob", shots_result, music_path: Path | None) -> int:
     ffmpeg_bin = probe.binary or "ffmpeg"
 
     final_mp4 = job.output_dir / "final.mp4"
+    if job.plan.get("audio") == "native":
+        return _stitch_native(job, shots_result, music_path, ffmpeg_bin)
     if _is_film(job):
         return _stitch_film(job, shots_result, music_path, ffmpeg_bin)
 
@@ -83,6 +85,39 @@ def _stitch_film(job: "ReelJob", shots_result, music_path: Path | None, ffmpeg_b
     _apply_captions(job, stitched, final_mp4, ffmpeg_bin)
     print(f"\nFilm: {final_mp4}")
     print(f"Components: {job.output_dir}/(shots/, voice/, timing.json, plan.json)")
+    return 0
+
+
+def _stitch_native(job: "ReelJob", shots_result, music_path: Path | None, ffmpeg_bin: str) -> int:
+    """A drama episode: scenes cut and joined with their own dialogue, music ducked under it.
+
+    Seedance spoke the lines, so its audio is the film's dialogue track — the
+    opposite of film mode, where it is thrown away for the master take.
+    """
+    in_order = sorted(shots_result.succeeded, key=lambda it: it.index)
+    cuts = [_cut(job, Path(it.output_path), it.index) for it in in_order if it.output_path]
+    episode = job.output_dir / "episode.mp4"
+    try:
+        ffmpeg_film.concat_trimmed(cuts, episode, ffmpeg_bin=ffmpeg_bin, audio=True)
+    except Exception as exc:  # noqa: BLE001
+        print(f"\nffmpeg trim/concat failed: {exc}", file=sys.stderr)
+        return 1
+    stitched = episode
+    if music_path and music_path.is_file():
+        dialogue, scored = job.output_dir / "dialogue.wav", job.output_dir / "with-music.mp4"
+        try:
+            ffmpeg_film.extract_audio(episode, dialogue, ffmpeg_bin=ffmpeg_bin)
+            opts = ff_mod.MixOptions(audio_volume=0.3, fade_out=1.5, video_seconds=sum(c[1] for c in cuts))
+            ffmpeg_film.mix_voice(episode, dialogue, scored, ffmpeg_film.MusicBed(music_path, opts),
+                                  ffmpeg_bin=ffmpeg_bin)
+            stitched = scored
+        except Exception as exc:  # noqa: BLE001
+            print(f"\nffmpeg music mix failed: {exc} — dialogue only.", file=sys.stderr)
+    final_mp4 = job.output_dir / "final.mp4"
+    _apply_captions(job, stitched, final_mp4, ffmpeg_bin)
+    print(f"\nEpisode: {final_mp4}")
+    print(f"Components: {job.output_dir}/shots/; check the speech and faces with "
+          "python3 -m common.runners.cli.reel_check --plan-file <plan.json>")
     return 0
 
 
