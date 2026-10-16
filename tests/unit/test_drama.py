@@ -71,6 +71,22 @@ class Voices(unittest.TestCase):
         self.assertIn("sc01: more than 2 speakers", drama.validate({"shots": [crowded]}, bible))
 
 
+class Board(unittest.TestCase):
+    def test_the_critic_sees_people_and_places_but_not_earlier_frames(self):
+        from common.runners.cli import reel_board
+        frame = {"_ref_names": ["Minh (thin, blue jacket)", "the location: LAX", "frame f01"]}
+        people = reel_board._people(frame, ["minh.png", "lax.png", "f01.png"])
+        self.assertEqual([r for r, _ in people], ["minh.png", "lax.png"])
+        self.assertEqual(reel_board._refs_note([n for _, n in people]),
+                         "Image 1 is Minh (thin, blue jacket). Image 2 is the location: LAX.")
+
+    def test_a_double_is_drawn_after_the_face_it_copies(self):
+        bible = {**BIBLE, "cast": [{"id": "jun", "name": "Jun", "identity": "x", "like": "minh", "prompt": "p"},
+                                   {"id": "minh", "name": "Minh", "identity": "y", "prompt": "p"}], "locations": []}
+        order = [item["id"] for _, item in reel_cast._todo(bible, {}, set())]
+        self.assertEqual(order, ["minh", "jun"])
+
+
 class Validate(unittest.TestCase):
     def test_a_scene_that_matches_its_bible_has_no_problems(self):
         self.assertEqual(drama.validate({"shots": [scene()]}, BIBLE), [])
@@ -135,6 +151,71 @@ class NativeAudio(unittest.TestCase):
             cmd = ffmpeg_film.concat_trimmed([(Path("a.mp4"), 4.0)], Path("/tmp/x.mp4"))
         self.assertIn("-an", cmd)
         self.assertNotIn("atrim", cmd[cmd.index("-filter_complex") + 1])
+
+
+class Animatic(unittest.TestCase):
+    PLAN = {"shots": [{"index": 1, "label": "t01", "clock_at": 0.0, "trim_seconds": 2.14,
+                       "dialogue": [{"who": "minh", "line": "I'm not Christopher Park."}], "line_at": 0.4},
+                      {"index": 2, "label": "t02", "clock_at": 4.28, "trim_seconds": 1.43}],
+            "trailer": {"title_cards": [{"after": "t01", "text": "SAME", "clock_at": 2.14, "seconds": 2.14}]}}
+
+    def test_cards_sit_between_shots_on_the_clock(self):
+        from common.runners.cli import reel_animatic
+        self.assertEqual([i["kind"] for i in reel_animatic.timeline(self.PLAN)], ["shot", "card", "shot"])
+
+    def test_a_line_starts_at_its_shot_plus_line_at(self):
+        from common.runners.cli import reel_animatic
+        self.assertEqual(reel_animatic.lines(self.PLAN)[0]["at"], 0.4)
+
+    def test_stand_ins_match_sex_and_age_and_differ_while_they_can(self):
+        from common.runners.cli import reel_animatic
+        library = [{"voice_id": "old_f", "labels": {"gender": "female", "age": "old"}},
+                   {"voice_id": "young_m", "labels": {"gender": "male", "age": "young"}},
+                   {"voice_id": "mid_m", "labels": {"gender": "male", "age": "middle_aged"}}]
+        cast = [{"id": "sun_hee", "identity": "Korean woman, 67, small"},
+                {"id": "minh", "identity": "Vietnamese man, 31, slim"},
+                {"id": "harper", "identity": "white man, 48, stocky"}]
+        self.assertEqual(reel_animatic.pick_voices(cast, library),
+                         {"sun_hee": "old_f", "minh": "mid_m", "harper": "young_m"})
+
+
+class Retime(unittest.TestCase):
+    def plan(self):
+        return {"shots": [{"index": 1, "label": "a", "clock_at": 0, "trim_seconds": 2.0, "line_at": 0.3},
+                          {"index": 2, "label": "b", "clock_at": 2.0, "trim_seconds": 1.0}],
+                "trailer": {"acts": [{"name": "world", "from": "a", "to": "b"}],
+                            "title_cards": [{"after": "b", "clock_at": 3.0, "seconds": 1.0}]},
+                "sound": {"total_seconds": 4.0,
+                          "sources": [{"id": "m", "kind": "music", "composition_plan": {
+                              "positive_global_styles": ["120 bpm"],
+                              "sections": [{"section_name": "world", "duration_ms": 3000}]}}],
+                          "placements": [{"source": "m", "at": 0, "length": 3.0}, {"source": "m", "at": 3.0}]}}
+
+    def test_a_speaking_shot_takes_its_lines_length_in_whole_beats(self):
+        from common.runners.cli import _trailer_retime as rt
+        self.assertEqual(rt.new_lengths(self.plan(), {"a": 2.6}), {"a": 3.5})
+        self.assertEqual(rt.new_lengths(self.plan(), {"a": 0.2}), {"a": 1.0}, "shorter lines shorten, to 2 beats at least")
+
+    def test_everything_after_the_grown_shot_moves_later_and_the_music_section_grows(self):
+        from common.runners.cli import _trailer_retime as rt
+        plan = self.plan()
+        rt.retime(plan, {"a": 3.5})
+        self.assertEqual(plan["shots"][1]["clock_at"], 3.5)
+        self.assertEqual(plan["trailer"]["title_cards"][0]["clock_at"], 4.5)
+        self.assertEqual(plan["sound"]["placements"], [{"source": "m", "at": 0.0, "length": 4.5},
+                                                       {"source": "m", "at": 4.5}])
+        self.assertEqual(plan["sound"]["sources"][0]["composition_plan"]["sections"][0]["duration_ms"], 4500)
+        self.assertEqual(plan["sound"]["total_seconds"], 5.5)
+
+    def test_lines_of_consecutive_shots_of_one_scene_are_one_exchange(self):
+        from common.runners.cli import _animatic_voice as av
+        plan = {"shots": [{"index": 1, "label": "t1", "scene": 6, "clock_at": 0, "trim_seconds": 2,
+                           "dialogue": [{"who": "voss", "line": "98.7"}]},
+                          {"index": 2, "label": "t2", "scene": 6, "clock_at": 2, "trim_seconds": 1,
+                           "dialogue": [{"who": "minh", "line": "Percent?"}]},
+                          {"index": 3, "label": "t3", "scene": 7, "clock_at": 3, "trim_seconds": 2,
+                           "dialogue": [{"who": "jun", "line": "Hi"}]}]}
+        self.assertEqual([[l["label"] for l in g] for g in av.exchanges(plan)], [["t1", "t2"], ["t3"]])
 
 
 if __name__ == "__main__":

@@ -210,7 +210,7 @@ class StoryboardRoute(unittest.TestCase):
         parts = body["messages"][0]["content"]
         self.assertEqual([p["type"] for p in parts], ["image_url", "image_url", "text"])
         self.assertEqual(parts[1]["image_url"]["url"], "https://x/f01.jpg")
-        self.assertEqual(body["image_config"], {"aspect_ratio": "9:16"})
+        self.assertEqual(body["image_config"], {"aspect_ratio": "9:16", "image_size": "2K"})
         self.assertIn("image", body["modalities"])
 
     def test_an_unchanged_frame_is_not_rerolled(self):

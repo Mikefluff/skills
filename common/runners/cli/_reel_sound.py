@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 from decimal import Decimal
 from pathlib import Path
@@ -86,7 +87,8 @@ def _run(slug: str, items: list[batch_mod.BatchItem], sound_dir: Path) -> list[b
             modality="audio",
             output_dir=sound_dir,
             manifest_path=sound_dir / f"manifest-{slug}.json",
-            parallelism=3,
+            # ElevenLabs caps concurrent requests per plan; 2 is the smallest paid tier's cap.
+            parallelism=int(os.environ.get("SKILLS_ELEVEN_CONCURRENCY", "2")),
             extension_hint="mp3",
         ),
     ).items

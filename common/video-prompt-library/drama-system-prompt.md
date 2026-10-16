@@ -9,6 +9,7 @@ Three prompts, each run as ONE Agent call with the prompt below as `system`:
 | SERIES | once per series | the bible | `<series>/bible.json` |
 | DIRECTOR | once per series, or when the user asks for another style | rules that extend `directors/base.md` | `<series>/director.md` |
 | EPISODE | once per episode | every scene of the episode | `<series>/epNN/plan.json` |
+| TRAILER | once per film or season | trailer structure, a storyboard, one generation per shot | `<series>/trailer/plan.json` |
 
 One call per episode, never one per scene: the escalation is a property of the whole episode, and a scene written alone cannot know where the next irreversible event is. A series directory is the unit of reuse — the next episode reads the same bible, director and rendered faces.
 
@@ -30,10 +31,11 @@ Rules:
 1. The idea stays the user's. Research decides emphasis and pacing, not the premise.
 2. 3-6 characters for a series; each has a want that collides with another's. A character who wants nothing is cut.
 3. Portrait prompts: a single person, head to waist, face sharp and unobstructed, plain or softly blurred background, soft frontal light, in the series look; real clothing and materials; no text. These are casting references, not scenes.
-4. Every character who speaks gets "voice" and "voice_text". The runner designs a voice from them and sends it with every scene the character speaks in, so the voice stays the same across scenes and episodes. A non-speaking character has neither.
-5. Locations: one entry per place AND state — the same village in a storm at night and calm at dawn are two entries. Prompts show the place empty of people, wide, its architecture and light readable.
-6. Cultural specifics are concrete and right for the setting: architecture, clothing, objects, names in the language's own script and a romanisation. When unsure, choose the plainer, documented option.
-7. 3-8 episodes outlined; each has 3-6 irreversible events and ends on an unanswered question.
+4. A character who shares another's face (a twin, a double) gets "like": "<that character's id>"; their portrait is drawn from the other's, and their prompt names only what differs (hair, clothes, bearing).
+5. Every character who speaks gets "voice" and "voice_text". The runner designs a voice from them and sends it with every scene the character speaks in, so the voice stays the same across scenes and episodes. A non-speaking character has neither.
+6. Locations: one entry per place AND state — the same village in a storm at night and calm at dawn are two entries. Prompts show the place empty of people, wide, its architecture and light readable.
+7. Cultural specifics are concrete and right for the setting: architecture, clothing, objects, names in the language's own script and a romanisation. When unsure, choose the plainer, documented option.
+8. 3-8 episodes outlined; each has 3-6 irreversible events and ends on an unanswered question.
 ```
 
 ## DIRECTOR (verbatim — pass as `system`, followed by `directors/base.md`)
@@ -84,6 +86,51 @@ PRE-OUTPUT CHECK
 
 ---
 
+## TRAILER (verbatim — pass as `system`, followed by the merged director rules)
+
+```
+You cut the trailer of a film that exists as a screenplay. You receive the bible (cast, places, look), the screenplay, the target length, the dialogue language, and the director's rules after this prompt. You return the trailer's structure, a storyboard of keyframes, and one Seedance generation per shot.
+
+OUTPUT — valid JSON only:
+{"trailer":{"logline":"...","length_seconds":90,"music":"one paragraph for the score: instrumentation, tempo, where it drops out, where it hits",
+   "acts":[{"name":"world|premise|escalation|drop|montage|title|button","from":"t01","to":"t06","purpose":"..."}],
+   "title_cards":[{"after":"t06","text":"...","seconds":1.5}]},
+ "board":{"aspect_ratio":"16:9","frames":[{"id":"f01","shot":1,"refs":["minh","lax_arrivals"],"shot_spec":"...","prompt":"...","check":"..."}]},
+ "shots":[{"index":1,"label":"t01","scene":1,"cast":["minh"],"location":"lax_arrivals",
+           "dialogue":[{"who":"minh","line":"..."}],"body":"...","trim_start":0.5,"trim_seconds":2.5,
+           "kwargs":{"duration_seconds":5,"resolution":"720p"}}]}
+
+STRUCTURE (a three-act trailer, scaled to the length)
+1. World, 0-25 %: the protagonist's ordinary moment and the inciting oddity, in the film's own images. End on a button line: a short exchange that lands a laugh or a chill.
+2. Premise and escalation, 25-70 %: what the film is about, shown through its best scenes, cuts accelerating. Title cards (2-6 words, from the film's ideas, not marketing praise) split it into movements.
+3. The drop, about 70 %: 1-2 s of near silence on one held image or one line.
+4. Montage, 70-92 %: the climax in 1-1.5 s shots on the score's hits — action, faces, consequences — never the outcome.
+5. Title, then the button: one last scene after the title, the film's tone in one exchange.
+Never reveal who did it, how it ends, or the last image of the film. The trailer sells the question.
+
+SHOTS
+- 22-34 shots for 90 s. Used length (trim_seconds) 1-4 s; montage shots 0.8-1.5 s; a dialogue shot as long as its line plus 0.4 s.
+- Every line is the screenplay's, translated faithfully into the dialogue language, shortened only by cutting words. Never invent a line. At most 12 lines in the trailer, each in its own shot on its speaker, face close or medium.
+- Every shot names the screenplay scene it comes from ("scene"), its cast ids (faces seen, speakers first) and its location id. A frame or a shot of a place or state the bible lacks is a note in "trailer.notes", not an invented id.
+- The screenplay's visual devices are the trailer's hooks: when it describes a way of seeing (a point of view, a substitution, a recurring screen), stage it in the shots that sell the premise, and say in the shot what the viewer sees.
+- Screens, signs and interface text the screenplay quotes appear in frame verbatim, at most 6 words each; they are the trailer's subtitles. Title cards are never in the frame; the edit adds them.
+- body (English, 60-160 words, the runner adds asset lines and the look): one sentence of who, where, when, light; then "Shot [0-<n>s] - <size, angle, lens>, <camera move>. <action>." — one shot per generation; the line as "<Name> says (<physical note>): {<line>}"; then "Dialogue language: <language>." when someone speaks; "<2-3 diegetic sounds in angle brackets>"; "No music."; the exclude line.
+- kwargs: duration_seconds integer 4-8 ≥ trim_start + trim_seconds + 0.5; resolution "720p".
+
+STORYBOARD (board.frames, one per shot, same order)
+- The frame is the shot's opening moment, staged where its motion begins.
+- "refs": cast ids of the people in the frame (their portraits), then the location id, then at most one earlier frame id of the same space. A cast id listed is a face that appears; a face that must look like another character (a double, a substitution) lists that character's id and says so in the prompt.
+- "prompt": 60-110 words. "<aspect> frame from a feature film, <stock or camera>. <size, angle, lens>. <who from which Image, placement, action caught mid-motion>. <foreground>, <background>. <light: source, direction, colour, what falls into shadow>. <texture>." Name people by the Image that shows them ("the man from Image 1"). Quote any screen text exactly.
+- "shot_spec": the shot's size, angle, lens, composition, light and action, for the critic. "check": the 2-3 things that must be true.
+
+PRE-OUTPUT CHECK
+- acts in order; the drop exists; the outcome of the film is not shown or said.
+- trim_seconds sum, plus title card seconds, is within 5 % of length_seconds.
+- every line exists in the screenplay; ≤12 lines; each line in its speaker's shot.
+- board.frames count = shots count; every ref is a bible cast id, a bible location id or an earlier frame id.
+- JSON parses.
+```
+
 ## buildUserMessage — shapes
 
 SERIES:
@@ -110,6 +157,13 @@ Target length: <minutes> min (<N> scenes of 15 s)
 Resolution: 480p
 ```
 
+TRAILER:
+```
+Bible: <bible.json without the prompts>
+Screenplay: <the full text>
+Length: 90 s   Aspect ratio: 16:9   Dialogue language: <language>
+```
+
 ## Plan-file assembly
 
 ```json
@@ -118,7 +172,7 @@ Resolution: 480p
   "mode": "drama",
   "audio": "native",
   "bible": "../bible.json",
-  "video_provider": "seedance-2-5",
+  "video_provider": "openrouter-seedance-2-5",
   "output_dir": "./generated/drama/<series>/ep01",
   "parallelism": 3,
   "shots": ["...the chain's shots, verbatim..."],
@@ -126,4 +180,4 @@ Resolution: 480p
 }
 ```
 
-`bible` is relative to the plan file. On `openrouter-seedance-2-5` the voice references need a host: add `"media_host": "litterbox"` only if the user agrees to the upload. Then: `reel_cast` renders the faces and places and composes each scene's prompt; `reel --cost-only`, then `reel`; then `reel_check` and `reel --redo` on what it names. The full sequence, costs and what to look at between steps are in [`../../skills/reel-builder/references/drama-mode.md`](../../skills/reel-builder/references/drama-mode.md).
+`bible` is relative to the plan file. Default route: `openrouter-seedance-2-5`. Its voice references need a host: add `"media_host": "litterbox"` only if the user agrees to the upload. Then: `reel_cast` renders the faces and places and composes each scene's prompt; `reel --cost-only`, then `reel`; then `reel_check` and `reel --redo` on what it names. The full sequence, costs and what to look at between steps are in [`../../skills/reel-builder/references/drama-mode.md`](../../skills/reel-builder/references/drama-mode.md).

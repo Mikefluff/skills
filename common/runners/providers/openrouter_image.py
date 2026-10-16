@@ -53,8 +53,12 @@ class OpenRouterNanoBananaProProvider(Provider):
             "modalities": ["image", "text"],
             "messages": [{"role": "user", "content": [*_images(refs), {"type": "text", "text": prompt}]}],
         }
+        config = {"image_size": kwargs.get("image_size") or "2K"}  # the vendor default is 1K, too soft for a keyframe
         if kwargs.get("aspect_ratio"):
-            body["image_config"] = {"aspect_ratio": kwargs["aspect_ratio"]}
+            config["aspect_ratio"] = kwargs["aspect_ratio"]
+        body["image_config"] = config
+        if kwargs.get("reasoning"):
+            body["reasoning"] = {"effort": kwargs["reasoning"]}  # minimal | medium | high; high for crowded frames
         return body
 
     def generate(self, prompt: str, **kwargs: Any) -> GenerationResult:

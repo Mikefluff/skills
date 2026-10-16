@@ -27,7 +27,7 @@ Everything runs in this repo. The agent that runs the skill writes the story and
 | 1. Series | ONE Agent with SERIES from [`drama-system-prompt.md`](../../../common/video-prompt-library/drama-system-prompt.md) → `bible.json` | cast, wants, episode events | — |
 | 2. Director | ONE Agent with DIRECTOR + `directors/base.md` → `director.md` | 5-15 rules, each checkable on a shot | — |
 | 3. Episode | ONE Agent with EPISODE + `drama.director("<series>/director.md")` → `ep01/plan.json` | beats, every line in its shot | — |
-| 4. Cast | `python3 -m common.runners.cli.reel_cast --plan-file <series>/ep01/plan.json` | `cast/`, `locations/`: faces right, weather right for its scenes | ≈ $0.14 per asset, up to 3 tries |
+| 4. Cast | `python3 -m common.runners.cli.reel_cast --plan-file <series>/ep01/plan.json` | `cast/`, `locations/`: faces right, weather right for its scenes | ≈ $0.14 per asset, one take; re-draw by eye with `--only` |
 | 5. Price | `python3 -m common.runners.cli.reel --plan-file <series>/ep01/plan.json --cost-only` | the total | — |
 | 6. One scene | `reel --plan-file <series>/ep01/plan.json --redo sc01 --yes` then `reel_check --only sc01` | the scene, and whether its speech passed | one scene |
 | 7. Episode | `python3 -m common.runners.cli.reel --plan-file <series>/ep01/plan.json --resume --yes` | `final.mp4` | see below |

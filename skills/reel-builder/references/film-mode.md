@@ -13,7 +13,7 @@ A voiced film is a reel whose picture is cut against a spoken take: an ElevenLab
                head handles, lip_sync shots get their stretch of the take) → plan.json
 
 2b. board    python3 -m common.runners.cli.reel_board --plan-file ./generated/reel/<slug>/plan.json
-             → one Nano Banana Pro keyframe per shot, judged by a Gemini critic, re-rolled below 8/10
+             → one Nano Banana Pro keyframe per shot, one take; re-draw by eye with --only (--judge adds a critic)
              → board/contact.jpg; keyframes become the shot's ordered references (approve before video)
 
 2c. previs   python3 -m common.runners.cli.reel_previs --plan-file ./generated/reel/<slug>/plan.json

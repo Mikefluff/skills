@@ -9,7 +9,8 @@ The bible (one per series, `<series>/bible.json`, written by the drama chain):
 
   {"title": "...", "language": "th", "aspect_ratio": "16:9", "look": "one paragraph: medium, stock, grade",
    "director": "director.md",                       # relative to the bible; see directors/
-   "cast": [{"id": "malai", "name": "Malai", "identity": "8-20 words the critic checks",
+   "cast": [{"id": "malai", "name": "Malai", "identity": "8-20 words the critic checks", "like": "<id of a
+             character whose face this one shares — a twin, a double; drawn from that portrait>",
              "voice": "young woman, soft, quick", "prompt": "portrait prompt"}],
    "locations": [{"id": "village_storm", "description": "...", "prompt": "plate prompt"}]}
 
