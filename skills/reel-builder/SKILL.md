@@ -260,7 +260,7 @@ RU triggers:
 - «15-секундное видео», «30-секундный рил»
 - «озвученный ролик», «ролик с озвучкой ElevenLabs», «Seedance с липсинком», «персонаж говорит в кадре» → film mode
 - «вертикальное видео про Q»
-- «сними кино / сериал / фильм на 10 минут», «новая серия», «на тайском / японском», «персонажи разговаривают», «режиссёр в стиле …» → drama mode
+- «сними кино / сериал / фильм на 10 минут», «новая серия», «на тайском / японском», «персонажи разговаривают», «режиссёр в стиле …»: это drama mode
 
 Defaults: `--shots 3 --shot-duration 5 --aspect vertical --captions on --video-provider auto --music-provider auto --video-instrumental on`. Without `--execute`, returns plan + prompts; with `--execute`, generates the MP4.
 
