@@ -29,7 +29,7 @@ Everything runs in this repo. The agent that runs the skill writes the story and
 | 3. Episode | ONE Agent with EPISODE + `drama.director("<series>/director.md")` → `ep01/plan.json` | beats, every line in its shot | — |
 | 4. Cast | `python3 -m common.runners.cli.reel_cast --plan-file <series>/ep01/plan.json` | `cast/`, `locations/`: faces right, weather right for its scenes | ≈ $0.14 per asset, one take; re-draw by eye with `--only` |
 | 5. Price | `python3 -m common.runners.cli.reel --plan-file <series>/ep01/plan.json --cost-only` | the total | — |
-| 6. One scene | `reel --plan-file <series>/ep01/plan.json --redo sc01 --yes` then `reel_check --only sc01` | the scene, and whether its speech passed | one scene |
+| 6. One scene | `reel --plan-file <series>/ep01/plan.json --only sc01 --yes` then `reel_check --only sc01` | the scene, and whether its speech passed | one scene |
 | 7. Episode | `python3 -m common.runners.cli.reel --plan-file <series>/ep01/plan.json --resume --yes` | `final.mp4` | see below |
 | 8. Check | `python3 -m common.runners.cli.reel_check --plan-file <series>/ep01/plan.json` | `check.json`; it prints the `--redo` line | ≈ $0.01 per scene |
 | 9. Re-render | the printed `reel ... --redo sc03,sc07`, then `reel_check --only sc03,sc07` | until it prints nothing to redo | per scene |
@@ -71,6 +71,32 @@ On the OpenRouter route, voice references need a public URL. Either set `"media_
 ## Score and sound
 
 The scene's own sound is the dialogue and diegetic noise; base rule 13 keeps music out of it, so the score can be laid over without fighting a second one. A `music` block in the plan (as in an ordinary reel, `--music-provider eleven-music` for an instrumental) is mixed under the dialogue and ducked whenever someone speaks. With no music block the episode keeps exactly the sound Seedance made.
+
+## The first-frame route: Wan 3.0, the cast's voices, one grade
+
+When Seedance's filter refuses the faces, a trailer can be rendered on `openrouter-wan-3-0`: Wan 3.0 on OpenRouter, image-to-video from the storyboard frame alone, at 480p for about $0.05 a second. It took every generated face it was given (2026-10-16), but it accepts no references and no audio, so three things move out of the generation and into the cut:
+
+- **Lens, angle and light live in the storyboard frame.** Wan keeps the first frame's lens and composition. An image model ignores "21 mm, horizon tilted 10°" and draws an ordinary 50 mm frame, so the board prompt describes what the lens does to the picture ("his face fills the left two-thirds and bulges toward the lens, the ceiling and its caged tube in frame, the whole frame rotated 15 degrees").
+- **The motion prompt is camera first, then the performance.** A long style paragraph buries the move; Wan then barely moves. The RESTAGE call of [`drama-system-prompt.md`](../../../common/video-prompt-library/drama-system-prompt.md) writes both: a new prompt per board frame and a `motion` per shot. A top-down camera must be told to stay overhead, or Wan swings it to eye level.
+- **The voice is the cast's, the mouth is Wan's.** Wan speaks the quoted line with its own voice; that voice is never used. `reel_animatic --clips` asks Scribe when the clip's mouth starts the line and trims the clip so that moment lands where the cast's ElevenLabs take plays. A take much longer than Wan's reading still drifts at the end of the word.
+- **The look is one grade over every clip** (`"grade": "rocknrolla"`, `common/runners/film_grade.py`): generations colour each clip differently; the cut does not ask them to agree.
+
+| Step | Run |
+|---|---|
+| Restage | ONE Agent with RESTAGE + the merged director rules → write `board.frames[].prompt`, `shots[].motion`, `"video_provider": "openrouter-wan-3-0"`, `"grade"` |
+| Board | `reel_board --plan-file <plan> --only <changed frames> --yes` |
+| Matrix | `reel_matrix --plan-file <plan> [--pin t26=seedance] --apply`: one row per shot (size, line, camera, route and why, transition in, takes and what they cost, which take the cut uses, next action) in `<out>/matrix.md`. A speaking shot or one carried by a face goes to Wan; a shot carried by its camera or action, or a device's view, to Seedance with its previs as Video 1. Pins survive rebuilds |
+| Compose | `reel_cast --plan-file <plan>` (sends the frame and the motion, nothing else) |
+| Render | `reel --plan-file <plan> --resume --skip-stitch --yes` |
+| Cut | `reel_animatic --plan-file <plan> --clips --yes` → `trailer.mp4` |
+
+The clip's own sound stays under the cast's take with its voice removed by contour, not by a hole in time: with `audio-separator` installed (on PATH or `$AUDIO_SEPARATOR`, model `vocals_mel_band_roformer.ckpt` in `~/.cache/audio-separator`), Mel-Band RoFormer splits each clip into voice and background and the cut keeps the background whole; without it the line's window is ducked.
+
+A shot cut by hand (a CCTV composite, a screen replacement) carries `"clip": "shots/<file>.mp4"`; it is not rendered and the cut takes it as it is. Wan holds a face only from the first frame, so a face can drift over a long shot; keep speaking shots short.
+
+## A short film from one picture
+
+A film whose cast already exists in one picture (a group portrait, a poster) sets `"master": "master.png"` in the bible. Every portrait and plate `reel_cast` draws is sent the picture as Image 1, so faces, colours and proportions are copied, not invented, and a board frame may list `"master"` in its refs (a group shot, a final image that returns to the picture). The SHORT call of [`drama-system-prompt.md`](../../../common/video-prompt-library/drama-system-prompt.md) writes the whole film to its end, from the user's outline, in the trailer's plan shape with its soundtrack, into `<series>/short/plan.json`. From there it is the trailer's sequence: `reel_cast`, `reel_board`, `reel_animatic` (watch it), and only then `reel --cost-only` and the render.
 
 ## Directors
 

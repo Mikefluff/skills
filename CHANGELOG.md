@@ -11,14 +11,23 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ### Added
 
-- **writer linter reads Spanish and Portuguese.** 76 patterns in the existing categories, so the verdict and the per-category advice read the same as for English and Russian:
-  - paragraph-initial bridges (*Además,* / *Além disso,*);
-  - fillers (*es importante destacar*, *vale ressaltar*);
-  - stock metaphors (*sumergirse en*, *mergulhar fundo em*, *desbloquear el potencial*);
-  - *no solo… sino también* / *não apenas… mas também*;
-  - era-digital openers, vague experts, hype, empty CTAs.
+- **reel-builder short films from one picture.** The SHORT prompt in `drama-system-prompt.md` writes a whole animated short to its end from an outline, in the trailer's plan shape, with story rules (the protagonist's own thread, a clock, plants and payoffs, couples' arcs, a continuity list, group blocking) and a dense sound design.
+  - The bible's `master` picture is the source of every portrait, plate and group frame. A location's `refs` photos put the film in a real place.
+  - Images through OpenAI `gpt-image-2.5-sunburst` with reference edits, with `fallback_provider` for frames a vendor's moderation refuses.
+  - Seedance 2.5 on Atlas Cloud (`atlas-seedance-2-5`). References go inline, and portraits are registered as assets so the privacy filter passes the cast. A pinned first and last frame goes to image-to-video: generated transitions between shots (`bridge`, also from or to a still). `extend` continues a rendered shot. `extra_refs`, `no_keyframe`, `no_location_ref` and `no_previs` are per-shot answers to the vendor's copyright and video-edit filters.
+  - Ensemble previs: every person in frame is a troll-proportioned figure with height, colour, hair and poses. Props move on `anim` keys. Rendered in Workbench with shadows, cavity and outlines.
+  - The cut:
+    - the clip's own voice is removed by contour with Mel-Band RoFormer (`audio-separator`), not ducked in time;
+    - parts are whole frames of the film clock, so the picture never drifts from the sound;
+    - `dip` and `iris` transitions, a per-shot `into`, a card's own `into`, and the film's `ending`;
+    - the `candy` grade;
+    - `reel_upscale` (Real-ESRGAN animevideov3, local) and `"hd"` cuts at 1080p;
+    - a film that ends on its picture keeps its sound to the last card.
+  - `_trailer_retime.insert` / `shift` put a shot into a cut and move the clock, the cards, the sound and the storyboard indices with it.
 
-  Probabilistic only, like the English set: no hard bans of their own. Four fixtures lock it: a full-slop and a clean text per language, the clean ones at zero hits. The browser checker at mikefluff.com/es and /pt had been telling its Spanish and Portuguese visitors that it only reads English and Russian.
+### Fixed
+
+- The batch manifest resumes by label, not by index. A shot inserted into a film no longer hands every later shot its neighbour's clip.
 
 - **reel-builder drama mode.** Episodes of 8-12 minutes built from 15-second Seedance 2.5 scenes, in which several characters speak the series' language and Seedance voices them.
   - A series is planned by three prompts in `common/video-prompt-library/drama-system-prompt.md`. The first writes the bible: cast, places per weather and time, episode outlines. The second writes a director whose rules extend `directors/base.md`, 24 rules for long narrative film. The third writes each episode.

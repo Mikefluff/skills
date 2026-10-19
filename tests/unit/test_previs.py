@@ -30,6 +30,27 @@ class Orbit(unittest.TestCase):
         self.assertEqual([k["t"] for k in keys], [0.0, 1.0, 2.0, 4])
 
 
+class Ensemble(unittest.TestCase):
+    CAMERA = [{"t": 0, "pos": [0, -2, 1], "look": [0, 1, 1]}, {"t": 3, "pos": [0, -1, 1], "look": [0, 1, 1]}]
+
+    def test_actors_and_moving_props_are_checked_like_every_other_timed_key(self):
+        good = spec(camera=self.CAMERA,
+                    actors=[{"id": "tanya", "height": 1.2, "hair": "big",
+                             "keys": [{"t": 0, "pos": [0, 1], "pose": "stand"}, {"t": 2, "pos": [0, 1], "pose": "jump"}]}],
+                    extra=[{"kind": "cylinder", "at": [0, 2, 0.3], "anim": [{"t": 0, "at": [0, 2, 0.3]}, {"t": 3, "at": [0, 2, 2]}]}])
+        self.assertEqual(pv.validate(good, {"s01": 3}), [])
+
+    def test_an_unknown_pose_a_late_key_and_a_keyless_actor_are_named(self):
+        bad = spec(camera=self.CAMERA,
+                   actors=[{"id": "tanya", "keys": [{"t": 5, "pos": [0, 1], "pose": "moonwalk"}]}, {"id": "arthur"}],
+                   extra=[{"kind": "box", "at": [0, 0, 0], "size": [1, 1, 1], "anim": [{"t": 9, "at": [0, 0, 1]}]}])
+        problems = " ".join(pv.validate(bad, {"s01": 3}))
+        self.assertIn("pose 'moonwalk'", problems)
+        self.assertIn("time 5", problems)
+        self.assertIn("time 9", problems)
+        self.assertIn("actor arthur has no keys", problems)
+
+
 class Validate(unittest.TestCase):
     def test_a_good_spec_has_no_problems(self):
         good = spec(camera=[{"t": 0, "pos": [0, -1, 1.7], "look": [0, 5, 1]}, {"t": 4, "pos": [0, 9, 1], "look": [0, 20, 1]}],

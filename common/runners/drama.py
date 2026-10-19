@@ -9,6 +9,8 @@ The bible (one per series, `<series>/bible.json`, written by the drama chain):
 
   {"title": "...", "language": "th", "aspect_ratio": "16:9", "look": "one paragraph: medium, stock, grade",
    "director": "director.md",                       # relative to the bible; see directors/
+   "master": "master.png",                          # optional: the picture the film is drawn from; portraits,
+                                                    # plates and any frame naming "master" copy it
    "cast": [{"id": "malai", "name": "Malai", "identity": "8-20 words the critic checks", "like": "<id of a
              character whose face this one shares — a twin, a double; drawn from that portrait>",
              "voice": "young woman, soft, quick", "prompt": "portrait prompt"}],
@@ -51,6 +53,11 @@ def load_bible(path: Path) -> dict[str, Any]:
 def asset_path(bible: dict[str, Any], kind: str, item_id: str, suffix: str = ".png") -> Path:
     """Where a series asset lives: <series>/cast/<id>.png, <series>/cast/<id>.mp3 (voice), <series>/locations/<id>.png."""
     return Path(bible["_dir"]) / kind / f"{item_id}{suffix}"
+
+
+def master_path(bible: dict[str, Any]) -> Path:
+    """The picture a film is drawn from (bible["master"], relative to the bible): every portrait and plate copies it."""
+    return Path(bible["_dir"]) / bible["master"]
 
 
 def _by_id(bible: dict[str, Any], kind: str) -> dict[str, dict[str, Any]]:

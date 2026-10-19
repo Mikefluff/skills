@@ -105,7 +105,9 @@ def build_graph(
     for a sentence to end.
     """
     inputs = ["-i", str(voice)]
-    chains = ["[0:a]aresample=48000,asplit=2[voice][key]"]
+    # The voice sits on top: +5 dB on its bus before anything is summed. Measured on a trailer, lines at
+    # -16 LUFS under a -3 dB groove and room beds came out under everything once the master was normalised.
+    chains = ["[0:a]aresample=48000,volume=5dB,asplit=2[voice][key]"]
     ducked, straight = [], ["[voice]"]
     for n, p in enumerate(placements, start=1):
         inputs += ["-i", str(sources[p.source])]
@@ -114,7 +116,7 @@ def build_graph(
         (ducked if p.duck else straight).append(f"[{label}]")
     if ducked:
         chains.append(f"{''.join(ducked)}amix=inputs={len(ducked)}:normalize=0:duration=longest[bed]")
-        chains.append("[bed][key]sidechaincompress=threshold=0.04:ratio=6:attack=20:release=400[ducked]")
+        chains.append("[bed][key]sidechaincompress=threshold=0.015:ratio=12:attack=10:release=350[ducked]")
         straight.append("[ducked]")
     else:
         chains.append("[key]anullsink")

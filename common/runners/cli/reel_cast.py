@@ -33,6 +33,14 @@ from .. import config
 from .. import cost as cost_mod
 from .. import drama
 from ..errors import CostConfirmationDeclined, RunnerError
+from ._cast_scenes import (  # noqa: F401 — re-exported: reel_cast.cast_scenes etc.
+    _board_frame,
+    _bridge_scene,
+    _extend_scene,
+    _first_frame_scene,
+    _rendered,
+    cast_scenes,
+)
 
 _PROVIDER = "openrouter-nano-banana-pro"
 _PASS = 8
@@ -68,8 +76,20 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _hash(item: dict[str, Any], look: str) -> str:
-    return hashlib.sha256(json.dumps([item.get("prompt"), item.get("identity"), item.get("description"), look],
+    return hashlib.sha256(json.dumps([item.get("prompt"), item.get("identity"), item.get("description"), look,
+                                      *(item.get("refs") or [])],
                                      ensure_ascii=False).encode()).hexdigest()[:16]
+
+
+def _take_refs(item: dict[str, Any], bible: dict[str, Any]) -> list[str]:
+    """The pictures a take is drawn from: a double's original, else the master, then the place's photographs."""
+    # A double ("like": another cast id) is drawn from that character's portrait, so the faces really match.
+    like = [str(drama.asset_path(bible, "cast", item["like"]))] if item.get("like") else []
+    # A film drawn from one existing picture ("master" in the bible): every face and place is taken from it, not invented.
+    master = [str(drama.master_path(bible))] if bible.get("master") and not like else []
+    # A real place the film is set in: its photographs (item["refs"], relative to the bible) follow the master.
+    photos = [str(Path(bible["_dir"]) / r) for r in item.get("refs") or []]
+    return like + master + photos
 
 
 def _take(kind: str, item: dict[str, Any], bible: dict[str, Any], prompt: str, take: Path) -> tuple[int, dict, float]:
@@ -77,17 +97,18 @@ def _take(kind: str, item: dict[str, Any], bible: dict[str, Any], prompt: str, t
     from ..providers.openrouter_image import judge
 
     aspect = "3:4" if kind == "cast" else bible.get("aspect_ratio", "16:9")
-    # A double ("like": another cast id) is drawn from that character's portrait, so the faces really match.
-    like = [str(drama.asset_path(bible, "cast", item["like"]))] if item.get("like") else []
-    result = config.get_provider(_PROVIDER).generate(prompt, aspect_ratio=aspect, reference_images=like)
+    # bible["image_provider"] / ["image_model"] pick another drawer (e.g. gpt-image-2 + gpt-image-2.5-sunburst)
+    result = config.get_provider(bible.get("image_provider") or _PROVIDER).generate(
+        prompt, aspect_ratio=aspect, reference_images=_take_refs(item, bible), model_id=bible.get("image_model"),
+        quality=bible.get("image_quality", "high"))
     take.write_bytes(result.content)
+    drawn = float(result.extra.get("cost_usd") or 0)
     if not bible.get("_judge", True):
-        return 10, {}, float(result.extra.get("cost_usd") or 0)
+        return 10, {}, drawn
     spec = item.get("identity") or item.get("description") or ""
     verdict = judge(_JUDGE.format(kind=kind, spec=spec, look=bible.get("look", ""), usable=_USABLE[kind]), [str(take)])
     score = min(int(verdict.get(k, 0)) for k in ("match", "usable", "craft", "cinema"))
-    spent = float(result.extra.get("cost_usd") or 0) + float(verdict.get("cost_usd") or 0)
-    return score, verdict, spent
+    return score, verdict, drawn + float(verdict.get("cost_usd") or 0)
 
 
 def _render(kind: str, item: dict[str, Any], bible: dict[str, Any], out: Path, tries: int) -> dict[str, Any]:
@@ -132,6 +153,7 @@ def _voice(item: dict[str, Any], bible: dict[str, Any], state: dict[str, Any]) -
 
     if item.get("voice_library"):
         _library_voice(item, state, add_library_voice)
+        _library_sample(item, bible, state)
         return
     key, spec = f"{item['id']}:voice", _hash({"prompt": item.get("voice"), "identity": item["voice_text"]}, "")
     out = drama.asset_path(bible, "cast", item["id"], ".mp3")
@@ -161,36 +183,19 @@ def _library_voice(item: dict[str, Any], state: dict[str, Any], add) -> None:
     print(f"  {item['id']}: voice {lib.get('name')} added from the Voice Library", file=sys.stderr)
 
 
-def _board_frame(plan: dict[str, Any], scene: dict[str, Any]) -> str | None:
-    """The storyboard frame drawn for this shot, if reel_board has drawn it."""
-    frames = {int(f.get("shot", 0)): f["id"] for f in (plan.get("board") or {}).get("frames") or []}
-    fid = frames.get(int(scene.get("index", 0)))
-    path = Path(plan.get("output_dir") or ".") / "board" / f"{fid}.jpg"
-    return str(path) if fid and path.is_file() else None
-
-
-def cast_scenes(plan: dict[str, Any], bible: dict[str, Any]) -> None:
-    """Each scene's references and composed prompt, from the bible."""
-    for scene in plan["shots"]:
-        refs, _ = drama.references(scene, bible)
-        audio, _ = drama.voices(scene, bible)
-        kwargs = scene.setdefault("kwargs", {})
-        kwargs["reference_images"] = refs
-        if audio:
-            kwargs["reference_audio"] = audio
-            if plan.get("media_host"):
-                kwargs["media_host"] = plan["media_host"]
-        else:
-            kwargs.pop("reference_audio", None)
-        kwargs.setdefault("aspect_ratio", bible.get("aspect_ratio", "16:9"))
-        kwargs.setdefault("generate_audio", True)
-        scene["prompt"] = drama.compose(scene, bible)
-        frame = _board_frame(plan, scene)
-        if frame:
-            # The approved storyboard frame goes last, named, so the generation opens on our composition.
-            kwargs["reference_images"] = [*refs, frame]
-            scene["prompt"] = (f"Image {len(refs) + 1} is the storyboard keyframe: open on its composition, framing, "
-                               "lens and light.\n" + scene["prompt"])
+def _library_sample(item: dict[str, Any], bible: dict[str, Any], state: dict[str, Any]) -> None:
+    """A library actor has no designed sample, but a scene that speaks sends one as its voice reference:
+    the actor reads the character's voice_text on Eleven v4, cut to the same 7 s."""
+    out = drama.asset_path(bible, "cast", item["id"], ".mp3")
+    if out.is_file():
+        return
+    raw = out.with_name(f"{item['id']}.read.mp3")
+    raw.write_bytes(config.get_provider("eleven-tts").generate(
+        item["voice_text"], voice_id=state[f"{item['id']}:voice"]["voice_id"], model_id="eleven_v4").content)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-t", f"{_VOICE_SECONDS}",
+                    "-af", f"afade=t=out:st={_VOICE_SECONDS - 0.3}:d=0.3", str(out)], check=True, capture_output=True)
+    raw.unlink()
+    print(f"  {item['id']}: voice sample read by {item['voice_library'].get('name')}", file=sys.stderr)
 
 
 def _render_assets(todo: list[tuple[str, dict[str, Any]]], bible: dict[str, Any], state: dict[str, Any],
@@ -232,7 +237,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.is_file() else {}
 
     todo = [] if args.voices_only else _todo(bible, state, set((args.only or "").split(",")) - {""})
-    estimate = (config.get_provider(_PROVIDER).estimate_cost() or Decimal("0")) * len(todo) * args.tries
+    drawer = config.get_provider(bible.get("image_provider") or _PROVIDER)
+    estimate = (drawer.estimate_cost(quality=bible.get("image_quality", "high")) or Decimal("0")) * len(todo) * args.tries
     print(f"Cast: {len(bible.get('cast') or [])} faces, {len(bible.get('locations') or [])} places, "
           f"{len(todo)} to render, up to ${estimate:.2f}.", file=sys.stderr)
     if todo:

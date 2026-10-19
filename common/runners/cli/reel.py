@@ -56,19 +56,26 @@ Pipeline:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
-from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 from .. import batch as batch_mod
-from .. import config
 from .. import cost as cost_mod
 from ..errors import CostConfirmationDeclined
 from . import _reel_sound
-from ._reel_seams import lip_slices, seam_hook
+from ._reel_plan import (  # noqa: F401 — re-exported: reel.prepare, reel.ReelJob, reel.Routed ...
+    PlanError,
+    ReelJob,
+    Routed,
+    _build_music_item,
+    _make_item,
+    load_plan,
+    prepare,
+    resolve_provider,
+)
+from ._reel_seams import lip_slices, seam_hook  # noqa: F401
 from ._reel_stitch import stitch
 
 
@@ -81,25 +88,14 @@ def _print_progress(item: batch_mod.BatchItem) -> None:
         print(f"  ✗ {item.label}: {err}", file=sys.stderr)
 
 
-def _make_item(entry: dict[str, Any], default_label: str) -> batch_mod.BatchItem:
-    return batch_mod.BatchItem(
-        index=int(entry["index"]),
-        label=str(entry.get("label") or default_label),
-        prompt=str(entry["prompt"]),
-        kwargs=dict(entry.get("kwargs") or {}),
-    )
-
-
-class PlanError(Exception):
-    """Plan is unusable. Carries the message the CLI should print."""
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="common.runners.cli.reel")
     parser.add_argument("--plan-file", type=Path, required=True, help="path to plan.json")
     parser.add_argument("--resume", action="store_true", help="reuse succeeded items from manifest")
     parser.add_argument("--redo", default="",
                         help="comma-separated shot labels to generate again (implies --resume for the rest)")
+    parser.add_argument("--only", default="",
+                        help="comma-separated shot labels: render these and nothing else (implies --resume)")
     parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
     parser.add_argument(
         "--cost-only", action="store_true",
@@ -110,113 +106,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="generate shots + music; don't run ffmpeg",
     )
     return parser
-
-
-# ── plan ────────────────────────────────────────────────────────────────────
-
-
-def load_plan(plan_file: Path) -> dict[str, Any]:
-    """Read and validate plan.json. `--plan-file -` reads stdin."""
-    if str(plan_file) == "-":
-        raw = sys.stdin.read()
-        if not raw.strip():
-            raise PlanError("plan-file '-' (stdin) is empty")
-    else:
-        if not plan_file.is_file():
-            raise PlanError(f"plan-file not found: {plan_file}")
-        raw = plan_file.read_text(encoding="utf-8")
-
-    plan = json.loads(raw)
-    if plan.get("schema") != "skills.reel.plan.v1":
-        raise PlanError(
-            f"unexpected plan schema '{plan.get('schema')}'. Expected 'skills.reel.plan.v1'."
-        )
-    if not plan.get("video_provider"):
-        raise PlanError("plan missing 'video_provider'")
-    if not (plan.get("shots") or []):
-        raise PlanError("plan has no shots")
-    if plan.get("bible") and not all(s.get("prompt") for s in plan["shots"]):
-        raise PlanError("drama scenes have no prompts yet: run common.runners.cli.reel_cast on this plan first")
-    return plan
-
-
-def resolve_provider(slug: str, expected: str):
-    try:
-        provider = config.get_provider(slug)
-    except KeyError as exc:
-        raise PlanError(exc.args[0]) from exc
-    if provider.modality != expected:
-        raise PlanError(f"'{slug}' is {provider.modality}, not {expected}.")
-    return provider
-
-
-@dataclass
-class ReelJob:
-    """A validated plan plus everything resolved from it."""
-
-    plan: dict[str, Any]
-    video_provider: Any
-    music_provider: Any | None
-    shot_items: list[batch_mod.BatchItem]
-    music_item: batch_mod.BatchItem | None
-    output_dir: Path
-    # Film mode's designed soundtrack, generated after the shots: id → file.
-    sound_sources: dict[str, Path] = field(default_factory=dict)
-
-    @property
-    def shots_dir(self) -> Path:
-        return self.output_dir / "shots"
-
-    @property
-    def manifest_path(self) -> Path:
-        return self.output_dir / "manifest.json"
-
-    @property
-    def chained(self) -> bool:
-        return any(entry.get("continue_from_previous") for entry in self.plan["shots"])
-
-    def cut_seconds(self, index: int) -> float:
-        """Where shot `index` is cut — its trim if the plan has one, else its full length."""
-        entry = next(e for e in self.plan["shots"] if int(e["index"]) == index)
-        kwargs = entry.get("kwargs") or {}
-        return float(entry.get("trim_seconds") or kwargs.get("duration_seconds") or entry.get("duration_seconds") or 5)
-
-
-def prepare(plan: dict[str, Any]) -> ReelJob:
-    """Resolve providers, build batch items, create the output directories."""
-    config.load_all_providers()
-    video_provider = resolve_provider(plan["video_provider"], "video")
-
-    music_block = plan.get("music")
-    music_slug = plan.get("music_provider")
-    music_provider = resolve_provider(music_slug, "music") if music_block and music_slug else None
-
-    output_dir = Path(plan.get("output_dir") or "./generated/reel/batch")
-    lip_slices(plan, output_dir)
-    shot_items = [
-        _make_item(entry, default_label=f"shot-{int(entry['index']):02d}")
-        for entry in plan["shots"]
-    ]
-    music_item = _build_music_item(music_block) if music_block and music_provider else None
-
-    job = ReelJob(plan, video_provider, music_provider, shot_items, music_item, output_dir)
-    job.output_dir.mkdir(parents=True, exist_ok=True)
-    job.shots_dir.mkdir(parents=True, exist_ok=True)
-    return job
-
-
-def _build_music_item(music_block: dict[str, Any]) -> batch_mod.BatchItem:
-    return batch_mod.BatchItem(
-        index=999,
-        label="music",
-        prompt=str(music_block.get("prompt") or ""),
-        kwargs={
-            **(music_block.get("kwargs") or {}),
-            "instrumental": bool(music_block.get("instrumental")),
-            "duration_seconds": float(music_block.get("duration_seconds") or 15),
-            "lyrics": music_block.get("lyrics") or "",
-        },
-    )
 
 
 # ── cost ────────────────────────────────────────────────────────────────────
@@ -260,7 +149,8 @@ def _meta(job: ReelJob, total: Decimal) -> dict[str, Any]:
 # ── generation ──────────────────────────────────────────────────────────────
 
 
-def run_shots(job: ReelJob, meta: dict[str, Any], *, resume: bool, redo: frozenset[str] = frozenset()):
+def run_shots(job: ReelJob, meta: dict[str, Any], *, resume: bool, redo: frozenset[str] = frozenset(),
+              only: frozenset[str] = frozenset()):
     chained = job.chained
     return batch_mod.run_batch(
         job.video_provider,
@@ -272,6 +162,7 @@ def run_shots(job: ReelJob, meta: dict[str, Any], *, resume: bool, redo: frozens
             parallelism=1 if chained else int(job.plan.get("parallelism") or 2),
             resume=resume,
             redo=redo,
+            only=only,
             extension_hint="mp4",
             extra_meta=meta,
             before_item=seam_hook(job) if chained else None,
@@ -330,38 +221,43 @@ def _announce(job: ReelJob, total: Decimal) -> None:
     )
 
 
-def main() -> int:
-    args = build_parser().parse_args()
 
-    try:
-        job = prepare(load_plan(args.plan_file))
-    except PlanError as exc:
-        print(str(exc), file=sys.stderr)
-        return 2
+def _labels(raw: str) -> frozenset[str]:
+    return frozenset(x.strip() for x in raw.split(",") if x.strip())
 
-    video_cost, music_cost = estimate(job)
-    total = video_cost + music_cost
-    if args.cost_only:
-        return print_cost(job, video_cost, music_cost)
 
+def _narrow_to(job: ReelJob, only: frozenset[str]) -> None:
+    """A test of one shot prices and runs that shot alone; the music is not part of it."""
+    job.shot_items_all, job.shot_items = job.shot_items, [i for i in job.shot_items if i.label in only]
+    job.music_item = None
+
+
+def _confirm(job: ReelJob, total: Decimal, yes: bool) -> bool:
     try:
         cost_mod.confirm_batch(
             total,
             n_items=len(job.shot_items) + (1 if job.music_item else 0),
             modality="reel",
-            yes=args.yes,
+            yes=yes,
         )
     except CostConfirmationDeclined as exc:
         print(str(exc), file=sys.stderr)
-        return 3
+        return False
+    return True
 
-    meta = _meta(job, total)
-    _announce(job, total)
 
-    redo = frozenset(x.strip() for x in args.redo.split(",") if x.strip())
+def _generate(job: ReelJob, args: argparse.Namespace, meta: dict[str, Any], only: frozenset[str]) -> int:
+    """Shots, then music and sound, then the stitch."""
+    redo = _labels(args.redo)
     if redo:
         args.resume = True
-    shots_result = run_shots(job, meta, resume=args.resume, redo=redo)
+    if only:
+        job.shot_items = job.shot_items_all  # the manifest keeps every shot's record
+        redo = redo | only
+    shots_result = run_shots(job, meta, resume=args.resume, redo=redo, only=only)
+    from .. import shot_matrix
+
+    shot_matrix.record_takes(job.plan, job.shot_items, lambda it: job.video_provider.estimate_cost(**it.kwargs))
     if not shots_result.ok:
         print(
             f"  {len(shots_result.failed)} shot(s) failed. Components saved; "
@@ -380,6 +276,33 @@ def main() -> int:
         return 0
 
     return stitch(job, shots_result, music_path)
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+
+    try:
+        job = prepare(load_plan(args.plan_file))
+    except PlanError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    only = _labels(args.only)
+    if only:
+        args.resume = True
+        _narrow_to(job, only)
+    video_cost, music_cost = estimate(job)
+    if only:
+        music_cost = Decimal("0")  # the sound is already made; a test shot pays for itself only
+    total = video_cost + music_cost
+    if args.cost_only:
+        return print_cost(job, video_cost, music_cost)
+    if not _confirm(job, total, args.yes):
+        return 3
+
+    meta = _meta(job, total)
+    _announce(job, total)
+    return _generate(job, args, meta, only)
 
 
 if __name__ == "__main__":

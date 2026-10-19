@@ -105,6 +105,8 @@ class BatchSpec:
     # With resume: labels to generate again even though they succeeded — a take
     # that rendered but is wrong (a duplicate face, a frozen shot).
     redo: frozenset[str] = frozenset()
+    # Labels to generate now; every other item keeps its manifest record and is not touched (empty = all).
+    only: frozenset[str] = frozenset()
     extra_meta: dict[str, Any] | None = None
     # Runs in the worker just before an item generates; raising fails the item.
     # A voiced film uses it to hand each segment the frame the previous one was
@@ -119,9 +121,13 @@ class BatchSpec:
 
 def _restore_succeeded(items: list[BatchItem], manifest_path: Path, redo: frozenset[str] = frozenset()) -> None:
     """--resume: carry forward items a previous run already paid for, except those asked to be redone."""
-    prior = {item.index: item for item in load_manifest(manifest_path)}
+    # By label first: a shot inserted into a film renumbers every shot after it, and an index would hand
+    # each of them its neighbour's clip. The index is the fallback for unlabelled items.
+    loaded = load_manifest(manifest_path)
+    by_label = {item.label: item for item in loaded if item.label}
+    by_index = {item.index: item for item in loaded}
     for current in items:
-        previous = prior.get(current.index)
+        previous = by_label.get(current.label) if current.label else by_index.get(current.index)
         if previous and previous.status == "succeeded" and current.label not in redo:
             current.status = "succeeded"
             current.output_path = previous.output_path
@@ -202,7 +208,7 @@ def run_batch(
         items=items, manifest_path=spec.manifest_path, output_dir=spec.output_dir
     )
 
-    pending = [i for i in items if i.status != "succeeded"]
+    pending = [i for i in items if i.status != "succeeded" and (not spec.only or i.label in spec.only)]
     if not pending:
         return result
 
