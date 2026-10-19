@@ -32,6 +32,7 @@ from typing import Any
 from .. import config
 from .. import cost as cost_mod
 from .. import drama
+from .. import spend
 from ..errors import CostConfirmationDeclined, RunnerError
 from ._cast_scenes import (  # noqa: F401 — re-exported: reel_cast.cast_scenes etc.
     _board_frame,
@@ -143,6 +144,35 @@ def _todo(bible: dict[str, Any], state: dict[str, Any], only: set[str]) -> list[
     return sorted(todo, key=lambda pair: bool(pair[1].get("like")))  # doubles after the faces they copy
 
 
+def _asset_lines(todo: list[tuple[str, dict[str, Any]]], bible: dict[str, Any], state: dict[str, Any],
+                 only: set[str], per: Decimal) -> list[spend.Line]:
+    def why(kind: str, item: dict[str, Any]) -> str:
+        if item["id"] in only:
+            return spend.ASKED
+        return spend.CHANGED if drama.asset_path(bible, kind, item["id"]).is_file() else spend.MISSING
+    return [(item["id"], per, why(kind, item)) for kind, item in todo]
+
+
+def _voice_why(item: dict[str, Any], bible: dict[str, Any], state: dict[str, Any]) -> str | None:
+    """Why `_voice` would buy this character a voice (ElevenLabs, unpriced here), or None when it reuses one."""
+    entry, sample = state.get(f"{item['id']}:voice") or {}, drama.asset_path(bible, "cast", item["id"], ".mp3")
+    lib = item.get("voice_library")
+    spec = f"library:{lib['id']}" if lib else _hash({"prompt": item.get("voice"), "identity": item["voice_text"]}, "")
+    if entry.get("hash") == spec and entry.get("voice_id") and sample.is_file():
+        return None
+    # A library actor whose id still matches only needs its sample read again: that is missing, not changed.
+    return spend.CHANGED if entry and entry.get("hash") != spec else spend.MISSING
+
+
+def _voice_lines(bible: dict[str, Any], state: dict[str, Any], args: argparse.Namespace) -> list[spend.Line]:
+    only = set((args.only or "").split(",")) - {""}
+    if args.no_voices:
+        return []
+    speakers = [i for i in [*(bible.get("cast") or []), *(bible.get("offscreen_voices") or [])]
+                if i.get("voice_text") and (not only or i["id"] in only)]
+    return [(f"voice:{i['id']}", None, why) for i in speakers if (why := _voice_why(i, bible, state))]
+
+
 _VOICE_SECONDS = 7.0
 
 
@@ -236,9 +266,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     state_path = Path(bible["_dir"]) / "cast.json"
     state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.is_file() else {}
 
-    todo = [] if args.voices_only else _todo(bible, state, set((args.only or "").split(",")) - {""})
+    only = set((args.only or "").split(",")) - {""}
+    todo = [] if args.voices_only else _todo(bible, state, only)
     drawer = config.get_provider(bible.get("image_provider") or _PROVIDER)
-    estimate = (drawer.estimate_cost(quality=bible.get("image_quality", "high")) or Decimal("0")) * len(todo) * args.tries
+    per = (drawer.estimate_cost(quality=bible.get("image_quality", "high")) or Decimal("0")) * args.tries
+    estimate = per * len(todo)
+    spend.show("Cast", _asset_lines(todo, bible, state, only, per) + _voice_lines(bible, state, args))
     print(f"Cast: {len(bible.get('cast') or [])} faces, {len(bible.get('locations') or [])} places, "
           f"{len(todo)} to render, up to ${estimate:.2f}.", file=sys.stderr)
     if todo:

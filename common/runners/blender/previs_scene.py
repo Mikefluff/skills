@@ -164,7 +164,10 @@ def _hero(keys, fps):
 
 
 # Poses an actor key can name: arm angles (degrees from hanging, raised forward-up) and the body's
-# squash, lift and tilt — enough for squash-and-stretch blocking, not animation.
+# squash, lift and tilt — enough for squash-and-stretch blocking, not animation. The squash, lift and tilt
+# and HEAD_RATIO are copied in previs.py (POSE_BODY, HEAD_RATIO), which checks the framing without
+# Blender; tests/unit/test_previs.py keeps the copies equal.
+HEAD_RATIO = (0.8, 0.22, 0.17)  # below this height a figure is a baby; its head radius / height; an adult's
 POSES = {
     "stand": {"arms": (10, 10)}, "arms_up": {"arms": (170, 170)}, "arms_out": {"arms": (90, 90), "spread": True},
     "point": {"arms": (10, 95)}, "wave": {"arms": (10, 150)}, "crouch": {"arms": (40, 40), "squash": 0.72},
@@ -255,9 +258,10 @@ def _actor(actor, fps):
     rgb, skin = tuple(actor.get("color") or TONE["hero"]), tuple(actor.get("skin") or (0.85, 0.62, 0.55))
     rig = bpy.data.objects.new(actor.get("id", "actor"), None)
     bpy.context.scene.collection.objects.link(rig)
-    head_r = h * (0.22 if h < 0.8 else 0.17)
+    small, baby, adult = HEAD_RATIO
+    head_r = h * (baby if h < small else adult)
     body_h = h - 2 * head_r
-    girth = h * (0.24 if h < 0.8 else 0.2)  # plush trolls: a soft barrel, not a pole
+    girth = h * (0.24 if h < small else 0.2)  # plush trolls: a soft barrel, not a pole
     parts = _figure(rgb, skin, girth, body_h, head_r) + _hair(actor, head_r, body_h + head_r)
     arms = _arms(rig, rgb, h, girth, body_h)
     for part in parts:

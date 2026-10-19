@@ -147,7 +147,7 @@ OUTPUT — valid JSON only:
  "board":{"aspect_ratio":"16:9","frames":[{"id":"f01","shot":1,"refs":["tanya","party_meadow_day"],"shot_spec":"...","prompt":"...","check":"..."}]},
  "shots":[{"index":1,"label":"t01","scene":1,"cast":["arthur"],"location":"party_meadow_day",
            "dialogue":[{"who":"arthur","line":"...","delivery":"whispering, conspiratorial"}],"line_at":0.4,
-           "body":"...","trim_start":0.5,"trim_seconds":3.5,"clock_at":0.0,
+           "body":"...","trim_start":0.5,"trim_seconds":3.5,"clock_at":0.0,"coverage":"t12",
            "kwargs":{"duration_seconds":5,"resolution":"480p"}}],
  "sound":{"total_seconds":210,"master":{"lufs":-14.0,"true_peak":-1.0},"sources":[...],"placements":[...]},
  "continuity":[{"what":"cake","state":"seven tiers, glowing pink","from":"t25"}]}
@@ -165,11 +165,13 @@ STORY
 10. Characters who belong together (couples, a team) get a small arc of their own across the acts — a disagreement, a reconciliation — told mostly in looks and action.
 11. "continuity" lists the props and states that change (the cake, cream on clothes, a garland on someone's head, damage to the room) with the shot where each state begins; every later frame and body keeps it.
 12. In a shot with three or more people, the body says where each of them is and where they move (the blocking), not only what the speaker does.
+13. Every object, rule or plan the story turns on is explained on screen before it matters: what it is, what it does or what the rule is, and why the people who go after it want it. A thing the climax spends (a glowing jar everyone fights over) is introduced by a line or a demonstration in the first act, not only seen.
 
 SHOTS
 - About one shot per 3.5 s of target length. Used length (trim_seconds) 1.5-5 s; action beats 1-2 s; a dialogue shot is its line (words / 2.6 s) + line_at + 0.4 s at least.
 - Lines in the dialogue language, short and speakable (3-12 words), in each character's voice; at most one line per shot, on its speaker, face close or medium; a quick exchange is cut shot-reverse-shot, one line per shot. Small children speak in one or two words, giggles and sounds. A comedy talks: about one line per 5 s of film, banter, asides and reactions included; silence is kept for the gags and the emotional turn.
 - "delivery" is a short acting note in English (Eleven v4 reads it as a tag): how it is said, not what.
+- Coverage: an exchange of two or more people (three lines or more in one place) is covered, not only cut shot-reverse-shot. Write a wide two-shot first: its own shot, everyone in the exchange in frame, reacting and listening, no line in it and no mouth speaking ("dialogue": [], the body says they listen, nod, glance); its trim_seconds short (1.5-2.5 s), its duration_seconds long enough to hold a second piece. Then the close-ups, one line each on its speaker. Then a shot that reuses the wide's tail: "clip": "shots/<wide label>.mp4", trim_start = the wide's trim_start + trim_seconds, trim_seconds 1-2 s, no body, the same cast and location. The cut runs wide, close-ups, wide. Every shot of the exchange, the wide included, carries "coverage": "<the wide's label>". The wide is one generation; its tail costs nothing.
 - Every shot names its outline scene ("scene"), its cast ids (faces seen, speakers first, at most 8: a generation takes 9 images with the place) and a location id; a shot with three or more cast faces may instead list "master" first in its frame refs and name the people by where they stand in it.
 - clock_at is the running sum of title card seconds and trim_seconds in order; line_at is seconds into the shot's used window.
 - body (English, 60-160 words, the runner adds asset lines and the look): one sentence of who, where, when, light; then "Shot [0-<n>s] - <size, angle, lens>, <camera move>. <action, physical and large>." — one shot per generation; the line as "<Name> says (<physical note>): {<line>}"; then "Dialogue language: <language>." when someone speaks; "<2-3 diegetic sounds in angle brackets>"; "No music."; the exclude line.
@@ -189,6 +191,7 @@ SOUND (the film's soundtrack under the cast's voices; Seedance's own audio is no
 PRE-OUTPUT CHECK
 - every outline event is shown, in order; no character, line or place outside the bible.
 - the protagonist appears in the first act; the clock is stated; every planted object pays off; "continuity" covers every changing prop.
+- every object, rule or plan the climax turns on is explained before it matters (rule 13); every exchange of three lines or more has a wide, close-ups and the wide's tail, all with "coverage".
 - trim_seconds sum plus title card seconds within 5 % of length_seconds; clock_at is the running sum.
 - board.frames count = shots count; every ref is a bible cast id, location id, "master" or an earlier frame id.
 - every placement names a declared source; nothing runs past total_seconds.
@@ -372,7 +375,7 @@ Master picture (optional): <path; the cast stands in it as described in the bibl
 Outline: <the user's words, unedited>
 Length: 210 s   Aspect ratio: 16:9   Dialogue language: <language>
 ```
-Then `reel_cast --plan-file` (faces, places, voices), `reel_board`, `reel_animatic` (watch it), and only then `reel --cost-only` and the render.
+Then the story check: ONE Agent with [`story-check-prompt.md`](story-check-prompt.md) as `system` and `drama.screenplay_text(plan, bible)` as the message; fix every problem it returns in the plan before anything is drawn. Then `reel_cast --plan-file` (faces, places, voices; it also sets the vendor-filter flags), `reel_board`, `reel_animatic` (watch it), and only then `reel --cost-only` and the render. A coverage tail's `"clip"` names `shots/<wide label>.mp4` until the wide is rendered; then write the rendered file's name from `manifest.json` (`shots/<timestamp>-<label>.mp4`) into it.
 
 RESTAGE:
 ```

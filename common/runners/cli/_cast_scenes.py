@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -181,6 +182,7 @@ def _fresh(plan: dict[str, Any], scene: dict[str, Any], bible: dict[str, Any]) -
 
 def cast_scenes(plan: dict[str, Any], bible: dict[str, Any]) -> None:
     """Each scene's references and composed prompt, from the bible. A scene may name its own `video_provider`."""
+    print("".join(f"  preflight {note}\n" for note in drama.preflight(plan, bible)), end="", file=sys.stderr)
     clips = None
     for scene in plan["shots"]:
         if scene.get("clip"):

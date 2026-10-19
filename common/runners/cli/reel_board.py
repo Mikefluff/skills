@@ -22,12 +22,17 @@ Reads plan["board"] (written by the film chain), writes <dir>/board/<id>.png and
 the frames to the shots: all of them as keyframes to a one-generation film, or
 each to its own shot when every shot is its own generation. Frames
 whose spec has not changed are reused, so editing one frame re-rolls only it.
+
+Before anything is paid for, every frame to draw is listed with why: asked for
+(--only), missing, changed since its last render, or failed last time.
+--mark-current re-stamps the cache of every frame whose png is on disk, drawing
+nothing — for when the cache rule changed and not the frames (board.json written
+by a version that hashed the shot number would otherwise redraw the whole board).
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -38,6 +43,7 @@ from typing import Any
 from .. import config
 from .. import cost as cost_mod
 from ..errors import CostConfirmationDeclined, ProviderError, RunnerError
+from ._board_cache import _LOOK, _spec_hash, _stale, _summary, _why, mark_current  # noqa: F401 — re-exported
 
 _PROVIDER = "openrouter-nano-banana-pro"
 _PASS = 8
@@ -65,15 +71,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--only", help="comma-separated frame ids to re-roll even if cached")
     parser.add_argument("--judge", action="store_true",
                         help="let a vision critic score each take and re-roll weak ones (off: one take, judged by eye)")
+    parser.add_argument("--mark-current", action="store_true",
+                        help="draw nothing: re-stamp the cache of every frame whose png exists (with --only, of "
+                             "those frames), so frames hashed under an older rule are not redrawn; prints which")
     parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
     return parser
-
-
-def _spec_hash(frame: dict[str, Any], identity: str) -> str:
-    """What the frame looks like; editorial marks such as "revised", and the shot number that moves whenever a
-    shot is put in before it, do not make it a new frame."""
-    spec = {k: v for k, v in frame.items() if k not in ("revised", "shot")}
-    return hashlib.sha256(json.dumps([spec, identity], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
 
 
 def _jpeg(png: Path) -> Path:
@@ -271,13 +273,6 @@ def _attach_frame(shot: dict[str, Any], frame: dict[str, Any], jpg: str, charact
         kwargs["first_frame"] = jpg
 
 
-def _stale(frames: list[dict[str, Any]], state: dict[str, Any], only: set[str], identity: str,
-           out_dir: Path) -> list[dict[str, Any]]:
-    """Frames to render: asked for by --only, changed since their last render, or missing."""
-    return [f for f in frames if f["id"] in only or state.get(f["id"], {}).get("hash") != _spec_hash(f, identity)
-            or not (out_dir / f"{f['id']}.png").is_file()]
-
-
 def _known_refs(board: dict[str, Any]) -> tuple[dict[str, str], dict[str, str]]:
     """What a frame's refs can name before any frame is drawn: the character, or a drama's cast and places."""
     paths = {"character": board["character"]} if board.get("character") else {}
@@ -338,11 +333,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.is_file() else {}
     only = set((args.only or "").split(",")) - {""}
 
-    todo = _stale(frames, state, only, board.get("identity", ""), out_dir)
+    stale = _stale(frames, state, only, board.get("identity", ""), out_dir)
+    todo = [f for f, _ in stale]
     if not args.judge:
         args.tries = 1
     drawer = config.get_provider(board.get("image_provider") or _PROVIDER)
-    estimate = (drawer.estimate_cost(quality=board.get("image_quality", "high")) or Decimal("0")) * len(todo) * args.tries
+    per_frame = (drawer.estimate_cost(quality=board.get("image_quality", "high")) or Decimal("0")) * args.tries
+    estimate = per_frame * len(todo)
+    _summary(stale, per_frame, only)
     print(f"Board: {len(frames)} frames, {len(todo)} to render, up to ${estimate:.2f} "
           f"({args.tries} tries each at most).", file=sys.stderr)
     if todo:
@@ -359,6 +357,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     args = build_parser().parse_args()
     config.load_all_providers()
+    if args.mark_current:
+        marked = mark_current(args)
+        print(f"Board: re-stamped {len(marked)} frame(s): {', '.join(marked) or 'none needed'}", file=sys.stderr)
+        return 0
     try:
         report = run(args)
     except CostConfirmationDeclined as exc:
