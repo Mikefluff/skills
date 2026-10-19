@@ -1,6 +1,6 @@
 """Previs phase of a voiced film — the camera, designed in clay before any video.
 
-  python3 -m common.runners.cli.reel_previs --plan-file <dir>/plan.json [--only s03,s04]
+  python3 -m common.runners.cli.reel_previs --plan-file <dir>/plan.json [--only s03,s04] [--auto-skip]
 
 Reads plan["previs"] (written by the film chain), renders every shot's grey
 blocking clip in Blender, headless — no cost, about a second of render per
@@ -10,6 +10,11 @@ second of film — and writes <dir>/previs/<label>.mp4, previs/contact.jpg
 clip as @Video1 (`reference_videos`, uploaded through `media_host` on routes
 that take only URLs). Watch the clips before paying for video: the camera,
 the timing of every light and the blocking in them is what Seedance will do.
+After rendering, each cast head is projected through the shot's camera (pure
+Python, `previs.framing`): heads lost off the frame, cut at the edge of a close
+shot or too small for the shot size named in the body are printed and written
+to previs/framing.json; --auto-skip sets "no_previs" on those shots so the
+storyboard keyframe leads instead.
 
 Blender is found through $BLENDER, then `blender` on PATH, then the macOS
 application bundle.
@@ -44,6 +49,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--review", action="store_true",
                         help="have a vision model read each clip against its shot (a fraction of a cent per shot) "
                              "and write previs/review.json")
+    parser.add_argument("--auto-skip", action="store_true",
+                        help="set \"no_previs\": true on shots whose framing check flags a cast head lost, cut "
+                             "or too small, so the storyboard keyframe leads instead (default: only report)")
     return parser
 
 
@@ -196,6 +204,31 @@ def _review(plan: dict[str, Any], out_dir: Path) -> dict[str, Any]:
     return report
 
 
+def _framing(plan: dict[str, Any], out_dir: Path, labels: set[str] | None, skip: bool) -> dict[str, list[str]]:
+    """Check where each cast head lands: previs/framing.json gets every flagged shot of the plan; the shots
+    just rendered are printed and, with `skip`, taken off their previs."""
+    report = pv.framing(plan)
+    (out_dir / "framing.json").write_text(json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8")
+    flags = {k: v for k, v in report.items() if not labels or k in labels}
+    for label, problems in flags.items():
+        more = f" (+{len(problems) - 3} more)" if len(problems) > 3 else ""
+        print(f"  framing {label}: {'; '.join(problems[:3])}{more}", file=sys.stderr)
+    if skip:
+        for entry in plan["shots"]:
+            if entry["label"] in flags:
+                entry["no_previs"] = True
+    verb = "set no_previs on" if skip else "flagged (--auto-skip drops their previs)"
+    print(f"Previs framing: {len(flags)} shot(s) {verb}; {out_dir / 'framing.json'}", file=sys.stderr)
+    return flags
+
+
+def _save(path: Path, plan: dict[str, Any]) -> None:
+    """Write the plan through a temporary file, so a crash never leaves half a plan."""
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     plan = json.loads(args.plan_file.read_text(encoding="utf-8"))
     _check(plan)
@@ -203,6 +236,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
     labels = set((args.only or "").split(",")) - {""} or None
     _blender(job(plan, out_dir, labels), out_dir)
+    _framing(plan, out_dir, labels, getattr(args, "auto_skip", False))
 
     clips = _hand_clips(plan, out_dir)
     if clips:
@@ -210,7 +244,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         _animatic(plan, out_dir)
         if args.review:
             _review(plan, out_dir)
-    args.plan_file.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    _save(args.plan_file, plan)
     return {"clips": [c for c, _ in clips], "contact": out_dir / "contact.jpg"}
 
 

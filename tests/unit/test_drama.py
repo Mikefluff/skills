@@ -576,5 +576,60 @@ class Retime(unittest.TestCase):
         self.assertEqual([[l["label"] for l in g] for g in av.exchanges(plan)], [["t1", "t2"], ["t3"]])
 
 
+KIDS = {**BIBLE, "cast": [*BIBLE["cast"],
+                          {"id": "bo", "name": "Bo", "identity": "troll toddler, purple hoodie", "voice": "Toddler boy, about 3"},
+                          {"id": "lin", "name": "Lin", "identity": "small girl", "age": 30, "voice": "warm alto"}]}
+STILL = {"camera": [{"t": 0, "pos": [0, -2, 1], "look": [0, 0, 1]}, {"t": 4, "pos": [0, -2, 1], "look": [0, 0, 1]}]}
+MOVING = {"camera": [{"t": 0, "pos": [0, -2, 1], "look": [0, 0, 1]}, {"t": 4, "pos": [0, -1, 1], "look": [0, 0, 1]}]}
+
+
+class Preflight(unittest.TestCase):
+    def test_a_childs_voice_or_singing_turns_the_generations_audio_off(self):
+        plan = {"shots": [scene(label="a", cast=["bo"], dialogue=[{"who": "bo", "line": "Ещё!"}]),
+                          scene(label="b", cast=["malai"], dialogue=[]),
+                          scene(label="c", dialogue=[], body="Malai sings to the cake. [Strictly exclude]: singing"),
+                          scene(label="d", dialogue=[], body="Shot 1 [0-4s]. No singing."),
+                          scene(label="e", cast=["lin"], dialogue=[{"who": "lin", "line": "Hi"}])],
+                "vocals": [{"shot": "b", "who": "bo", "text": "[giggles]"}]}
+        notes = drama.preflight(plan, KIDS)
+        audio = {s["label"]: (s.get("kwargs") or {}).get("generate_audio") for s in plan["shots"]}
+        self.assertEqual(audio, {"a": False, "b": False, "c": False, "d": None, "e": None}, "an age beats the words")
+        self.assertIn("a: generate_audio off, a child speaks (Bo)", notes)
+
+    def test_a_locked_off_previs_is_noted_not_dropped_and_explicit_keys_stay(self):
+        plan = {"previs": {"shots": {"a": STILL, "b": MOVING, "c": STILL}},
+                "shots": [scene(label="a", cast=["bo"], dialogue=[{"who": "bo", "line": "Ой"}],
+                                kwargs={"generate_audio": True, "reference_videos": ["previs/a.mp4"]}),
+                          scene(label="b"), scene(label="c", no_previs=False)]}
+        notes = drama.preflight(plan, KIDS)
+        self.assertEqual([s.get("no_previs") for s in plan["shots"]], [None, None, False])
+        self.assertEqual(plan["shots"][0]["kwargs"], {"generate_audio": True, "reference_videos": ["previs/a.mp4"]},
+                         "audio set by hand stays on, the previs stays sent")
+        self.assertTrue(any(n.startswith("a: the previs camera is locked off") for n in notes))
+
+    def test_cast_scenes_runs_the_preflight_first(self):
+        plan = {"shots": [scene(cast=["bo"], dialogue=[{"who": "bo", "line": "Ой"}])]}
+        reel_cast.cast_scenes(plan, KIDS)
+        self.assertFalse(plan["shots"][0]["kwargs"]["generate_audio"])
+
+
+class StoryCheck(unittest.TestCase):
+    def test_the_screenplay_is_action_and_lines_in_order_without_the_boilerplate(self):
+        plan = {"trailer": {"title_cards": [{"after": "t00", "text": "Birthday"}, {"after": "t2", "text": ""}]},
+                "shots": [scene(label="t1", scene=1, dialogue=[{"who": "malai", "line": "เร็วเข้า"}],
+                                body="Malai runs. Dialogue language: Thai. <rain> No music. [Strictly exclude]: text"),
+                          scene(label="t2", scene=1, dialogue=[], body="Malai says: {ok}"),
+                          scene(label="x", clip="shots/x.mp4", body="", dialogue=[])]}
+        self.assertEqual(drama.screenplay_text(plan, BIBLE),
+                         "[title card: Birthday]\n\nt1 (scene 1)\nMalai runs. <rain>\n  Malai: เร็วเข้า\n\n"
+                         "t2 (scene 1)\nMalai says: {ok}")
+
+    def test_coverage_names_a_wide_that_carries_no_line(self):
+        plan = {"shots": [scene(label="w", coverage="w", dialogue=[]), scene(label="c1", coverage="w"),
+                          scene(label="c2", coverage="nope"), scene(label="w2", coverage="w2")]}
+        self.assertEqual(drama.validate(plan, BIBLE), ["c2: coverage 'nope' is not a wide that names itself",
+                                                       "w2: a coverage wide carries no line; the close-ups do"])
+
+
 if __name__ == "__main__":
     unittest.main()

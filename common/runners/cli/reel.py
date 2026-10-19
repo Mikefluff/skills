@@ -63,8 +63,9 @@ from typing import Any
 
 from .. import batch as batch_mod
 from .. import cost as cost_mod
+from .. import spend
 from ..errors import CostConfirmationDeclined
-from . import _reel_sound
+from . import _reel_sound, _reel_spend
 from ._reel_plan import (  # noqa: F401 — re-exported: reel.prepare, reel.ReelJob, reel.Routed ...
     PlanError,
     ReelJob,
@@ -232,11 +233,11 @@ def _narrow_to(job: ReelJob, only: frozenset[str]) -> None:
     job.music_item = None
 
 
-def _confirm(job: ReelJob, total: Decimal, yes: bool) -> bool:
+def _confirm(job: ReelJob, total: Decimal, yes: bool, n_items: int | None = None) -> bool:
     try:
         cost_mod.confirm_batch(
             total,
-            n_items=len(job.shot_items) + (1 if job.music_item else 0),
+            n_items=len(job.shot_items) + (1 if job.music_item else 0) if n_items is None else n_items,
             modality="reel",
             yes=yes,
         )
@@ -258,6 +259,9 @@ def _generate(job: ReelJob, args: argparse.Namespace, meta: dict[str, Any], only
     from .. import shot_matrix
 
     shot_matrix.record_takes(job.plan, job.shot_items, lambda it: job.video_provider.estimate_cost(**it.kwargs))
+    from ._reel_hd import upscale_new
+
+    upscale_new(job.plan, shots_result.items)  # "hd": the clips this run rendered, upscaled as they land
     if not shots_result.ok:
         print(
             f"  {len(shots_result.failed)} shot(s) failed. Components saved; "
@@ -297,7 +301,11 @@ def main() -> int:
     total = video_cost + music_cost
     if args.cost_only:
         return print_cost(job, video_cost, music_cost)
-    if not _confirm(job, total, args.yes):
+    # What this run will actually generate (after resume), each with why: that, not the plan, is confirmed.
+    lines, warnings = _reel_spend.to_buy(job, resume=args.resume, redo=_labels(args.redo), only=only)
+    spend.show("Reel", lines, warnings)
+    total = spend.total(lines)
+    if not _confirm(job, total, args.yes, n_items=len(lines)):
         return 3
 
     meta = _meta(job, total)

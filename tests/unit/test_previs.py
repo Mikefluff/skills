@@ -1,5 +1,6 @@
 """Previs spec: camera moves expand into keys, and a spec that cannot render says why."""
 
+import ast
 import sys
 import unittest
 from pathlib import Path
@@ -63,6 +64,60 @@ class Validate(unittest.TestCase):
         self.assertIn("at least two keys", problems)
         self.assertIn("outside 0-4s", problems)
         self.assertIn("unknown id 'nope'", problems)
+
+
+class Framing(unittest.TestCase):
+    """The head projection the previs uses to flag shots that lose or shrink their cast."""
+
+    ADULT = {"id": "arthur", "height": 1.2, "keys": [{"t": 0, "pos": [0, 0], "facing": 180}]}
+
+    def shot(self, pos, look, lens=50, actor=None):
+        return {"set": "pit", "lens": lens, "camera": [{"t": 0, "pos": pos, "look": look}, {"t": 4, "pos": pos, "look": look}],
+                "actors": [actor or self.ADULT]}
+
+    def test_a_head_the_camera_aims_at_lands_in_the_centre(self):
+        centre, r = pv.head_at(self.ADULT, 0)
+        self.assertAlmostEqual(centre[2], 1.2 - 1.2 * 0.17)
+        seen = pv.project(centre, r, {"pos": [0, -2, centre[2]], "look": centre, "lens": 50}, 16 / 9)
+        self.assertAlmostEqual(seen["u"], 0.5)
+        self.assertAlmostEqual(seen["v"], 0.5)
+        self.assertAlmostEqual(seen["size"], 2 * r * 50 / 2 / (36 * 9 / 16))
+
+    def test_a_centred_close_up_passes(self):
+        head = pv.head_at(self.ADULT, 0)[0]
+        shot = self.shot([0, -1.2, head[2]], head)
+        self.assertEqual(pv.framing_problems(shot, ["arthur"], 4, "Shot [0-4s] - close-up, 50 mm", 16 / 9), [])
+
+    def test_a_head_off_the_frame_or_behind_the_lens_fails(self):
+        off = self.shot([3, -2, 1], [3, 5, 1])
+        self.assertIn("out of frame", " ".join(pv.framing_problems(off, ["arthur"], 4, "Shot [0-4s] - wide", 16 / 9)))
+        behind = self.shot([0, 2, 1], [0, 5, 1])
+        self.assertIn("behind the camera", " ".join(pv.framing_problems(behind, ["arthur"], 4, "wide", 16 / 9)))
+
+    def test_a_tiny_head_in_a_close_up_fails_but_passes_in_a_wide(self):
+        head = pv.head_at(self.ADULT, 0)[0]
+        far = self.shot([0, -9, head[2]], head, lens=24)  # a 5% head
+        self.assertIn("too small", " ".join(pv.framing_problems(far, ["arthur"], 4, "Shot [0-4s] - close-up", 16 / 9)))
+        self.assertEqual(pv.framing_problems(far, ["arthur"], 4, "Shot [0-4s] - wide", 16 / 9), [])
+
+    def test_a_close_up_framed_on_the_belly_cuts_the_face(self):
+        baby = {"id": "baby", "height": 0.52, "keys": [{"t": 0, "pos": [0, 0], "facing": 180}]}
+        shot = self.shot([0, -0.6, 0.2], [0, 0, 0.2], lens=35, actor=baby)
+        problems = " ".join(pv.framing_problems(shot, ["baby"], 4, "Shot [0-4s] - close-up", 16 / 9))
+        self.assertRegex(problems, "cut by the frame edge|out of frame")
+
+    def test_actors_outside_the_cast_are_not_judged(self):
+        off = self.shot([3, -2, 1], [3, 5, 1])
+        self.assertEqual(pv.framing_problems(off, ["someone_else"], 4, "wide", 16 / 9), [])
+
+    def test_the_blender_script_builds_the_figure_these_numbers_describe(self):
+        tree = ast.parse((Path(pv.__file__).parent / "blender" / "previs_scene.py").read_text(encoding="utf-8"))
+        found = {t.id: ast.literal_eval(node.value) for node in tree.body if isinstance(node, ast.Assign)
+                 for t in node.targets if isinstance(t, ast.Name) and t.id in ("HEAD_RATIO", "POSES")}
+        self.assertEqual(found["HEAD_RATIO"], pv.HEAD_RATIO)
+        body = {name: (p.get("squash", 1), p.get("lift", 0), p.get("tilt", 0)) for name, p in found["POSES"].items()}
+        self.assertEqual({k: v for k, v in body.items() if v != (1, 0, 0)}, pv.POSE_BODY)
+        self.assertEqual(set(found["POSES"]), pv.POSES)
 
 
 if __name__ == "__main__":

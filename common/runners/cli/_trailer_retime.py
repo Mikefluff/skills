@@ -278,15 +278,15 @@ def shift(plan: dict[str, Any], point: float, delta: float) -> None:
         sound["total_seconds"] = round(float(sound["total_seconds"]) + delta, 3)
 
 
-def insert(plan: dict[str, Any], shot: dict[str, Any], at: float) -> None:
-    """Put a shot into the cut at clock `at`, everything from there on moving later by its length."""
-    # storyboard frames name their shot by index: carry each to its shot's new number
+def _owners(plan: dict[str, Any]) -> list[tuple[dict[str, Any], str | None]]:
+    """Storyboard frames name their shot by index: each frame with the label of the shot it belongs to now."""
     frames = (plan.get("board") or {}).get("frames") or []
     owner = {int(s["index"]): s["label"] for s in plan["shots"] if "index" in s}
-    by_frame = [(f, owner.get(int(f.get("shot", 0)))) for f in frames]
-    shift(plan, at, float(shot["trim_seconds"]))
-    shot["clock_at"] = round(at, 3)
-    plan["shots"].append(shot)
+    return [(f, owner.get(int(f.get("shot", 0)))) for f in frames]
+
+
+def _renumber(plan: dict[str, Any], by_frame: list[tuple[dict[str, Any], str | None]]) -> None:
+    """Shots numbered in clock order again, each frame carried to its shot's new number."""
     plan["shots"].sort(key=lambda s: float(s["clock_at"]))
     for n, s in enumerate(plan["shots"], 1):
         s["index"] = n
@@ -295,3 +295,24 @@ def insert(plan: dict[str, Any], shot: dict[str, Any], at: float) -> None:
         if label in index:
             f["shot"] = index[label]
 
+
+def insert(plan: dict[str, Any], shot: dict[str, Any], at: float) -> None:
+    """Put a shot into the cut at clock `at`, everything from there on moving later by its length."""
+    by_frame = _owners(plan)
+    shift(plan, at, float(shot["trim_seconds"]))
+    shot["clock_at"] = round(at, 3)
+    plan["shots"].append(shot)
+    _renumber(plan, by_frame)
+
+
+def remove(plan: dict[str, Any], label: str) -> dict[str, Any]:
+    """Take a shot out of the cut, everything after it moving earlier by its length; its frames go with it.
+    Returns the shot taken out."""
+    shot = next(s for s in plan["shots"] if s["label"] == label)
+    by_frame = _owners(plan)
+    plan["shots"].remove(shot)
+    shift(plan, float(shot["clock_at"]) + float(shot["trim_seconds"]), -float(shot["trim_seconds"]))
+    _renumber(plan, by_frame)
+    if plan.get("board"):
+        plan["board"]["frames"] = [f for f, owner in by_frame if owner != label]
+    return shot

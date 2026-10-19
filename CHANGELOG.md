@@ -24,6 +24,14 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
     - `reel_upscale` (Real-ESRGAN animevideov3, local) and `"hd"` cuts at 1080p;
     - a film that ends on its picture keeps its sound to the last card.
   - `_trailer_retime.insert` / `shift` put a shot into a cut and move the clock, the cards, the sound and the storyboard indices with it.
+- **reel-builder: what the first short film taught, built in.**
+  - `reel_insert --from inserts.json` puts shots into a cut, before, after or in place of another, including hand-cut pieces of a take. Frames, previs, vocals and continuity come along, the plan is validated, and the next commands are printed.
+  - Before every paid confirmation, `reel`, `reel_board` and `reel_cast` list what they will buy and why: asked, missing, changed, failed last time. `--redo` warns when it would also render missing shots. `reel_board --mark-current` re-stamps drawn frames, and a frame's cache key is only what it looks like.
+  - The previs checks its own framing: a cast head off the frame, cut by the edge in a close shot, or too small for the shot size is flagged in `previs/framing.json`, and `--auto-skip` lets the storyboard frame lead those shots.
+  - `drama.preflight` turns off generated audio where a child speaks or someone sings, before Seedance's copyright filter refuses it.
+  - The story check (`story-check-prompt.md`, `drama.screenplay_text`): a reader sees only the screenplay and names every object, rule or plan the story turns on without a setup, before anything is drawn. SHORT story rule 13, and `coverage` for an exchange shot as a wide plus close-ups.
+  - `reel_listen` transcribes every line in the finished cut with a local Whisper and flags the ones that cannot be made out.
+  - With `"hd"`, `reel` upscales each clip as it lands.
 
 ### Fixed
 

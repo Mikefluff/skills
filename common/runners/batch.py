@@ -22,6 +22,7 @@ from typing import Any, Callable
 
 from . import atomicfile
 from . import output as output_mod
+from . import spend
 from .errors import KeyMissingError, ProviderError, RunnerError, TimeoutError as RunnerTimeoutError
 from .providers.base import GenerationResult, JobHandle, Modality, Provider
 
@@ -119,15 +120,43 @@ class BatchSpec:
         return self.modality if self.modality in {"image", "video", "music", "audio"} else "image"
 
 
-def _restore_succeeded(items: list[BatchItem], manifest_path: Path, redo: frozenset[str] = frozenset()) -> None:
-    """--resume: carry forward items a previous run already paid for, except those asked to be redone."""
+def _previous(manifest_path: Path) -> Callable[[BatchItem], BatchItem | None]:
+    """The manifest record of an item, if a previous run left one."""
     # By label first: a shot inserted into a film renumbers every shot after it, and an index would hand
     # each of them its neighbour's clip. The index is the fallback for unlabelled items.
     loaded = load_manifest(manifest_path)
     by_label = {item.label: item for item in loaded if item.label}
     by_index = {item.index: item for item in loaded}
+    return lambda current: by_label.get(current.label) if current.label else by_index.get(current.index)
+
+
+def pending_reasons(items: list[BatchItem], manifest_path: Path, *, resume: bool,
+                    redo: frozenset[str] = frozenset(), only: frozenset[str] = frozenset()) -> list[tuple[BatchItem, str]]:
+    """The items run_batch would generate with this spec, each with why (a `spend` reason); generates nothing."""
+    previous = _previous(manifest_path)
+    out = []
+    for item in items:
+        prev = previous(item)
+        done = prev is not None and prev.status == "succeeded"
+        if (only and item.label not in only) or (resume and done and item.label not in redo):
+            continue
+        out.append((item, _reason(item, prev, redo | only)))
+    return out
+
+
+def _reason(item: BatchItem, prev: BatchItem | None, asked: frozenset[str]) -> str:
+    if item.label in asked:
+        return spend.ASKED
+    if prev is None:
+        return spend.MISSING
+    return {"succeeded": spend.RERUN, "failed": spend.FAILED}.get(prev.status, spend.MISSING)
+
+
+def _restore_succeeded(items: list[BatchItem], manifest_path: Path, redo: frozenset[str] = frozenset()) -> None:
+    """--resume: carry forward items a previous run already paid for, except those asked to be redone."""
+    previous_of = _previous(manifest_path)
     for current in items:
-        previous = by_label.get(current.label) if current.label else by_index.get(current.index)
+        previous = previous_of(current)
         if previous and previous.status == "succeeded" and current.label not in redo:
             current.status = "succeeded"
             current.output_path = previous.output_path
