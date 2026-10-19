@@ -32,6 +32,13 @@ Tones: light, dark, hero. `kind` is box, cylinder, truss
 (gates of towers and a span along y) or crowd (a grid of standing figures).
 The hero figure — body, head, hat brim — appears in a shot that has "hero"
 keys and nowhere else; a block with an `id` can be fired (lit) at a time.
+
+An ensemble film gives a shot "actors" instead: each
+  {"id": "tanya", "height": 1.2, "color": [0.95, 0.35, 0.65], "hair": "big", "hair_color": [...],
+   "keys": [{"t": 0, "pos": [x, y(, z)], "facing": 0, "pose": "stand"}]}
+is a troll-proportioned figure (big head, ears, nose, eyes on the side it faces) in its own colour, so who
+is where reads in the clay. Poses: POSES below. Any prop may move on "anim" keys
+{"t", "at": [x, y, z], "scale": [sx, sy, sz], "rot": [deg x, y, z]} — a cake that rises, a rocket that flies.
 """
 
 from __future__ import annotations
@@ -40,6 +47,8 @@ import math
 from typing import Any
 
 KINDS = {"box", "cylinder", "truss", "crowd"}
+POSES = {"stand", "arms_up", "arms_out", "point", "wave", "crouch", "jump", "fall", "lean", "hug", "sit"}
+HAIR = {"big", "bun", "ponytail", "short", "long", "turban", "hood", "none"}
 TONES = {"light", "dark", "hero"}
 
 
@@ -100,15 +109,34 @@ def _shot_problems(label: str, shot: dict[str, Any], sets: dict[str, list[dict[s
     return problems + _timed_problems(label, shot, keys, ids, duration)
 
 
+def _timed(shot: dict[str, Any], keys: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Every timed thing in a shot: camera keys, hero and fire cues, moving props, actor keys."""
+    moving = [k for prop in shot.get("extra") or [] for k in prop.get("anim") or []]
+    acting = [k for a in shot.get("actors") or [] for k in a.get("keys") or []]
+    return [*keys, *(shot.get("hero") or []), *(shot.get("fire") or []), *moving, *acting]
+
+
 def _timed_problems(label: str, shot: dict[str, Any], keys: list[dict[str, Any]], ids: set[Any],
                     duration: float) -> list[str]:
     """Keys outside the generation, and cues that fire nothing."""
-    timed = [*keys, *(shot.get("hero") or []), *(shot.get("fire") or [])]
     late = [f"{label}: time {item.get('t')} is outside 0-{duration:g}s"
-            for item in timed if not 0 <= float(item.get("t", 0)) <= duration + 1e-6]
+            for item in _timed(shot, keys) if not 0 <= float(item.get("t", 0)) <= duration + 1e-6]
     unknown = [f"{label}: fire refers to unknown id {cue.get('id')!r}"
                for cue in shot.get("fire") or [] if cue.get("id") not in ids]
-    return late + unknown
+    return late + unknown + _actor_problems(label, shot.get("actors") or [])
+
+
+def _actor_problems(label: str, actors: list[dict[str, Any]]) -> list[str]:
+    problems = []
+    for actor in actors:
+        name = actor.get("id", "?")
+        if not actor.get("keys"):
+            problems.append(f"{label}: actor {name} has no keys")
+        if actor.get("hair", "short") not in HAIR:
+            problems.append(f"{label}: actor {name} hair must be one of {sorted(HAIR)}")
+        problems += [f"{label}: actor {name} pose {k.get('pose')!r} is not one of {sorted(POSES)}"
+                     for k in actor.get("keys") or [] if k.get("pose", "stand") not in POSES]
+    return problems
 
 
 def validate(previs: dict[str, Any], durations: dict[str, float]) -> list[str]:

@@ -12,8 +12,13 @@ under. The plan's `sound` block is generated (or reused) and mixed exactly as
 the final cut will be. Writes <out>/animatic.mp4, <out>/animatic-dialogue.wav
 and <out>/soundtrack.wav.
 
-The stand-in voices are only for timing and rhythm: in the film the shots
-speak with Seedance's own voices.
+With --clips the same clock is cut from the rendered shots instead (the reel
+manifest, or a shot's own "clip" for a composite cut by hand), and a shot not
+yet rendered stays its storyboard frame, so a half-rendered trailer can be
+watched. A speaking shot is trimmed where its mouth opens on the cast's line:
+the generation speaks the line with its own voice, Scribe finds when (cached in
+shots/mouths.json), and the trim puts that moment where the cast's take plays.
+The plan's "grade" is laid on every clip. Writes <out>/trailer.mp4.
 """
 
 from __future__ import annotations
@@ -33,9 +38,14 @@ from .. import cost as cost_mod
 from .. import drama
 from ..errors import CostConfirmationDeclined, ProviderError, RunnerError
 from . import _reel_sound
-
-_FPS = 24
-_FONT = "/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf"
+from ._animatic_clips import (  # noqa: F401 — re-exported, the module's public names
+    _length, clip_start, mouth_at, mouth_marks, rendered, speech, tighten,
+)
+from ._animatic_mix import land_punchlines, snap_to_action, with_places, with_vocals  # noqa: F401
+from ._animatic_picture import (  # noqa: F401
+    _FONT, _FPS, _MOVES, Takes, Window, _bars, _card, _clip_part, _still, camera_move, frame_aligned, picture,
+    timeline,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -44,6 +54,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fit-lines", action="store_true",
                         help="lengthen every speaking shot to its line (rounded to the beat), move the rest of the "
                              "cut and its sound later, and save the plan before building")
+    parser.add_argument("--clips", action="store_true",
+                        help="cut the rendered shots (storyboard frames where none is rendered yet) into trailer.mp4")
     parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
     return parser
 
@@ -51,19 +63,12 @@ def build_parser() -> argparse.ArgumentParser:
 # ── the clock ───────────────────────────────────────────────────────────────
 
 
-def timeline(plan: dict[str, Any]) -> list[dict[str, Any]]:
-    """Shots and title cards in clock order: {"kind", "at", "seconds", ...}."""
-    items = [{"kind": "shot", "at": float(s["clock_at"]), "seconds": float(s["trim_seconds"]), "shot": s}
-             for s in plan["shots"]]
-    items += [{"kind": "card", "at": float(c["clock_at"]), "seconds": float(c["seconds"]), "text": c["text"], "card": c}
-              for c in (plan.get("trailer") or {}).get("title_cards") or []]
-    return sorted(items, key=lambda item: item["at"])
-
-
 def lines(plan: dict[str, Any]) -> list[dict[str, Any]]:
     """Every dialogue line with where it starts on the clock."""
     out = []
     for shot in plan["shots"]:
+        if shot.get("cut"):
+            continue
         for line in shot.get("dialogue") or []:
             # eleven_v3 reads a leading [tag] as direction: "[flat, tired] I'm not Christopher Park."
             text = f"[{line['delivery']}] {line['line']}" if line.get("delivery") else line["line"]
@@ -127,8 +132,10 @@ def fit_lines(plan: dict[str, Any], bible: dict[str, Any], out: Path) -> dict[st
     return lengths
 
 
-def scratch_dialogue(plan: dict[str, Any], bible: dict[str, Any], total: float, out: Path) -> Path:
-    """The trailer's lines in the cast's voices, exchanges read as one take, fitted to their shots, as one WAV."""
+def scratch_dialogue(plan: dict[str, Any], bible: dict[str, Any], total: float, out: Path,
+                     marks: dict[str, tuple[float, float, float]] | None = None) -> tuple[Path, dict[str, float]]:
+    """The trailer's lines in the cast's voices, exchanges read as one take, fitted to their shots, as one WAV;
+    with where each speaking shot's first line starts on the clock."""
     from . import _animatic_voice as av
 
     groups = av.exchanges(plan)
@@ -139,91 +146,31 @@ def scratch_dialogue(plan: dict[str, Any], bible: dict[str, Any], total: float, 
     for group in groups:
         lines_ += group
         clips += av.read_exchange(group, voices, cache, language, bible)
-    av.mix(av.fit(lines_, clips), total, out)
-    return out
-
-
-# ── picture ─────────────────────────────────────────────────────────────────
-
-
-# Camera move named in the shot body → how the still moves: (zoom from, zoom to, pan x from, pan x to, shake).
-_MOVES = [
-    (r"crash[- ]zoom", (1.0, 1.0, 0.0, 0.0, 0)),  # handled as a late snap below
-    (r"whip", (1.08, 1.08, -0.06, 0.0, 0)),
-    (r"pull[- ]?back|pulls back|dolly out|zoom out", (1.18, 1.0, 0.0, 0.0, 0)),
-    (r"push[- ]?in|pushes in|dolly in|creep|zoom in", (1.0, 1.15, 0.0, 0.0, 0)),
-    (r"track(s|ing)? left|dolly left|truck left|pan left", (1.1, 1.1, 0.04, -0.04, 0)),
-    (r"track|dolly|truck|pan|arc|orbit", (1.1, 1.1, -0.04, 0.04, 0)),
-    (r"hand-?held|shak", (1.08, 1.1, 0.0, 0.0, 6)),
-]
-
-
-def camera_move(body: str) -> tuple[float, float, float, float, int, bool]:
-    """(zoom0, zoom1, x0, x1, shake px, crash) for the first move the shot body names; a slow push otherwise."""
-    text = body.lower()
-    crash = bool(re.search(r"crash[- ]zoom", text))
-    for pattern, move in _MOVES[1:]:
-        if re.search(pattern, text):
-            return (*move, crash)
-    return (1.0, 1.05, 0.0, 0.0, 0, crash)
-
-
-def _still(image: Path, seconds: float, out: Path, size: str, body: str = "") -> None:
-    """The frame, moved the way the shot's camera moves — the cut reads in motion, not as a slideshow."""
-    w, h = (int(v) for v in size.split("x"))
-    z0, z1, x0, x1, shake, crash = camera_move(body)
-    n = max(1, round(seconds * _FPS))
-    prog = f"(on/{n})"
-    zoom = f"({z0}+({z1}-{z0})*{prog})" + (f"*(1+0.35*gte(on,{int(n * 0.7)}))" if crash else "")
-    x = f"(iw-iw/zoom)/2+iw*({x0}+({x1}-{x0})*{prog})" + (f"+{shake}*sin(on*1.7)" if shake else "")
-    y = "(ih-ih/zoom)/2" + (f"+{shake}*cos(on*2.3)" if shake else "")
-    vf = (f"scale={w * 2}:{h * 2}:force_original_aspect_ratio=increase,crop={w * 2}:{h * 2},"
-          f"zoompan=z='{zoom}':x='{x}':y='{y}':d={n}:s={w}x{h}:fps={_FPS},setsar=1")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(image), "-vf", vf, "-frames:v", str(n),
-                    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", str(out)], check=True, capture_output=True)
-
-
-def _card(item: dict[str, Any], out: Path, size: str, plan: dict[str, Any]) -> None:
-    """An animated title card in the film's identity (title_cards), on the beat of the act it sits in."""
-    from .. import title_cards
-    from . import _trailer_retime as rt
-
-    card = item["card"]
-    act = rt._act_of(plan).get(card.get("after", ""), "")
-    w, h = (int(v) for v in size.split("x"))
-    title_cards.render(title_cards.Card(card["text"], item["seconds"], bpm=rt.act_bpm(plan).get(act, 104.0),
-                                        key=card.get("key"), label=card.get("label", "MATCH 98.7%"),
-                                        size=(w, h)), out)
-
-
-def picture(plan: dict[str, Any], board_dir: Path, out: Path) -> Path:
-    """The cut as stills and cards, joined in clock order."""
-    size = "1280x720" if (plan.get("board") or {}).get("aspect_ratio", "16:9") == "16:9" else "720x1280"
-    frame_of = {int(f["shot"]): f["id"] for f in (plan.get("board") or {}).get("frames") or []}
-    parts = []
-    for n, item in enumerate(timeline(plan)):
-        part = out.parent / f"animatic-part{n:03d}.mp4"
-        if item["kind"] == "card":
-            _card(item, part, size, plan)
-        else:
-            image = board_dir / f"{frame_of.get(int(item['shot']['index']), '')}.jpg"
-            if not image.is_file():
-                raise RunnerError(f"no storyboard frame for {item['shot']['label']}: run reel_board first")
-            _still(image, item["seconds"], part, size, item["shot"].get("body", ""))
-        parts.append(part)
-    listing = out.parent / "animatic-parts.txt"
-    listing.write_text("".join(f"file '{p.resolve()}'\n" for p in parts), encoding="utf-8")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listing),
-                    "-c", "copy", str(out)], check=True, capture_output=True)
-    for p in [*parts, listing]:
-        p.unlink()
-    return out
+    for line in lines_:
+        if line["label"] in (marks or {}):
+            # the rendered shot's mouth: the line starts there and is pressed to its length
+            _, at, seconds = marks[line["label"]]
+            line["at"], line["room"] = at, max(seconds, 0.3) + 0.15
+    placed = av.fit(lines_, clips)
+    av.mix(placed, total, out)
+    onsets: dict[str, float] = {}
+    ends: dict[str, float] = {}
+    for line, (clip, at, tempo) in zip(sorted(lines_, key=lambda l: l["at"]), placed):
+        onsets.setdefault(line["label"], at)
+        ends[line["label"]] = round(at + av._seconds(clip) / tempo, 3)
+    scratch_dialogue.ends = ends  # where each speaking shot's last word ends, for tighten()
+    return out, onsets
 
 
 # ── main ────────────────────────────────────────────────────────────────────
 
 
-def run(args: argparse.Namespace) -> Path:
+def _save(args: argparse.Namespace, plan: dict[str, Any]) -> None:
+    args.plan_file.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def _load(args: argparse.Namespace) -> tuple[dict[str, Any], dict[str, Any], Path]:
+    """The plan, its bible and its output dir; with --fit-lines, the cut conformed to its lines and saved."""
     plan = json.loads(args.plan_file.read_text(encoding="utf-8"))
     if not plan.get("sound") or not all("clock_at" in s for s in plan["shots"]):
         raise RunnerError("plan needs a `sound` block and `clock_at` on every shot; rerun the trailer chain")
@@ -232,20 +179,93 @@ def run(args: argparse.Namespace) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     if args.fit_lines:
         grew = fit_lines(plan, bible, out)
-        args.plan_file.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        _save(args, plan)
         print(f"Fit: {len(grew)} speaking shot(s) lengthened to their lines: "
               + ", ".join(f"{k} {v:.2f}s" for k, v in grew.items()), file=sys.stderr)
-    total = float(plan["sound"]["total_seconds"])
+    return plan, bible, out
+
+
+def _confirm(plan: dict[str, Any], yes: bool) -> None:
     script = " ".join(l["line"] for l in lines(plan))
     estimate = _reel_sound.estimate(plan["sound"]) + (config.get_provider("eleven-tts").estimate_cost(text=script)
                                                        or Decimal("0"))
-    cost_mod.confirm(estimate, yes=args.yes)
+    cost_mod.confirm(estimate, yes=yes)
 
-    pic = picture(plan, out / "board", out / "animatic-picture.mp4")
-    dialogue = scratch_dialogue(plan, bible, total, out / "animatic-dialogue.wav")
-    sources = _reel_sound.generate(plan["sound"], out, resume=True)
-    soundtrack = _reel_sound.render(plan["sound"], sources, dialogue, out / "soundtrack.wav")
-    final = out / "animatic.mp4"
+
+def _dialogue(args: argparse.Namespace, plan: dict[str, Any], bible: dict[str, Any], out: Path,
+              takes: Takes) -> Path:
+    """The scratch dialogue on the cut's clock; fills the takes' marks and onsets."""
+    total = float(plan["sound"]["total_seconds"])
+    takes.marks = mouth_marks(plan, takes.clips)
+    dialogue, takes.onsets = scratch_dialogue(plan, bible, total, out / "animatic-dialogue.wav", takes.marks)
+    if args.clips and tighten(plan, scratch_dialogue.ends, takes.clips):
+        # dead air after the last word cut away: the clock moved, so the lines are laid again on it
+        _save(args, plan)
+        total = float(plan["sound"]["total_seconds"])
+        takes.marks = mouth_marks(plan, takes.clips)
+        dialogue, takes.onsets = scratch_dialogue(plan, bible, total, out / "animatic-dialogue.wav", takes.marks)
+    return dialogue
+
+
+def _narrate(plan: dict[str, Any], bible: dict[str, Any], dialogue: Path, out: Path) -> None:
+    """The narrator joins the dialogue track: the score ducks under him as under any line."""
+    if not plan.get("narration"):
+        return
+    from . import _animatic_voice as av
+    from . import _drama_pass as dp
+
+    who = plan.get("narrator") or "minh"
+    speakers = {who} | {n["who"] for n in plan["narration"] if n.get("who")}
+    voices = av.voices_for(bible, speakers, [], lambda rest, lib: {})
+    dp.mix_narration(dialogue, dp.narration_files(plan, voices, out))
+
+
+def _build(args: argparse.Namespace, plan: dict[str, Any], takes: Takes) -> None:
+    """The trailer's build: an act accelerating into a strobe, recut and saved."""
+    build = (plan.get("trailer") or {}).get("build")
+    if not (args.clips and build):
+        return
+    from .. import shot_matrix
+    from . import _trailer_retime as rt
+    from . import _trailer_sound as ts
+
+    breath = ts._breath(plan)
+    added = rt.accelerate(plan, build["act"], breath[0] if breath else float(plan["sound"]["total_seconds"]),
+                          build.get("strobe") or [], takes.clips, shot_matrix.speed)
+    takes.clips = rendered(plan)
+    _save(args, plan)
+    print(f"Build: {build['act']} accelerates into a strobe of {len(added)}", file=sys.stderr)
+
+
+def _soundtrack(args: argparse.Namespace, plan: dict[str, Any], bible: dict[str, Any], out: Path,
+                takes: Takes) -> tuple[dict[str, Any], dict[str, Path]]:
+    """The cut's sound and its sources; against the rendered clips, snapped, punchlines landed, decluttered."""
+    sound = (with_places(plan, bible, takes.used or []) if args.clips
+             else with_vocals(json.loads(json.dumps(plan["sound"])), plan, bible))
+    sources = _reel_sound.generate(sound, out, resume=True)
+    sources.update(sound.pop("_files", {}))
+    if args.clips:
+        snap_to_action(sound, sources)
+        cuts = sorted(float(x["clock_at"]) + float(x["trim_seconds"]) for x in plan["shots"] if not x.get("cut"))
+        land_punchlines(sound, sorted(takes.onsets.values()),
+                        resume_at=lambda line: next((c for c in cuts if c > line + 0.3), None))
+        from . import _trailer_sound as ts
+
+        ts.declutter(sound, plan)
+    return sound, sources
+
+
+def run(args: argparse.Namespace) -> Path:
+    plan, bible, out = _load(args)
+    _confirm(plan, args.yes)
+    takes = Takes(clips=rendered(plan) if args.clips else {}, used=[])
+    dialogue = _dialogue(args, plan, bible, out, takes)
+    _narrate(plan, bible, dialogue, out)
+    _build(args, plan, takes)
+    pic = picture(plan, out / "board", out / "animatic-picture.mp4", takes)
+    sound, sources = _soundtrack(args, plan, bible, out, takes)
+    soundtrack = _reel_sound.render(sound, sources, dialogue, out / "soundtrack.wav")
+    final = out / ("trailer.mp4" if args.clips else "animatic.mp4")
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(pic), "-i", str(soundtrack), "-map", "0:v",
                     "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", "-shortest", str(final)],
                    check=True, capture_output=True)
@@ -264,7 +284,7 @@ def main() -> int:
     except (RunnerError, ProviderError, KeyError, ValueError, subprocess.CalledProcessError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
-    print(f"Animatic: {final}", file=sys.stderr)
+    print(f"{'Trailer' if final.name == 'trailer.mp4' else 'Animatic'}: {final}", file=sys.stderr)
     return 0
 
 

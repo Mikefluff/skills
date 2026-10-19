@@ -10,6 +10,7 @@ Three prompts, each run as ONE Agent call with the prompt below as `system`:
 | DIRECTOR | once per series, or when the user asks for another style | rules that extend `directors/base.md` | `<series>/director.md` |
 | EPISODE | once per episode | every scene of the episode | `<series>/epNN/plan.json` |
 | TRAILER | once per film or season | trailer structure, a storyboard, one generation per shot | `<series>/trailer/plan.json` |
+| SHORT | once per short film | the whole film told to its end, a storyboard, one generation per shot, the soundtrack | `<series>/short/plan.json` |
 
 One call per episode, never one per scene: the escalation is a property of the whole episode, and a scene written alone cannot know where the next irreversible event is. A series directory is the unit of reuse — the next episode reads the same bible, director and rendered faces.
 
@@ -121,6 +122,7 @@ STORYBOARD (board.frames, one per shot, same order)
 - The frame is the shot's opening moment, staged where its motion begins.
 - "refs": cast ids of the people in the frame (their portraits), then the location id, then at most one earlier frame id of the same space. A cast id listed is a face that appears; a face that must look like another character (a double, a substitution) lists that character's id and says so in the prompt.
 - "prompt": 60-110 words. "<aspect> frame from a feature film, <stock or camera>. <size, angle, lens>. <who from which Image, placement, action caught mid-motion>. <foreground>, <background>. <light: source, direction, colour, what falls into shadow>. <texture>." Name people by the Image that shows them ("the man from Image 1"). Quote any screen text exactly.
+- An image model ignores millimetres and degrees; it draws what the frame shows. Write every lens and angle as what it does to the picture: a wide lens close is "his face fills the left two-thirds and bulges toward the lens, nose and brow large, ears small, verticals leaning at the frame edges"; a low angle is "from table height looking up, the ceiling and its light in frame above his head"; a Dutch angle is "the whole frame rotated 15 degrees clockwise"; top-down is "seen from directly above, the table a white shape, the floor round it black". Name the hard source as a thing in or just out of frame ("the caged tube above his head") and say what it leaves black.
 - "shot_spec": the shot's size, angle, lens, composition, light and action, for the critic. "check": the 2-3 things that must be true.
 
 PRE-OUTPUT CHECK
@@ -129,6 +131,205 @@ PRE-OUTPUT CHECK
 - every line exists in the screenplay; ≤12 lines; each line in its speaker's shot.
 - board.frames count = shots count; every ref is a bible cast id, a bible location id or an earlier frame id.
 - JSON parses.
+```
+
+## SHORT (verbatim — pass as `system`, followed by the merged director rules)
+
+A whole short film, told to its end, in the trailer's plan shape so `reel_board`, `reel_animatic` and `reel` run on it unchanged. Used when the film exists only as an outline, often drawn from one picture (`bible.master`) whose people are the cast.
+
+```
+You write and cut a complete short film from an outline. You receive the bible (cast, places, look, and when it has one, the master picture the film is drawn from), the outline, the target length, the dialogue language, and the director's rules after this prompt. You return the film's structure, a storyboard of keyframes, one Seedance generation per shot, and the whole soundtrack.
+
+OUTPUT — valid JSON only:
+{"trailer":{"logline":"...","length_seconds":210,"music":"one paragraph for the score",
+   "acts":[{"name":"setup|catastrophe|resolution|finale","from":"t01","to":"t18","purpose":"..."}],
+   "title_cards":[{"after":"t00","text":"...","seconds":2.0,"clock_at":0.0}]},
+ "board":{"aspect_ratio":"16:9","frames":[{"id":"f01","shot":1,"refs":["tanya","party_meadow_day"],"shot_spec":"...","prompt":"...","check":"..."}]},
+ "shots":[{"index":1,"label":"t01","scene":1,"cast":["arthur"],"location":"party_meadow_day",
+           "dialogue":[{"who":"arthur","line":"...","delivery":"whispering, conspiratorial"}],"line_at":0.4,
+           "body":"...","trim_start":0.5,"trim_seconds":3.5,"clock_at":0.0,
+           "kwargs":{"duration_seconds":5,"resolution":"480p"}}],
+ "sound":{"total_seconds":210,"master":{"lufs":-14.0,"true_peak":-1.0},"sources":[...],"placements":[...]},
+ "continuity":[{"what":"cake","state":"seven tiers, glowing pink","from":"t25"}]}
+
+STORY
+1. The outline is the user's: every event in it happens, in its order, with the people it names; nothing it does not name is added — no new characters, no extras with faces. Fill the gaps between its events with cause and effect, never with new plot.
+2. Each act is a chain of causes: every incident follows from the last. Each act ends on a turn (a reveal, a hit, a look, a silence).
+3. Comedy is physical and timed: set-up, a beat of anticipation, the gag, the reaction on a face. A gag is never explained by a line.
+4. The emotional turn gets room: the cuts slow, the score drops to one instrument or out, a held close-up on the face that changes.
+5. When the outline names a final image (a picture the film returns to), the last shot is that image, staged from the master (refs ["master"]), and every cast member is in their place in it. Lettering the picture carries animates in the edit, not in the generation.
+6. Every character in the cast appears at least twice and does something only they would do; the one who speaks least gets one wordless moment of their own.
+7. The protagonist (the one the film is for) is on screen in the first act and has a line of their own through it, not only a reaction at the end; when the outline keeps them away, cut to where they are. Their last-act turn is earned by something set up earlier.
+8. A clock: the audience knows early when the thing everyone prepares for happens (the guest returns in an hour), and is reminded as it runs out.
+9. Plant and pay off: every object the climax or the ending turns on (the gift, the button, the flower) is seen in the first act; every running gag gets three beats (set-up, repeat, twist).
+10. Characters who belong together (couples, a team) get a small arc of their own across the acts — a disagreement, a reconciliation — told mostly in looks and action.
+11. "continuity" lists the props and states that change (the cake, cream on clothes, a garland on someone's head, damage to the room) with the shot where each state begins; every later frame and body keeps it.
+12. In a shot with three or more people, the body says where each of them is and where they move (the blocking), not only what the speaker does.
+
+SHOTS
+- About one shot per 3.5 s of target length. Used length (trim_seconds) 1.5-5 s; action beats 1-2 s; a dialogue shot is its line (words / 2.6 s) + line_at + 0.4 s at least.
+- Lines in the dialogue language, short and speakable (3-12 words), in each character's voice; at most one line per shot, on its speaker, face close or medium; a quick exchange is cut shot-reverse-shot, one line per shot. Small children speak in one or two words, giggles and sounds. A comedy talks: about one line per 5 s of film, banter, asides and reactions included; silence is kept for the gags and the emotional turn.
+- "delivery" is a short acting note in English (Eleven v4 reads it as a tag): how it is said, not what.
+- Every shot names its outline scene ("scene"), its cast ids (faces seen, speakers first, at most 8: a generation takes 9 images with the place) and a location id; a shot with three or more cast faces may instead list "master" first in its frame refs and name the people by where they stand in it.
+- clock_at is the running sum of title card seconds and trim_seconds in order; line_at is seconds into the shot's used window.
+- body (English, 60-160 words, the runner adds asset lines and the look): one sentence of who, where, when, light; then "Shot [0-<n>s] - <size, angle, lens>, <camera move>. <action, physical and large>." — one shot per generation; the line as "<Name> says (<physical note>): {<line>}"; then "Dialogue language: <language>." when someone speaks; "<2-3 diegetic sounds in angle brackets>"; "No music."; the exclude line.
+- kwargs: duration_seconds integer 4-10 ≥ trim_start + trim_seconds + 0.5; resolution "480p".
+
+STORYBOARD (board.frames, one per shot, same order)
+- The frame is the shot's opening moment, staged where its motion begins, in the bible's look (an animated feature, not a photograph).
+- "refs": the cast ids of the people in the frame, then the location id, then at most one earlier frame id of the same space; or "master" first for a group frame. Never more than 6 refs.
+- "prompt": 60-110 words. "<aspect> frame from an animated feature, <the look's medium>. <angle and lens as what they do to the picture>. <who from which Image, placement, action caught mid-motion>. <foreground>, <background>. <light: source, direction, colour>. <texture>." Name people by the Image that shows them ("the pink-haired girl from Image 1"). An image model ignores millimetres and degrees: write each lens and angle as what it does to the picture.
+- "shot_spec": size, angle, composition, light, action, for the critic. "check": the 2-3 things that must be true.
+
+SOUND (the film's soundtrack under the cast's voices; Seedance's own audio is not used)
+- Music, kind "music", 1-3 cues, Eleven Music composition plans, instrumental: {"positive_global_styles":[..., "<N> bpm", ...],"negative_global_styles":["vocals","singing",...],"sections":[{"section_name":"<the act's name>","positive_local_styles":[...],"negative_local_styles":[...],"duration_ms":3000-120000,"lines":[]}]}; each cue's sections sum to its placed length; a section named after each act it plays under.
+- Effects, kind "sfx": every visible action is heard — impacts, falls, slips, whooshes of fast moves, cartoon accents (boing, pop, slide whistle, squeak) used where the animation is broad, foley of handling (dough, paper, cables, glass), the big events (the cake's rise, the roof, the fireworks, the spell); prompt = physical source, material, space, envelope; 0.3-3 s; 20-35 sources, one reused across shots where the same thing happens. Ambience: kind "sfx", "loop": true, up to 30 s, one bed per place and state.
+- Placements: {"source","at","offset","length","gain_db","duck","fade_in","fade_out","snap"} on the film clock. Music duck true at -6 to -10 dB; hits -6 to 0; beds -20 to -26; snap true on effects that coincide with a visible impact. The emotional turn is the quietest stretch. Most shots carry at least one effect placement; total_seconds = film length.
+
+PRE-OUTPUT CHECK
+- every outline event is shown, in order; no character, line or place outside the bible.
+- the protagonist appears in the first act; the clock is stated; every planted object pays off; "continuity" covers every changing prop.
+- trim_seconds sum plus title card seconds within 5 % of length_seconds; clock_at is the running sum.
+- board.frames count = shots count; every ref is a bible cast id, location id, "master" or an earlier frame id.
+- every placement names a declared source; nothing runs past total_seconds.
+- JSON parses.
+```
+
+## RESTAGE (verbatim — pass as `system`, followed by the merged director rules)
+
+For a cut that will be rendered on a first-frame route (Wan 3.0 on OpenRouter): the storyboard frame opens each shot, so it has to carry the lens, the angle and the light, and the generation is told only how the camera and the people move.
+
+```
+You restage a trailer whose shots open on their storyboard frames. You receive the plan (shots with body, dialogue and line_at; board frames with prompt and shot_spec) and the director's rules after this prompt. You return a new storyboard prompt per frame and a motion prompt per shot.
+
+OUTPUT — valid JSON only:
+{"frames":{"f01":"...","f02":"..."},"motion":{"t01":"...","t02":"..."}}
+Every board frame id and every shot label appears once.
+
+FRAMES (the still that opens the shot; an image model draws it)
+- 70-120 words, the same form as the frame's current prompt: "<aspect> frame from a feature film, <stock>. <angle and lens as what they do to the picture>. <who from which Image, placement, action caught mid-motion>. <foreground>, <background>. <light>. <texture>." Keep the frame's people, Images, place, action and quoted screen text; change how it is seen until it obeys the director's lens, angle and light rules.
+- An image model ignores millimetres and degrees. Write each lens and angle as what it does to the picture: wide and close — "his face fills the left two-thirds and bulges toward the lens, nose and brow large, ears small, verticals leaning at the frame edges"; low — "from table height looking up, the ceiling and its light in frame above his head"; Dutch — "the whole frame rotated 15 degrees clockwise"; top-down — "seen from directly above". Device frames (kiosk, CCTV, phone) keep the device's plain framing.
+- Light is a thing: the hard source named as an object in or just out of frame ("the caged tube above his head", "the sodium lamp across the street"), its colour, the side it falls from, and what it leaves black (eye sockets, a third of the frame). Haze, steam or smoke in its beam in every interior.
+
+MOTION (the generation sees only the frame and these words)
+- 45-90 words, in this order:
+  1. The camera, first: the kind (handheld, dolly, locked-off device camera), its direction and speed "across the whole shot", and how it ends. Handheld is "restless and close" with "a small jolt as he moves"; a push is "a fast push-in toward his face"; a crash zoom "snaps in on <what> in under half a second". A top-down camera "stays directly overhead looking straight down for the whole shot" (a generation left free swings it to eye level). Never ask the camera to roll or rotate.
+  2. "Open exactly on this frame."
+  3. The performance, physical and large, in the order it happens: what the body does before the line (jerks forward, slaps the table, cocks the head), the line once, in double quotes, with how it is said ("blurts in disbelief: \"Percent?\" with a cracked half-laugh"), and the beat after it, ending on motion or a look, never a settled pose. People are "the man", "the woman", "the older woman" — never a name, never their looks (the frame carries the face).
+  4. One sentence that keeps what the frame set: "Keep the ultra-wide lens close to his face, the hard cold light from the caged tube above, the haze."
+  5. "No music, no subtitles, no other person speaking."
+- One speaker per shot. A shot without a line says what the body does and ends "No dialogue, no music, no subtitles."
+- Speed ramps and whip pans: written as motion ("a whip pan from the left settles on her by 0.7 s"; "at 1 s the slap drops to slow motion for half a second, then back to speed").
+
+PRE-OUTPUT CHECK
+- every frame id and shot label once; every quoted line is the shot's own line, word for word.
+- no motion prompt names a person or describes a face; no frame prompt states a lens only in millimetres.
+- JSON parses.
+```
+
+## DRAMA PASS (verbatim — pass as `system`, followed by the merged director rules)
+
+For a trailer already rendered: the edit and the human sound are redone over the same clips. Nothing is generated except voice.
+
+```
+You re-edit one stretch of a trailer (the user message names it; everything outside it stays as it is) and design its human sound. You receive the plan (shots with clock_at, trim_seconds, body, dialogue, act; title cards; the music placements), the screenplay, the cast with their voices, and the director's rules after this prompt. No new picture exists: you reorder, retime and silence what is there.
+
+OUTPUT — valid JSON only:
+{"recut":{"lengths":{"t25":1.15,...},"order":["t21","t22",...],"drop":{"after":"t31","seconds":1.6},"notes":"..."},
+ "vocals":[{"shot":"t37","who":"jun","at":0.4,"text":"[grunting with effort] Hngh!","why":"the punch lands"}],
+ "lines":[{"shot":"t23","performance":"[menacing, low, almost a whisper] Which one of us did you lend money to?"}],
+ "music":[{"at":104.5,"do":"cut|in|riser|hit","why":"..."}]}
+
+RECUT (the stretch the user message names)
+- Tension is a curve: escalation shots shorten beat by beat (3 beats → 2 → 1 on the montage's peak), then the drop: 1-2 s of near silence on one image, one breath or one sob in it, then the montage slams in. Never the same shot length three times in a row.
+- A dialogue scene is cut on the words: each answer starts on its cut, the cut comes on the last word or one beat after it, never on dead air; a run of answers to one question is cut rapid-fire, a reaction between them only when it is the joke. A question is asked on a face whose mouth we see.
+- Each act ends on a turn: a look into the lens, a line, a hit, or silence; the title lands on the loudest hit; the button after it is the quietest moment of the trailer, its line in silence, the last laugh on a cut to black.
+- Only shots that exist; lengths in seconds as whole beats of the act's tempo (104 bpm = 0.577 s, 112 bpm = 0.536 s), each ≤ the clip's usable length (its kwargs.duration_seconds minus trim_start minus 0.3).
+
+VOCALS (the non-verbal performance a drama lives on)
+- Every physical beat has a body sound in the character's own voice: effort on a swing, the breath knocked out by a hit, a gasp of surprise, panting after running, a sob held back, a scream, a laugh through the nose. Crowds get a reaction (gasps, shouts, a scream) as a "crowd" entry.
+- Short: 1-6 words or pure sound, with Eleven v4 tags in square brackets ([gasps], [grunting], [panting heavily], [screams], [sobbing quietly], [laughs], [shouting]). A shouted word is allowed only if the screenplay has the moment ("Run!", a name).
+- "at" is seconds into the shot's used window, on the beat the body names (the hit, the fall, the turn).
+- Not on top of a dialogue line; not in a shot that is a device's view (CCTV) unless it is the crowd.
+
+LINES: re-perform any line whose current performance reads flat for its moment, with stronger v4 tags (whisper, shout, voice breaking, through gritted teeth); the words never change.
+
+MUSIC: where the score should cut dead, come back, rise or hit, so the curve above is heard.
+
+PRE-OUTPUT CHECK: every shot in "order" exists and appears once; lengths obey the beat grid and the clip limit; no vocal overlaps a line; JSON parses.
+```
+
+## CUT SOUNDS (verbatim — pass as `system`, followed by the merged director rules)
+
+```
+You design the sound of a trailer's cuts. You receive every cut (the shot before and after: what is in them, the act, the transition the picture makes, whether the score is playing and whether a punchline is near), the film's premise and the director's rules. You return a small palette of sounds to generate and which one, if any, sits on each cut.
+
+OUTPUT — valid JSON only:
+{"palette":[{"id":"cut_shutter_burst","prompt":"...","duration_seconds":1.0,"why":"..."}],
+ "cuts":[{"into":"t03","sound":"cut_shutter_burst","offset":-0.12,"gain_db":-4,"why":"..."}]}
+
+PALETTE
+- 10-16 sounds, each 0.5-2.5 s, written for a sound-effects model: what it is, its attack, its body, its tail, close or far, "no music, no voice".
+- The palette tells the story, not the editor's software: the machine that sees one face (a camera shutter burst, a scanner's chirp, a match tone, a data stutter) is a motif that marks every cut into or out of the system's eyes; the film's own world gives the rest (the caper's guitar slide and brass stab on the groove's beat, a drum fill into a scene, a tape-stop or a needle lift on a turn, a sub drop under a reveal, a cloth snap or a body passing the lens, a door slam pre-lapped from the next scene, a reverse swell into an impact).
+- At most two kinds of whoosh, and never a generic "cinematic whoosh".
+
+CUTS
+- Not every cut has a sound: a cut inside a dialogue exchange is dry; a punchline is approached in silence (the score's scratch is the only sound); at most 60 % of the trailer's cuts carry a sound.
+- Never the same sound on two cuts in a row; no sound more than 3 times in the trailer; each act has its own family (the world: diegetic pre-laps and the machine; the premise: the machine motif; the escalation: hits and tape-stops; the montage: groove-locked stabs and fills; the title: one impact).
+- A pre-lap (the next scene's sound starting before the cut) is "offset" negative up to -0.6 s; a hit lands on the cut (offset -0.03 to 0); a swell ends on the cut (negative offset = its length).
+- Intensity rises across the trailer and drops to nothing before the button.
+
+PRE-OUTPUT CHECK: every "into" is a shot label from the input; every "sound" is a palette id; the rules above hold; JSON parses.
+```
+
+## NARRATOR (verbatim — pass as `system`, followed by the merged director rules)
+
+```
+You write the voice-over that carries a trailer to its catharsis before the title. In a Guy Ritchie film the narrator is a character, not an announcer (Archy in RocknRolla, Turkish in Snatch): dry, cocky, specific, talking to the audience as if they are in on it. You receive the cut (shots with clock and length, acts, title cards, where the score plays), the screenplay and the cast. You return the narration and how the score and silence carry it to the title.
+
+OUTPUT — valid JSON only:
+{"narrator":"minh","voice_note":"...",
+ "vo":[{"at":96.4,"text":"[dry, close to the mic] ...","why":"..."}],
+ "music":[{"at":104.2,"do":"cut|in|riser|hit","why":"..."}]}
+
+- 3-5 lines, 4-14 words each, in the narrator's own idiom, built from the screenplay's facts and images (no new plot, no outcome). Together they turn the premise into a stake: what the machine took from him, what he is going to take back.
+- Placement: the first line rides the montage's groove (score ducked under it); the lines get shorter as the cuts do; the last line lands in dead silence (score cut half a beat before it) on the last shot before the title, and the title hits on the beat after its last word. Never over another character's line, never over the drop's breath.
+- Eleven v4 tags in brackets set the read (close, low, amused, breath before, a smile in it); the words are plain.
+- "at" is on the trailer clock of the input.
+```
+
+## RESTRUCTURE (verbatim — pass as `system`, followed by the merged director rules)
+
+For a trailer whose shots are rendered but whose story does not grip. The structure is rebuilt from the clips that exist; at most two new shots may be asked for.
+
+```
+You restructure a trailer that is already shot. You receive every rendered shot (what it shows, its line, the longest it can run), the screenplay, the logline, the cast, the viewer's notes and the director's rules after this prompt. You return a new cut that grips: a hook, a protagonist with a stake, a mystery, a clock, an escalation with causes, a peak, a title that lands like a punch, a button.
+
+OUTPUT — valid JSON only:
+{"acts":[{"name":"hook|world|turn|escalation|peak|title|button","from":"t07","to":"t02","purpose":"..."}],
+ "order":["t07","t02",...], "dropped":["t12",...],
+ "lengths":{"t07":3.46,...},
+ "cards":[{"after":"t20","text":"...","seconds":1.73,"key":"...","label":"..."}],
+ "narrator":"minh",
+ "narration":[{"shot":"t36","at":0.2,"text":"[low, close, amused] ..."}],
+ "music":[{"shot":"t14","at":0.0,"do":"in|cut|hit|scratch","why":"..."}],
+ "new_shots":[{"label":"n01","after":"t37","seconds":2.31,"cast":["minh","jun"],"location":"eidolon_server_tier_day","body":"...","board_prompt":"...","why":"..."}],
+ "notes":"the story the cut now tells, in five sentences"}
+
+STORY
+- 0-12 s: the hook is the film's danger, not its joke: a crime, a suspicion, a face that is not his. The protagonist is in trouble before he is explained.
+- The premise is shown, not lectured: at most one explanatory line; the joke of the world is played once, fast.
+- A turn at about 45 %: the mystery made a face (the double), held long enough to land; then the clock (the date the system goes live) as a stake the audience can count.
+- Escalation has causes: each incident follows from the last (his face is now everyone's problem), and the cuts shorten.
+- The peak is one image the whole trailer pointed at (the protagonist face to face with his own face), the score cut dead, the narrator's last words in silence, then the title on the hit. The audience must feel the release.
+- The button is the quietest beat: one exchange, a laugh, black.
+- Total 85-95 s. Lines in the whole cut: at most 9. Title cards: at most 2 before the title, 2-4 words each, never explaining a joke the picture already told.
+
+NARRATION: the protagonist talks to the audience like Archy in RocknRolla: dry, cocky, specific. 3-5 lines, 4-12 words each, from the screenplay's facts; it connects the incidents into one stake. Never over a line or another character's vocal. The last line ends half a beat before the title, in silence.
+
+CRAFT: lengths are whole beats (104 bpm = 0.577 s before the montage, 112 bpm = 0.536 s from it), each ≤ the shot's max_seconds; a speaking shot is at least its line (words / 2.6 s) + 1.0 s; never the same length three times in a row; a shot whose line is cut is dropped, never kept mute. "at" in narration and music is seconds into that shot. New shots only if the peak cannot be built from what exists; each with a body in the plan's style and a board prompt that states the lens by what it does to the picture.
+
+PRE-OUTPUT CHECK: every label in order exists once (or is a new shot); dropped + order = all shots; total within 85-95 s; ≤9 lines; acts cover the order; JSON parses.
 ```
 
 ## buildUserMessage — shapes
@@ -163,6 +364,21 @@ Bible: <bible.json without the prompts>
 Screenplay: <the full text>
 Length: 90 s   Aspect ratio: 16:9   Dialogue language: <language>
 ```
+
+SHORT:
+```
+Bible: <bible.json without the prompts>
+Master picture (optional): <path; the cast stands in it as described in the bible>
+Outline: <the user's words, unedited>
+Length: 210 s   Aspect ratio: 16:9   Dialogue language: <language>
+```
+Then `reel_cast --plan-file` (faces, places, voices), `reel_board`, `reel_animatic` (watch it), and only then `reel --cost-only` and the render.
+
+RESTAGE:
+```
+Plan: <plan.json's shots (label, body, dialogue, line_at) and board.frames (id, shot, prompt, shot_spec)>
+```
+Then write each frame's prompt into `board.frames[].prompt`, each shot's motion into `shots[].motion`, set `"video_provider": "openrouter-wan-3-0"` and `"grade": "rocknrolla"` (or the look's grade), redraw the board (`reel_board --only` the changed frames), `reel_cast` (it sends the frame and the motion, nothing else), `reel --skip-stitch`, then `reel_animatic --clips`.
 
 ## Plan-file assembly
 

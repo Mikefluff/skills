@@ -72,6 +72,7 @@ def job(plan: dict[str, Any], out_dir: Path, labels: set[str] | None) -> dict[st
             "lens": shot.get("lens", 24),
             "shake": shot.get("shake", 0),
             "hero": shot.get("hero") or [],
+            "actors": shot.get("actors") or [],
             "fire": shot.get("fire") or [],
             "extra": shot.get("extra") or [],
         })
@@ -132,8 +133,13 @@ def _hand_clips(plan: dict[str, Any], out_dir: Path) -> list[tuple[Path, int]]:
         clip = out_dir / f"{entry['label']}.mp4"
         if entry["label"] in plan["previs"]["shots"] and clip.is_file():
             kwargs = entry.setdefault("kwargs", {})
-            kwargs["reference_videos"] = [str(clip)]
-            kwargs.setdefault("media_host", "litterbox")
+            if entry.get("no_previs"):
+                # a still camera's clip is read as footage to edit, and the vendor wants the source's length
+                # and ratio back: the shot keeps its previs for the animatic but goes without it
+                kwargs.pop("reference_videos", None)
+            else:
+                kwargs["reference_videos"] = [str(clip)]
+                kwargs.setdefault("media_host", "litterbox")
             clips.append((clip, round(float(kwargs.get("duration_seconds") or 5) * _FPS)))
     return clips
 
@@ -155,7 +161,7 @@ def _animatic(plan: dict[str, Any], out_dir: Path) -> None:
         picture.replace(out_dir / "animatic.mp4")
 
 
-_REVIEW = """You are checking one shot of a clay previs (grey blocking: the brown figure with a black hat is the hero; boxes are decks, truss, lights; lit white blocks are lights firing). The image shows three separate frames of the same shot, left to right with white gaps between them: start, middle, end. A figure appearing in each of the three panels is the same hero at three moments, not a duplicate.
+_REVIEW = """You are checking one shot of a clay previs (blocking: the people are coloured figures — big round heads, ears, a hair shape, arms — or, in older films, one brown figure with a black hat; boxes and cylinders are the set and its props; blocks flashing pale yellow are lights or effects firing. The image shows three separate frames of the same shot, left to right with white gaps between them: start, middle, end. A figure appearing in each of the three panels is the same hero at three moments, not a duplicate.
 
 The shot is meant to be: {move} — {intent}
 Lip-sync shot (his face must be readable while he speaks): {lip}

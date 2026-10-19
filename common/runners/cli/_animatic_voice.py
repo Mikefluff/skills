@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -25,22 +26,29 @@ _GAP = 0.08
 _LINE_LUFS = -16
 
 
+def _entry(line: dict[str, Any], shot: dict[str, Any]) -> dict[str, Any]:
+    """A dialogue line placed on the clock of the shot that says it."""
+    line_at = float(shot.get("line_at") or 0.3)
+    return {**line, "label": shot["label"], "location": shot.get("location"),
+            "at": round(float(shot["clock_at"]) + line_at, 3),
+            "room": float(shot["trim_seconds"]) - line_at + _SPILL}
+
+
 def exchanges(plan: dict[str, Any]) -> list[list[dict[str, Any]]]:
-    """Dialogue lines grouped into exchanges: consecutive speaking shots from the same screenplay scene."""
+    """Dialogue lines grouped into exchanges: speaking shots next to each other IN THE CUT (clock order, a
+    restructure may reorder them) from the same screenplay scene. Shots dropped from the cut say nothing."""
     groups: list[list[dict[str, Any]]] = []
     last: tuple[int, Any] | None = None
-    for shot in sorted(plan["shots"], key=lambda s: int(s["index"])):
+    order = sorted((s for s in plan["shots"] if not s.get("cut")), key=lambda s: float(s["clock_at"]))
+    for pos, shot in enumerate(order):
         said = shot.get("dialogue") or []
         if not said:
             last = None
             continue
+        joins = last is not None and pos == last[0] + 1 and shot.get("scene") == last[1]
         for line in said:
-            entry = {**line, "label": shot["label"], "location": shot.get("location"),
-                     "at": round(float(shot["clock_at"]) + float(shot.get("line_at") or 0.3), 3),
-                     "room": float(shot["trim_seconds"]) - float(shot.get("line_at") or 0.3) + _SPILL}
-            joins = last is not None and int(shot["index"]) == last[0] + 1 and shot.get("scene") == last[1]
-            (groups[-1].append(entry) if joins and groups else groups.append([entry]))
-        last = (int(shot["index"]), shot.get("scene"))
+            (groups[-1].append(_entry(line, shot)) if joins and groups else groups.append([_entry(line, shot)]))
+        last = (pos, shot.get("scene"))
     return groups
 
 
@@ -89,10 +97,57 @@ def read_exchange(group: list[dict[str, Any]], voices: dict[str, str], cache: Pa
     take, marks = cache / f"{key}.mp3", cache / f"{key}.json"
     cache.mkdir(parents=True, exist_ok=True)
     if not (take.is_file() and marks.is_file()):
-        audio, segments = dialogue(inputs, language=language, effects=fx)
+        audio, segments = _clean_take(dialogue, inputs, language, fx)
         take.write_bytes(audio)
         marks.write_text(json.dumps(segments), encoding="utf-8")
     return _split(take, json.loads(marks.read_text(encoding="utf-8")), len(group), cache / key)
+
+
+_NUM = {"0": "zero", "1": "one", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven",
+        "8": "eight", "9": "nine", "10": "ten", "98": "ninety eight", "512": "five hundred twelve"}
+
+
+def _words(text: str) -> list[str]:
+    """Spoken words, so a script and what Scribe heard compare: tags out, digits spelt, '%' and '.' said."""
+    import re
+
+    text = re.sub(r"\[[^\]]*\]", " ", text.lower()).replace("%", " percent")
+    text = re.sub(r"(\d)\.(\d)", r"\1 point \2", text)
+    text = re.sub(r"\d+", lambda m: f" {_NUM.get(m.group(0), m.group(0))} ", text)
+    return re.findall(r"[a-z']+", text.replace("-", " "))
+
+
+def _errors(want: list[str], heard: list[str]) -> int:
+    """Word edit distance: a repeat, a dropped word and a substituted one all count."""
+    row = list(range(len(heard) + 1))
+    for i, w in enumerate(want, 1):
+        prev, row[0] = row[0], i
+        for j, h in enumerate(heard, 1):
+            prev, row[j] = row[j], min(row[j] + 1, row[j - 1] + 1, prev + (w != h))
+    return row[-1]
+
+
+def _clean_take(dialogue, inputs: list[dict[str, str]], language: str | None, fx) -> tuple[bytes, list]:
+    """A take whose words are the script's. Eleven v4 sometimes repeats a phrase around an ellipsis or a dash
+    ("After six — it's me" came back "After six, after six, it's me"); Scribe hears every take, and one that
+    adds or drops words is read again, the second time with ellipses and dashes turned into [pause]."""
+    import re
+
+    from ..providers.elevenlabs import transcribe
+
+    want = [w for item in inputs for w in _words(item["text"])]
+    plain = [{**item, "text": re.sub(r"\s*(\.\.\.|…|—|--)\s*", " [pause] ", item["text"])} for item in inputs]
+    best = None
+    for attempt, batch in enumerate((inputs, plain, plain)):
+        audio, segments = dialogue(batch, language=language, effects=fx)
+        heard = [w for x in transcribe(audio, language) if x.get("type", "word") == "word" for w in _words(x["text"])]
+        errors = _errors(want, heard)
+        if best is None or errors < best[0]:
+            best = (errors, audio, segments)
+        if errors <= len(want) // 15:
+            break
+        print(f"  take {attempt + 1}: {errors} word errors in {len(want)}; reading again", file=sys.stderr)
+    return best[1], best[2]
 
 
 def _span(segments: list[dict[str, Any]], n: int) -> tuple[float, float | None]:
@@ -127,11 +182,13 @@ def _accents(bible: dict[str, Any]) -> dict[str, str]:
 def _cut(take: Path, clip: Path, start: float, end: float | None) -> None:
     """The line's stretch of the take, silence trimmed from both ends."""
     window = ["-ss", f"{max(0.0, start - 0.03):.3f}"] + (["-to", f"{end:.3f}"] if end else [])
-    # Ends trimmed, and every pause inside the line held to 0.25 s: v4 acts an ellipsis
-    # as a full stop and a [clears throat] as a scene, and a 3 s gap splits a line across two shots.
+    # Ends trimmed, and a dead gap inside the line held to 0.4 s: v4 acts an ellipsis as a full stop and a
+    # [clears throat] as a scene, and a 3 s gap splits a line across two shots. Only true silence counts
+    # (-48 dB) and only past 0.6 s: a tighter trim (-36 dB, 0.18 s) cut the breaths and every actor's pause
+    # out of the SAME lines and left them choppy, a voice with holes in it.
     trim = ("silenceremove=start_periods=1:start_threshold=-45dB,areverse,"
             "silenceremove=start_periods=1:start_threshold=-45dB,areverse,"
-            "silenceremove=stop_periods=-1:stop_duration=0.3:stop_threshold=-42dB:stop_silence=0.25")
+            "silenceremove=stop_periods=-1:stop_duration=0.6:stop_threshold=-48dB:stop_silence=0.4")
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *window, "-i", str(take), "-af", trim,
                     "-ar", "48000", "-ac", "2", str(clip)], check=True, capture_output=True)
 
@@ -162,8 +219,10 @@ def mix(placed: list[tuple[Path, float, float]], total: float, out: Path) -> Non
         inputs += ["-i", str(clip)]
         ms = int(at * 1000)
         speed = f"atempo={tempo:.3f}," if tempo > 1.001 else ""
+        # loudnorm measures under ~1 s badly and leaves a one-word line ("На.", "Ой!") under the score
+        lift = "volume=5dB,alimiter=limit=0.89," if _seconds(clip) < 1.2 else ""
         chains.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,{speed}"
-                      f"loudnorm=I={_LINE_LUFS}:TP=-1.5:LRA=11,aresample=48000,adelay={ms}|{ms}[l{n}]")
+                      f"loudnorm=I={_LINE_LUFS}:TP=-1.5:LRA=11,{lift}aresample=48000,adelay={ms}|{ms}[l{n}]")
     lines = "".join(f"[l{n}]" for n in range(1, len(placed) + 1))
     graph = ";".join(chains + [f"[0:a]{lines}amix=inputs={len(placed) + 1}:normalize=0:duration=first[out]"])
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", graph, "-map", "[out]",

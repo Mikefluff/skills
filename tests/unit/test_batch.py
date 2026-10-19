@@ -169,6 +169,19 @@ class Resume(BatchCase):
             with self.subTest(index=item.index):
                 self.assertEqual(item.output_path, paths[item.index])
 
+    def test_a_shot_inserted_before_others_does_not_hand_them_their_neighbours_clips(self):
+        first = self.items(3)
+        self.go(CountingProvider(), first)
+        paths = {i.label: i.output_path for i in first}
+        # a bridge goes in at the front: every old item moves one index down
+        second = [batch_mod.BatchItem(index=0, label="bridge", prompt="prompt-bridge"),
+                  *[batch_mod.BatchItem(index=i + 1, label=f"slide-{i}", prompt=f"prompt-{i}") for i in range(3)]]
+        provider = CountingProvider()
+        self.go(provider, second, resume=True)
+        self.assertEqual(provider.calls, ["prompt-bridge"])
+        for item in second[1:]:
+            self.assertEqual(item.output_path, paths[item.label])
+
     def test_resume_with_no_manifest_at_all_runs_everything(self):
         provider = CountingProvider()
         result = self.go(provider, self.items(3), resume=True)
