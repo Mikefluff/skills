@@ -1,0 +1,190 @@
+{
+  "verdict": "neuroslop suspected",
+  "gate": "pass",
+  "total": 23,
+  "hard_bans": 0,
+  "by_category": {
+    "FILLER_INTRO": 2,
+    "BUREAU_INV": 1,
+    "GPT_FILLER": 3,
+    "NE_X_A_Y": 2,
+    "AI_BRIDGE": 1,
+    "CORPORATE": 1,
+    "AI_INTENSIFIER": 2,
+    "STOCK_METAPHOR": 2,
+    "AI_QA": 1,
+    "MARKETING_HYPE": 2,
+    "PSEUDO_SCI": 1,
+    "VAGUE_PERSON": 2,
+    "SUPERLATIVE_OVERLOAD": 1,
+    "EMPTY_CTA": 2
+  },
+  "by_severity": {
+    "blocker": 0,
+    "caution": 23,
+    "nit": 0
+  },
+  "hits": [
+    {
+      "line": 1,
+      "col": 1,
+      "category": "FILLER_INTRO",
+      "severity": "caution",
+      "match": "No mundo atual"
+    },
+    {
+      "line": 1,
+      "col": 43,
+      "category": "BUREAU_INV",
+      "severity": "caution",
+      "match": "desempenha um papel fundamental"
+    },
+    {
+      "line": 1,
+      "col": 89,
+      "category": "GPT_FILLER",
+      "severity": "caution",
+      "match": "É importante destacar"
+    },
+    {
+      "line": 1,
+      "col": 115,
+      "category": "NE_X_A_Y",
+      "severity": "caution",
+      "match": "não apenas muda a forma de trabalhar, mas também"
+    },
+    {
+      "line": 3,
+      "col": 1,
+      "category": "AI_BRIDGE",
+      "severity": "caution",
+      "match": "Além disso"
+    },
+    {
+      "line": 3,
+      "col": 18,
+      "category": "CORPORATE",
+      "severity": "caution",
+      "match": "ecossistema"
+    },
+    {
+      "line": 3,
+      "col": 30,
+      "category": "AI_INTENSIFIER",
+      "severity": "caution",
+      "match": "inovador"
+    },
+    {
+      "line": 3,
+      "col": 53,
+      "category": "STOCK_METAPHOR",
+      "severity": "caution",
+      "match": "mergulhar fundo em"
+    },
+    {
+      "line": 3,
+      "col": 72,
+      "category": "STOCK_METAPHOR",
+      "severity": "caution",
+      "match": "uma jornada fascinante"
+    },
+    {
+      "line": 3,
+      "col": 96,
+      "category": "AI_QA",
+      "severity": "caution",
+      "match": "Soa familiar?"
+    },
+    {
+      "line": 3,
+      "col": 125,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "de última geração"
+    },
+    {
+      "line": 3,
+      "col": 202,
+      "category": "MARKETING_HYPE",
+      "severity": "caution",
+      "match": "para o próximo nível"
+    },
+    {
+      "line": 5,
+      "col": 1,
+      "category": "PSEUDO_SCI",
+      "severity": "caution",
+      "match": "Estudos mostram"
+    },
+    {
+      "line": 5,
+      "col": 21,
+      "category": "VAGUE_PERSON",
+      "severity": "caution",
+      "match": "muitos especialistas"
+    },
+    {
+      "line": 5,
+      "col": 28,
+      "category": "VAGUE_PERSON",
+      "severity": "caution",
+      "match": "especialistas concordam"
+    },
+    {
+      "line": 5,
+      "col": 53,
+      "category": "FILLER_INTRO",
+      "severity": "caution",
+      "match": "na era digital"
+    },
+    {
+      "line": 5,
+      "col": 87,
+      "category": "SUPERLATIVE_OVERLOAD",
+      "severity": "caution",
+      "match": "de suma importância"
+    },
+    {
+      "line": 5,
+      "col": 108,
+      "category": "NE_X_A_Y",
+      "severity": "caution",
+      "match": "Não se trata de trabalhar mais, trata-se de"
+    },
+    {
+      "line": 7,
+      "col": 1,
+      "category": "GPT_FILLER",
+      "severity": "caution",
+      "match": "Em suma"
+    },
+    {
+      "line": 7,
+      "col": 10,
+      "category": "GPT_FILLER",
+      "severity": "caution",
+      "match": "sem sombra de dúvidas"
+    },
+    {
+      "line": 7,
+      "col": 53,
+      "category": "AI_INTENSIFIER",
+      "severity": "caution",
+      "match": "sem precedentes"
+    },
+    {
+      "line": 7,
+      "col": 70,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "O que você acha?"
+    },
+    {
+      "line": 7,
+      "col": 87,
+      "category": "EMPTY_CTA",
+      "severity": "caution",
+      "match": "Deixe seu comentário"
+    }
+  ]
+}
