@@ -589,6 +589,109 @@ PATTERNS: list[tuple[str, str]] = [
      r"(?:становится|стало|можно|нельзя|следует|стоит|видно|ясно|получается|"
      r"наблюдается|отмечается|результат\w*|эффективност\w*|качеств\w*|"
      r"показател\w*|вывод\w*)\b"),
+    # ─── Spanish and Portuguese ─────────────────────────────────────────────
+    # The same tells, in the two languages that bring most of the browser
+    # checker's visitors (mikefluff.com/es, /pt). Same categories, so the
+    # verdict and the per-category advice read the same; probabilistic only,
+    # like the English set: no hard bans of their own.
+    # AI_QA
+    ("AI_QA", r"¿\s*(te|les?)\s+suena\s+(familiar|conocido)\s*\?"),
+    ("AI_QA", r"\b(soa|parece)\s+familiar\s*\?"),
+    ("AI_QA", r"\bahora\s+imagina\b|\bagora\s+imagine\b"),
+    ("AI_QA", r"\bseamos\s+(honestos|sinceros)\b|\bsejamos\s+(honestos|sinceros)\b|\bvamos\s+ser\s+sinceros\b"),
+    ("AI_QA", r"\bel\s+secreto\s+est[áa]\s+en\b|\bo\s+segredo\s+est[áa]\s+(em|no|na)\b"),
+    # NE_X_A_Y
+    ("NE_X_A_Y", r"\bno\s+se\s+trata\s+de\s+[^,.!?\n]{1,40},\s+(sino\s+de|se\s+trata\s+de)\b"),
+    ("NE_X_A_Y", r"\bnão\s+se\s+trata\s+de\s+[^,.!?\n]{1,40},\s+(mas\s+de|trata-se\s+de)\b"),
+    ("NE_X_A_Y", r"\bnão\s+é\s+sobre\s+[^,.!?\n]{1,40},\s+é\s+sobre\b"),
+    ("NE_X_A_Y", r"\bno\s+(solo|sólo|solamente)\b[^.!?\n]{1,80}?\bsino\s+(también|que)\b"),
+    ("NE_X_A_Y", r"\bnão\s+(apenas|só|somente)\b[^.!?\n]{1,80}?\bmas\s+(também|sim)\b"),
+    # PSEUDO_SMART
+    ("PSEUDO_SMART", r"\ben\s+última\s+instancia\b|\bem\s+última\s+análise\b"),
+    ("PSEUDO_SMART", r"\ben\s+esencia\b|\bem\s+essência\b"),
+    ("PSEUDO_SMART", r"\bcabe\s+(destacar|señalar|mencionar|resaltar|ressaltar)\b"),
+    ("PSEUDO_SMART", r"\bvale\s+(la\s+pena\s+)?(destacar|señalar|mencionar|ressaltar|lembrar)\b"),
+    ("PSEUDO_SMART", r"\bno\s+se\s+puede\s+(subestimar|exagerar)\b|\bnão\s+se\s+pode\s+(subestimar|exagerar)\b"),
+    ("PSEUDO_SMART", r"\b(es|é)\s+difícil\s+(exagerar|sobrestimar|superestimar)\b"),
+    # AI_INTENSIFIER
+    ("AI_INTENSIFIER", r"\bsin\s+precedentes\b|\bsem\s+precedentes\b"),
+    ("AI_INTENSIFIER", r"\brevolucionári?[oa]s?\b|\brevolucionari[oa]s?\b"),
+    ("AI_INTENSIFIER", r"\btransformador(a|es|as)?\b"),
+    ("AI_INTENSIFIER", r"\binnovador(a|es|as)?\b|\binovador(a|es|as)?\b"),
+    ("AI_INTENSIFIER", r"\b(increíble|incrível)\s+potencial\b"),
+    ("AI_INTENSIFIER", r"\bverdaderamente\b|\bverdadeiramente\b"),
+    # BUREAU_INV
+    ("BUREAU_INV", r"\b(desempeña|juega|desempenha|joga)\s+un[a]?\s+(papel|rol)\s+(crucial|fundamental|clave|vital|esencial)\b"),
+    ("BUREAU_INV", r"\b(desempenha|joga)\s+um\s+papel\s+(crucial|fundamental|chave|vital|essencial)\b"),
+    ("BUREAU_INV", r"\bse\s+(erige|posiciona|configura)\s+como\b"),
+    # CORPORATE
+    ("CORPORATE", r"\bsinergias?\b"),
+    ("CORPORATE", r"\b(apalancar|potenciar|alavancar|potencializar)\b"),
+    ("CORPORATE", r"\bsoluciones\s+integrales\b|\bsoluções\s+(integradas|completas)\b"),
+    ("CORPORATE", r"\bvalor\s+añadido\b|\bagregar\s+valor\b"),
+    ("CORPORATE", r"\becosistema\b|\becossistema\b"),
+    # GPT_FILLER
+    ("GPT_FILLER", r"\ben\s+(conclusión|resumen|definitiva)\b|\bem\s+(conclusão|resumo|suma)\b"),
+    ("GPT_FILLER", r"\bes\s+importante\s+(destacar|señalar|tener\s+en\s+cuenta|recordar|mencionar)\b"),
+    ("GPT_FILLER", r"\bé\s+importante\s+(destacar|ressaltar|lembrar|notar|mencionar)\b"),
+    ("GPT_FILLER", r"\bdicho\s+esto\b|\bdito\s+isso\b"),
+    ("GPT_FILLER", r"\bsin\s+lugar\s+a\s+dudas\b|\bsem\s+sombra\s+de\s+dúvidas?\b"),
+    ("GPT_FILLER", r"\bpor\s+último,?\s+pero\s+no\s+menos\s+importante\b|\bpor\s+último,?\s+mas\s+não\s+menos\s+importante\b"),
+    # AI_BRIDGE (paragraph-initial)
+    ("AI_BRIDGE", r"(?m)^(\s|[«\"'])*(además|asimismo|por\s+otro\s+lado|en\s+este\s+sentido|por\s+ende)\b"),
+    ("AI_BRIDGE", r"(?m)^(\s|[«\"'])*(além\s+disso|ademais|nesse\s+sentido|por\s+conseguinte|outrossim)\b"),
+    # STOCK_METAPHOR
+    ("STOCK_METAPHOR", r"\bun\s+tapiz\s+de\b|\buma\s+tapeçaria\s+de\b"),
+    ("STOCK_METAPHOR", r"\bsumerg(irse|irnos|ámonos|ete|irte)\s+en\b"),
+    ("STOCK_METAPHOR", r"\bmergulh(ar|e|emos|ando)\s+(fundo\s+)?(em|no|na|nos|nas)\b"),
+    ("STOCK_METAPHOR", r"\bnavegar\s+(por\s+)?(el|la|los|las|pelo|pela|pelos|pelas)\s+(complej|complex|panorama|mundo|cenário|desafíos|desafios)\w*"),
+    ("STOCK_METAPHOR", r"\b(el|o)\s+(panorama|cenário)\s+(actual|atual|digital|tecnológico)\b"),
+    ("STOCK_METAPHOR", r"\bdesbloquear\s+(el|tu|su|o|seu|sua)\s+(verdadero\s+|verdadeiro\s+)?potencial\b"),
+    ("STOCK_METAPHOR", r"\bla\s+punta\s+del\s+iceberg\b|\ba\s+ponta\s+do\s+iceberg\b"),
+    ("STOCK_METAPHOR", r"\bun\s+viaje\s+(fascinante|apasionante|transformador)\b|\buma\s+jornada\s+(fascinante|transformadora|incrível)\b"),
+    # AI_HEDGE
+    ("AI_HEDGE", r"\bpodría\s+decirse\s+que\b|\bpode-se\s+dizer\s+que\b"),
+    ("AI_HEDGE", r"\b(hasta|até)\s+cierto\s+punto\b|\baté\s+certo\s+ponto\b"),
+    ("AI_HEDGE", r"\ben\s+cierta\s+medida\b|\bem\s+certa\s+medida\b|\bde\s+certa\s+forma\b"),
+    # SELF_REF
+    ("SELF_REF", r"\ben\s+este\s+artículo\b|\bneste\s+artigo\b"),
+    ("SELF_REF", r"\ba\s+lo\s+largo\s+de\s+este\s+(artículo|texto)\b|\bao\s+longo\s+deste\s+(artigo|texto)\b"),
+    ("SELF_REF", r"\b(exploraremos|vamos\s+explorar|como\s+veremos)\b"),
+    # PSEUDO_CAUSAL
+    ("PSEUDO_CAUSAL", r"\bno\s+es\s+(casualidad|de\s+extrañar)\s+que\b|\bnão\s+é\s+(por\s+acaso|à\s+toa|de\s+estranhar)\s+que\b"),
+    # SELFHELP
+    ("SELFHELP", r"\b(sal|saia)\s+de\s+(tu|sua)\s+zona\s+de\s+(confort|conforto)\b"),
+    ("SELFHELP", r"\b(tu|sua)\s+mejor\s+versión\b|\bsua\s+melhor\s+versão\b"),
+    ("SELFHELP", r"\bcree\s+en\s+ti\b|\bacredite\s+em\s+você\b"),
+    # PSEUDO_SCI
+    ("PSEUDO_SCI", r"\b(los\s+)?estudios\s+(demuestran|muestran)\b|\bestudos\s+(mostram|comprovam|demonstram)\b"),
+    ("PSEUDO_SCI", r"\bla\s+ciencia\s+(dice|demuestra)\b|\ba\s+ciência\s+(diz|comprova|mostra)\b"),
+    # FILLER_INTRO
+    ("FILLER_INTRO", r"\ben\s+el\s+mundo\s+(actual|de\s+hoy)\b|\bno\s+mundo\s+(atual|de\s+hoje)\b"),
+    ("FILLER_INTRO", r"\ben\s+la\s+era\s+digital\b|\bna\s+era\s+digital\b"),
+    ("FILLER_INTRO", r"\ben\s+un\s+mundo\s+(cada\s+vez\s+más|en\s+constante)\b|\bem\s+um\s+mundo\s+(cada\s+vez\s+mais|em\s+constante)\b"),
+    # VAGUE_PERSON
+    ("VAGUE_PERSON", r"\b(muchos|algunos)\s+expertos\b|\b(muitos|alguns)\s+especialistas\b"),
+    ("VAGUE_PERSON", r"\blos\s+expertos\s+(coinciden|afirman)\b|\bespecialistas\s+(afirmam|concordam)\b"),
+    # SUPERLATIVE_OVERLOAD
+    ("SUPERLATIVE_OVERLOAD", r"\bde\s+(vital|suma)\s+importancia\b|\bde\s+(vital|suma)\s+importância\b"),
+    ("SUPERLATIVE_OVERLOAD", r"\babsolutamente\s+(esencial|essencial|crucial|fundamental)\b"),
+    # THERAPEUTIC
+    ("THERAPEUTIC", r"\by\s+eso\s+está\s+bien\b|\be\s+está\s+tudo\s+bem\b|\be\s+tudo\s+bem\s+(sentir|não|ter)\b"),
+    ("THERAPEUTIC", r"\bno\s+estás\s+sol[oa]\b|\bvocê\s+não\s+está\s+sozinh[oa]\b"),
+    # MARKETING_HYPE
+    ("MARKETING_HYPE", r"\bal\s+siguiente\s+nivel\b|\bpara\s+o\s+próximo\s+nível\b"),
+    ("MARKETING_HYPE", r"\bcambia\s+las\s+reglas\s+del\s+juego\b|\bmuda\s+(as\s+regras\s+do\s+)?jogo\b"),
+    ("MARKETING_HYPE", r"\bde\s+última\s+(generación|geração)\b"),
+    # SYNTHETIC
+    ("SYNTHETIC", r"\b(más|mais)\s+que\s+nunca\b|\bmais\s+do\s+que\s+nunca\b"),
+    ("SYNTHETIC", r"\ben\s+un\s+mundo\s+donde\b|\bem\s+um\s+mundo\s+onde\b"),
+    # EMPTY_CTA
+    ("EMPTY_CTA", r"¿\s*(qué\s+opinas|y\s+tú\s+qué\s+piensas)\s*\?|\bo\s+que\s+você\s+acha\s*\?"),
+    ("EMPTY_CTA", r"\bd[ée]janos\s+(tu|un)\s+comentario\b|\bdeixe\s+(seu|um)\s+comentário\b"),
+    # VAGUE_BENEFIT
+    ("VAGUE_BENEFIT", r"\bahorrar\s+tiempo\s+y\s+dinero\b|\beconomizar\s+tempo\s+e\s+dinheiro\b"),
+    ("VAGUE_BENEFIT", r"\b(mejorar|aumentar)\s+(tu|la|sua|a)\s+(productividad|produtividade|eficiencia|eficiência)\b"),
 ]
 
 # Severity per category. Default "caution" for any category not listed.

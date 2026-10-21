@@ -11,6 +11,15 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ### Added
 
+- **writer linter reads Spanish and Portuguese.** 76 patterns in the existing categories, so the verdict and the per-category advice read the same as for English and Russian:
+  - paragraph-initial bridges (*Además,* / *Além disso,*);
+  - fillers (*es importante destacar*, *vale ressaltar*);
+  - stock metaphors (*sumergirse en*, *mergulhar fundo em*, *desbloquear el potencial*);
+  - *no solo… sino también* / *não apenas… mas também*;
+  - era-digital openers, vague experts, hype, empty CTAs.
+
+  Probabilistic only, like the English set: no hard bans of their own. Four fixtures lock it: a full-slop and a clean text per language, the clean ones at zero hits. The browser checker at mikefluff.com/es and /pt had been telling its Spanish and Portuguese visitors that it only reads English and Russian.
+
 - **reel-builder drama mode.** Episodes of 8-12 minutes built from 15-second Seedance 2.5 scenes, in which several characters speak the series' language and Seedance voices them.
   - A series is planned by three prompts in `common/video-prompt-library/drama-system-prompt.md`. The first writes the bible: cast, places per weather and time, episode outlines. The second writes a director whose rules extend `directors/base.md`, 24 rules for long narrative film. The third writes each episode.
   - `reel_cast` renders each face and place once per series and judges it. It gives every scene its references and writes the line saying which image is whom.
