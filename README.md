@@ -16,6 +16,13 @@ Russian-first, English throughout. Plain markdown, MIT, no required dependencies
 The writing tools, with before-and-after examples in English, Russian, Portuguese
 and Spanish: [mikefluff.com/skills](https://www.mikefluff.com/en/skills).
 
+The `writer` linter also runs in the browser, nothing installed and nothing sent
+anywhere: paste a text and see the phrases that give a model away, in
+[English](https://www.mikefluff.com/en/ai-text-checker),
+[Russian](https://www.mikefluff.com/ru/ai-text-checker),
+[Spanish](https://www.mikefluff.com/es/ai-text-checker) and
+[Portuguese](https://www.mikefluff.com/pt/ai-text-checker).
+
 ## What it actually does
 
 The same cold email, before and after `cold-email` → `writer`:
