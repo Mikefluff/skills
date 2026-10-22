@@ -68,3 +68,12 @@ def test_warn_prints_and_returns():
     assert sc.warn(plan, out) == sc.coverage_problems(plan)
     assert "coverage: scene 1" in out.getvalue()
     assert sc.warn({"shots": []}, io.StringIO()) == []
+
+
+def test_an_open_on_frame_shot_takes_its_size_from_the_storyboard_frame():
+    from common.runners import shot_coverage as sc
+    shot = {"label": "w", "scene": 3, "index": 4, "open_on_frame": True,
+            "body": "Start exactly on the image. The camera cranes up over the family."}
+    plan = {"shots": [shot], "board": {"frames": [{"shot": 4, "shot_spec": "Wide, high corner, 20 mm: everyone"}]}}
+    read = sc._in_order(plan)[0]
+    assert read["size"] == "wide" and read["moves"]

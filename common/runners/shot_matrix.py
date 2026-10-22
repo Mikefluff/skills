@@ -91,9 +91,26 @@ def _is_action(shot: dict[str, Any], plan: dict[str, Any]) -> bool:
 
 
 def speed(shot: dict[str, Any], plan: dict[str, Any]) -> float:
-    """How fast the cut plays the shot: action without a line in the escalation or the montage, faster."""
+    """How fast the cut plays the shot: its own `speed` when it names one; a bridge, its whole flight in its
+    window (it joins its two shots only from its first frame to its last); action without a line in the
+    escalation or the montage, faster."""
+    if shot.get("speed"):
+        return float(shot["speed"])
+    if shot.get("bridge") and not shot.get("clip"):
+        return bridge_speed(shot)
     fast = _acts(plan, _live(plan)).get(shot["label"]) in ("escalation", "montage", "drop", "peak")
     return ACTION_SPEED if fast and _is_action(shot, plan) and not _DEVICE.search(shot_line(shot)) else 1.0
+
+
+def bridge_speed(shot: dict[str, Any]) -> float:
+    """How fast a bridge plays so its window holds the render from `trim_start` to its last frame."""
+    render = float((shot.get("kwargs") or {}).get("duration_seconds") or 0)
+    window = float(shot.get("trim_seconds") or render)
+    left = render - float(shot.get("trim_start") or 0) - _LAST_FRAME
+    return round(max(1.0, left / window), 3) if window > 0 else 1.0
+
+
+_LAST_FRAME = 0.08  # a render's final frames, held back so the window never seeks past its end
 
 
 # Cut → (into the next shot, out of this one). Built in the edit (reel_animatic) on both sides of the cut.

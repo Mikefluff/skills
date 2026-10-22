@@ -50,21 +50,33 @@ def _move(text: str) -> bool:
     return not _PUSH.search(text) or bool(_FLIGHT.search(text))
 
 
-def read_shot(shot: dict[str, Any]) -> dict[str, Any] | None:
-    """{label, scene, size: close|medium|wide|None, moves}; None for a shot the cut takes as it is."""
+def read_shot(shot: dict[str, Any], spec: str = "") -> dict[str, Any] | None:
+    """{label, scene, size: close|medium|wide|None, moves}; None for a shot the cut takes as it is. `spec` is its
+    storyboard frame's shot_spec ("Wide, high corner, 20 mm: ..."): an open-on-frame body has no shot phrase,
+    and the frame says the size the shot opens on."""
     body = (shot.get("body") or shot.get("prompt") or "").strip()
     if shot.get("cut") or not body:
         return None
     label, scene = shot.get("label") or str(shot.get("index")), shot.get("scene")
     if shot.get("bridge") and not scene:
         return {"label": label, "scene": None, "size": None, "moves": True}
+    return {"label": label, "scene": scene, **_size_and_move(body, spec.split(":")[0])}
+
+
+def _size_and_move(body: str, head: str) -> dict[str, Any]:
+    """From the body's shot phrase; else its camera sentences, the storyboard frame's spec (`head`) ruling the size."""
     phrase = _PHRASE.search(body)
     if phrase:
         fields = phrase.group(1).split(",")
-        return {"label": label, "scene": scene, "size": _size(fields[0]), "moves": _move(fields[-1])}
+        return {"size": _size(fields[0]), "moves": _move(fields[-1])}
     camera = " ".join(m.group(0) for m in _CAMERA.finditer(body))
     size = "wide" if _REVEAL.search(camera) else ("close" if "close-up" in camera.lower() else None)
-    return {"label": label, "scene": scene, "size": size, "moves": _move(camera)}
+    return {"size": _spec_size(head) if head else size, "moves": _move(camera) or _move(head)}
+
+
+def _spec_size(head: str) -> str:
+    """The size a storyboard frame's shot_spec opens on ("Wide, high corner, 20 mm")."""
+    return "wide" if _REVEAL.search(head) or re.search(r"\bwide\b|\bhigh\b", head, re.I) else _size(head)
 
 
 def move_phrase(body: str) -> str:
@@ -79,7 +91,9 @@ def _in_order(plan: dict[str, Any]) -> list[dict[str, Any]]:
     shots = list(plan.get("shots") or [])
     if all(s.get("clock_at") is not None for s in shots):
         shots.sort(key=lambda s: float(s["clock_at"]))
-    return [r for r in map(read_shot, shots) if r]
+    specs = {f.get("shot"): f.get("shot_spec") or "" for f in (plan.get("board") or {}).get("frames") or []}
+    read = (read_shot(s, specs.get(s.get("index"), "") if s.get("open_on_frame") else "") for s in shots)
+    return [r for r in read if r]
 
 
 def _runs(read: list[dict[str, Any]], hit, what: str) -> list[str]:
