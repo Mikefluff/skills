@@ -16,6 +16,9 @@ moves back; its vocals go, its frames and previs too unless "keep_assets": true 
 {"restore": <label>, "from": <plan file>, "insert_after"|"insert_before": <anchor>} brings back a shot removed
 earlier, with its frames, previs and vocals, from another plan (a copy of plan.json.bak: the backup is
 overwritten each run). Its rendered clip is still in the manifest by label, so nothing is rendered again.
+{"trim": <label>, "trim_start"?, "trim_seconds"?} gives a shot a new window in its take, and {"split": <label>,
+"cut_from": a, "cut_to": b} drops the stretch a..b (seconds of the take) from a rendered take, the rest playing on
+as "<label>_2", a hand-cut piece of the same clip: for a frame the generation got wrong in the middle of a take.
 Entries apply in order.
 
 The plan is checked (its bible, its previs, labels and frame ids unique) before anything is written; the
@@ -35,7 +38,7 @@ from typing import Any
 from .. import drama
 from .. import previs as pv
 from ..atomicfile import write_text
-from ._trailer_retime import _owners, insert, remove
+from ._trailer_retime import _owners, insert, remove, shift
 
 _PLACES = ("insert_after", "insert_before", "replace")
 _BESIDE = ("insert_after", "insert_before")
@@ -168,12 +171,57 @@ def _restore(plan: dict[str, Any], entry: dict[str, Any], base: Path) -> dict[st
     return shot
 
 
+def _retrim(plan: dict[str, Any], shot: dict[str, Any], start: float, seconds: float) -> None:
+    """A shot's window in its take changed: everything after it moves by the difference."""
+    end = float(shot["clock_at"]) + float(shot["trim_seconds"])
+    shift(plan, end, round(seconds - float(shot["trim_seconds"]), 3))
+    shot["trim_start"], shot["trim_seconds"] = round(start, 3), round(seconds, 3)
+
+
+def _trim(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    """{"trim": <label>, "trim_start"?, "trim_seconds"?}: a new window in the same take, the cut following."""
+    shot = _by_label(plan, entry["trim"])
+    start = float(entry.get("trim_start", shot.get("trim_start") or 0.0))
+    _retrim(plan, shot, start, float(entry.get("trim_seconds", shot["trim_seconds"])))
+    return shot
+
+
+def _split(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    """{"split": <label>, "cut_from": a, "cut_to": b} (seconds of the take): the stretch a..b of a rendered take
+    goes, the rest plays on as a hand-cut piece "<label>_2" of the same clip. For a frame the take got wrong."""
+    shot = _by_label(plan, entry["split"])
+    start, cut_from, cut_to = float(shot.get("trim_start") or 0.0), float(entry["cut_from"]), float(entry["cut_to"])
+    end = start + float(shot["trim_seconds"])
+    if not start < cut_from < cut_to < end:
+        raise ValueError(f"{shot['label']}: cut {cut_from}..{cut_to} must lie inside its window {start}..{end}")
+    clip = entry.get("clip") or _clip_of(plan, shot["label"])
+    _retrim(plan, shot, start, cut_from - start)
+    tail = {"label": f"{shot['label']}_2", "scene": shot.get("scene"), "cast": shot.get("cast", []),
+            "location": shot.get("location"), "dialogue": [], "clip": clip, "trim_start": round(cut_to, 3),
+            "trim_seconds": round(end - cut_to, 3), "kwargs": dict(shot.get("kwargs") or {})}
+    insert(plan, tail, float(shot["clock_at"]) + float(shot["trim_seconds"]))
+    return tail
+
+
+def _clip_of(plan: dict[str, Any], label: str) -> str:
+    """The rendered take of a shot, relative to the output dir, from the reel manifest."""
+    out = Path(plan.get("output_dir") or ".")
+    manifest = out / "manifest.json"
+    items = json.loads(manifest.read_text(encoding="utf-8")).get("items") or [] if manifest.is_file() else []
+    path = next((i["output_path"] for i in items if i.get("label") == label and i.get("status") == "succeeded"), None)
+    if not path:
+        raise ValueError(f"{label}: no rendered take to split; render it first or give \"clip\"")
+    return str(Path(path).relative_to(out)) if Path(path).is_relative_to(out) else path
+
+
 def apply_entry(plan: dict[str, Any], entry: dict[str, Any], base: Path = Path(".")) -> tuple[str, dict[str, Any]]:
-    """Apply one entry to `plan` in place; returns what was done (added, removed, moved, restored) and the shot."""
-    if entry.get("remove"):
-        return "removed", _remove(plan, entry)
-    if entry.get("move"):
-        return "moved", _move(plan, entry)
+    """Apply one entry to `plan` in place; returns what was done (added, removed, moved, restored, trimmed,
+    split) and the shot."""
+    kinds = (("remove", "removed", _remove), ("move", "moved", _move), ("trim", "trimmed", _trim),
+             ("split", "split", _split))
+    for key, verb, fn in kinds:
+        if entry.get(key):
+            return verb, fn(plan, entry)
     if entry.get("restore"):
         return "restored", _restore(plan, entry, base)
     return "added", _add(plan, entry)
