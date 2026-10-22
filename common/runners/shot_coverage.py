@@ -26,7 +26,7 @@ RUN = 3  # this many close-ups, or static shots, in a row is a problem
 MOVE_SHARE = 1 / 3
 
 _PHRASE = re.compile(r"Shot \[[^\]]*\]\s*[-–—]\s*([^.]*)")
-_REAL = re.compile(r"crane|dolly|track|orbit|fpv|drone|whip|sweep|\barc\b|circl|pull\w* back|chase|swoop|"
+_REAL = re.compile(r"crane|dolly|track|orbit|fpv|drone|whip|sweep|\barc(s|ing)?\b|circl|pull\w* back|chase|swoop|"
                    r"\bfl(y|ies|ying)\b|camera \w*\s?(rises|sinks|dives|climbs)", re.I)
 _PUSH = re.compile(r"push-?in|dolly in|locked-off|static", re.I)
 _FLIGHT = re.compile(r"crane|orbit|fpv|drone|track", re.I)
