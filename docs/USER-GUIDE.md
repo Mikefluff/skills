@@ -63,6 +63,7 @@ Jump straight to the section for what you want to do.
 | Video prompt (20+ models) | [§ video-prompt](#i-want-to-write-an-ai-video-prompt) |
 | Music prompt (10+ models) | [§ music-prompt](#i-want-to-write-an-ai-music-prompt) |
 | 3D mesh from text or a photo | [§ model-maker](#i-want-a-3d-model) |
+| Animated / motion website | [§ motion-site](#i-want-an-animated-website) |
 
 ### Orchestrators (end-to-end)
 
@@ -466,6 +467,33 @@ Two things worth saying before someone opens the file: the topology is generated
 so it is triangles without edge loops — a prop or a sculpting base rather than
 something to rig. And nothing here checks watertightness, so it is not a
 print-ready model until a repair pass says it is.
+
+---
+
+### "I want an animated website" {#i-want-an-animated-website}
+
+`/motion-site "particle hero for an AI note-taking app"` builds the moving layer
+`impeccable` doesn't reach — a WebGL hero, particles that assemble into a logo,
+scroll-driven 3D, a GLSL shader background, liquid glass — as **running code**, not
+a prompt. It picks a tier per effect: `webgl` (Three.js / R3F + GSAP ScrollTrigger +
+Lenis + GLSL) where the GPU earns it, or a `light` CSS / SVG / Framer-Motion tier
+for reveals, kinetic type, parallax, and marquees.
+
+```
+/motion-site "fluid-gradient hero, brand colors #3a1c71 → #00d2ff"
+/motion-site "product launch landing, 3D model rotates on scroll" --scope page
+/motion-site "editorial headline, dramatic reveal" --no-3d --target react
+/motion-site audit ./src/Hero.jsx
+```
+
+Output is a self-contained HTML file (CDN import maps — open with `python3 -m
+http.server`, or publish it as an artifact to see it move) or React / R3F component
+files for an existing project. Every build ships the reduced-motion and mobile
+fallbacks in the first pass. No paid API — it writes code and runs locally. It owns
+the WebGL / scroll-3D / particle / shader genre; for layout, typography, and copy
+use `impeccable`, and for a video file use `reel-builder`.
+
+For details: [skills/motion-site/SKILL.md](../skills/motion-site/SKILL.md).
 
 ---
 
@@ -1048,7 +1076,7 @@ See [`README.md § What's in the box`](../README.md#whats-in-the-box) for the up
 - [QUICKSTART](QUICKSTART.md) — 5-minute first run
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
-- [COMPOSING](COMPOSING.md) — how the 44 skills compose; recipe library
+- [COMPOSING](COMPOSING.md) — how the 45 skills compose; recipe library
 - [SKILL-INDEX](SKILL-INDEX.md) — every skill indexed by layer / domain / language
 - [walkthroughs/README.md](walkthroughs/README.md) — 19 walkthroughs, categorized
 - [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection
