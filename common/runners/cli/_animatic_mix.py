@@ -112,5 +112,5 @@ def with_vocals(sound: dict[str, Any], plan: dict[str, Any], bible: dict[str, An
     for n, path in voiced.items():
         files[f"vocal_{n}"] = path
         sound["sources"].append({"id": f"vocal_{n}", "kind": "file"})
-    sound["placements"] += dp.placements(plan, voiced)
+    sound["placements"] += dp.placements(plan, voiced, bible)
     return sound

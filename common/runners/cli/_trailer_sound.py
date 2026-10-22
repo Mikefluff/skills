@@ -259,23 +259,38 @@ def _second_vocal(p: dict[str, Any], cut: _Cut, voiced: set[str]) -> bool:
     return False
 
 
-def _rank(p: dict[str, Any]) -> tuple[int, float]:
-    """Story hits first, then cut sounds, then vocals; earlier first within each."""
-    return (2 if p["source"].startswith("vocal_") else 1 if p.get("cut") else 0), float(p["at"])
+def _rank(p: dict[str, Any], vocals_first: bool = False) -> tuple[int, float]:
+    """Story hits first; then cut sounds before vocals in a trailer, vocals before cut sounds in a film (a whoosh
+    can go, a character's reaction is the story); earlier first within each."""
+    vocal, cut = p["source"].startswith("vocal_"), bool(p.get("cut"))
+    tier = 0 if not (vocal or cut) else (1 if vocal == vocals_first else 2)
+    return tier, float(p["at"])
+
+
+def _is_vocal(p: dict[str, Any]) -> bool:
+    return p["source"].startswith("vocal_")
 
 
 def _one_shot(p: dict[str, Any]) -> bool:
-    return not p.get("length") and p["source"] not in _KEEP and not p.get("strobe")
+    return not p.get("length") and p["source"] not in _KEEP and not p.get("strobe") and not p.get("keep")
 
 
-def _space_one_shots(kept: list[dict[str, Any]], cut: _Cut) -> list[dict[str, Any]]:
-    """One-shot sounds at least _GAP apart: a story hit beats a cut sound, a cut sound beats a vocal."""
+def _crowded(p: dict[str, Any], chosen: list[dict[str, Any]], lanes: bool) -> bool:
+    """Whether a sound already kept stands within _GAP of `p`; in a film (lanes) a voice and a sound effect sit in
+    different bands and are heard together, so each is only crowded by its own kind."""
+    at = float(p["at"])
+    return any(abs(at - float(q["at"])) < _GAP for q in chosen if not lanes or _is_vocal(q) == _is_vocal(p))
+
+
+def _space_one_shots(kept: list[dict[str, Any]], cut: _Cut, vocals_first: bool = False) -> list[dict[str, Any]]:
+    """One-shot sounds at least _GAP apart: a story hit beats the rest, then a cut sound beats a vocal in a
+    trailer. In a film voices and effects are spaced each in their own lane, a vocal before a cut sound.
+    A placement marked "keep" is never thinned."""
     one_shots = [p for p in kept if _one_shot(p)]
     chosen: list[dict[str, Any]] = []
     voiced: set[str] = set()
-    for p in sorted(one_shots, key=_rank):
-        at = float(p["at"])
-        if any(abs(at - float(q["at"])) < _GAP for q in chosen) or _second_vocal(p, cut, voiced):
+    for p in sorted(one_shots, key=lambda q: _rank(q, vocals_first)):
+        if _crowded(p, chosen, vocals_first) or _second_vocal(p, cut, voiced):
             continue
         chosen.append(p)
     drop = {id(p) for p in one_shots} - {id(p) for p in chosen}
@@ -344,12 +359,12 @@ def declutter(sound: dict[str, Any], plan: dict[str, Any]) -> None:
 
     The SAME peak stacked a hit, a grunt, a cut sound, a bed and the clip's own noise every 0.3 s: none of them
     read and the whole sounded dirty. Three rules:
-      - one-shot sounds stand at least _GAP apart; a story hit beats a cut sound, a cut sound beats a vocal;
-        in a montage act a shot keeps one vocal
+      - one-shot sounds stand at least _GAP apart; a story hit beats the rest, a cut sound beats a vocal in a
+        trailer and a vocal beats a cut sound in a film; "keep" exempts one; in a montage act a shot keeps one vocal
       - in a montage act a silent shot loses its own sound and a bed run shorter than 2 s is dropped
       - before the title the score stops and everything with it but a low room: the last line lands in silence
         and the title's hit is the release"""
     cut = _Cut(plan)
-    kept = _space_one_shots(_thin_montage(sound["placements"], cut), cut)
+    kept = _space_one_shots(_thin_montage(sound["placements"], cut), cut, vocals_first=not _breathes(plan))
     breath = _breath(plan)
     sound["placements"] = _breathe(sound, kept, cut, breath) if breath else kept

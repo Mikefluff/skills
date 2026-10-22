@@ -49,6 +49,7 @@ class Placement:
     fx: str = "none"
     duck: bool = False
     snap: bool = False
+    pitch: float = 0.0  # semitones, timing kept (a child's voice lifted out of an adult range)
 
     @classmethod
     def from_json(cls, raw: dict[str, Any]) -> "Placement":
@@ -79,12 +80,19 @@ def validate(sound: dict[str, Any]) -> list[Placement]:
     return placements
 
 
+def pitch_filter(semitones: float) -> str:
+    """A voice moved by `semitones`, its length kept (rubberband; formants move with it, as a smaller throat)."""
+    return f"rubberband=pitch={2 ** (max(-12.0, min(12.0, semitones)) / 12):.4f}"
+
+
 def _chain(index: int, p: Placement, label: str) -> str:
     parts = [f"[{index}:a]aresample=48000"]
     end = f":end={p.offset + p.length:.3f}" if p.length is not None else ""
     parts.append(f"atrim=start={p.offset:.3f}{end},asetpts=PTS-STARTPTS")
     if FX[p.fx]:
         parts.append(FX[p.fx])
+    if p.pitch:
+        parts.append(pitch_filter(p.pitch))
     parts.append(f"volume={p.gain_db:.1f}dB")
     if p.fade_in > 0:
         parts.append(f"afade=t=in:st=0:d={p.fade_in:.3f}")
