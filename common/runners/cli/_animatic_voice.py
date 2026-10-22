@@ -21,6 +21,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from ..soundtrack import pitch_filter
+
 _MAX_TEMPO = 1.25
 _SPILL = 0.4  # a line may run this far past its cut, as a J-cut into the next shot
 _GAP = 0.08
@@ -224,6 +226,9 @@ def fit(lines: list[dict[str, Any]], clips: list[Path]) -> list[tuple[Path, floa
     for line, clip in sorted(zip(lines, clips), key=lambda pair: pair[0]["at"]):
         length = _seconds(clip)
         tempo = min(_MAX_TEMPO, max(1.0, length / max(line["room"], 0.3)))
+        if tempo > 1.08:
+            # a rushed line loses its acting: say which, so the shot can be given room instead
+            print(f"  {line.get('label', '?')}: line sped up x{tempo:.2f} to fit its shot", file=sys.stderr)
         at = max(line["at"], free_at + _GAP)
         placed.append((clip, at, tempo))
         free_at = at + length / tempo
@@ -237,15 +242,24 @@ def _level(clip: Path, gain: float) -> str:
     return f"volume={lift:g}dB,alimiter=limit=0.89," if lift else ""
 
 
-def mix(placed: list[tuple[Path, float, float]], total: float, out: Path, gains: list[float] | None = None) -> None:
-    """Every line at one loudness (moved by its gain_db, in `gains`), at its time and tempo, into one WAV of the
-    cut's length."""
+def voice_pitch(bible: dict[str, Any], who: str) -> float:
+    """The cast member's "voice_pitch" in semitones: a voice that reads older than the part (a library child voice
+    that comes out adult in a dialogue take) lifted in the mix, no new voice needed."""
+    return float(next((c.get("voice_pitch") or 0 for c in bible.get("cast") or [] if c["id"] == who), 0))
+
+
+def mix(placed: list[tuple[Path, float, float]], total: float, out: Path, gains: list[float] | None = None,
+        pitches: list[float] | None = None) -> None:
+    """Every line at one loudness (moved by its gain_db, in `gains`), at its time and tempo, its speaker's pitch
+    (semitones, in `pitches`), into one WAV of the cut's length."""
     inputs = ["-f", "lavfi", "-t", f"{total:.3f}", "-i", "anullsrc=r=48000:cl=stereo"]
     chains = []
     for n, (clip, at, tempo) in enumerate(placed, start=1):
         inputs += ["-i", str(clip)]
         ms = int(at * 1000)
         speed = f"atempo={tempo:.3f}," if tempo > 1.001 else ""
+        shift = pitches[n - 1] if pitches else 0.0
+        speed += f"{pitch_filter(shift)}," if shift else ""
         lift = _level(clip, gains[n - 1] if gains else 0.0)
         chains.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,{speed}"
                       f"loudnorm=I={_LINE_LUFS}:TP=-1.5:LRA=11,{lift}aresample=48000,adelay={ms}|{ms}[l{n}]")

@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ._animatic_voice import gain_db
+from ._animatic_voice import gain_db, voice_pitch
 
 _MUSIC = ("caper_groove", "caper_bigbeat", "score_main")
 _SPLIT = 0.6  # a cue this close to the start of a music segment does not start a new one
@@ -184,7 +184,8 @@ def _clean_vocal(vocal: dict[str, Any], voice_id: str):
     from ..providers.elevenlabs import transcribe
     from ._animatic_voice import _errors, _words
 
-    want = _words(vocal["text"])
+    # both sides by the same rule: a held sound ("Ш-ш", "Хх") is no word to miss, only a word it adds counts
+    want = [w for w in _words(vocal["text"]) if len(w) > 2]
     for _ in range(3):
         result = config.get_provider("eleven-tts").generate(spoken(vocal["text"]), voice_id=voice_id,
                                                             model_id="eleven_v4")
@@ -224,7 +225,7 @@ def voice(vocals: list[dict[str, Any]], voices: dict[str, str], out: Path) -> di
     return files
 
 
-def placements(plan: dict[str, Any], files: dict[int, Path]) -> list[dict[str, Any]]:
+def placements(plan: dict[str, Any], files: dict[int, Path], bible: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     shots = {s["label"]: s for s in plan["shots"]}
     out = []
     for n, path in files.items():
@@ -234,7 +235,8 @@ def placements(plan: dict[str, Any], files: dict[int, Path]) -> list[dict[str, A
             continue
         out.append({"source": f"vocal_{n}", "at": round(float(shot["clock_at"]) + float(vocal["at"]), 3),
                     "gain_db": (-3 if vocal["who"] == "crowd" else 1) + gain_db(vocal),
-                    "fade_in": 0.01, "fade_out": 0.05})
+                    "fade_in": 0.01, "fade_out": 0.05, **({"keep": True} if vocal.get("keep") else {}),
+                    **({"pitch": p} if (p := voice_pitch(bible or {}, vocal["who"])) else {})})
     return out
 
 

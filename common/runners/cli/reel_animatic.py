@@ -152,7 +152,8 @@ def scratch_dialogue(plan: dict[str, Any], bible: dict[str, Any], total: float, 
             _, at, seconds = marks[line["label"]]
             line["at"], line["room"] = at, max(seconds, 0.3) + 0.15
     placed = av.fit(lines_, clips)
-    av.mix(placed, total, out, [av.gain_db(line) for line in sorted(lines_, key=lambda l: l["at"])])
+    in_order = sorted(lines_, key=lambda l: l["at"])
+    av.mix(placed, total, out, [av.gain_db(line) for line in in_order], [av.voice_pitch(bible, l["who"]) for l in in_order])
     onsets: dict[str, float] = {}
     ends: dict[str, float] = {}
     for line, (clip, at, tempo) in zip(sorted(lines_, key=lambda l: l["at"]), placed):

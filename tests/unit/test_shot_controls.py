@@ -132,3 +132,54 @@ def test_a_russian_take_is_checked_word_for_word():
     assert av._words("[hurried] Ещё раз! У нас сорок минут…") == ["еще", "раз", "у", "нас", "сорок", "минут"]
     assert av._errors(av._words("Он растёт!"), av._words("Он растёт, растёт!")) == 1
     assert av._words("ninety-eight point seven, it's me") == ["ninety", "eight", "point", "seven", "it's", "me"]
+
+
+def test_a_film_keeps_a_reaction_with_a_cut_whoosh_and_a_trailer_drops_it():
+    from common.runners.cli import _trailer_sound as ts
+    whoosh, gasp = {"source": "whoosh", "at": 1.0, "cut": True}, {"source": "vocal_3", "at": 1.2}
+    cut = ts._Cut({"shots": [{"label": "a", "clock_at": 0.0, "trim_seconds": 4.0}]})
+    film = ts._space_one_shots([dict(whoosh), dict(gasp)], cut, vocals_first=True)
+    trailer = ts._space_one_shots([dict(whoosh), dict(gasp)], cut, vocals_first=False)
+    assert [p["source"] for p in film] == ["whoosh", "vocal_3"]
+    assert [p["source"] for p in trailer] == ["whoosh"]
+
+
+def test_a_kept_vocal_is_never_thinned():
+    from common.runners.cli import _trailer_sound as ts
+    cut = ts._Cut({"shots": [{"label": "a", "clock_at": 0.0, "trim_seconds": 4.0}]})
+    kept = ts._space_one_shots([{"source": "hit", "at": 1.0}, {"source": "vocal_1", "at": 1.1, "keep": True}], cut)
+    assert {p["source"] for p in kept} == {"hit", "vocal_1"}
+
+
+def test_a_held_sound_vocal_is_not_refused_for_having_no_words():
+    from unittest import mock
+    from common.runners.cli import _drama_pass as dp
+    take = mock.Mock(content=b"mp3")
+    with mock.patch("common.runners.config.get_provider") as provider, \
+         mock.patch("common.runners.providers.elevenlabs.transcribe", return_value=[{"text": "Шшш"}]):
+        provider.return_value.generate.return_value = take
+        assert dp._clean_vocal({"who": "a", "text": "[shushing] Ш-ш!"}, "v") is take
+
+
+def test_in_a_film_a_sneeze_and_a_crunch_are_heard_together():
+    from common.runners.cli import _trailer_sound as ts
+    cut = ts._Cut({"shots": [{"label": "a", "clock_at": 0.0, "trim_seconds": 4.0}]})
+    both = [{"source": "cookie_crunch", "at": 1.0}, {"source": "vocal_6", "at": 1.2}, {"source": "vocal_7", "at": 1.3}]
+    film = ts._space_one_shots([dict(p) for p in both], cut, vocals_first=True)
+    trailer = ts._space_one_shots([dict(p) for p in both], cut, vocals_first=False)
+    assert [p["source"] for p in film] == ["cookie_crunch", "vocal_6"]
+    assert [p["source"] for p in trailer] == ["cookie_crunch"]
+
+
+def test_a_childs_voice_is_lifted_by_its_cast_pitch_in_lines_and_vocals():
+    from common.runners import soundtrack
+    from common.runners.cli import _animatic_voice as av
+    from common.runners.cli import _drama_pass as dp
+    bible = {"cast": [{"id": "kid", "voice_pitch": 4}, {"id": "dad"}]}
+    assert (av.voice_pitch(bible, "kid"), av.voice_pitch(bible, "dad")) == (4.0, 0.0)
+    assert soundtrack.pitch_filter(12) == "rubberband=pitch=2.0000"
+    plan = {"shots": [{"label": "a", "clock_at": 1.0}], "vocals": [{"shot": "a", "who": "kid", "at": 0.5, "text": "Ой"}]}
+    placed = dp.placements(plan, {0: "x.mp3"}, bible)
+    assert placed[0]["pitch"] == 4.0
+    chain = soundtrack._chain(1, soundtrack.Placement.from_json({"source": "v", "at": 0.0, "pitch": 4.0}), "o")
+    assert "rubberband=pitch=1.2599" in chain
