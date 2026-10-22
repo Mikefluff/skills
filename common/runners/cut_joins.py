@@ -54,8 +54,8 @@ def bridge_played(shot: dict[str, Any], speed: float = 1.0) -> tuple[float, floa
 
 
 def _bridge_problem(shot: dict[str, Any], speed: float) -> str | None:
-    if not shot.get("bridge") or shot.get("clip"):
-        return None
+    if not shot.get("bridge") or shot.get("clip") or shot.get("speed"):
+        return None  # a bridge given its own speed was cut short on purpose (it lands early, before a morph)
     head, tail = bridge_played(shot, speed)
     if head + tail <= _BRIDGE_SLACK:
         return None
