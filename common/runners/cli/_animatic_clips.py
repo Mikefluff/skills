@@ -30,7 +30,7 @@ def _past_rejections(plan: dict[str, Any], out: Path, clips: dict[str, Path]) ->
     from .. import shot_matrix
 
     ledger = shot_matrix.takes(plan)
-    rejected = {t["file"] for t in ledger if t.get("verdict") == "rejected"}
+    rejected = {t["file"] for t in ledger if t.get("verdict") == "rejected" or t.get("status") == "rejected"}
     for label in {t["label"] for t in ledger} | set(clips):
         path = clips.get(label)
         if path is not None and not any(str(path).endswith(f) for f in rejected):
@@ -43,7 +43,7 @@ def _past_rejections(plan: dict[str, Any], out: Path, clips: dict[str, Path]) ->
 
 
 def _latest_good(ledger: list[dict[str, Any]], label: str, out: Path) -> Path | None:
-    good = [t for t in ledger if t["label"] == label and t.get("verdict") != "rejected"
+    good = [t for t in ledger if t["label"] == label and "rejected" not in (t.get("verdict"), t.get("status"))
             and (out / t["file"]).is_file()]
     return out / good[-1]["file"] if good else None
 

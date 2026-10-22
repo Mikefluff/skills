@@ -6,7 +6,8 @@
 "insert_after": <label> (at that shot's end), "insert_before": <label> (at its start) or "replace": <label>
 (that shot taken out, the new one at its place). It carries "shot" (the plan's shot: label, scene, cast,
 location, dialogue, body, trim_start, trim_seconds, kwargs; or a hand-cut piece of an existing take,
-{"label", "clip", "trim_start", "trim_seconds"}) and optionally "frame" (a storyboard frame), "previs"
+{"label", "clip", "trim_start", "trim_seconds"}; the clip may be any take in takes.json, and reel_takes prints
+the entry for every alternate) and optionally "frame" (a storyboard frame), "previs"
 (that shot's previs) and "vocals". Everything from the insertion point on moves by the new shot's length:
 shots, title cards, sound placements, the total; shots are numbered again and frames follow their shots.
 
