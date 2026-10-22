@@ -19,7 +19,10 @@ overwritten each run). Its rendered clip is still in the manifest by label, so n
 {"trim": <label>, "trim_start"?, "trim_seconds"?} gives a shot a new window in its take, and {"split": <label>,
 "cut_from": a, "cut_to": b} drops the stretch a..b (seconds of the take) from a rendered take, the rest playing on
 as "<label>_2", a hand-cut piece of the same clip: for a frame the generation got wrong in the middle of a take.
-Entries apply in order.
+Entries apply in order. An added shot may carry "sounds": [{"source", "at" (seconds into the shot),
+"gain_db", ...}] laid as placements on the film's clock (they move with the cut from then on), and the file
+may declare new "sources" (an sfx prompt) beside the shots: a silent render is scored in the mix, never
+rendered again for its sound.
 
 The plan is checked (its bible, its previs, labels and frame ids unique) before anything is written; the
 previous plan is kept as <plan>.bak (one backup, overwritten each run). --dry-run prints what would change.
@@ -110,14 +113,37 @@ def _add(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
         _drop_shot_data(plan, anchor)
     insert(plan, shot, at)
     _attach(plan, shot, frames, entry.get("previs"), entry.get("vocals"))
+    _lay_sounds(plan, shot, entry.get("sounds") or [])
     return shot
+
+
+def _lay_sounds(plan: dict[str, Any], shot: dict[str, Any], sounds: list[dict[str, Any]]) -> None:
+    """A shot's own sound design, "at" seconds into the shot, laid on the film's clock as placements: a silent
+    render gets its bangs and whooshes from the mix, not from a second paid generation."""
+    sound = plan.setdefault("sound", {})
+    known = {s["id"] for s in sound.get("sources") or []}
+    for cue in sounds:
+        if cue["source"] not in known:
+            raise ValueError(f"{shot['label']}: sound {cue['source']!r} is not a sound source (add it under \"sources\")")
+        at = round(float(shot["clock_at"]) + float(cue.get("at", 0.0)), 3)
+        sound.setdefault("placements", []).append({"fade_in": 0.01, "fade_out": 0.05, **cue, "at": at})
+
+
+def _add_sources(plan: dict[str, Any], sources: list[dict[str, Any]]) -> None:
+    """New sound sources (an sfx prompt, a file) declared next to the shots that use them; an id already in the
+    film is kept as it is, so a rerun does not pay for it again."""
+    if not sources:
+        return
+    have = plan.setdefault("sound", {}).setdefault("sources", [])
+    ids = {s["id"] for s in have}
+    have.extend(s for s in sources if s["id"] not in ids)
 
 
 def _remove(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
     """A shot out of the cut, its vocals with it; its frames and previs too, unless "keep_assets" parks them
     (frames stay on the board under "parked": <label>, the previs under previs.parked) for a later restore."""
     label = entry["remove"]
-    _by_label(plan, label)
+    _own_sounds(plan, _by_label(plan, label))  # its bangs go with it, not onto the shot that moves up
     frames = _frames_of(plan, label)
     shot = remove(plan, label)
     if entry.get("keep_assets"):
@@ -129,17 +155,29 @@ def _remove(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
     return shot
 
 
+def _own_sounds(plan: dict[str, Any], shot: dict[str, Any]) -> list[dict[str, Any]]:
+    """The one-shot sounds that play inside a shot (taken out of the plan), each at its offset into the shot. A
+    bed or cue that runs on past the shot stays: it belongs to the scene, not to this shot."""
+    a = float(shot["clock_at"])
+    b = a + float(shot["trim_seconds"])
+    placements = (plan.get("sound") or {}).get("placements") or []
+    own = [p for p in placements if a <= float(p["at"]) < b and float(p.get("length") or 0) <= b - float(p["at"])]
+    plan["sound"]["placements"] = [p for p in placements if p not in own] if own else placements
+    return [{**p, "at": round(float(p["at"]) - a, 3)} for p in own]
+
+
 def _move(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
-    """A shot taken out and put back at its anchor, with its own frames, previs and vocals."""
+    """A shot taken out and put back at its anchor, with its own frames, previs, vocals and sounds."""
     label = entry["move"]
     kind, anchor = _place(entry, _BESIDE)
     if anchor == label:
         raise ValueError(f"{label}: a shot cannot move next to itself")
-    _by_label(plan, label)
+    sounds = _own_sounds(plan, _by_label(plan, label))
     frames = _frames_of(plan, label)
     shot = remove(plan, label)
     insert(plan, shot, _at(plan, kind, anchor))
     _attach(plan, shot, frames, None, None)
+    plan["sound"]["placements"] += [{**p, "at": round(float(shot["clock_at"]) + p["at"], 3)} for p in sounds]
     return shot
 
 
@@ -263,6 +301,7 @@ def problems(plan: dict[str, Any], plan_file: Path) -> list[str]:
 
 def splice(plan: dict[str, Any], inserts: dict[str, Any], base: Path = Path(".")) -> list[tuple[str, dict[str, Any]]]:
     """Every entry of `inserts` applied to `plan` in order, then its continuity; returns (what was done, shot)."""
+    _add_sources(plan, inserts.get("sources") or [])
     done = [apply_entry(plan, entry, base) for entry in inserts.get("shots") or []]
     plan.setdefault("continuity", []).extend(inserts.get("continuity") or [])
     return done

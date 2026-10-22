@@ -17,6 +17,10 @@ to previs/framing.json; --auto-skip sets "no_previs" on those shots so the
 storyboard keyframe leads instead. A shot with "open_on_frame" opens on its storyboard frame and takes no
 previs: it is neither rendered nor handed a clip.
 
+Nothing is rendered twice: previs/cache.json stamps each clip with the key of its job entry (camera, lens,
+set, actors, length, frame size, the scene script), and a rerun sends Blender only the shots whose key moved;
+the contact sheet and the cut are made again only when a clip, a trim or the voice changed.
+
 Blender is found through $BLENDER, then `blender` on PATH, then the macOS
 application bundle.
 """
@@ -36,6 +40,7 @@ from .. import config
 from .. import ffmpeg_film
 from .. import previs as pv
 from ..errors import RunnerError
+from . import _stage_cache as sc
 
 _SCENE = Path(__file__).resolve().parents[1] / "blender" / "previs_scene.py"
 _MAC = Path("/Applications/Blender.app/Contents/MacOS/Blender")
@@ -46,7 +51,7 @@ _FPS = 24
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="common.runners.cli.reel_previs")
     parser.add_argument("--plan-file", type=Path, required=True)
-    parser.add_argument("--only", help="comma-separated shot labels to render (default: all)")
+    parser.add_argument("--only", help="comma-separated shot labels to render (default: all); an unchanged clip is reused")
     parser.add_argument("--review", action="store_true",
                         help="have a vision model read each clip against its shot (a fraction of a cent per shot) "
                              "and write previs/review.json")
@@ -126,8 +131,28 @@ def _check(plan: dict[str, Any]) -> None:
         raise RunnerError("previs spec has problems:\n  " + "\n  ".join(problems))
 
 
-def _blender(spec: dict[str, Any], out_dir: Path) -> None:
-    """Render the job headless, then encode each shot's frames to <label>.mp4."""
+def _shot_key(shot: dict[str, Any], spec: dict[str, Any]) -> str:
+    """A clip's cache key: everything Blender draws it from (its job entry, the frame size and rate, the scene
+    script) — not the folder its frames go to, and not the shot's trim, which only the cut uses."""
+    return sc.key({k: v for k, v in shot.items() if k != "frames"}, spec["size"], spec["fps"],
+                  sc.file_sig(_SCENE)[1:])
+
+
+def _stale(spec: dict[str, Any], out_dir: Path, stamps: sc.Stamps) -> dict[str, Any]:
+    """The job cut down to the shots whose clip is missing or whose spec changed since it was rendered."""
+    todo = [s for s in spec["shots"] if not stamps.fresh(s["label"], _shot_key(s, spec), out_dir / f"{s['label']}.mp4")]
+    reused = len(spec["shots"]) - len(todo)
+    if reused:
+        print(f"Previs: {reused} clip(s) unchanged since their render, reused", file=sys.stderr)
+    return {**spec, "shots": todo}
+
+
+def _blender(spec: dict[str, Any], out_dir: Path, stamps: sc.Stamps | None = None) -> None:
+    """Render the shots that need it headless, then encode each shot's frames to <label>.mp4."""
+    stamps = stamps or sc.Stamps(out_dir / "cache.json")
+    spec = _stale(spec, out_dir, stamps)
+    if not spec["shots"]:
+        return
     job_path = out_dir / "job.json"
     job_path.write_text(json.dumps(spec, indent=1), encoding="utf-8")
     print(f"Previs: rendering {len(spec['shots'])} shot(s) in Blender…", file=sys.stderr)
@@ -138,6 +163,8 @@ def _blender(spec: dict[str, Any], out_dir: Path) -> None:
         raise RunnerError(f"Blender failed:\n{tail}")
     for shot in spec["shots"]:
         _encode(Path(shot["frames"]), out_dir / f"{shot['label']}.mp4")
+        stamps.set(shot["label"], _shot_key(shot, spec))
+    stamps.save()
 
 
 def _hand_clips(plan: dict[str, Any], out_dir: Path) -> list[tuple[Path, int]]:
@@ -158,12 +185,13 @@ def _hand_clips(plan: dict[str, Any], out_dir: Path) -> list[tuple[Path, int]]:
     return clips
 
 
-def _animatic(plan: dict[str, Any], out_dir: Path) -> None:
-    """The previs cut exactly as the film will be, with the voice: watch this before paying."""
+def _animatic(plan: dict[str, Any], out_dir: Path) -> bool:
+    """The previs cut exactly as the film will be, with the voice: watch this before paying. False when a shot
+    has no clip, so there is no cut to make."""
     shots = sorted(plan["shots"], key=lambda e: int(e["index"]))
     clips = [out_dir / f"{e['label']}.mp4" for e in shots]
     if not all(c.is_file() for c in clips):
-        return
+        return False
     cuts = [(c, float(e.get("trim_seconds") or 5), float(e.get("trim_start") or 0)) for c, e in zip(clips, shots)]
     picture = out_dir / "animatic-picture.mp4"
     ffmpeg_film.concat_trimmed(cuts, picture)
@@ -173,6 +201,30 @@ def _animatic(plan: dict[str, Any], out_dir: Path) -> None:
         picture.unlink()
     else:
         picture.replace(out_dir / "animatic.mp4")
+    return True
+
+
+def _derived(plan: dict[str, Any], out_dir: Path, clips: list[tuple[Path, int]], stamps: sc.Stamps) -> None:
+    """The contact sheet and the previs cut, each made again only when what it is made from changed: the
+    clips (and for the cut, every shot's trim and the voice)."""
+    contact, cut = out_dir / "contact.jpg", out_dir / "animatic.mp4"
+    contact_key = sc.key([(sc.file_sig(c), n) for c, n in clips])
+    shots = sorted(plan["shots"], key=lambda e: int(e["index"]))
+    cut_key = sc.key([(sc.file_sig(out_dir / f"{e['label']}.mp4"), e.get("trim_seconds"), e.get("trim_start"))
+                      for e in shots], sc.file_sig((plan.get("voiceover") or {}).get("path") or ""))
+    kept = []
+    if stamps.fresh(contact.name, contact_key, contact):
+        kept.append(contact.name)
+    else:
+        _contact(clips, contact)
+        stamps.set(contact.name, contact_key)
+    if stamps.fresh(cut.name, cut_key, cut):
+        kept.append(cut.name)
+    elif _animatic(plan, out_dir):
+        stamps.set(cut.name, cut_key)
+    if kept:
+        print(f"Previs: {' and '.join(kept)} unchanged, kept", file=sys.stderr)
+    stamps.save()
 
 
 _REVIEW = """You are checking one shot of a clay previs (blocking: the people are coloured figures — big round heads, ears, a hair shape, arms — or, in older films, one brown figure with a black hat; boxes and cylinders are the set and its props; blocks flashing pale yellow are lights or effects firing. The image shows three separate frames of the same shot, left to right with white gaps between them: start, middle, end. A figure appearing in each of the three panels is the same hero at three moments, not a duplicate.
@@ -229,10 +281,9 @@ def _framing(plan: dict[str, Any], out_dir: Path, labels: set[str] | None, skip:
 
 
 def _save(path: Path, plan: dict[str, Any]) -> None:
-    """Write the plan through a temporary file, so a crash never leaves half a plan."""
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    os.replace(tmp, path)
+    """Write the plan through a temporary file, so a crash never leaves half a plan; an unchanged plan is not
+    rewritten."""
+    sc.save_json(path, plan)
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
@@ -241,13 +292,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     out_dir = Path(plan["output_dir"]) / "previs"
     out_dir.mkdir(parents=True, exist_ok=True)
     labels = set((args.only or "").split(",")) - {""} or None
-    _blender(job(plan, out_dir, labels), out_dir)
+    stamps = sc.Stamps(out_dir / "cache.json")
+    _blender(job(plan, out_dir, labels), out_dir, stamps)
     _framing(plan, out_dir, labels, getattr(args, "auto_skip", False))
 
     clips = _hand_clips(plan, out_dir)
     if clips:
-        _contact(clips, out_dir / "contact.jpg")
-        _animatic(plan, out_dir)
+        _derived(plan, out_dir, clips, stamps)
         if args.review:
             _review(plan, out_dir)
     _save(args.plan_file, plan)

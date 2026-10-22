@@ -50,6 +50,7 @@ class Placement:
     duck: bool = False
     snap: bool = False
     pitch: float = 0.0  # semitones, timing kept (a child's voice lifted out of an adult range)
+    formant: float = 0.0  # semitones of throat size, moved apart from the pitch (see voice_filter)
 
     @classmethod
     def from_json(cls, raw: dict[str, Any]) -> "Placement":
@@ -80,9 +81,31 @@ def validate(sound: dict[str, Any]) -> list[Placement]:
     return placements
 
 
+def _ratio(semitones: float) -> str:
+    return f"{2 ** (max(-12.0, min(12.0, semitones)) / 12):.4f}"
+
+
+# A child's voice from an adult take: the throat (formants) smaller, the pitch higher on its own, the adult chest cut
+# and the brightness of a small mouth lifted. Pitch alone made a higher-pitched adult (heard as "a hoarse man").
+_CHILD_EQ = "highpass=f=170,equalizer=f=320:t=q:w=1:g=-4,equalizer=f=3600:t=q:w=1.2:g=3"
+
+
+def voice_filter(semitones: float, formant: float = 0.0) -> str:
+    """A voice's pitch moved by `semitones` and its throat by `formant` semitones, its length kept. With a formant
+    shift the two move apart (rubberband: formants shifted, then pitch with formants preserved) and the child EQ
+    follows; without one, pitch and formants move together."""
+    if not formant:
+        return f"rubberband=pitch={_ratio(semitones)}"
+    rest = semitones - formant
+    steps = [f"rubberband=pitch={_ratio(formant)}"]
+    if abs(rest) > 0.01:
+        steps.append(f"rubberband=pitch={_ratio(rest)}:formant=preserved")
+    return ",".join(steps + [_CHILD_EQ])
+
+
 def pitch_filter(semitones: float) -> str:
     """A voice moved by `semitones`, its length kept (rubberband; formants move with it, as a smaller throat)."""
-    return f"rubberband=pitch={2 ** (max(-12.0, min(12.0, semitones)) / 12):.4f}"
+    return voice_filter(semitones)
 
 
 def _chain(index: int, p: Placement, label: str) -> str:
@@ -91,8 +114,8 @@ def _chain(index: int, p: Placement, label: str) -> str:
     parts.append(f"atrim=start={p.offset:.3f}{end},asetpts=PTS-STARTPTS")
     if FX[p.fx]:
         parts.append(FX[p.fx])
-    if p.pitch:
-        parts.append(pitch_filter(p.pitch))
+    if p.pitch or p.formant:
+        parts.append(voice_filter(p.pitch, p.formant))
     parts.append(f"volume={p.gain_db:.1f}dB")
     if p.fade_in > 0:
         parts.append(f"afade=t=in:st=0:d={p.fade_in:.3f}")

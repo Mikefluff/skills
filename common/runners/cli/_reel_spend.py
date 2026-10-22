@@ -46,6 +46,17 @@ def _sound(job: Any) -> list[spend.Line]:
     return out
 
 
+def _changed(job: Any, shots: list[spend.Line]) -> list[str]:
+    """A take kept this run whose shot was edited since it rendered (prompt or references): named, never bought."""
+    buying = {label for label, _, _ in shots}
+    items = getattr(job, "shot_items_all", None) or job.shot_items
+    changed = [label for label in batch_mod.changed_since_output(items, job.manifest_path) if label not in buying]
+    if not changed:
+        return []
+    return [f"{len(changed)} kept take(s) were rendered from an older prompt or references: "
+            f"{', '.join(changed[:8])}{', …' if len(changed) > 8 else ''}; --redo them only if the take is wrong"]
+
+
 def _warnings(shots: list[spend.Line], redo: frozenset[str], only: frozenset[str]) -> list[str]:
     extra = [label for label, _, why in shots if why != spend.ASKED]
     out = []
@@ -63,4 +74,4 @@ def to_buy(job: Any, *, resume: bool, redo: frozenset[str], only: frozenset[str]
     """(lines, warnings) for everything this run generates."""
     shots = _shots(job, resume, redo, only)
     lines = shots + _music(job, resume or bool(redo or only)) + _sound(job)
-    return lines, _warnings(shots, redo, only)
+    return lines, _warnings(shots, redo, only) + _changed(job, shots)

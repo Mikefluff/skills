@@ -220,3 +220,32 @@ class TrimAndSplit(unittest.TestCase):
     def test_a_split_outside_the_window_is_refused(self):
         with self.assertRaises(ValueError):
             reel_insert.apply_entry(_plan(), {"split": "c", "cut_from": 0.1, "cut_to": 1.0, "clip": "x.mp4"})
+
+
+class ShotSounds(unittest.TestCase):
+    def test_a_new_shot_brings_its_own_sound_design_on_the_films_clock(self):
+        plan = _plan()
+        plan["sound"]["sources"] = [{"id": "bed", "kind": "sfx"}, {"id": "door", "kind": "sfx"}]
+        inserts = {"sources": [{"id": "boom", "kind": "sfx", "prompt": "a boom", "duration_seconds": 1.0}],
+                   "shots": [{"insert_after": "a", "shot": _shot("n", 0, 2.0),
+                              "sounds": [{"source": "boom", "at": 0.5, "gain_db": -2}]}]}
+        reel_insert.splice(plan, inserts)
+        boom = [p for p in plan["sound"]["placements"] if p["source"] == "boom"]
+        self.assertEqual((boom[0]["at"], boom[0]["gain_db"]), (4.5, -2))
+        self.assertIn("boom", {s["id"] for s in plan["sound"]["sources"]})
+
+    def test_an_unknown_sound_is_refused(self):
+        with self.assertRaises(ValueError):
+            reel_insert.splice(_plan(), {"shots": [{"insert_after": "a", "shot": _shot("n", 0, 2.0),
+                                                    "sounds": [{"source": "nope", "at": 0.1}]}]})
+
+
+class ShotSoundsFollow(unittest.TestCase):
+    def test_a_moved_shot_takes_its_sounds_and_a_removed_one_drops_them(self):
+        plan = _plan()  # door at 7.5 is inside c (7.0-12.0); the bed runs across everything
+        reel_insert.apply_entry(plan, {"move": "c", "insert_before": "a"})
+        by = {p["source"]: p for p in plan["sound"]["placements"]}
+        self.assertEqual(by["door"]["at"], 0.5)
+        plan = _plan()
+        reel_insert.apply_entry(plan, {"remove": "c"})
+        self.assertEqual({p["source"] for p in plan["sound"]["placements"]}, {"bed"})

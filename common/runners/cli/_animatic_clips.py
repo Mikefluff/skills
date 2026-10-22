@@ -120,6 +120,13 @@ def clip_start(shot: dict[str, Any], clip: Path, onset: float | None, cache: Pat
 
 
 def _length(path: Path) -> float:
+    """The clip's length, probed once per version of the file."""
+    from ._stage_cache import probed
+
+    return probed(path, _probe_length)
+
+
+def _probe_length(path: Path) -> float:
     return float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
                                  str(path)], capture_output=True, text=True, check=True).stdout.strip() or 0)
 

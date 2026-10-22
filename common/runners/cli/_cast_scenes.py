@@ -16,6 +16,7 @@ from typing import Any
 from .. import config
 from .. import drama
 from ..errors import RunnerError
+from . import _stage_cache as sc
 
 _HOSTED = ("reference_images", "reference_audio", "reference_videos", "media_host")
 
@@ -91,10 +92,14 @@ def _bridge_scene(plan: dict[str, Any], scene: dict[str, Any], clips: dict[str, 
     out = Path(plan["output_dir"]) / "bridges"
     out.mkdir(parents=True, exist_ok=True)
     kwargs = {k: v for k, v in (scene.get("kwargs") or {}).items() if k not in _HOSTED}
+    stamps = sc.Stamps(out / "frames.json")  # a seam frame is grabbed again only when its clip or second moved
     for end, (clip, at) in seams.items():
-        frame = out / f"{scene['label']}.{end}.jpg"
-        _grab_frame(clip, at, frame)
+        frame, stamp = out / f"{scene['label']}.{end}.jpg", sc.key(sc.file_sig(clip), f"{at:.3f}")
+        if not stamps.fresh(frame.name, stamp, frame):
+            _grab_frame(clip, at, frame)
+            stamps.set(frame.name, stamp)
         kwargs[f"{end}_frame"] = str(frame)
+    stamps.save()
     pinned = {"first_frame": scene["bridge"].get("from_image"), "last_frame": scene["bridge"].get("to_image")}
     kwargs.update({k: v for k, v in pinned.items() if v})
     scene["kwargs"] = kwargs
@@ -193,9 +198,26 @@ def _fresh(plan: dict[str, Any], scene: dict[str, Any], bible: dict[str, Any]) -
         _reference_scene(plan, scene, bible)
 
 
+def _preflight_notes(plan: dict[str, Any], notes: list[str]) -> list[str]:
+    """Print the preflight notes new since the last run in full, the rest as one line; returns the new ones.
+    The last run's notes are kept in <output_dir>/preflight.json."""
+    path = Path(plan.get("output_dir") or ".") / "preflight.json"
+    try:
+        before = set(json.loads(path.read_text(encoding="utf-8"))) if path.is_file() else set()
+    except ValueError:
+        before = set()
+    new = [n for n in notes if n not in before]
+    print("".join(f"  preflight {note}\n" for note in new), end="", file=sys.stderr)
+    if len(notes) > len(new):
+        print(f"  preflight: {len(notes) - len(new)} note(s) unchanged since the last run, in {path}", file=sys.stderr)
+    if plan.get("output_dir") and path.parent.is_dir():
+        sc.write_if_changed(path, json.dumps(notes, indent=1, ensure_ascii=False) + "\n")
+    return new
+
+
 def cast_scenes(plan: dict[str, Any], bible: dict[str, Any]) -> None:
     """Each scene's references and composed prompt, from the bible. A scene may name its own `video_provider`."""
-    print("".join(f"  preflight {note}\n" for note in drama.preflight(plan, bible)), end="", file=sys.stderr)
+    _preflight_notes(plan, drama.preflight(plan, bible))
     clips = None
     for scene in plan["shots"]:
         if scene.get("clip"):

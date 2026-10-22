@@ -92,17 +92,61 @@ def test_missing_whisper_is_skipped_gracefully(monkeypatch, tmp_path, capsys):
     assert not (tmp_path / "listen.json").exists()
 
 
+def _silent_audio(path, seconds=4.0, at=None):
+    """A 16 kHz mono wav standing in for the film's sound; `at` puts a click at that second."""
+    import wave
+
+    samples = bytearray(int(seconds * 16000) * 2)
+    if at is not None:
+        samples[int(at * 16000) * 2] = 100
+    with wave.open(str(path), "wb") as f:
+        f.setnchannels(1), f.setsampwidth(2), f.setframerate(16000)
+        f.writeframes(bytes(samples))
+    return path
+
+
 def test_transcribe_uses_cache(tmp_path):
+    """A transcript cached under the older film-and-mtime name is still used (and copied to its sound key)."""
     film = tmp_path / "film.mp4"
     film.write_bytes(b"x")
     win = {"label": "t01", "start": 1.0, "end": 2.0}
     cache = tmp_path / "cache"
     cache.mkdir()
     (cache / f"{reel_listen._key(film, win)}.json").write_text('{"text": " Корт "}', encoding="utf-8")
-    with mock.patch.object(reel_listen.subprocess, "run") as run:
+    audio = _silent_audio(tmp_path / "a.wav")
+    with mock.patch.object(reel_listen, "_film_audio", return_value=audio), \
+            mock.patch.object(reel_listen.subprocess, "run") as run:
         heard = reel_listen.transcribe(film, [win], cache, "whisper")
     run.assert_not_called()
     assert list(heard.values()) == ["Корт"]
+    assert len(list(cache.glob("*.json"))) == 2  # the legacy name and the sound key
+
+
+def test_transcribe_keys_by_sound_not_by_film_file(tmp_path, monkeypatch):
+    """A re-cut film (new file, new mtime) whose window sounds the same is not heard again; a window whose sound
+    changed, or the same sound under another Whisper model, is."""
+    win, cache = {"label": "t01", "start": 1.0, "end": 2.0}, tmp_path / "cache"
+    first, second = tmp_path / "a.mp4", tmp_path / "b.mp4"
+    first.write_bytes(b"x"), second.write_bytes(b"y")
+    heard_calls = []
+
+    def whisper(exe, wav, out):
+        heard_calls.append(wav.stem)
+        (out / f"{wav.stem}.json").write_text('{"text": "Корт"}', encoding="utf-8")
+
+    monkeypatch.setattr(reel_listen, "_whisper", whisper)
+    same = _silent_audio(tmp_path / "same.wav")
+    with mock.patch.object(reel_listen, "_film_audio", return_value=same):
+        reel_listen.transcribe(first, [win], cache, "whisper")
+        reel_listen.transcribe(second, [win], cache, "whisper")
+    assert len(heard_calls) == 1
+    with mock.patch.object(reel_listen, "_film_audio", return_value=_silent_audio(tmp_path / "c.wav", at=1.5)):
+        reel_listen.transcribe(second, [win], cache, "whisper")
+    assert len(heard_calls) == 2
+    monkeypatch.setenv("WHISPER_MODEL", "another-model")
+    with mock.patch.object(reel_listen, "_film_audio", return_value=same):
+        reel_listen.transcribe(second, [win], cache, "whisper")
+    assert len(heard_calls) == 3
 
 
 # ── reel's post-render hook ─────────────────────────────────────────────────

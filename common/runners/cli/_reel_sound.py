@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
 import sys
 from decimal import Decimal
 from pathlib import Path
@@ -52,9 +53,14 @@ def plan_items(sound: dict[str, Any]) -> dict[str, list[batch_mod.BatchItem]]:
     return {_PROVIDER[kind]: items for kind in _PROVIDER if (items := _items(sources, kind))}
 
 
-def estimate(sound: dict[str, Any] | None) -> Decimal:
+def estimate(sound: dict[str, Any] | None, output_dir: Path | None = None) -> Decimal:
+    """What generating the sources costs; with `output_dir`, only the ones its sound cache does not hold."""
     if not sound:
         return Decimal("0")
+    if output_dir is not None:
+        by_id = {src["id"]: src for src in sound.get("sources") or []}
+        fresh = _cached(by_id, _load_index(output_dir / "sound" / "sources.json"))
+        sound = {**sound, "sources": [src for sid, src in by_id.items() if sid not in fresh]}
     total = Decimal("0")
     for slug, items in plan_items(sound).items():
         total += batch_mod.estimate_batch_cost(config.get_provider(slug), items) or Decimal("0")
@@ -69,13 +75,66 @@ def _load_index(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
 
 
+def _sections(src: dict[str, Any]) -> list[dict[str, Any]]:
+    plan = src.get("composition_plan") or {}
+    return plan.get("sections") or plan.get("chunks") or []
+
+
+def _score_key(src: dict[str, Any]) -> str:
+    """A music source's identity without its section lengths: a retime fits the take it has, never buys one."""
+    spec = json.loads(json.dumps(src))
+    spec.pop("duration_seconds", None)
+    for sec in _sections(spec):
+        sec.pop("duration_ms", None)
+    return _spec_hash(spec)
+
+
+def _entry(src: dict[str, Any], path: str) -> dict[str, Any]:
+    """The index entry of a source just made: a music take also keeps the section lengths it was made at."""
+    entry = {"path": path, "hash": _spec_hash(src)}
+    if src.get("kind") == "music":
+        entry.update(score=_score_key(src), made_ms=[sec["duration_ms"] for sec in _sections(src)])
+    return entry
+
+
 def _cached(by_id: dict[str, dict[str, Any]], index: dict[str, Any]) -> dict[str, Path]:
-    """Sources whose file exists and whose spec has not changed since it was made."""
+    """Sources whose file exists and whose spec has not changed since it was made; a music source whose
+    sections only changed length counts as unchanged (it is fitted in the mix). An entry kept from before
+    the music had its own key gets one while its spec still matches."""
     out = {}
     for sid, src in by_id.items():
         entry = index.get(sid)
-        if entry and entry["hash"] == _spec_hash(src) and Path(entry["path"]).is_file():
+        if not (entry and Path(entry["path"]).is_file()):
+            continue
+        if entry["hash"] == _spec_hash(src):
+            if src.get("kind") == "music" and "score" not in entry:
+                entry.update({k: v for k, v in _entry(src, entry["path"]).items() if k != "path"})
             out[sid] = Path(entry["path"])
+        elif src.get("kind") == "music" and entry.get("score") == _score_key(src):
+            out[sid] = Path(entry["path"])
+    return out
+
+
+def _fitted(src: dict[str, Any], entry: dict[str, Any], take: Path, sound_dir: Path) -> Path:
+    """A music take made at other section lengths, each section time-stretched to its length now (cached)."""
+    made, now = entry.get("made_ms"), [sec["duration_ms"] for sec in _sections(src)]
+    if not made or made == now or len(made) != len(now):
+        return take
+    out = sound_dir / "fitted" / f"{src['id']}-{_spec_hash([str(take), made, now])}.wav"
+    if out.is_file():
+        return out
+    out.parent.mkdir(parents=True, exist_ok=True)
+    bounds = [sum(made[:n]) / 1000 for n in range(len(made) + 1)]
+    chains = []
+    for n, length in enumerate(now):
+        end = f":end={bounds[n + 1]:.3f}" if n + 1 < len(made) else ""  # the last runs to the take's own end
+        tempo = min(2.0, max(0.5, made[n] / max(length, 1)))
+        chains.append(f"[s{n}]atrim=start={bounds[n]:.3f}{end},asetpts=PTS-STARTPTS,atempo={tempo:.5f}[f{n}]")
+    graph = (f"[0:a]asplit={len(now)}" + "".join(f"[s{n}]" for n in range(len(now))) + ";" + ";".join(chains)
+             + ";" + "".join(f"[f{n}]" for n in range(len(now))) + f"concat=n={len(now)}:v=0:a=1[out]")
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(take), "-filter_complex", graph,
+                    "-map", "[out]", str(out)], check=True, capture_output=True)
+    print(f"  {src['id']}: the take fitted to its sections now, not bought again", file=sys.stderr)
     return out
 
 
@@ -100,7 +159,10 @@ def generate(sound: dict[str, Any], output_dir: Path, *, resume: bool) -> dict[s
     Reuse is keyed by id AND by a hash of the source's spec, never by position:
     a re-run of the chain may reorder sources or rewrite one prompt, and a
     positional cache would then hand the mix the wrong file under the right
-    name. `resume=False` regenerates everything.
+    name. A music source is keyed without its section lengths: a retime that
+    grows an act keeps the take and stretches each section to its new length
+    (`_fitted`); a new take is asked for by changing anything else in its spec
+    (a `"take": 2`), and `resume=False` regenerates everything.
     """
     st.validate(sound)
     sound_dir = output_dir / "sound"
@@ -114,14 +176,21 @@ def generate(sound: dict[str, Any], output_dir: Path, *, resume: bool) -> dict[s
         for item in _run(slug, items, sound_dir):
             if item.status == "succeeded" and item.output_path:
                 fresh[item.label] = Path(item.output_path)
-                index[item.label] = {"path": item.output_path, "hash": _spec_hash(by_id[item.label])}
+                index[item.label] = _entry(by_id[item.label], item.output_path)
             else:
                 failed.append(f"{item.label}: {item.error}")
     sound_dir.mkdir(parents=True, exist_ok=True)
     index_path.write_text(json.dumps(index, indent=2, ensure_ascii=False), encoding="utf-8")
     if failed:
         raise RuntimeError("sound sources failed — " + "; ".join(failed))
-    return fresh
+    return _fit_all(fresh, by_id, index, sound_dir)
+
+
+def _fit_all(fresh: dict[str, Path], by_id: dict[str, dict[str, Any]], index: dict[str, Any],
+             sound_dir: Path) -> dict[str, Path]:
+    """Every source's file, the music takes fitted to their sections now."""
+    return {sid: _fitted(by_id[sid], index[sid], path, sound_dir) if sid in by_id and sid in index else path
+            for sid, path in fresh.items()}
 
 
 def snapped(placements: list[st.Placement], picture: Path | None) -> list[st.Placement]:
@@ -148,7 +217,12 @@ def render(
     total = float(sound.get("total_seconds") or 0) or (ff_mod.get_duration(voice) or 0.0)
     master = st.Master(**(sound.get("master") or {}))
     inputs, graph = st.build_graph(placements, sources, voice, total, master)
-    ffmpeg_film.render_mix(inputs, graph, output)
+    from ._stage_cache import run_once
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    # ffmpeg_film.render_mix's command, run only when its voices, sounds or graph moved
+    run_once(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", graph, "-map", "[out]",
+              "-ar", "48000", "-c:a", "pcm_s16le", str(output)], output)
     # What was actually placed, after snapping — the record to tune against.
     output.with_suffix(".placements.json").write_text(
         json.dumps([p.__dict__ for p in placements], indent=2, ensure_ascii=False), encoding="utf-8"

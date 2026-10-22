@@ -49,8 +49,11 @@ def act_bpm(plan: dict[str, Any]) -> dict[str, float]:
     return out
 
 
-def new_lengths(plan: dict[str, Any], line_seconds: dict[str, float]) -> dict[str, float]:
-    """shot label → its conformed length (only the shots whose length changes)."""
+def new_lengths(plan: dict[str, Any], line_seconds: dict[str, float],
+                limits: dict[str, float] | None = None) -> dict[str, float]:
+    """shot label → its conformed length (only the shots whose length changes). With `limits` (label → seconds
+    of its rendered take left after trim_start) a shot only grows, never past the end of its take: a cut from
+    rendered clips gives a line room without freezing a frame or cutting the action it already has."""
     acts, bpm = _act_of(plan), act_bpm(plan)
     out = {}
     for shot in plan["shots"]:
@@ -59,11 +62,19 @@ def new_lengths(plan: dict[str, Any], line_seconds: dict[str, float]) -> dict[st
             continue
         beat = 60.0 / bpm.get(acts.get(shot["label"], ""), 104.0)
         need = float(shot.get("line_at") or 0.3) + said + _BREATH
-        beats = max(2, math.ceil(need / beat - 1e-6))
-        length = round(beats * beat, 2)
+        length = round(max(2, math.ceil(need / beat - 1e-6)) * beat, 2)
+        if limits is not None:
+            length = _within_take(float(shot["trim_seconds"]), need, length, limits.get(shot["label"]))
         if abs(length - float(shot["trim_seconds"])) > 0.01:
             out[shot["label"]] = length
     return out
+
+
+def _within_take(now: float, need: float, on_beat: float, left: float | None) -> float:
+    """A rendered shot's new length: longer only, on the beat if the take has it, else to the take's end."""
+    if left is None or need <= now:
+        return now
+    return round(min(on_beat, max(now, left - 0.05)), 2)
 
 
 def _moved(t: float, shifts: list[tuple[float, float, str]]) -> float:
