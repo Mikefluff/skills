@@ -6,7 +6,8 @@ Prints the plan's join warnings (common/runners/cut_joins.py: a new scene or a j
 bridge played in part, a jump cut). --sheet also reads the picture the cut was last built from (the kept parts
 named in <out>/trailer.picture.json): for each cut it takes the last frame of one shot and the first of the
 next, measures how far apart they are in light and colour, and draws them side by side, warnings in red, into
-<out>/joins/sheet-NN.jpg (12 cuts a sheet), with the numbers in <out>/joins/joins.json. A plain cut whose two
+<out>/joins/sheet-NN.jpg (12 cuts a sheet; --around L,L draws only the cuts into and out of those shots,
+into around-NN.jpg), with the numbers in <out>/joins/joins.json. A plain cut whose two
 frames are almost wholly apart in light and colour is reported as a jolt. Nothing is generated and nothing is paid for.
 """
 
@@ -34,6 +35,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sheet", action="store_true", help="measure and draw every cut from the kept parts")
     parser.add_argument("--from", dest="start", default=None, help="first shot label of the stretch to draw")
     parser.add_argument("--to", dest="end", default=None, help="last shot label of the stretch to draw")
+    parser.add_argument("--around", default="", help="comma-separated labels: draw only the cuts into and out of "
+                        "these (the joins just fixed), on sheets of their own")
     return parser
 
 
@@ -96,7 +99,7 @@ def _measure(plan: dict[str, Any], out: Path, into: dict[str, str]) -> list[dict
     return cuts
 
 
-def _draw(cuts: list[dict[str, Any]], problems: list[str], out: Path) -> list[Path]:
+def _draw(cuts: list[dict[str, Any]], problems: list[str], out: Path, name: str = "sheet") -> list[Path]:
     from PIL import Image, ImageDraw
 
     sheets, h = [], round(WIDTH * 9 / 16)
@@ -114,13 +117,17 @@ def _draw(cuts: list[dict[str, Any]], problems: list[str], out: Path) -> list[Pa
                     f"apart {cut['apart']}  (light {cut['light']}, colour {cut['colour']})"
                     + ("   JOLT" if cut.get("jolt") else "")] + [p.split(": ", 1)[-1][:70] for p in said]
             pen.multiline_text((WIDTH * 2 + 12, y + 8), "\n".join(text), fill="red" if bad else "black", spacing=6)
-        path = out / "joins" / f"sheet-{n // PER_SHEET + 1:02d}.jpg"
+        path = out / "joins" / f"{name}-{n // PER_SHEET + 1:02d}.jpg"
         sheet.save(path, quality=85)
         sheets.append(path)
     return sheets
 
 
-def _stretch(cuts: list[dict[str, Any]], start: str | None, end: str | None) -> list[dict[str, Any]]:
+def _stretch(cuts: list[dict[str, Any]], start: str | None, end: str | None,
+             around: str = "") -> list[dict[str, Any]]:
+    if around:
+        want = set(around.split(","))
+        return [c for c in cuts if c["from"] in want or c["to"] in want]
     labels = [c["from"] for c in cuts]
     i = labels.index(start) if start in labels else 0
     j = labels.index(end) + 1 if end in labels else len(cuts)
@@ -144,7 +151,8 @@ def main(argv: list[str] | None = None) -> int:
     for cut in cuts:
         if cut.get("jolt"):
             print(f"  jolt: {cut['from']} → {cut['to']}, apart {cut['apart']}")
-    for sheet in _draw(_stretch(cuts, args.start, args.end), problems, out):
+    for sheet in _draw(_stretch(cuts, args.start, args.end, args.around), problems, out,
+                       "around" if args.around else "sheet"):
         print(f"Sheet: {sheet}")
     return 0
 

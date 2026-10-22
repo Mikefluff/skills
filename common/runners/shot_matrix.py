@@ -144,8 +144,8 @@ def _fixed_into(shot: dict[str, Any], old: dict[str, Any]) -> str | None:
 def _rule_into(prev: dict[str, Any] | None, shot: dict[str, Any], cards: list[float], act: str | None) -> str:
     """The director's rules for the cut from `prev` into `shot`."""
     move = opening(shot)
-    if prev is None:
-        return "cut"
+    if prev is None or prev.get("bridge") or shot.get("bridge"):
+        return "cut"  # a bridge opens on the frame before it and lands on the one after: the flight is the move
     if move in ("whip", "crash"):
         return move  # rule 108 first: a scene change on a whip or a crash zoom
     at = float(shot["clock_at"])

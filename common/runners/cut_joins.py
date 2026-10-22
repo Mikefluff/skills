@@ -9,6 +9,8 @@ reports, for each pair of neighbouring shots, a sentence per problem:
 - a jump in the time of day (night to morning) on anything but a bridge, a dip or an iris;
 - a bridge played in part: a first-and-last-frame flight only joins its two shots when the cut plays all of it,
   from its first frame to its last (faster if it must be short), never a window out of its middle;
+- a bridge between the wrong shots: its "from" or "to" is no longer its neighbour in the cut (a shot was put in
+  beside it after it was rendered), so it lands on a frame the cut does not show next;
 - a jump cut: the same people, the same size and no camera move on both sides of a cut in one scene.
 
 The picture itself (how far the last frame of one shot is from the first of the next in light and colour)
@@ -63,6 +65,15 @@ def _bridge_problem(shot: dict[str, Any], speed: float) -> str | None:
             "neither leaves the last shot's frame nor lands on the next one's; play the whole flight, faster")
 
 
+def _neighbour_problem(prev: dict[str, Any] | None, shot: dict[str, Any], nxt: dict[str, Any] | None) -> str | None:
+    ends = shot.get("bridge") if isinstance(shot.get("bridge"), dict) else None
+    if not ends:
+        return None
+    wrong = [f"{side} {ends[side]} but the cut has {near['label'] if near else 'nothing'} there"
+             for side, near in (("from", prev), ("to", nxt)) if ends.get(side) and (near or {}).get("label") != ends[side]]
+    return f"{shot['label']}: bridge between the wrong shots ({'; '.join(wrong)}); render it again" if wrong else None
+
+
 def _place(shot: dict[str, Any]) -> Any:
     return shot.get("location") or shot.get("scene")
 
@@ -108,8 +119,8 @@ def join_problems(plan: dict[str, Any], transitions: dict[str, str],
     shots, speeds = live(plan), speeds or {}
     sizes = {s["label"]: read_shot(s) for s in shots}
     problems: list[str] = []
-    for prev, shot in zip([None, *shots], shots):
-        found = [_bridge_problem(shot, speeds.get(shot["label"], 1.0))]
+    for prev, shot, nxt in zip([None, *shots], shots, [*shots[1:], None]):
+        found = [_bridge_problem(shot, speeds.get(shot["label"], 1.0)), _neighbour_problem(prev, shot, nxt)]
         if prev is not None:
             into = transitions.get(shot["label"]) or "cut"
             found += [_place_problem(prev, shot, into, sizes), _time_problem(prev, shot, into),
