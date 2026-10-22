@@ -67,6 +67,9 @@ def _rendered(plan: dict[str, Any]) -> dict[str, Path]:
 def _bridge_seams(plan: dict[str, Any], scene: dict[str, Any], clips: dict[str, Path]) -> dict[str, tuple[Path, float]]:
     """end → (clip, second) to pull the bridge's first / last frame from."""
     by_label = {s["label"]: s for s in plan["shots"]}
+    out = Path(plan.get("output_dir") or ".")
+    # a hand-cut piece of a take (a "clip" shot) has its frames in that take, not in the manifest
+    clips = {**{s["label"]: _clip_path(s["clip"], out) for s in plan["shots"] if s.get("clip")}, **clips}
     # "from_image" / "to_image": an end pinned to a still (a frame with its lettering drawn in) instead of a shot
     a = by_label.get(scene["bridge"].get("from", ""))
     b = by_label.get(scene["bridge"].get("to", ""))
@@ -78,6 +81,12 @@ def _bridge_seams(plan: dict[str, Any], scene: dict[str, Any], clips: dict[str, 
     if b is not None:
         seams["last"] = (clips[b["label"]], float(b.get("trim_start") or 0))
     return seams
+
+
+def _clip_path(clip: str, out: Path) -> Path:
+    """A clip shot's take, named relative to the output folder or to the working directory."""
+    path = Path(clip)
+    return path if path.is_file() or path.is_absolute() else out / path
 
 
 def _grab_frame(clip: Path, at: float, frame: Path) -> None:

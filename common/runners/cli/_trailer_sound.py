@@ -52,17 +52,9 @@ def bed_source(location: dict[str, Any]) -> dict[str, Any]:
 
 def _runs(plan: dict[str, Any]) -> list[tuple[str, float, float]]:
     """(location, from, to) for every run of consecutive shots in one place, on the cut's clock."""
-    runs: list[list[Any]] = []
-    for shot in sorted((s for s in plan["shots"] if not s.get("cut")), key=lambda s: float(s["clock_at"])):
-        start, end = float(shot["clock_at"]), float(shot["clock_at"]) + float(shot["trim_seconds"])
-        place = shot.get("location")
-        if not place:
-            continue
-        if runs and runs[-1][0] == place and start - runs[-1][2] < 2.0:  # a title card between is the same run
-            runs[-1][2] = end
-        else:
-            runs.append([place, start, end])
-    return [(p, a, b) for p, a, b in runs]
+    from ..place_beds import runs
+
+    return runs(plan)
 
 
 def beds(plan: dict[str, Any], bible: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
