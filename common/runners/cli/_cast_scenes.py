@@ -42,6 +42,19 @@ def _first_frame_scene(plan: dict[str, Any], scene: dict[str, Any]) -> None:
     scene["prompt"] = scene["motion"] + (f" Sound: {'; '.join(sounds)}, close and clear." if sounds else "")
 
 
+def _open_on_frame_scene(plan: dict[str, Any], scene: dict[str, Any], bible: dict[str, Any]) -> None:
+    """"open_on_frame": the shot opens exactly on its own storyboard frame (image to video) and the body moves
+    it; no cast, place, voice or previs goes with it."""
+    frame = _board_frame(plan, scene)
+    if not frame:
+        raise RunnerError(f"{scene.get('label')}: open_on_frame needs its storyboard frame; run reel_board first")
+    png = Path(frame).with_suffix(".png")  # the frame as drawn; the jpg beside it is the contact sheet's copy
+    kwargs = {k: v for k, v in (scene.get("kwargs") or {}).items() if k not in (*_HOSTED, "last_frame")}
+    scene["kwargs"] = {**kwargs, "first_frame": str(png if png.is_file() else frame)}
+    look = f"\n[Overall style]: {bible['look']}" if bible.get("look") else ""
+    scene["prompt"] = scene["body"].strip() + look
+
+
 def _rendered(plan: dict[str, Any]) -> dict[str, Path]:
     """label → its rendered clip, from the reel manifest."""
     manifest = Path(plan.get("output_dir") or ".") / "manifest.json"
@@ -187,7 +200,9 @@ def cast_scenes(plan: dict[str, Any], bible: dict[str, Any]) -> None:
     for scene in plan["shots"]:
         if scene.get("clip"):
             continue  # cut by hand (a composite); the cut takes the file as it is
-        if scene.get("bridge") or scene.get("extend"):
+        if scene.get("open_on_frame"):
+            _open_on_frame_scene(plan, scene, bible)
+        elif scene.get("bridge") or scene.get("extend"):
             clips = clips if clips is not None else _rendered(plan)
             _continuation(plan, scene, clips, bible)
         else:

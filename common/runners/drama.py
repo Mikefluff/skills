@@ -116,7 +116,14 @@ def validate(plan: dict[str, Any], bible: dict[str, Any]) -> list[str]:
     for scene in plan.get("shots") or []:
         label = scene.get("label", scene.get("index"))
         problems += [f"{label}: {problem}" for problem in _scene_problems(scene, bible)]
-    return problems + _coverage_problems(plan)
+    return problems + _coverage_problems(plan) + _frame_problems(plan)
+
+
+def _frame_problems(plan: dict[str, Any]) -> list[str]:
+    """"open_on_frame": the shot opens on its own storyboard frame, so the board must have one for it."""
+    drawn = {int(f.get("shot") or 0) for f in (plan.get("board") or {}).get("frames") or []}
+    return [f"{s.get('label')}: open_on_frame but no storyboard frame for shot {s.get('index')}"
+            for s in plan.get("shots") or [] if s.get("open_on_frame") and int(s.get("index") or 0) not in drawn]
 
 
 def _scene_problems(scene: dict[str, Any], bible: dict[str, Any]) -> list[str]:
@@ -186,7 +193,8 @@ def locked_off(previs_shot: dict[str, Any]) -> bool:
 
 def _still_previs(shot: dict[str, Any], cams: dict[str, Any]) -> bool:
     """Whether the shot's previs should go unsent: a locked-off camera, the flag not set, not a continuation."""
-    if "no_previs" in shot or shot.get("extend") or shot.get("bridge") or shot.get("label") not in cams:
+    sent_without = any(shot.get(k) for k in ("extend", "bridge", "open_on_frame"))  # no previs goes with these
+    if "no_previs" in shot or sent_without or shot.get("label") not in cams:
         return False
     return locked_off(cams[shot["label"]])
 
