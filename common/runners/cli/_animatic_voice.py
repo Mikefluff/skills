@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from ..soundtrack import voice_filter
+from . import _voice_lines
 
 _MAX_TEMPO = 1.25
 _CARRY = 0.0  # a line stays in its shot: carried over the cut it lands on the next face (users heard it as out of sync)
@@ -130,8 +131,23 @@ def _take_paths(group: list[dict[str, Any]], voices: dict[str, str], cache: Path
 
 def take_kept(group: list[dict[str, Any]], voices: dict[str, str], cache: Path, language: str | None,
               bible: dict[str, Any] | None = None) -> bool:
-    """Whether the exchange's take is on disk, under either key: reading it again buys nothing."""
-    return any(all(f.is_file() for f in pair) for pair in _take_paths(group, voices, cache, language, bible))
+    """Whether the exchange's take is on disk, under either key, or every line of it was read in another take:
+    reading it again buys nothing."""
+    if any(all(f.is_file() for f in pair) for pair in _take_paths(group, voices, cache, language, bible)):
+        return True
+    return _read_before(group, voices, cache, language, bible) is not None
+
+
+def _line_keys(group: list[dict[str, Any]], voices: dict[str, str], language: str | None,
+               bible: dict[str, Any] | None) -> list[str]:
+    """What each line of the group alone is asked with, as a key (see _voice_lines)."""
+    inputs, fx = _request(group, voices, bible)
+    return [_take_key([item], fx, language) for item in inputs]
+
+
+def _read_before(group: list[dict[str, Any]], voices: dict[str, str], cache: Path, language: str | None,
+                 bible: dict[str, Any] | None) -> list[Path] | None:
+    return _voice_lines.read_before(cache, _line_keys(group, voices, language, bible))
 
 
 def take_files(group: list[dict[str, Any]], voices: dict[str, str], cache: Path, language: str | None,
@@ -152,12 +168,17 @@ def read_exchange(group: list[dict[str, Any]], voices: dict[str, str], cache: Pa
 
     inputs, fx = _request(group, voices, bible)
     cache.mkdir(parents=True, exist_ok=True)
+    before = _read_before(group, voices, cache, language, bible)
+    if before is not None:
+        return before  # every line was read before, in this exchange or another: that first reading
     take, marks = take_files(group, voices, cache, language, bible)
     if not (take.is_file() and marks.is_file()):
         audio, segments = _clean_take(dialogue, inputs, language, fx)
         take.write_bytes(audio)
         marks.write_text(json.dumps(segments), encoding="utf-8")
-    return _split(take, json.loads(marks.read_text(encoding="utf-8")), len(group), cache / take.stem)
+    clips = _split(take, json.loads(marks.read_text(encoding="utf-8")), len(group), cache / take.stem)
+    _voice_lines.remember(cache, _line_keys(group, voices, language, bible), clips)
+    return clips
 
 
 _NUM = {"0": "zero", "1": "one", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven",
