@@ -41,7 +41,8 @@ def test_a_bridge_played_from_its_middle_is_reported_and_its_speed_plays_it_whol
     bridge = _bridge("br", 0)
     assert cj.join_problems({"shots": [bridge]}, {})
     speed = shot_matrix.speed(bridge, {"shots": [bridge]})
-    assert speed > 2 and cj.join_problems({"shots": [bridge]}, {}, {"br": speed}) == []
+    played = cj.join_problems({"shots": [bridge]}, {}, {"br": speed})
+    assert speed > 2 and not [p for p in played if "played in part" in p]
     assert shot_matrix.speed({**bridge, "speed": 1.2}, {"shots": [bridge]}) == 1.2
 
 
@@ -57,3 +58,15 @@ def test_the_same_people_at_the_same_size_unmoving_is_a_jump_cut():
     assert any("jump cut" in p for p in cj.join_problems(plan, {}))
     plan["shots"][1]["cast"] = ["y"]
     assert cj.join_problems(plan, {}) == []
+
+
+def test_a_bridge_is_cut_into_and_out_of_plainly():
+    plan = {"shots": [_shot("a", 0, "court"), _bridge("br", 4), _shot("b", 6, "kitchen")]}
+    into = shot_matrix.transitions(plan)
+    assert into["br"] == "cut" and into["b"] == "cut"
+
+
+def test_a_bridge_whose_neighbours_moved_is_reported():
+    bridge = {**_bridge("br", 4, window=3.6), "bridge": {"from": "a", "to": "b"}}
+    plan = {"shots": [_shot("a", 0, "court"), bridge, _shot("x", 8, "court"), _shot("b", 12, "court")]}
+    assert any("to b but the cut has x" in p for p in cj.join_problems(plan, {}))
