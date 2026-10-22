@@ -197,3 +197,26 @@ class TestReelInsert(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TrimAndSplit(unittest.TestCase):
+    def test_a_trim_moves_everything_after_the_shot(self):
+        plan = _plan()
+        reel_insert.apply_entry(plan, {"trim": "b", "trim_seconds": 2.0})
+        by = {s["label"]: s for s in plan["shots"]}
+        self.assertEqual((by["b"]["trim_seconds"], by["c"]["clock_at"]), (2.0, 6.0))
+        self.assertEqual(plan["sound"]["total_seconds"], 11.0)
+
+    def test_a_split_drops_the_bad_stretch_and_plays_the_rest_from_the_same_take(self):
+        plan = _plan()
+        verb, tail = reel_insert.apply_entry(plan, {"split": "c", "cut_from": 1.0, "cut_to": 1.8, "clip": "shots/c.mp4"})
+        by = {s["label"]: s for s in plan["shots"]}
+        self.assertEqual(verb, "split")
+        self.assertEqual((by["c"]["trim_start"], by["c"]["trim_seconds"]), (0.3, 0.7))
+        self.assertEqual((tail["label"], tail["clip"], tail["trim_start"], tail["clock_at"]), ("c_2", "shots/c.mp4", 1.8, 7.7))
+        self.assertAlmostEqual(tail["trim_seconds"], 3.5)
+        self.assertAlmostEqual(plan["sound"]["total_seconds"], 11.2)
+
+    def test_a_split_outside_the_window_is_refused(self):
+        with self.assertRaises(ValueError):
+            reel_insert.apply_entry(_plan(), {"split": "c", "cut_from": 0.1, "cut_to": 1.0, "clip": "x.mp4"})
