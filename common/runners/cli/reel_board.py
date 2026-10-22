@@ -42,6 +42,7 @@ from typing import Any
 
 from .. import config
 from .. import cost as cost_mod
+from .. import shot_coverage
 from ..errors import CostConfirmationDeclined, ProviderError, RunnerError
 from . import _stage_cache as sc
 from ._board_cache import _LOOK, _spec_hash, _stale, _summary, _why, mark_current  # noqa: F401 — re-exported
@@ -356,6 +357,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     drawer = config.get_provider(board.get("image_provider") or _PROVIDER)
     per_frame = (drawer.estimate_cost(quality=board.get("image_quality", "high")) or Decimal("0")) * args.tries
     estimate = per_frame * len(todo)
+    shot_coverage.warn(plan)  # a cut of close-ups and push-ins is cheaper to fix before the frames exist
     _summary(stale, per_frame, only)
     print(f"Board: {len(frames)} frames, {len(todo)} to render, up to ${estimate:.2f} "
           f"({args.tries} tries each at most).", file=sys.stderr)

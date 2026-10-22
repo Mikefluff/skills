@@ -221,16 +221,26 @@ def _take(item: Any, file: str, plan: dict[str, Any], estimate) -> dict[str, Any
 
 
 def record_takes(plan: dict[str, Any], items: list[Any], estimate) -> None:
-    """Append every newly succeeded render to the take ledger (`estimate(item)` → dollars)."""
+    """Add every newly succeeded render to the take ledger (`estimate(item)` → dollars) as the take in the cut,
+    with its time, length, prompt, size and move; the label's take in the cut before it becomes an alternate."""
+    from . import take_ledger
+
     out = Path(plan.get("output_dir") or ".")
     ledger = takes(plan)
-    known = {t["file"] for t in ledger}
+    known = {t["file"] for t in ledger if not t.get("untracked")}
     for item in items:
         if item.status != "succeeded" or not item.output_path:
             continue
         file = _take_file(item, out)
-        if file not in known:
-            ledger.append(_take(item, file, plan, estimate))
+        if file in known:
+            continue
+        take = _take(item, file, plan, estimate)
+        take.update(created=take_ledger.created(file), duration=take_ledger.duration(out / file),
+                    prompt=getattr(item, "prompt", "") or "", prompt_source="manifest", status="in cut", reason="")
+        take.update(take_ledger.camera(take["prompt"]))
+        if take["duration"]:
+            take["usable"] = [[take_ledger.HEAD, take["duration"]]]
+        take_ledger.land(ledger, take)
     (out / "takes.json").write_text(json.dumps(ledger, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
@@ -272,7 +282,7 @@ def _takes_cols(row: dict[str, Any], mine: list[dict[str, Any]]) -> dict[str, An
     """The take columns: how many, what they cost, what to do next, and the note on the take in the cut."""
     current = row["file"] or ""
     used = next((t for t in mine if current.endswith(t["file"])), None)
-    rejected = bool(used and used.get("verdict") == "rejected")
+    rejected = bool(used and (used.get("verdict") == "rejected" or used.get("status") == "rejected"))
     return {"takes": len(mine), "spent": round(sum(t["cost_usd"] for t in mine), 2),
             "next": "render" if rejected or row["status"] in ("todo", "failed") else "keep",
             "note": (used or {}).get("note", "")}

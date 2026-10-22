@@ -177,6 +177,13 @@ SHOTS
 - body (English, 60-160 words, the runner adds asset lines and the look): one sentence of who, where, when, light; then "Shot [0-<n>s] - <size, angle, lens>, <camera move>. <action, physical and large>." — one shot per generation; the line as "<Name> says (<physical note>): {<line>}"; then "Dialogue language: <language>." when someone speaks; "<2-3 diegetic sounds in angle brackets>"; "No music."; the exclude line.
 - kwargs: duration_seconds integer 4-10 ≥ trim_start + trim_seconds + 0.5; resolution "480p".
 
+CAMERA AND CUTTING (a film of close-ups under slow push-ins reads as no cutting and no camera at all)
+- Every scene opens on an establishing wide or a moving reveal: a drone descending onto the place, a crane rising over it, a dolly back from a detail until the room is in frame. Its size reads "wide", "aerial" or "overhead" in the shot phrase.
+- Sizes alternate. Never three close-ups in a row (close-up, medium close-up, insert); after two, cut wide or medium. Never three shots in a row without a real camera move.
+- At least a third of the shots carry a real camera move: crane, dolly, track, orbit, FPV chase, drone pull-back, a whip pan that follows the action, a sweep or an arc. A push-in, at any speed, does not count, nor does a pan, a tilt, a zoom or a locked-off frame. Name the move in the shot phrase in those words, so the plan can be read back.
+- Each big story moment (the arrival, the catastrophe, the turn, the finale) gets one continuous flying shot that carries the action through the space: an FPV chasing the rocket through the room, a crane over the whole wreck, a drone pulling back to the house.
+- A move whose framing must land (the reveal ends on the house, the orbit ends on her face) sets "open_on_frame": true and its storyboard frame is drawn from that exact viewpoint, where the move begins. Seedance does not follow a previs camera path; it follows the frame it opens on and the move named in words.
+
 STORYBOARD (board.frames, one per shot, same order)
 - The frame is the shot's opening moment, staged where its motion begins, in the bible's look (an animated feature, not a photograph).
 - "refs": the cast ids of the people in the frame, then the location id, then at most one earlier frame id of the same space; or "master" first for a group frame. Never more than 6 refs.
@@ -192,6 +199,7 @@ PRE-OUTPUT CHECK
 - every outline event is shown, in order; no character, line or place outside the bible.
 - the protagonist appears in the first act; the clock is stated; every planted object pays off; "continuity" covers every changing prop.
 - every object, rule or plan the climax turns on is explained before it matters (rule 13); every exchange of three lines or more has a wide, close-ups and the wide's tail, all with "coverage".
+- every scene opens on a wide or a moving reveal; no three close-ups or three static shots in a row; a third of the shots or more carry a real move (not a push-in); each big moment has its flying shot; every move whose framing must land is "open_on_frame" with its frame drawn from that viewpoint.
 - trim_seconds sum plus title card seconds within 5 % of length_seconds; clock_at is the running sum.
 - board.frames count = shots count; every ref is a bible cast id, location id, "master" or an earlier frame id.
 - every placement names a declared source; nothing runs past total_seconds.

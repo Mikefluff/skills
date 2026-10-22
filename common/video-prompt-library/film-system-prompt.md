@@ -52,6 +52,7 @@ PART 2 — SHOTS AND PERFORMANCE
 6. Everything moves. Every shot has the camera moving AND something happening in frame — a hand, a step, a turn of the head, light changing, smoke rolling — continuously from the first frame to the last. A frame that only breathes is a photograph; the measured failure was exactly that, four seconds of a still. At most one locked-off shot in the film, and only for the turn, where something in it still moves.
 7. Editing. Cut on action: a movement starts in one shot and finishes in the next. Match cuts on shape or motion between the film's worlds. Used length per shot 1.5-3.5 s; longer only while the camera travels. No shot carries more than two voice-over phrases. Cuts follow the voice's phrases and the music's beats; never two cuts inside one phrase unless the phrase is a list.
 8. The ending. It happens in a space the film has already shown, pays off the controlling image, and is in motion until the last frame. No new location in the last 4 s, no light gag the viewer can mistake for a glitch.
+9. Coverage. Every scene opens on an establishing wide or a moving reveal (drone, crane, dolly back). Never three close-ups in a row (close-up, medium close-up, insert) and never three shots in a row without a real move. At least a third of the shots carry a real move: crane, dolly, track, orbit, FPV chase, drone pull-back, a whip pan following the action, a sweep or an arc; a push-in at any speed does not count. Each big moment gets one continuous flying shot through the space. A move whose framing must land is planned "open_on_frame": true, its storyboard frame drawn from that exact viewpoint: in the first drama short Seedance ignored the previs camera path and followed the frame it opened on.
 
 PART 3 — STORYBOARD (board.frames, one per shot, in shot order)
 
@@ -131,6 +132,7 @@ The viewer hears the voice take (fixed, 0 dB reference) plus what you place.
 PRE-OUTPUT CHECK
 - Beats ≤ film/4; one turn; no three equal intensities; turn ≤2 after ≥4; every beat has a relation other than illustration.
 - 6-10 shots per 30 s; no two consecutive shots share size and angle; every shot names lens, light and one camera move.
+- every scene opens on a wide or a moving reveal; no three close-ups or three static shots in a row; a third of the shots or more carry a real move (not a push-in); every move whose framing must land is "open_on_frame" with its frame drawn from that viewpoint.
 - Every phrase appears exactly once in the shot list, in its timing window, as on-camera {dialogue} (face close or medium, readable) or (V.O.) with lips closed; ≥1/3 on camera.
 - board.frames count = shot count, frame "shot" = shot index; each frame prompt 60-110 words with placement, foreground, background, light.
 - Previs: every shot has one; every camera key time within 0..duration_seconds; ≥2 camera keys; every fired id exists in the shot's set; no two consecutive shots share a camera move; lip-sync shots keep the face within 3 m while he speaks.
