@@ -43,6 +43,7 @@ from ._cast_scenes import (  # noqa: F401 — re-exported: reel_cast.cast_scenes
     _rendered,
     cast_scenes,
 )
+from ._stage_cache import save_json
 
 _PROVIDER = "openrouter-nano-banana-pro"
 _PASS = 8
@@ -280,7 +281,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     _render_assets(todo, bible, state, state_path, args)
     if plan is not None:
         cast_scenes(plan, bible)
-        args.plan_file.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        if not save_json(args.plan_file, plan):
+            print("Cast: every scene's references and prompt as they were; plan.json not rewritten", file=sys.stderr)
     return {"state": state, "bible": bible}
 
 

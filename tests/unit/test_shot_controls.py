@@ -178,8 +178,38 @@ def test_a_childs_voice_is_lifted_by_its_cast_pitch_in_lines_and_vocals():
     bible = {"cast": [{"id": "kid", "voice_pitch": 4}, {"id": "dad"}]}
     assert (av.voice_pitch(bible, "kid"), av.voice_pitch(bible, "dad")) == (4.0, 0.0)
     assert soundtrack.pitch_filter(12) == "rubberband=pitch=2.0000"
+    child = soundtrack.voice_filter(8, 4)
+    assert child.startswith("rubberband=pitch=1.2599,rubberband=pitch=1.2599:formant=preserved,highpass")
+    assert av.voice_formant({"cast": [{"id": "kid", "voice_formant": 4}]}, "kid") == 4.0
     plan = {"shots": [{"label": "a", "clock_at": 1.0}], "vocals": [{"shot": "a", "who": "kid", "at": 0.5, "text": "Ой"}]}
     placed = dp.placements(plan, {0: "x.mp3"}, bible)
     assert placed[0]["pitch"] == 4.0
     chain = soundtrack._chain(1, soundtrack.Placement.from_json({"source": "v", "at": 0.0, "pitch": 4.0}), "o")
     assert "rubberband=pitch=1.2599" in chain
+
+
+def test_fit_lines_on_rendered_clips_only_grows_and_stops_at_the_take():
+    from common.runners.cli import _trailer_retime as rt
+    plan = {"shots": [{"label": "a", "index": 1, "trim_seconds": 2.0, "line_at": 0.3},
+                      {"label": "b", "index": 2, "trim_seconds": 4.0, "line_at": 0.3},
+                      {"label": "c", "index": 3, "trim_seconds": 2.0, "line_at": 0.3}]}
+    said = {"a": 2.4, "b": 1.0, "c": 2.4}
+    grown = rt.new_lengths(plan, said, limits={"a": 5.0, "b": 5.0, "c": 2.6})
+    assert "b" not in grown, "a rendered shot with room to spare is not cut shorter"
+    assert 3.0 <= grown["a"] <= 5.0
+    assert grown["c"] == 2.55, "no further than its take runs"
+
+
+def test_a_line_does_not_carry_over_the_cut():
+    from common.runners.cli import _animatic_voice as av
+    line = {"at": 10.0, "room": 2.0}
+    assert av._CARRY == 0.0
+    assert av._room(line, [({"at": 20.0}, None)]) == 2.0
+
+
+def test_a_long_line_starts_earlier_rather_than_spill_onto_the_next_shot():
+    from common.runners.cli import _animatic_voice as av
+    line = {"at": 12.0, "shot_start": 10.0, "shot_end": 16.0}
+    assert av._inside_shot(line, 2.0) == 12.0, "fits from the mouth: stays on the mouth"
+    assert av._inside_shot(line, 6.25) == 11.0, "too long: starts earlier so it ends with its shot"
+    assert av._inside_shot(line, 20.0) == 10.05, "never before the shot"

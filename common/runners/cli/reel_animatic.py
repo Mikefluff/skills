@@ -19,6 +19,18 @@ watched. A speaking shot is trimmed where its mouth opens on the cast's line:
 the generation speaks the line with its own voice, Scribe finds when (cached in
 shots/mouths.json), and the trim puts that moment where the cast's take plays.
 The plan's "grade" is laid on every clip. Writes <out>/trailer.mp4.
+
+Each part of the picture (a clip's window with its transitions and grade, a still, a card) is encoded once
+into <out>/parts/ and reused while nothing that makes it changes; the join is a stream copy (_animatic_parts).
+The picture's signature, its parts' keys in order, is written next to the cut (<cut>.picture.json).
+
+  python3 -m common.runners.cli.reel_animatic --plan-file <plan> --clips --audio-only --yes
+
+--audio-only rebuilds the sound alone, exactly as the full run makes it (the lines on the same mouth marks
+and fit, the vocals, the soundtrack and its mix), and lays it on the picture already in trailer.mp4 (or
+animatic.mp4), its video stream copied. It is refused, naming the shots that changed, when the plan no longer
+makes that picture: a trim, a window, a transition, a card, the grade, a new take. The plan is never saved
+by it; a cut the lines would tighten is refused too, and --fit-lines with it is an error.
 """
 
 from __future__ import annotations
@@ -29,7 +41,6 @@ import os
 import re
 import subprocess
 import sys
-from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -42,9 +53,9 @@ from ._animatic_clips import (  # noqa: F401 — re-exported, the module's publi
     _length, clip_start, mouth_at, mouth_marks, rendered, speech, tighten,
 )
 from ._animatic_mix import land_punchlines, snap_to_action, with_places, with_vocals  # noqa: F401
+from ._animatic_parts import cut_parts, picture  # noqa: F401
 from ._animatic_picture import (  # noqa: F401
-    _FONT, _FPS, _MOVES, Takes, Window, _bars, _card, _clip_part, _still, camera_move, frame_aligned, picture,
-    timeline,
+    _FONT, _FPS, _MOVES, Takes, Window, _bars, _card, _clip_part, _still, camera_move, frame_aligned, timeline,
 )
 
 
@@ -56,6 +67,9 @@ def build_parser() -> argparse.ArgumentParser:
                              "cut and its sound later, and save the plan before building")
     parser.add_argument("--clips", action="store_true",
                         help="cut the rendered shots (storyboard frames where none is rendered yet) into trailer.mp4")
+    parser.add_argument("--audio-only", action="store_true",
+                        help="rebuild only the sound and lay it on the picture already built; refused when the "
+                             "plan no longer makes that picture")
     parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
     return parser
 
@@ -116,8 +130,9 @@ def _library() -> list[dict[str, Any]]:
     return voices
 
 
-def fit_lines(plan: dict[str, Any], bible: dict[str, Any], out: Path) -> dict[str, float]:
-    """Read the lines, measure them, and conform the plan's cut to them; returns the shots that grew."""
+def fit_lines(plan: dict[str, Any], bible: dict[str, Any], out: Path, clips: bool = False) -> dict[str, float]:
+    """Read the lines, measure them, and conform the plan's cut to them; returns the shots that grew. With
+    `clips` a rendered shot only grows, and no further than its take runs."""
     from . import _animatic_voice as av
     from . import _trailer_retime as rt
 
@@ -127,21 +142,26 @@ def fit_lines(plan: dict[str, Any], bible: dict[str, Any], out: Path) -> dict[st
     for group in groups:
         for line, clip in zip(group, av.read_exchange(group, voices, out / "animatic-lines", bible.get("language"), bible)):
             seconds[line["label"]] = seconds.get(line["label"], 0.0) + av._seconds(clip)
-    lengths = rt.new_lengths(plan, seconds)
+    limits = None
+    if clips:
+        takes = rendered(plan, hd=False)
+        limits = {s["label"]: av._seconds(takes[s["label"]]) - float(s.get("trim_start") or 0)
+                  for s in plan["shots"] if s["label"] in takes}
+    lengths = rt.new_lengths(plan, seconds, limits)
     rt.retime(plan, lengths)
     return lengths
 
 
-def scratch_dialogue(plan: dict[str, Any], bible: dict[str, Any], total: float, out: Path,
-                     marks: dict[str, tuple[float, float, float]] | None = None) -> tuple[Path, dict[str, float]]:
-    """The trailer's lines in the cast's voices, exchanges read as one take, fitted to their shots, as one WAV;
-    with where each speaking shot's first line starts on the clock."""
+def _place(plan: dict[str, Any], bible: dict[str, Any],
+           marks: dict[str, tuple[float, float, float]] | None = None) -> list[tuple[dict[str, Any], Path, float, float]]:
+    """Every line read in the cast's voices (exchanges as one take) and fitted to its shot: (line, clip, start
+    on the clock, tempo) in clock order. Nothing is mixed."""
     from . import _animatic_voice as av
 
     groups = av.exchanges(plan)
     speakers = {line["who"] for group in groups for line in group}
     voices = av.voices_for(bible, speakers, _library(), pick_voices)
-    cache, language = out.parent / "animatic-lines", bible.get("language")
+    cache, language = Path(plan["output_dir"]) / "animatic-lines", bible.get("language")
     lines_, clips = [], []
     for group in groups:
         lines_ += group
@@ -150,24 +170,54 @@ def scratch_dialogue(plan: dict[str, Any], bible: dict[str, Any], total: float, 
         if line["label"] in (marks or {}):
             # the rendered shot's mouth: the line starts there and is pressed to its length
             _, at, seconds = marks[line["label"]]
-            line["at"], line["room"] = at, max(seconds, 0.3) + 0.15
-    placed = av.fit(lines_, clips)
-    in_order = sorted(lines_, key=lambda l: l["at"])
-    av.mix(placed, total, out, [av.gain_db(line) for line in in_order], [av.voice_pitch(bible, l["who"]) for l in in_order])
+            # the line starts on the mouth but may run on to its shot's end: a take pressed to the generation's
+            # own (fast) speech lost its acting, every line at the 1.25x cap
+            to_end = line["at"] + line["room"] - at
+            line["at"], line["room"] = at, max(max(seconds, 0.3) + 0.15, to_end)
+    placed = av.fit(lines_, clips, say=False)
+    return [(line, *spot) for line, spot in zip(sorted(lines_, key=lambda l: l["at"]), placed)]
+
+
+def _ends(placed: list[tuple[dict[str, Any], Path, float, float]]) -> dict[str, float]:
+    """label → where the speaking shot's last word ends on the clock."""
+    from . import _animatic_voice as av
+
+    return {line["label"]: round(at + av._seconds(clip) / tempo, 3) for line, clip, at, tempo in placed}
+
+
+def _mix_lines(placed: list[tuple[dict[str, Any], Path, float, float]], bible: dict[str, Any], total: float,
+               out: Path) -> dict[str, float]:
+    """The placed lines as one WAV of the cut's length; returns where each speaking shot's first line starts."""
+    from . import _animatic_voice as av
+
+    for line, _, _, tempo in placed:
+        av.say_rushed(line, tempo)
+    av.mix([spot for _, *spot in placed], total, out, [av.gain_db(line) for line, *_ in placed],
+           [(av.voice_pitch(bible, line["who"]), av.voice_formant(bible, line["who"])) for line, *_ in placed])
     onsets: dict[str, float] = {}
-    ends: dict[str, float] = {}
-    for line, (clip, at, tempo) in zip(sorted(lines_, key=lambda l: l["at"]), placed):
+    for line, _, at, _ in placed:
         onsets.setdefault(line["label"], at)
-        ends[line["label"]] = round(at + av._seconds(clip) / tempo, 3)
-    scratch_dialogue.ends = ends  # where each speaking shot's last word ends, for tighten()
-    return out, onsets
+    return onsets
+
+
+def scratch_dialogue(plan: dict[str, Any], bible: dict[str, Any], total: float, out: Path,
+                     marks: dict[str, tuple[float, float, float]] | None = None) -> tuple[Path, dict[str, float]]:
+    """The trailer's lines in the cast's voices, exchanges read as one take, fitted to their shots, as one WAV;
+    with where each speaking shot's first line starts on the clock."""
+    placed = _place(plan, bible, marks)
+    scratch_dialogue.ends = _ends(placed)  # where each speaking shot's last word ends, for tighten()
+    return out, _mix_lines(placed, bible, total, out)
 
 
 # ── main ────────────────────────────────────────────────────────────────────
 
 
 def _save(args: argparse.Namespace, plan: dict[str, Any]) -> None:
-    args.plan_file.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    """The plan written back, only when it changed; never by --audio-only (a change is a picture build)."""
+    from ._stage_cache import save_json
+
+    if not getattr(args, "audio_only", False):
+        save_json(args.plan_file, plan)
 
 
 def _load(args: argparse.Namespace) -> tuple[dict[str, Any], dict[str, Any], Path]:
@@ -179,32 +229,38 @@ def _load(args: argparse.Namespace) -> tuple[dict[str, Any], dict[str, Any], Pat
     out = Path(plan["output_dir"])
     out.mkdir(parents=True, exist_ok=True)
     if args.fit_lines:
-        grew = fit_lines(plan, bible, out)
+        grew = fit_lines(plan, bible, out, clips=args.clips)
         _save(args, plan)
         print(f"Fit: {len(grew)} speaking shot(s) lengthened to their lines: "
               + ", ".join(f"{k} {v:.2f}s" for k, v in grew.items()), file=sys.stderr)
     return plan, bible, out
 
 
-def _confirm(plan: dict[str, Any], yes: bool) -> None:
-    script = " ".join(l["line"] for l in lines(plan))
-    estimate = _reel_sound.estimate(plan["sound"]) + (config.get_provider("eleven-tts").estimate_cost(text=script)
-                                                       or Decimal("0"))
-    cost_mod.confirm(estimate, yes=yes)
+def _confirm(plan: dict[str, Any], bible: dict[str, Any], yes: bool) -> None:
+    """Asks only for what this run buys: a cut whose takes, vocals and sounds are all kept asks nothing."""
+    from . import _animatic_voice as av
+    from ._animatic_mix import to_buy
+
+    speakers = {line["who"] for group in av.exchanges(plan) for line in group} | {
+        v["who"] for v in plan.get("vocals") or []} - {"crowd"}
+    estimate, what = to_buy(plan, bible, av.voices_for(bible, speakers, _library(), pick_voices))
+    if estimate > 0:
+        print(f"To buy: {', '.join(what)}", file=sys.stderr)
+        cost_mod.confirm(estimate, yes=yes)
 
 
 def _dialogue(args: argparse.Namespace, plan: dict[str, Any], bible: dict[str, Any], out: Path,
               takes: Takes) -> Path:
-    """The scratch dialogue on the cut's clock; fills the takes' marks and onsets."""
-    total = float(plan["sound"]["total_seconds"])
+    """The scratch dialogue on the cut's clock, mixed once; fills the takes' marks and onsets."""
     takes.marks = mouth_marks(plan, takes.clips)
-    dialogue, takes.onsets = scratch_dialogue(plan, bible, total, out / "animatic-dialogue.wav", takes.marks)
-    if args.clips and tighten(plan, scratch_dialogue.ends, takes.clips):
+    placed = _place(plan, bible, takes.marks)
+    if args.clips and tighten(plan, _ends(placed), takes.clips):
         # dead air after the last word cut away: the clock moved, so the lines are laid again on it
         _save(args, plan)
-        total = float(plan["sound"]["total_seconds"])
         takes.marks = mouth_marks(plan, takes.clips)
-        dialogue, takes.onsets = scratch_dialogue(plan, bible, total, out / "animatic-dialogue.wav", takes.marks)
+        placed = _place(plan, bible, takes.marks)
+    dialogue = out / "animatic-dialogue.wav"
+    takes.onsets = _mix_lines(placed, bible, float(plan["sound"]["total_seconds"]), dialogue)
     return dialogue
 
 
@@ -256,26 +312,57 @@ def _soundtrack(args: argparse.Namespace, plan: dict[str, Any], bible: dict[str,
     return sound, sources
 
 
+def _mux(pic: Path, soundtrack: Path, final: Path) -> None:
+    """The picture's video stream copied, the soundtrack laid under it, into `final` (whole or not at all)."""
+    work = final.with_name(f"{final.stem}.mux{final.suffix}")
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(pic), "-i", str(soundtrack), "-map", "0:v",
+                    "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", "-shortest", str(work)],
+                   check=True, capture_output=True)
+    work.replace(final)
+
+
+def _still_fresh(plan: dict[str, Any], out: Path, final: Path, takes: Takes) -> list:
+    """--audio-only: the parts the plan makes now, refused unless they are the picture in `final`."""
+    from . import _animatic_parts as parts
+
+    made = cut_parts(plan, out / "board", takes)
+    parts.fresh(final, made)
+    return made
+
+
 def run(args: argparse.Namespace) -> Path:
+    from . import _animatic_parts as parts
+
     plan, bible, out = _load(args)
-    _confirm(plan, args.yes)
+    _confirm(plan, bible, args.yes)
     takes = Takes(clips=rendered(plan) if args.clips else {}, used=[])
+    final = out / ("trailer.mp4" if args.clips else "animatic.mp4")
+    if args.audio_only:
+        # before any sound is made: a stale picture is refused without spending on its lines
+        _still_fresh(plan, out, final, Takes(clips=takes.clips, marks=mouth_marks(plan, takes.clips)))
     dialogue = _dialogue(args, plan, bible, out, takes)
     _narrate(plan, bible, dialogue, out)
     _build(args, plan, takes)
-    pic = picture(plan, out / "board", out / "animatic-picture.mp4", takes)
+    if args.audio_only:
+        made, pic = _still_fresh(plan, out, final, takes), final  # the lines may have moved the cut since
+    else:
+        made = cut_parts(plan, out / "board", takes)
+        pic = parts.render(made, out / "animatic-picture.mp4")
     sound, sources = _soundtrack(args, plan, bible, out, takes)
     soundtrack = _reel_sound.render(sound, sources, dialogue, out / "soundtrack.wav")
-    final = out / ("trailer.mp4" if args.clips else "animatic.mp4")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(pic), "-i", str(soundtrack), "-map", "0:v",
-                    "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", "-shortest", str(final)],
-                   check=True, capture_output=True)
-    pic.unlink()
+    parts.signature_file(final).unlink(missing_ok=True)
+    _mux(pic, soundtrack, final)
+    parts.record(final, made)
+    if not args.audio_only:
+        pic.unlink()
     return final
 
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.audio_only and args.fit_lines:
+        print("--fit-lines moves the cut: it needs a picture build, not --audio-only", file=sys.stderr)
+        return 1
     config.load_all_providers()
     try:
         final = run(args)

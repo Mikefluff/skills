@@ -43,6 +43,7 @@ from typing import Any
 from .. import config
 from .. import cost as cost_mod
 from ..errors import CostConfirmationDeclined, ProviderError, RunnerError
+from . import _stage_cache as sc
 from ._board_cache import _LOOK, _spec_hash, _stale, _summary, _why, mark_current  # noqa: F401 — re-exported
 
 _PROVIDER = "openrouter-nano-banana-pro"
@@ -79,7 +80,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _jpeg(png: Path) -> Path:
+    """The frame's jpg beside its png, encoded again only when the png is newer (redrawn)."""
     jpg = png.with_suffix(".jpg")
+    if jpg.is_file() and jpg.stat().st_mtime_ns >= png.stat().st_mtime_ns:
+        return jpg
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(png), "-q:v", "3", str(jpg)],
                    check=True, capture_output=True)
     return jpg
@@ -101,6 +105,18 @@ def _contact(frames: list[Path], out: Path, wide: bool = False) -> None:
     graph = f"{scaled}{pads}{labels}xstack=inputs={rows * cols}:layout={layout}[out]"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", graph, "-map", "[out]",
                     "-frames:v", "1", str(out)], check=True, capture_output=True)
+
+
+def _sheet(jpgs: list[Path], out_dir: Path, wide: bool) -> None:
+    """The contact sheet, made again only when a frame on it, their order or the layout changed."""
+    stamps, sheet = sc.Stamps(out_dir / "cache.json"), out_dir / "contact.jpg"
+    stamp = sc.key([sc.file_sig(j) for j in jpgs], wide)
+    if stamps.fresh(sheet.name, stamp, sheet):
+        print(f"Board: contact sheet unchanged ({len(jpgs)} frames), kept", file=sys.stderr)
+        return
+    _contact(jpgs, sheet, wide=wide)
+    stamps.set(sheet.name, stamp)
+    stamps.save()
 
 
 def _refs_note(names: list[str]) -> str:
@@ -312,7 +328,7 @@ def _finish(plan: dict[str, Any], board: dict[str, Any], frames: list[dict[str, 
         print(f"Board: no image for {', '.join(missing)}; rewrite their prompts and run again with --only.",
               file=sys.stderr)
     frames, jpgs = drawn, [_jpeg(out_dir / f"{f['id']}.png") for f in drawn]
-    _contact(jpgs, out_dir / "contact.jpg", wide=board.get("aspect_ratio") == "16:9")
+    _sheet(jpgs, out_dir, wide=board.get("aspect_ratio") == "16:9")
     board.pop("_assets", None)
     board.pop("_judge", None)
     board.pop("_asset_names", None)
@@ -350,7 +366,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     board["_judge"] = args.judge
     _render_all(board, todo, state, state_path, args.tries)
     frames = _finish(plan, board, frames, out_dir)
-    args.plan_file.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    sc.save_json(args.plan_file, plan)  # an unchanged plan keeps its mtime
     return {"frames": frames, "state": state, "contact": out_dir / "contact.jpg"}
 
 

@@ -12,7 +12,10 @@ the words came out wrong) and the JSON path to set it on (vocals[57].gain_db, sh
 Short lines under music ("Корт" heard as «Торт», «Ещё!») are what this catches. Children's high voices transcribe poorly, so a flagged baby line means "listen", not "broken".
 
 The film defaults to <output_dir>/trailer.mp4 (what `reel_animatic --clips` writes). Transcripts are cached in
-<output_dir>/listen-cache/, keyed by the window and the film's mtime; the report goes to <output_dir>/listen.json.
+<output_dir>/listen-cache/, keyed by the sound itself — the window's samples, the Whisper model and the
+language — so a re-cut that leaves a line's stretch of sound as it was (a picture-only change, a re-mux, every
+line before the first change) hears it from the cache instead of from Whisper again. The film's sound is pulled
+out once per film file; the report goes to <output_dir>/listen.json.
 
 Whisper is found through $WHISPER, then `mlx_whisper` on PATH, then the video-dub venv; the model through
 $WHISPER_MODEL (default mlx-community/whisper-large-v3-turbo).
@@ -29,8 +32,11 @@ import re
 import shutil
 import subprocess
 import sys
+import wave
 from pathlib import Path
 from typing import Any
+
+from . import _stage_cache as sc
 
 _FALLBACK = Path.home() / "Documents" / "video-dub" / ".venv" / "bin" / "mlx_whisper"
 _MODEL = "mlx-community/whisper-large-v3-turbo"
@@ -134,35 +140,97 @@ def whisper_binary() -> str | None:
 
 
 def _key(film: Path, window: dict[str, Any]) -> str:
+    """The window on this film file (its path and mtime): what `transcribe` returns the heard text under, and the
+    name of a transcript cached before transcripts were keyed by their sound."""
     raw = f"{film.resolve()}|{film.stat().st_mtime_ns}|{window['start']:.3f}|{window['end']:.3f}"
     return hashlib.sha1(raw.encode()).hexdigest()[:16]
 
 
+_RATE = 16000
+
+
+def _model() -> str:
+    return os.environ.get("WHISPER_MODEL") or _MODEL
+
+
+def _film_audio(film: Path, cache: Path) -> Path:
+    """The film's sound as one 16 kHz mono wav, pulled out once per film file (path, size, mtime)."""
+    wav = cache / f"film-{sc.key(sc.file_sig(film))}.wav"
+    if not wav.is_file():
+        for old in cache.glob("film-*.wav"):
+            old.unlink()
+        part = cache / "film.part.wav"
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(film), "-vn", "-ac", "1", "-ar", str(_RATE),
+                        "-c:a", "pcm_s16le", str(part)], check=True, capture_output=True)
+        part.replace(wav)
+    return wav
+
+
+def _samples(audio: Path, wins: list[dict[str, Any]]) -> list[bytes]:
+    """Each window's stretch of the film's sound, as raw 16-bit samples."""
+    out = []
+    with wave.open(str(audio), "rb") as f:
+        for w in wins:
+            f.setpos(min(int(w["start"] * _RATE), f.getnframes()))
+            out.append(f.readframes(int(round((w["end"] - w["start"]) * _RATE))))
+    return out
+
+
+def sound_key(samples: bytes) -> str:
+    """A transcript's cache key: the sound it was heard from, the model and the language."""
+    return hashlib.sha1(samples + f"|{_model()}|ru".encode()).hexdigest()[:16]
+
+
+def _write_wav(path: Path, samples: bytes) -> None:
+    with wave.open(str(path), "wb") as f:
+        f.setnchannels(1)
+        f.setsampwidth(2)
+        f.setframerate(_RATE)
+        f.writeframes(samples)
+
+
 def _whisper(exe: str, wav: Path, cache: Path) -> None:
     # one file per call: mlx_whisper's CLI names every output after the first input when given several
-    subprocess.run([exe, str(wav), "--model", os.environ.get("WHISPER_MODEL") or _MODEL, "--language", "ru",
+    subprocess.run([exe, str(wav), "--model", _model(), "--language", "ru",
                     "--output-format", "json", "--output-dir", str(cache), "--verbose", "False",
                     "--condition-on-previous-text", "False"], check=True, capture_output=True)
 
 
+def _lookup(cache: Path, keys: dict[str, str]) -> list[str]:
+    """Window ids with no transcript yet. One cached under the older film-and-mtime name is still this sound
+    (same file, same window), so it is copied to its sound key, not heard again."""
+    todo = []
+    for wid, k in keys.items():
+        legacy = cache / f"{wid}.json"
+        if not (cache / f"{k}.json").is_file() and legacy.is_file():
+            (cache / f"{k}.json").write_bytes(legacy.read_bytes())
+        if not (cache / f"{k}.json").is_file():
+            todo.append(wid)
+    return todo
+
+
 def transcribe(film: Path, wins: list[dict[str, Any]], cache: Path, exe: str) -> dict[str, str]:
-    """key → heard text. A window not cached yet is cut to a 16 kHz wav and goes to Whisper; its json output,
-    named by the key, is the cache."""
+    """window id (`_key`) → heard text. Each window's sound is keyed by its samples; one not heard before goes to
+    Whisper as a 16 kHz wav, and its json output, named by the sound key, is the cache."""
     cache.mkdir(parents=True, exist_ok=True)
-    keys = {_key(film, w): w for w in wins}
-    todo = [k for k in keys if not (cache / f"{k}.json").is_file()]
-    for n, k in enumerate(todo, 1):
-        w, wav = keys[k], cache / f"{k}.wav"
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", str(w["start"]), "-t",
-                        str(round(w["end"] - w["start"], 3)), "-i", str(film), "-vn", "-ac", "1", "-ar", "16000",
-                        str(wav)], check=True, capture_output=True)
+    by_id = {_key(film, w): w for w in wins}
+    audio = _film_audio(film, cache)
+    sound = dict(zip(by_id, _samples(audio, list(by_id.values()))))
+    keys = {wid: sound_key(samples) for wid, samples in sound.items()}
+    todo = _lookup(cache, keys)
+    if len(keys) > len(todo):
+        print(f"Listen: {len(keys) - len(todo)} of {len(keys)} line(s) sound as before, heard from the cache",
+              file=sys.stderr)
+    for n, wid in enumerate(todo, 1):
+        wav = cache / f"{keys[wid]}.wav"
+        _write_wav(wav, sound[wid])
         try:
             _whisper(exe, wav, cache)
         finally:
             wav.unlink(missing_ok=True)
-        print(f"  {n}/{len(todo)} {w['label']} ({len(keys) - len(todo)} cached)", file=sys.stderr)
-    return {k: json.loads((cache / f"{k}.json").read_text(encoding="utf-8")).get("text", "").strip()
-            for k in keys}
+        print(f"  {n}/{len(todo)} {by_id[wid]['label']}", file=sys.stderr)
+    return {wid: json.loads((cache / f"{k}.json").read_text(encoding="utf-8")).get("text", "").strip()
+            for wid, k in keys.items()}
 
 
 # ── report ──────────────────────────────────────────────────────────────────

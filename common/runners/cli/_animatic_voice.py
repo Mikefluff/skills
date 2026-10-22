@@ -21,9 +21,10 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from ..soundtrack import pitch_filter
+from ..soundtrack import voice_filter
 
 _MAX_TEMPO = 1.25
+_CARRY = 0.0  # a line stays in its shot: carried over the cut it lands on the next face (users heard it as out of sync)
 _SPILL = 0.4  # a line may run this far past its cut, as a J-cut into the next shot
 _GAP = 0.08
 _LINE_LUFS = -16
@@ -39,9 +40,10 @@ def gain_db(item: dict[str, Any]) -> float:
 def _entry(line: dict[str, Any], shot: dict[str, Any]) -> dict[str, Any]:
     """A dialogue line placed on the clock of the shot that says it."""
     line_at = float(shot.get("line_at") or 0.3)
+    start = float(shot["clock_at"])
     return {**line, "label": shot["label"], "location": shot.get("location"),
-            "at": round(float(shot["clock_at"]) + line_at, 3),
-            "room": float(shot["trim_seconds"]) - line_at + _SPILL}
+            "at": round(start + line_at, 3), "room": float(shot["trim_seconds"]) - line_at + _SPILL,
+            "shot_start": start, "shot_end": round(start + float(shot["trim_seconds"]), 3)}
 
 
 def exchanges(plan: dict[str, Any]) -> list[list[dict[str, Any]]]:
@@ -105,22 +107,57 @@ def effects(group: list[dict[str, Any]], bible: dict[str, Any]) -> dict[str, Any
     return out or None
 
 
-def read_exchange(group: list[dict[str, Any]], voices: dict[str, str], cache: Path,
-                  language: str | None, bible: dict[str, Any] | None = None) -> list[Path]:
-    """One take for the whole exchange, cut into one clip per line (cached by text and voices)."""
-    from ..providers.elevenlabs import dialogue
-
+def _request(group: list[dict[str, Any]], voices: dict[str, str],
+             bible: dict[str, Any] | None) -> tuple[list[dict[str, str]], dict[str, Any] | None]:
+    """What the exchange's take is asked with: each line's text and voice, and the room."""
     accents = _accents(bible or {})
     inputs = [{"text": _text(line, accents.get(line["who"], "")), "voice_id": voices[line["who"]]} for line in group]
-    fx = effects(group, bible or {})
-    key = hashlib.sha256(json.dumps([inputs, fx, "eleven_v4"], sort_keys=True).encode()).hexdigest()[:12]
-    take, marks = cache / f"{key}.mp3", cache / f"{key}.json"
+    return inputs, effects(group, bible or {})
+
+
+def _take_key(inputs: list[dict[str, str]], fx: dict[str, Any] | None, language: str | None) -> str:
+    raw = [inputs, fx, "eleven_v4"] + ([language] if language else [])
+    return hashlib.sha256(json.dumps(raw, sort_keys=True).encode()).hexdigest()[:12]
+
+
+def _take_paths(group: list[dict[str, Any]], voices: dict[str, str], cache: Path, language: str | None,
+                bible: dict[str, Any] | None) -> tuple[tuple[Path, Path], tuple[Path, Path]]:
+    """((take, timestamps) under the key, the same under the older key without the language)."""
+    inputs, fx = _request(group, voices, bible)
+    key, old = _take_key(inputs, fx, language), _take_key(inputs, fx, None)
+    return (cache / f"{key}.mp3", cache / f"{key}.json"), (cache / f"{old}.mp3", cache / f"{old}.json")
+
+
+def take_kept(group: list[dict[str, Any]], voices: dict[str, str], cache: Path, language: str | None,
+              bible: dict[str, Any] | None = None) -> bool:
+    """Whether the exchange's take is on disk, under either key: reading it again buys nothing."""
+    return any(all(f.is_file() for f in pair) for pair in _take_paths(group, voices, cache, language, bible))
+
+
+def take_files(group: list[dict[str, Any]], voices: dict[str, str], cache: Path, language: str | None,
+               bible: dict[str, Any] | None = None) -> tuple[Path, Path]:
+    """(take, its timestamps) of the exchange, kept by text, voices, room, model and language. A take kept
+    before the language was in its key is moved to its keyed name, never bought again."""
+    (take, marks), legacy = _take_paths(group, voices, cache, language, bible)
+    if not take.is_file() and all(f.is_file() for f in legacy):
+        legacy[0].replace(take)
+        legacy[1].replace(marks)
+    return take, marks
+
+
+def read_exchange(group: list[dict[str, Any]], voices: dict[str, str], cache: Path,
+                  language: str | None, bible: dict[str, Any] | None = None) -> list[Path]:
+    """One take for the whole exchange, cut into one clip per line (cached by text, voices and language)."""
+    from ..providers.elevenlabs import dialogue
+
+    inputs, fx = _request(group, voices, bible)
     cache.mkdir(parents=True, exist_ok=True)
+    take, marks = take_files(group, voices, cache, language, bible)
     if not (take.is_file() and marks.is_file()):
         audio, segments = _clean_take(dialogue, inputs, language, fx)
         take.write_bytes(audio)
         marks.write_text(json.dumps(segments), encoding="utf-8")
-    return _split(take, json.loads(marks.read_text(encoding="utf-8")), len(group), cache / key)
+    return _split(take, json.loads(marks.read_text(encoding="utf-8")), len(group), cache / take.stem)
 
 
 _NUM = {"0": "zero", "1": "one", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven",
@@ -180,7 +217,10 @@ def _span(segments: list[dict[str, Any]], n: int) -> tuple[float, float | None]:
 
 
 def _split(take: Path, segments: list[dict[str, Any]], count: int, stem: Path) -> list[Path]:
-    """One clip per input line of the take, from its voice segments."""
+    """One clip per input line of the take, from its voice segments; a clip already cut the same way is kept."""
+    from . import _stage_cache as sc
+
+    stamps = sc.Stamps(stem.parent / "split.json")
     spans = [_span(segments, n) for n in range(count)]
     clips = []
     for n, (start, end) in enumerate(spans):
@@ -189,8 +229,12 @@ def _split(take: Path, segments: list[dict[str, Any]], count: int, stem: Path) -
         if later and (end is None or end > later[0] - 0.02):
             end = later[0] - 0.02
         clip = stem.with_name(f"{stem.name}-{n}.wav")
-        _cut(take, clip, start, end)
+        stamp = sc.key(sc.file_sig(take), start, end, _TRIM)
+        if not stamps.fresh(clip.name, stamp, clip):
+            _cut(take, clip, start, end)
+            stamps.set(clip.name, stamp)
         clips.append(clip)
+    stamps.save()
     return clips
 
 
@@ -200,36 +244,72 @@ def _accents(bible: dict[str, Any]) -> dict[str, str]:
     return {p["id"]: (p.get("voice_library") or {}).get("accent", "") for p in people}
 
 
+# Ends trimmed, and a dead gap inside the line held to 0.4 s: v4 acts an ellipsis as a full stop and a
+# [clears throat] as a scene, and a 3 s gap splits a line across two shots. Only true silence counts
+# (-48 dB) and only past 0.6 s: a tighter trim (-36 dB, 0.18 s) cut the breaths and every actor's pause
+# out of the SAME lines and left them choppy, a voice with holes in it.
+_TRIM = ("silenceremove=start_periods=1:start_threshold=-45dB,areverse,"
+         "silenceremove=start_periods=1:start_threshold=-45dB,areverse,"
+         "silenceremove=stop_periods=-1:stop_duration=0.6:stop_threshold=-48dB:stop_silence=0.4")
+
+
 def _cut(take: Path, clip: Path, start: float, end: float | None) -> None:
     """The line's stretch of the take, silence trimmed from both ends."""
     window = ["-ss", f"{max(0.0, start - 0.03):.3f}"] + (["-to", f"{end:.3f}"] if end else [])
-    # Ends trimmed, and a dead gap inside the line held to 0.4 s: v4 acts an ellipsis as a full stop and a
-    # [clears throat] as a scene, and a 3 s gap splits a line across two shots. Only true silence counts
-    # (-48 dB) and only past 0.6 s: a tighter trim (-36 dB, 0.18 s) cut the breaths and every actor's pause
-    # out of the SAME lines and left them choppy, a voice with holes in it.
-    trim = ("silenceremove=start_periods=1:start_threshold=-45dB,areverse,"
-            "silenceremove=start_periods=1:start_threshold=-45dB,areverse,"
-            "silenceremove=stop_periods=-1:stop_duration=0.6:stop_threshold=-48dB:stop_silence=0.4")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *window, "-i", str(take), "-af", trim,
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *window, "-i", str(take), "-af", _TRIM,
                     "-ar", "48000", "-ac", "2", str(clip)], check=True, capture_output=True)
 
 
 def _seconds(path: Path) -> float:
+    """The file's length, probed once per version of the file."""
+    from ._stage_cache import probed
+
+    return probed(path, _probe)
+
+
+def _probe(path: Path) -> float:
     out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
                          capture_output=True, text=True, check=True).stdout
     return float(out.strip() or 0)
 
 
-def fit(lines: list[dict[str, Any]], clips: list[Path]) -> list[tuple[Path, float, float]]:
-    """(clip, start on the clock, tempo) per line: sped up to fit its shot, never overlapping the line before."""
+def _room(line: dict[str, Any], later: list[tuple[dict[str, Any], Path]]) -> float:
+    """Seconds the line may play: its shot's room, and past the cut (a J/L cut, up to _CARRY s) while nobody
+    else speaks yet. An acted take is longer than the generation's own speech; pressing it in kills the acting."""
+    if not later:
+        return line["room"] + _CARRY
+    until_next = later[0][0]["at"] - line["at"] - _GAP
+    return max(line["room"], min(until_next, line["room"] + _CARRY))
+
+
+def say_rushed(line: dict[str, Any], tempo: float) -> None:
+    """A rushed line loses its acting: say which, so the shot can be given room instead."""
+    if tempo > 1.08:
+        print(f"  {line.get('label', '?')}: line sped up x{tempo:.2f} to fit its shot", file=sys.stderr)
+
+
+def _inside_shot(line: dict[str, Any], length: float) -> float:
+    """Where the line starts: on the mouth (or its plan time), moved earlier when even at _MAX_TEMPO it would run
+    past its shot: a voice running on over the cut lands on the next face, which reads as out of sync, worse than
+    a start a little before the mouth. Never before the shot itself."""
+    if "shot_end" not in line:
+        return line["at"]
+    latest = line["shot_end"] - length / _MAX_TEMPO
+    return round(max(line["shot_start"] + 0.05, min(line["at"], latest)), 3)
+
+
+def fit(lines: list[dict[str, Any]], clips: list[Path], say: bool = True) -> list[tuple[Path, float, float]]:
+    """(clip, start on the clock, tempo) per line: sped up to fit its shot, never overlapping the line before.
+    `say=False` leaves the rushed lines unsaid, for a placement that may be laid again."""
     placed, free_at = [], 0.0
-    for line, clip in sorted(zip(lines, clips), key=lambda pair: pair[0]["at"]):
+    ordered = sorted(zip(lines, clips), key=lambda pair: pair[0]["at"])
+    for n, (line, clip) in enumerate(ordered):
         length = _seconds(clip)
-        tempo = min(_MAX_TEMPO, max(1.0, length / max(line["room"], 0.3)))
-        if tempo > 1.08:
-            # a rushed line loses its acting: say which, so the shot can be given room instead
-            print(f"  {line.get('label', '?')}: line sped up x{tempo:.2f} to fit its shot", file=sys.stderr)
-        at = max(line["at"], free_at + _GAP)
+        at = max(_inside_shot(line, length), free_at + _GAP)
+        room = line["shot_end"] - at if "shot_end" in line else _room(line, ordered[n + 1:])
+        tempo = min(_MAX_TEMPO, max(1.0, length / max(room, 0.3)))
+        if say:
+            say_rushed(line, tempo)
         placed.append((clip, at, tempo))
         free_at = at + length / tempo
     return placed
@@ -248,22 +328,30 @@ def voice_pitch(bible: dict[str, Any], who: str) -> float:
     return float(next((c.get("voice_pitch") or 0 for c in bible.get("cast") or [] if c["id"] == who), 0))
 
 
+def voice_formant(bible: dict[str, Any], who: str) -> float:
+    """The cast member's "voice_formant" in semitones: the throat made smaller apart from the pitch, with the child
+    EQ (a child's timbre, not only a higher adult)."""
+    return float(next((c.get("voice_formant") or 0 for c in bible.get("cast") or [] if c["id"] == who), 0))
+
+
 def mix(placed: list[tuple[Path, float, float]], total: float, out: Path, gains: list[float] | None = None,
-        pitches: list[float] | None = None) -> None:
+        pitches: list[tuple[float, float]] | None = None) -> None:
     """Every line at one loudness (moved by its gain_db, in `gains`), at its time and tempo, its speaker's pitch
-    (semitones, in `pitches`), into one WAV of the cut's length."""
+    and throat ((semitones, formant) per line, in `pitches`), into one WAV of the cut's length."""
     inputs = ["-f", "lavfi", "-t", f"{total:.3f}", "-i", "anullsrc=r=48000:cl=stereo"]
     chains = []
     for n, (clip, at, tempo) in enumerate(placed, start=1):
         inputs += ["-i", str(clip)]
         ms = int(at * 1000)
         speed = f"atempo={tempo:.3f}," if tempo > 1.001 else ""
-        shift = pitches[n - 1] if pitches else 0.0
-        speed += f"{pitch_filter(shift)}," if shift else ""
+        shift, throat = (pitches[n - 1] if pitches else (0.0, 0.0))
+        speed += f"{voice_filter(shift, throat)}," if (shift or throat) else ""
         lift = _level(clip, gains[n - 1] if gains else 0.0)
         chains.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,{speed}"
                       f"loudnorm=I={_LINE_LUFS}:TP=-1.5:LRA=11,{lift}aresample=48000,adelay={ms}|{ms}[l{n}]")
     lines = "".join(f"[l{n}]" for n in range(1, len(placed) + 1))
     graph = ";".join(chains + [f"[0:a]{lines}amix=inputs={len(placed) + 1}:normalize=0:duration=first[out]"])
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", graph, "-map", "[out]",
-                    "-c:a", "pcm_s16le", str(out)], check=True, capture_output=True)
+    from ._stage_cache import run_once
+
+    run_once(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", graph, "-map", "[out]",
+              "-c:a", "pcm_s16le", str(out)], out)

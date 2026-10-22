@@ -1,6 +1,7 @@
-"""The animatic's picture — stills moved like their camera, title cards, rendered clips, joined on the clock.
+"""The animatic's picture — stills moved like their camera, title cards, rendered clips: how each part is drawn.
 
-Split out of reel_animatic; the names are re-exported there.
+Split out of reel_animatic; the names are re-exported there. Which parts the cut has, their cache and the
+join are _animatic_parts.
 """
 
 from __future__ import annotations
@@ -11,8 +12,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ..errors import RunnerError
-from ._animatic_clips import clip_start
 
 _FPS = 24
 _FONT = "/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf"
@@ -67,16 +66,14 @@ def _still(image: Path, seconds: float, out: Path, size: str, body: str = "") ->
 def _card(item: dict[str, Any], out: Path, size: str, plan: dict[str, Any]) -> None:
     """An animated title card in the film's identity (title_cards), on the beat of the act it sits in."""
     from .. import title_cards
-    from . import _trailer_retime as rt
 
     card = item["card"]
     if card.get("image"):
         # a card drawn in the film's own look (a lettered frame, the picture the film returns to), held on a slow push
         _still(Path(card["image"]), item["seconds"], out, size, card.get("move", "slow push-in"))
         return
-    act = rt._act_of(plan).get(card.get("after", ""), "")
     w, h = (int(v) for v in size.split("x"))
-    title_cards.render(title_cards.Card(card["text"], item["seconds"], bpm=rt.act_bpm(plan).get(act, 104.0),
+    title_cards.render(title_cards.Card(card["text"], item["seconds"], bpm=act_bpm_of(plan, card.get("after", ""), 104.0),
                                         key=card.get("key"), label=card.get("label", "MATCH 98.7%"),
                                         size=(w, h)), out)
 
@@ -204,80 +201,21 @@ def _leave(cut: _Cut, nxt: dict[str, Any] | None) -> str:
     return cut.cuts.get(nxt["shot"]["label"], "cut")
 
 
-def _freeze(cut: _Cut, item: dict[str, Any], part: Path, live: float) -> Path:
+def _freeze(plan: dict[str, Any], item: dict[str, Any], part: Path, live: float, frozen: Path) -> None:
     """The Ritchie freeze: the clip stops on its frame at `at` and the system reads the faces in it."""
     from .. import title_cards
-    from . import _trailer_retime as rt
 
-    shot, hold, plan = item["shot"], item["shot"]["freeze"], cut.plan
-    still = part.with_suffix(".png")
+    shot, hold = item["shot"], item["shot"]["freeze"]
+    still = frozen.with_suffix(".png")
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-sseof", "-0.05", "-i", str(part),
                     "-frames:v", "1", "-update", "1", str(still)], check=True, capture_output=True)
-    frozen = part.with_name(part.stem + "-freeze.mp4")
-    title_cards.freeze(still, item["seconds"] - live, frozen,
-                       bpm=rt.act_bpm(plan).get(rt._act_of(plan).get(shot["label"], ""), 112.0),
+    title_cards.freeze(still, item["seconds"] - live, frozen, bpm=act_bpm_of(plan, shot["label"], 112.0),
                        boxes=hold.get("boxes"), caption=hold.get("caption"))
     still.unlink()
-    return frozen
 
 
-def _clip_item(cut: _Cut, item: dict[str, Any], nxt: dict[str, Any] | None, part: Path) -> list[Path]:
-    from .. import shot_matrix
+def act_bpm_of(plan: dict[str, Any], label: str, default: float) -> float:
+    """The tempo of the act a shot (or the shot a card follows) sits in."""
+    from . import _trailer_retime as rt
 
-    takes = cut.takes
-    shot, clip = item["shot"], takes.clips[item["shot"]["label"]]
-    start = takes.marks.get(shot["label"], (None,))[0]
-    if start is None:
-        start = clip_start(shot, clip, takes.onsets.get(shot["label"]), cut.mouths)
-    hold = shot.get("freeze")
-    live = min(float(hold["at"]), item["seconds"] - 0.2) if hold else item["seconds"]
-    _clip_part(Window(clip, start, live, cut.cuts.get(shot["label"], "cut"), "cut" if hold else _leave(cut, nxt),
-                      shot_matrix.speed(shot, cut.plan)), part, cut.size, cut.plan.get("grade"))
-    made = [part]
-    if hold:
-        made.append(_freeze(cut, item, part, live))
-    if takes.used is not None:
-        takes.used.append((shot, clip, start))
-    return made
-
-
-def _still_item(cut: _Cut, item: dict[str, Any], part: Path) -> None:
-    image = cut.board_dir / f"{cut.frame_of.get(int(item['shot']['index']), '')}.jpg"
-    if not image.is_file():
-        raise RunnerError(f"no storyboard frame for {item['shot']['label']}: run reel_board first")
-    _still(image, item["seconds"], part, cut.size, item["shot"].get("body", ""))
-
-
-def _join(parts: list[Path], out: Path) -> None:
-    listing = out.parent / "animatic-parts.txt"
-    listing.write_text("".join(f"file '{p.resolve()}'\n" for p in parts), encoding="utf-8")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listing),
-                    "-c", "copy", str(out)], check=True, capture_output=True)
-    for p in [*parts, listing]:
-        p.unlink()
-
-
-def picture(plan: dict[str, Any], board_dir: Path, out: Path, takes: Takes | None = None) -> Path:
-    """The cut as stills (or rendered clips) and cards, joined in clock order; each clip's (shot, clip, start)
-    is appended to `takes.used`."""
-    from .. import shot_matrix
-
-    cut = _Cut(plan, board_dir, takes or Takes(), _size(plan),
-               shot_matrix.transitions(plan),  # label → the transition into that shot
-               {int(f["shot"]): f["id"] for f in (plan.get("board") or {}).get("frames") or []},
-               Path(plan["output_dir"]) / "shots" / "mouths.json")
-    items = frame_aligned(timeline(plan))
-    parts: list[Path] = []
-    for n, item in enumerate(items):
-        part = out.parent / f"animatic-part{n:03d}.mp4"
-        nxt = items[n + 1] if n + 1 < len(items) else None
-        if item["kind"] == "card":
-            _card(item, part, cut.size, plan)
-            parts.append(part)
-        elif item["shot"]["label"] in cut.takes.clips:
-            parts += _clip_item(cut, item, nxt, part)
-        else:
-            _still_item(cut, item, part)
-            parts.append(part)
-    _join(parts, out)
-    return out
+    return rt.act_bpm(plan).get(rt._act_of(plan).get(label, ""), default)

@@ -93,7 +93,13 @@ def _separator() -> str | None:
 
 
 def has_audio(clip: Path) -> bool:
-    """Whether the clip carries a sound track at all; a shot rendered without sound has none."""
+    """Whether the clip has a sound track at all (a shot rendered without sound has none); probed once."""
+    from ._stage_cache import probed
+
+    return probed(clip, _probe_audio)
+
+
+def _probe_audio(clip: Path) -> bool:
     out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index",
                           "-of", "csv=p=0", str(clip)], capture_output=True, text=True)
     return bool(out.stdout.strip())
@@ -105,7 +111,10 @@ def without_voice(clip: Path, cache: Path) -> Path | None:
     binary = _separator()
     if not binary:
         return None
-    out = cache / f"{clip.stem}.background.wav"
+    out = cache / f"{clip.stem}.{Path(_SEPARATOR_MODEL).stem}.background.wav"
+    legacy = cache / f"{clip.stem}.background.wav"  # kept before the model was in the name: made by this model
+    if not out.is_file() and legacy.is_file():
+        legacy.replace(out)
     if out.is_file():
         return out
     work = cache / f"{clip.stem}.sep"
@@ -130,7 +139,22 @@ def production(shot: dict[str, Any], clip: Path, start: float, speech: list[floa
     """The clip's sound over its used window, with its own voice cut out; WAV at 48 kHz stereo.
 
     With a separator installed the voice is removed by its contour and the rest plays at full level; without
-    one, the window where the clip speaks is ducked instead."""
+    one, the window where the clip speaks is ducked instead. Kept beside it while the clip, its window, its
+    speech and the separator are the same (stamps.json)."""
+    from . import _stage_cache as sc
+
+    stamps = sc.Stamps(out.parent / "stamps.json")
+    stamp = sc.key(sc.file_sig(clip), round(float(start), 3), float(shot["trim_seconds"]), speech,
+                   _SEPARATOR_MODEL if _separator() else None, _VOICE_PAD, _PRODUCTION_LUFS)
+    if not stamps.fresh(out.name, stamp, out):
+        _production(shot, clip, start, speech, out)
+        if out.is_file():
+            stamps.set(out.name, stamp)
+            stamps.save()
+    return out
+
+
+def _production(shot: dict[str, Any], clip: Path, start: float, speech: list[float] | None, out: Path) -> Path:
     seconds = float(shot["trim_seconds"])
     if not has_audio(clip):
         # a silent render keeps its place in the mix as silence; the beds and effects carry the room

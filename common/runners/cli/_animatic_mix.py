@@ -114,3 +114,45 @@ def with_vocals(sound: dict[str, Any], plan: dict[str, Any], bible: dict[str, An
         sound["sources"].append({"id": f"vocal_{n}", "kind": "file"})
     sound["placements"] += dp.placements(plan, voiced, bible)
     return sound
+
+
+def to_buy(plan: dict[str, Any], bible: dict[str, Any], voices: dict[str, str]) -> tuple[Any, list[str]]:
+    """(estimate, what) of everything this cut will buy: exchanges with no take kept, vocals not voiced yet,
+    sound sources not made. Nothing kept is priced again."""
+    from . import _animatic_voice as av
+    from . import _drama_pass as dp
+    from . import _reel_sound
+
+    out = Path(plan["output_dir"])
+    lines = [line for group in av.exchanges(plan)
+             if not av.take_kept(group, voices, out / "animatic-lines", bible.get("language"), bible)
+             for line in group]
+    vocals = [v for v in plan.get("vocals") or [] if _unvoiced(v, voices, out, dp)]
+    sources = _reel_sound.estimate(plan.get("sound"), out)
+    what = [f"{n} {name}" for n, name in ((len(lines), "line(s) to read"), (len(vocals), "vocal(s) to voice")) if n]
+    return sources + _spoken(lines, vocals), what + (["sound sources to make"] if sources else [])
+
+
+def _spoken(lines: list[dict[str, Any]], vocals: list[dict[str, Any]]) -> Any:
+    """The price of reading these lines and voicing these vocals (the crowd as a 2 s sound effect)."""
+    from decimal import Decimal
+
+    from .. import config
+    from . import _animatic_voice as av
+
+    text = " ".join([*(av._text(line) for line in lines), *(v["text"] for v in vocals if v["who"] != "crowd")])
+    crowd = sum(v["who"] == "crowd" for v in vocals)
+    total = Decimal("0")
+    if text.strip():
+        total += config.get_provider("eleven-tts").estimate_cost(text=text) or Decimal("0")
+    if crowd:
+        total += (config.get_provider("eleven-sfx").estimate_cost(duration_seconds=2.0) or Decimal("0")) * crowd
+    return total
+
+
+def _unvoiced(vocal: dict[str, Any], voices: dict[str, str], out: Path, dp: Any) -> bool:
+    """A vocal the cut would voice now: its speaker has a voice (or it is the crowd) and no file is kept."""
+    vid = "eleven-sfx" if vocal["who"] == "crowd" else voices.get(vocal["who"])
+    path = dp.vocal_file(vocal, out, vid) if vid else None
+    refused = path is not None and path.with_suffix(".refused").is_file()  # given up on, never bought again
+    return bool(vid) and not (refused or path.is_file() or dp.vocal_file(vocal, out).is_file())

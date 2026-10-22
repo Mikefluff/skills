@@ -4,7 +4,8 @@
 
 Every clip the cut uses (the reel manifest's, and a shot's own hand-cut "clip") goes through Real-ESRGAN's
 realesr-animevideov3 model (made for animation; ncnn/Vulkan, runs on Apple silicon, nothing is paid) at 2x
-and is written to <dir>/shots/hd/<name>.mp4 with its sound copied. A clip already upscaled is skipped. Set
+and is written to <dir>/shots/hd/<name>.mp4 with its sound copied. A clip already upscaled (its copy newer than
+it) is skipped, here and in `reel`'s upscale-on-land alike, so the two never do the same clip twice. Set
 "hd": true in the plan and `reel_animatic --clips` cuts from these at 1920x1080.
 
 The binary is found through $REALESRGAN, then `realesrgan-ncnn-vulkan` on PATH, then ~/tools/realesrgan.
@@ -42,9 +43,16 @@ def hd_path(clip: Path) -> Path:
     return clip.parent / "hd" / clip.name if clip.parent.name != "hd" else clip
 
 
+def current(clip: Path) -> bool:
+    """An upscaled copy is current when it is on disk and newer than its clip: a clip replaced under the same
+    name (re-encoded, or rendered again into the same file) is upscaled again, not served stale."""
+    out = hd_path(clip)
+    return out.is_file() and out.stat().st_mtime_ns >= clip.stat().st_mtime_ns
+
+
 def upscale(clip: Path, exe: str) -> Path:
     out = hd_path(clip)
-    if out.is_file():
+    if current(clip):
         return out
     out.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
@@ -76,7 +84,7 @@ def main() -> int:
         exe = binary()
         clips = {k: v for k, v in reel_animatic.rendered(plan, hd=False).items() if not only or k in only}
         for n, (label, clip) in enumerate(sorted(clips.items()), 1):
-            done = hd_path(clip).is_file()
+            done = current(clip)
             upscale(clip, exe)
             print(f"  {n}/{len(clips)} {label}{' (cached)' if done else ''}", file=sys.stderr)
     except (RunnerError, subprocess.CalledProcessError) as exc:

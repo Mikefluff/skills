@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ._animatic_voice import gain_db, voice_pitch
+from ._animatic_voice import gain_db, voice_formant, voice_pitch
 
 _MUSIC = ("caper_groove", "caper_bigbeat", "score_main")
 _SPLIT = 0.6  # a cue this close to the start of a music segment does not start a new one
@@ -196,19 +196,28 @@ def _clean_vocal(vocal: dict[str, Any], voice_id: str):
     return None
 
 
-def vocal_file(vocal: dict[str, Any], out: Path) -> Path:
-    key = hashlib.sha256(f"{vocal['who']}|{vocal['text']}".encode()).hexdigest()[:12]
-    return out / "sound" / "vocals" / f"{vocal['who']}-{key}.mp3"
+def vocal_file(vocal: dict[str, Any], out: Path, voice_id: str | None = None) -> Path:
+    """Where a vocal is kept: keyed by who, text, and the voice and model it is read in — a speaker given a new
+    voice is read again, not heard in the old one. Without a voice id, the older who-and-text name."""
+    raw = f"{vocal['who']}|{vocal['text']}" + (f"|{voice_id}|eleven_v4" if voice_id else "")
+    return out / "sound" / "vocals" / f"{vocal['who']}-{hashlib.sha256(raw.encode()).hexdigest()[:12]}.mp3"
 
 
 def voice(vocals: list[dict[str, Any]], voices: dict[str, str], out: Path) -> dict[int, Path]:
-    """Each vocal voiced once (cached by who and text): a cast member on Eleven v4 in their own voice, the
-    crowd as a sound effect. Returns index → file."""
+    """Each vocal voiced once (cached by who, text and voice): a cast member on Eleven v4 in their own voice,
+    the crowd as a sound effect. Returns index → file. A file kept under the older who-and-text name is taken
+    as read in the speaker's current voice and moved to its keyed name, never bought again."""
     from .. import config
 
     files = {}
     for n, vocal in enumerate(vocals):
-        path = vocal_file(vocal, out)
+        vid = "eleven-sfx" if vocal["who"] == "crowd" else voices.get(vocal["who"])
+        path, legacy = vocal_file(vocal, out, vid), vocal_file(vocal, out)
+        if vid and not path.is_file() and legacy.is_file():
+            legacy.replace(path)
+        refused = path.with_suffix(".refused")  # three takes said words it was never given: not bought again
+        if not path.is_file() and refused.is_file():
+            continue
         if not path.is_file():
             path.parent.mkdir(parents=True, exist_ok=True)
             if vocal["who"] == "crowd":
@@ -217,7 +226,8 @@ def voice(vocals: list[dict[str, Any]], voices: dict[str, str], out: Path) -> di
             elif vocal["who"] in voices:
                 result = _clean_vocal(vocal, voices[vocal["who"]])
                 if result is None:
-                    continue  # it kept saying words it was never given: no vocal beats a wrong one
+                    refused.touch()  # no vocal beats a wrong one; delete the marker to try again
+                    continue
             else:
                 continue
             path.write_bytes(result.content)
@@ -236,7 +246,8 @@ def placements(plan: dict[str, Any], files: dict[int, Path], bible: dict[str, An
         out.append({"source": f"vocal_{n}", "at": round(float(shot["clock_at"]) + float(vocal["at"]), 3),
                     "gain_db": (-3 if vocal["who"] == "crowd" else 1) + gain_db(vocal),
                     "fade_in": 0.01, "fade_out": 0.05, **({"keep": True} if vocal.get("keep") else {}),
-                    **({"pitch": p} if (p := voice_pitch(bible or {}, vocal["who"])) else {})})
+                    **({"pitch": p} if (p := voice_pitch(bible or {}, vocal["who"])) else {}),
+                    **({"formant": t} if (t := voice_formant(bible or {}, vocal["who"])) else {})})
     return out
 
 

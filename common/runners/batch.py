@@ -10,6 +10,7 @@ the first call — caller passes the estimated total in.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import time
@@ -44,6 +45,9 @@ class BatchItem:
     error: str | None = None
     started_at: float | None = None
     finished_at: float | None = None
+    # The prompt and kwargs this output was generated from (`spec_hash`), carried across --resume, so a
+    # changed prompt or reference is noticed even though the output is kept. None on older manifests.
+    spec_hash: str | None = None
 
 
 @dataclass
@@ -130,6 +134,21 @@ def _previous(manifest_path: Path) -> Callable[[BatchItem], BatchItem | None]:
     return lambda current: by_label.get(current.label) if current.label else by_index.get(current.index)
 
 
+def spec_hash(item: BatchItem) -> str:
+    """What an item is generated from: its prompt and kwargs (the temporary host they go up through aside)."""
+    kwargs = {k: v for k, v in item.kwargs.items() if k not in ("media_host", "audio_host")}
+    raw = json.dumps([item.prompt, kwargs], sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
+def changed_since_output(items: list[BatchItem], manifest_path: Path) -> list[str]:
+    """Labels of items kept from an earlier run whose prompt or kwargs have changed since that output was made."""
+    previous = _previous(manifest_path)
+    return [item.label for item in items
+            if (prev := previous(item)) is not None and prev.status == "succeeded"
+            and prev.spec_hash and prev.spec_hash != spec_hash(item)]
+
+
 def pending_reasons(items: list[BatchItem], manifest_path: Path, *, resume: bool,
                     redo: frozenset[str] = frozenset(), only: frozenset[str] = frozenset()) -> list[tuple[BatchItem, str]]:
     """The items run_batch would generate with this spec, each with why (a `spend` reason); generates nothing."""
@@ -162,6 +181,7 @@ def _restore_succeeded(items: list[BatchItem], manifest_path: Path, redo: frozen
             current.output_path = previous.output_path
             current.s3_url = previous.s3_url
             current.companion_paths = list(previous.companion_paths)
+            current.spec_hash = previous.spec_hash
 
 
 def _generate_one(provider: Provider, item: BatchItem, spec: BatchSpec) -> None:
@@ -196,6 +216,7 @@ def _generate_one(provider: Provider, item: BatchItem, spec: BatchSpec) -> None:
 def _run_item(provider: Provider, item: BatchItem, spec: BatchSpec) -> BatchItem:
     """Worker body — one item must never be able to end the batch."""
     item.started_at = time.time()
+    item.spec_hash = spec_hash(item)  # before a seam hook adds the frame it hands over
     try:
         if spec.before_item is not None:
             spec.before_item(item)
