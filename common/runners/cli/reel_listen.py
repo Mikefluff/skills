@@ -7,8 +7,9 @@ Every dialogue line (a shot's dialogue[*].line, placed at its clock_at + line_at
 it (plan.vocals, [bracket tags] stripped; "А-а-ах!" and "Хи-хи" are not words) is cut out of the film with a
 little padding and transcribed by a local Whisper (mlx_whisper, nothing is paid). The heard text is compared
 with the line after normalisation (lowercase, ё→е, no punctuation); a line whose best match scores under the
-threshold is reported as expected vs heard. Short lines under music ("Корт" heard as «Торт», «Ещё!») are what
-this catches. Children's high voices transcribe poorly, so a flagged baby line means "listen", not "broken".
+threshold is reported as expected vs heard, with a suggested "gain_db" (+4 when nothing was heard, +3 when
+the words came out wrong) and the JSON path to set it on (vocals[57].gain_db, shots[t03a].dialogue[0].gain_db).
+Short lines under music ("Корт" heard as «Торт», «Ещё!») are what this catches. Children's high voices transcribe poorly, so a flagged baby line means "listen", not "broken".
 
 The film defaults to <output_dir>/trailer.mp4 (what `reel_animatic --clips` writes). Transcripts are cached in
 <output_dir>/listen-cache/, keyed by the window and the film's mtime; the report goes to <output_dir>/listen.json.
@@ -94,28 +95,31 @@ def _shot_end(shot: dict[str, Any]) -> float:
 def _dialogue(shot: dict[str, Any], pad: float) -> list[dict[str, Any]]:
     at = float(shot["clock_at"]) + float(shot.get("line_at") or _LINE_AT)
     return [{"label": shot["label"], "kind": "line", "who": line.get("who"), "expected": line["line"],
-             "start": round(max(0.0, at - pad), 3), "end": round(_shot_end(shot) + pad, 3)}
-            for line in shot.get("dialogue") or [] if normalize(line.get("line", ""))]
+             "start": round(max(0.0, at - pad), 3), "end": round(_shot_end(shot) + pad, 3),
+             "path": f"shots[{shot['label']}].dialogue[{i}].gain_db", "gain_db": line.get("gain_db")}
+            for i, line in enumerate(shot.get("dialogue") or []) if normalize(line.get("line", ""))]
 
 
-def _vocal(vocal: dict[str, Any], shot: dict[str, Any], pad: float) -> dict[str, Any]:
+def _vocal(n: int, vocal: dict[str, Any], shot: dict[str, Any], pad: float) -> dict[str, Any]:
     at = float(shot["clock_at"]) + float(vocal.get("at") or 0)
     # a vocal is a breath or a word or two: about half a second a word, never past the shot's spill
     end = min(_shot_end(shot), at + max(1.5, 0.5 * len(normalize(vocal["text"]).split()) + 0.8))
     return {"label": shot["label"], "kind": "vocal", "who": vocal.get("who"), "expected": normalize(vocal["text"]),
-            "start": round(max(0.0, at - pad), 3), "end": round(end + pad, 3)}
+            "start": round(max(0.0, at - pad), 3), "end": round(end + pad, 3),
+            "path": f"vocals[{n}].gain_db", "gain_db": vocal.get("gain_db")}
 
 
-def _said(plan: dict[str, Any], shots: dict[str, Any]) -> list[dict[str, Any]]:
-    """The vocals in shots the cut keeps that say a word."""
-    return [v for v in plan.get("vocals") or [] if v.get("shot") in shots and has_words(v.get("text", ""))]
+def _said(plan: dict[str, Any], shots: dict[str, Any]) -> list[tuple[int, dict[str, Any]]]:
+    """The vocals in shots the cut keeps that say a word, with their place in plan.vocals."""
+    return [(n, v) for n, v in enumerate(plan.get("vocals") or [])
+            if v.get("shot") in shots and has_words(v.get("text", ""))]
 
 
 def windows(plan: dict[str, Any], only: set[str] | None = None, pad: float = _PAD) -> list[dict[str, Any]]:
     """Every line with words, with the stretch of the film it plays in, in clock order."""
     shots = {s["label"]: s for s in plan["shots"] if not s.get("cut") and "clock_at" in s}
     out = [w for s in shots.values() for w in _dialogue(s, pad)]
-    out += [_vocal(v, shots[v["shot"]], pad) for v in _said(plan, shots)]
+    out += [_vocal(n, v, shots[v["shot"]], pad) for n, v in _said(plan, shots)]
     return sorted((w for w in out if not only or w["label"] in only), key=lambda w: w["start"])
 
 
@@ -170,7 +174,15 @@ def judge(film: Path, wins: list[dict[str, Any]], heard: dict[str, str], thresho
         text = heard_text(heard.get(_key(film, w), ""))
         score = similarity(w["expected"], text)
         out.append({**w, "heard": text, "score": score, "flagged": score < threshold})
+        if score < threshold:
+            out[-1]["suggest_gain_db"] = suggested_gain(out[-1])
     return out
+
+
+def suggested_gain(result: dict[str, Any]) -> float:
+    """A flagged line a step louder in the voice mix: +4 dB when nothing was heard, +3 when the words were wrong,
+    on top of the gain it already has, held to the mix's +12."""
+    return min(12.0, float(result.get("gain_db") or 0) + (3.0 if result.get("heard") else 4.0))
 
 
 def report(results: list[dict[str, Any]], threshold: float) -> None:
@@ -180,6 +192,7 @@ def report(results: list[dict[str, Any]], threshold: float) -> None:
     for r in flagged:
         print(f"  {r['label']:<6} {r['who'] or '?':<12} {r['score']:.2f}  {r['start']:7.2f}s  "
               f"expected «{r['expected']}»  heard «{r['heard'] or '(nothing)'}»", file=sys.stderr)
+        print(f"         louder: set {r['path']} = {r['suggest_gain_db']:g}", file=sys.stderr)
 
 
 def build_parser() -> argparse.ArgumentParser:

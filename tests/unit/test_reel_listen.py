@@ -64,6 +64,21 @@ def test_windows_only_filters_by_shot_label():
     assert [w["label"] for w in reel_listen.windows(_plan(), {"t02"})] == ["t02"]
 
 
+def test_flagged_lines_get_a_gain_and_the_path_to_set_it(tmp_path, capsys):
+    plan = _plan()
+    plan["vocals"][0]["gain_db"] = 10
+    film = tmp_path / "film.mp4"
+    film.write_bytes(b"x")
+    line, vocal = reel_listen.windows(plan)
+    assert line["path"] == "shots[t01].dialogue[0].gain_db" and vocal["path"] == "vocals[0].gain_db"
+    heard = {reel_listen._key(film, line): "Торт на час", reel_listen._key(film, vocal): ""}
+    results = reel_listen.judge(film, [line, vocal], heard, 0.95)
+    assert [r["suggest_gain_db"] for r in results] == [3.0, 12.0]  # +3 misheard; +4 unheard, held to +12
+    reel_listen.report(results, 0.95)
+    err = capsys.readouterr().err
+    assert "set shots[t01].dialogue[0].gain_db = 3" in err and "set vocals[0].gain_db = 12" in err
+
+
 def test_missing_whisper_is_skipped_gracefully(monkeypatch, tmp_path, capsys):
     plan = tmp_path / "plan.json"
     plan.write_text('{"output_dir": "%s", "shots": []}' % tmp_path, encoding="utf-8")

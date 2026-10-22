@@ -39,6 +39,7 @@ from ._cast_scenes import (  # noqa: F401 — re-exported: reel_cast.cast_scenes
     _bridge_scene,
     _extend_scene,
     _first_frame_scene,
+    _open_on_frame_scene,
     _rendered,
     cast_scenes,
 )

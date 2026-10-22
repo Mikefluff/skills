@@ -10,6 +10,14 @@ location, dialogue, body, trim_start, trim_seconds, kwargs; or a hand-cut piece 
 (that shot's previs) and "vocals". Everything from the insertion point on moves by the new shot's length:
 shots, title cards, sound placements, the total; shots are numbered again and frames follow their shots.
 
+Three more kinds of entry rework the cut without anything new: {"remove": <label>} takes a shot out (the rest
+moves back; its vocals go, its frames and previs too unless "keep_assets": true parks them); {"move": <label>,
+"insert_after"|"insert_before": <anchor>} puts a shot elsewhere with its own frames, previs and vocals;
+{"restore": <label>, "from": <plan file>, "insert_after"|"insert_before": <anchor>} brings back a shot removed
+earlier, with its frames, previs and vocals, from another plan (a copy of plan.json.bak: the backup is
+overwritten each run). Its rendered clip is still in the manifest by label, so nothing is rendered again.
+Entries apply in order.
+
 The plan is checked (its bible, its previs, labels and frame ids unique) before anything is written; the
 previous plan is kept as <plan>.bak (one backup, overwritten each run). --dry-run prints what would change.
 """
@@ -27,9 +35,10 @@ from typing import Any
 from .. import drama
 from .. import previs as pv
 from ..atomicfile import write_text
-from ._trailer_retime import insert, remove
+from ._trailer_retime import _owners, insert, remove
 
 _PLACES = ("insert_after", "insert_before", "replace")
+_BESIDE = ("insert_after", "insert_before")
 
 
 def _by_label(plan: dict[str, Any], label: str) -> dict[str, Any]:
@@ -39,11 +48,23 @@ def _by_label(plan: dict[str, Any], label: str) -> dict[str, Any]:
     return found
 
 
-def _place(entry: dict[str, Any]) -> tuple[str, str]:
-    places = [(k, entry[k]) for k in _PLACES if entry.get(k)]
-    if len(places) != 1:
-        raise ValueError(f"{entry.get('shot', {}).get('label')}: give exactly one of {', '.join(_PLACES)}")
-    return places[0]
+def _place(entry: dict[str, Any], places: tuple[str, ...] = _PLACES) -> tuple[str, str]:
+    found = [(k, entry[k]) for k in places if entry.get(k)]
+    if len(found) != 1:
+        name = entry.get("move") or entry.get("restore") or entry.get("shot", {}).get("label")
+        raise ValueError(f"{name}: give exactly one of {', '.join(places)}")
+    return found[0]
+
+
+def _at(plan: dict[str, Any], kind: str, anchor: str) -> float:
+    """Where on the clock a shot placed `kind` of `anchor` starts."""
+    old = _by_label(plan, anchor)
+    return float(old["clock_at"]) + (float(old["trim_seconds"]) if kind == "insert_after" else 0.0)
+
+
+def _frames_of(plan: dict[str, Any], label: str, parked: bool = False) -> list[dict[str, Any]]:
+    """The storyboard frames drawn for a shot: those on its index (and, with `parked`, any parked under its label)."""
+    return [f for f, owner in _owners(plan) if owner == label or (parked and f.get("parked") == label)]
 
 
 def _drop_shot_data(plan: dict[str, Any], label: str) -> None:
@@ -52,37 +73,110 @@ def _drop_shot_data(plan: dict[str, Any], label: str) -> None:
     plan["vocals"] = [v for v in plan.get("vocals") or [] if v.get("shot") != label]
 
 
-def _check_new(plan: dict[str, Any], entry: dict[str, Any], replaced: str | None) -> None:
-    shot = entry["shot"]
+def _attach(plan: dict[str, Any], shot: dict[str, Any], frames: list[dict[str, Any]], previs: Any,
+            vocals: list[dict[str, Any]] | None) -> None:
+    """A shot's frames (on its new number), previs and vocals into the plan."""
+    if frames:
+        board = plan.setdefault("board", {}).setdefault("frames", [])
+        board += [{**{k: v for k, v in f.items() if k != "parked"}, "shot": shot["index"]} for f in frames]
+    if previs:
+        plan.setdefault("previs", {}).setdefault("shots", {})[shot["label"]] = previs
+    plan.setdefault("vocals", []).extend(vocals or [])
+
+
+def _check_new(plan: dict[str, Any], shot: dict[str, Any], frames: list[dict[str, Any]], replaced: str | None) -> None:
     if not shot.get("label") or shot.get("trim_seconds") is None:
         raise ValueError(f"every shot needs a label and trim_seconds: {shot.get('label')!r}")
     if shot["label"] != replaced and any(s["label"] == shot["label"] for s in plan["shots"]):
         raise ValueError(f"label {shot['label']!r} is already a shot in the plan")
-    frame = entry.get("frame")
-    frames = (plan.get("board") or {}).get("frames") or []
-    if frame and any(f.get("id") == frame.get("id") for f in frames):
-        raise ValueError(f"frame id {frame.get('id')!r} is already on the board")
+    taken = {f.get("id") for f in (plan.get("board") or {}).get("frames") or []}
+    for frame in frames:
+        if frame.get("id") in taken:
+            raise ValueError(f"frame id {frame.get('id')!r} is already on the board")
 
 
-def apply_entry(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
-    """Splice one entry into `plan` in place; returns the shot as it now sits in the cut."""
+def _add(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    """A new shot spliced in after, before or in place of its anchor."""
     kind, anchor = _place(entry)
-    old = _by_label(plan, anchor)
-    _check_new(plan, entry, anchor if kind == "replace" else None)
+    frames = [entry["frame"]] if entry.get("frame") else []
+    _check_new(plan, entry["shot"], frames, anchor if kind == "replace" else None)
     shot = copy.deepcopy(entry["shot"])
-    at = float(old["clock_at"])
-    if kind == "insert_after":
-        at += float(old["trim_seconds"])
-    elif kind == "replace":
+    at = float(_by_label(plan, anchor)["clock_at"]) if kind == "replace" else _at(plan, kind, anchor)
+    if kind == "replace":
         remove(plan, anchor)
         _drop_shot_data(plan, anchor)
     insert(plan, shot, at)
-    if entry.get("frame"):
-        plan.setdefault("board", {}).setdefault("frames", []).append({**entry["frame"], "shot": shot["index"]})
-    if entry.get("previs"):
-        plan.setdefault("previs", {}).setdefault("shots", {})[shot["label"]] = entry["previs"]
-    plan.setdefault("vocals", []).extend(entry.get("vocals") or [])
+    _attach(plan, shot, frames, entry.get("previs"), entry.get("vocals"))
     return shot
+
+
+def _remove(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    """A shot out of the cut, its vocals with it; its frames and previs too, unless "keep_assets" parks them
+    (frames stay on the board under "parked": <label>, the previs under previs.parked) for a later restore."""
+    label = entry["remove"]
+    _by_label(plan, label)
+    frames = _frames_of(plan, label)
+    shot = remove(plan, label)
+    if entry.get("keep_assets"):
+        plan.setdefault("board", {}).setdefault("frames", []).extend({**f, "shot": 0, "parked": label} for f in frames)
+        previs = (plan.get("previs") or {}).get("shots", {}).get(label)
+        if previs:
+            plan["previs"].setdefault("parked", {})[label] = previs
+    _drop_shot_data(plan, label)
+    return shot
+
+
+def _move(plan: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    """A shot taken out and put back at its anchor, with its own frames, previs and vocals."""
+    label = entry["move"]
+    kind, anchor = _place(entry, _BESIDE)
+    if anchor == label:
+        raise ValueError(f"{label}: a shot cannot move next to itself")
+    _by_label(plan, label)
+    frames = _frames_of(plan, label)
+    shot = remove(plan, label)
+    insert(plan, shot, _at(plan, kind, anchor))
+    _attach(plan, shot, frames, None, None)
+    return shot
+
+
+def _taken_from(old: dict[str, Any], label: str) -> tuple[dict, list[dict], Any, list[dict]]:
+    """A shot as another plan has it: the shot, its frames (parked ones too), its previs and its vocals."""
+    kept = old.get("previs") or {}
+    previs = (kept.get("shots") or {}).get(label) or (kept.get("parked") or {}).get(label)
+    vocals = [v for v in old.get("vocals") or [] if v.get("shot") == label]
+    return copy.deepcopy((_by_label(old, label), _frames_of(old, label, parked=True), previs, vocals))
+
+
+def _unpark(plan: dict[str, Any], label: str) -> None:
+    """What this plan parked for the shot is the same frame and previs coming back."""
+    if plan.get("board"):
+        plan["board"]["frames"] = [f for f in plan["board"].get("frames") or [] if f.get("parked") != label]
+    ((plan.get("previs") or {}).get("parked") or {}).pop(label, None)
+
+
+def _restore(plan: dict[str, Any], entry: dict[str, Any], base: Path) -> dict[str, Any]:
+    """A shot taken out earlier, back from another plan file (plan.json.bak): the shot, its frames, previs and
+    vocals as they were there. Its clip is still in the manifest under its label, so nothing is rendered."""
+    kind, anchor = _place(entry, _BESIDE)
+    path = base / entry["from"] if (base / entry["from"]).is_file() else Path(entry["from"])
+    shot, frames, previs, vocals = _taken_from(json.loads(path.read_text(encoding="utf-8")), entry["restore"])
+    _unpark(plan, shot["label"])
+    _check_new(plan, shot, frames, None)
+    insert(plan, shot, _at(plan, kind, anchor))
+    _attach(plan, shot, frames, previs, vocals)
+    return shot
+
+
+def apply_entry(plan: dict[str, Any], entry: dict[str, Any], base: Path = Path(".")) -> tuple[str, dict[str, Any]]:
+    """Apply one entry to `plan` in place; returns what was done (added, removed, moved, restored) and the shot."""
+    if entry.get("remove"):
+        return "removed", _remove(plan, entry)
+    if entry.get("move"):
+        return "moved", _move(plan, entry)
+    if entry.get("restore"):
+        return "restored", _restore(plan, entry, base)
+    return "added", _add(plan, entry)
 
 
 def bible_path(plan: dict[str, Any], plan_file: Path) -> Path | None:
@@ -119,20 +213,28 @@ def problems(plan: dict[str, Any], plan_file: Path) -> list[str]:
             + _bible_problems(plan, plan_file) + _previs_problems(plan))
 
 
-def splice(plan: dict[str, Any], inserts: dict[str, Any]) -> list[dict[str, Any]]:
-    """Every entry of `inserts` spliced into `plan` in order, then its continuity; returns the new shots."""
-    added = [apply_entry(plan, entry) for entry in inserts.get("shots") or []]
+def splice(plan: dict[str, Any], inserts: dict[str, Any], base: Path = Path(".")) -> list[tuple[str, dict[str, Any]]]:
+    """Every entry of `inserts` applied to `plan` in order, then its continuity; returns (what was done, shot)."""
+    done = [apply_entry(plan, entry, base) for entry in inserts.get("shots") or []]
     plan.setdefault("continuity", []).extend(inserts.get("continuity") or [])
-    return added
+    return done
 
 
 def _clock(t: float) -> str:
     return f"{int(t // 60)}:{t % 60:04.1f}"
 
 
-def summary(plan: dict[str, Any], added: list[dict[str, Any]], inserts: dict[str, Any], plan_file: Path) -> str:
-    rows = [f"  {s['label']:<8} #{s['index']:<3} at {_clock(float(s['clock_at']))}  {float(s['trim_seconds']):.2f}s"
-            + ("  (clip)" if s.get("clip") else "") for s in added]
+def _row(verb: str, s: dict[str, Any]) -> str:
+    if verb == "removed":
+        return f"  {s['label']:<8} removed   {float(s['trim_seconds']):.2f}s"
+    return (f"  {s['label']:<8} #{s['index']:<3} at {_clock(float(s['clock_at']))}  {float(s['trim_seconds']):.2f}s"
+            + ("  (clip)" if s.get("clip") else "") + ("" if verb == "added" else f"  ({verb})"))
+
+
+def summary(plan: dict[str, Any], done: list[tuple[str, dict[str, Any]]], inserts: dict[str, Any],
+            plan_file: Path) -> str:
+    rows = [_row(verb, s) for verb, s in done]
+    added = [s for verb, s in done if verb == "added"]
     last = max(plan["shots"], key=lambda s: float(s["clock_at"]))
     end = float(last["clock_at"]) + float(last["trim_seconds"])
     total = (plan.get("sound") or {}).get("total_seconds")
@@ -160,7 +262,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="common.runners.cli.reel_insert")
     parser.add_argument("--plan-file", type=Path, required=True)
     parser.add_argument("--from", dest="inserts", type=Path, required=True,
-                        help="JSON with the shots to splice in (insert_after / insert_before / replace)")
+                        help="JSON with the shots to splice in (insert_after / insert_before / replace), "
+                                 "or to remove / move / restore")
     parser.add_argument("--dry-run", action="store_true", help="print what would change, write nothing")
     return parser
 
@@ -171,15 +274,15 @@ def main(argv: list[str] | None = None) -> int:
     inserts = json.loads(args.inserts.read_text(encoding="utf-8"))
     before = set(problems(plan, args.plan_file))
     try:
-        added = splice(plan, inserts)
-    except (ValueError, KeyError) as exc:
+        done = splice(plan, inserts, args.plan_file.parent)
+    except (ValueError, KeyError, OSError) as exc:
         print(f"reel_insert: {exc}", file=sys.stderr)
         return 1
     found = [p for p in problems(plan, args.plan_file) if p not in before]
     if found:
         print("reel_insert: the plan would not validate:\n  " + "\n  ".join(found), file=sys.stderr)
         return 1
-    print(summary(plan, added, inserts, args.plan_file))
+    print(summary(plan, done, inserts, args.plan_file))
     if args.dry_run:
         print("\n(dry run: nothing written)")
         return 0

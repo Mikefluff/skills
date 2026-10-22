@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 import subprocess
 from pathlib import Path
@@ -24,6 +25,13 @@ _MAX_TEMPO = 1.25
 _SPILL = 0.4  # a line may run this far past its cut, as a J-cut into the next shot
 _GAP = 0.08
 _LINE_LUFS = -16
+_GAIN_LIMIT = 12.0
+_LEAD_TAGS = re.compile(r"(\s*\[[^\]]*\])*")
+
+
+def gain_db(item: dict[str, Any]) -> float:
+    """A line's or a vocal's own "gain_db" (a step louder or quieter in the voice mix), held to ±12 dB."""
+    return max(-_GAIN_LIMIT, min(_GAIN_LIMIT, float(item.get("gain_db") or 0)))
 
 
 def _entry(line: dict[str, Any], shot: dict[str, Any]) -> dict[str, Any]:
@@ -65,10 +73,20 @@ def voices_for(bible: dict[str, Any], speakers: set[str], library: list[dict[str
     return {**pick(rest, library), **designed} if rest else designed
 
 
+def _said(text: str) -> str:
+    """The words alone: tags, case, ё and punctuation out."""
+    return " ".join(re.sub(r"[\W_]+", " ", re.sub(r"\[[^\]]*\]", " ", text).lower().replace("ё", "е")).split())
+
+
 def _text(line: dict[str, Any], accent: str = "") -> str:
-    """The performance the voice-performance chain wrote; else the delivery tag before the line."""
-    if line.get("performance"):
-        return line["performance"]
+    """The performance the voice-performance chain wrote, while it still says the line; a line edited since is
+    read as it now stands, after the performance's leading tags. Else the delivery tag before the line."""
+    performance = line.get("performance")
+    if performance and _said(performance) == _said(line["line"]):
+        return performance
+    if performance:
+        # the take is cached by its text: a stale performance would come back in the old words
+        return f"{_LEAD_TAGS.match(performance).group(0).strip()} {line['line']}".strip()
     lead = " ".join(f"[{tag}]" for tag in (accent, line.get("delivery")) if tag)
     return f"{lead} {line['line']}".strip()
 
@@ -111,10 +129,11 @@ def _words(text: str) -> list[str]:
     """Spoken words, so a script and what Scribe heard compare: tags out, digits spelt, '%' and '.' said."""
     import re
 
-    text = re.sub(r"\[[^\]]*\]", " ", text.lower()).replace("%", " percent")
+    text = re.sub(r"\[[^\]]*\]", " ", text.lower()).replace("%", " percent").replace("ё", "е")
     text = re.sub(r"(\d)\.(\d)", r"\1 point \2", text)
     text = re.sub(r"\d+", lambda m: f" {_NUM.get(m.group(0), m.group(0))} ", text)
-    return re.findall(r"[a-z']+", text.replace("-", " "))
+    # letters of any script: a Russian take is checked too, not read as having no words at all
+    return re.findall(r"[^\W\d_]+(?:'[^\W\d_]+)*", text.replace("-", " "))
 
 
 def _errors(want: list[str], heard: list[str]) -> int:
@@ -211,16 +230,23 @@ def fit(lines: list[dict[str, Any]], clips: list[Path]) -> list[tuple[Path, floa
     return placed
 
 
-def mix(placed: list[tuple[Path, float, float]], total: float, out: Path) -> None:
-    """Every line at one loudness, at its time and tempo, into one WAV of the cut's length."""
+def _level(clip: Path, gain: float) -> str:
+    """The line's lift after loudnorm: its own gain_db, plus 5 dB for a one-word line."""
+    # loudnorm measures under ~1 s badly and leaves a one-word line ("На.", "Ой!") under the score
+    lift = gain + (5.0 if _seconds(clip) < 1.2 else 0.0)
+    return f"volume={lift:g}dB,alimiter=limit=0.89," if lift else ""
+
+
+def mix(placed: list[tuple[Path, float, float]], total: float, out: Path, gains: list[float] | None = None) -> None:
+    """Every line at one loudness (moved by its gain_db, in `gains`), at its time and tempo, into one WAV of the
+    cut's length."""
     inputs = ["-f", "lavfi", "-t", f"{total:.3f}", "-i", "anullsrc=r=48000:cl=stereo"]
     chains = []
     for n, (clip, at, tempo) in enumerate(placed, start=1):
         inputs += ["-i", str(clip)]
         ms = int(at * 1000)
         speed = f"atempo={tempo:.3f}," if tempo > 1.001 else ""
-        # loudnorm measures under ~1 s badly and leaves a one-word line ("На.", "Ой!") under the score
-        lift = "volume=5dB,alimiter=limit=0.89," if _seconds(clip) < 1.2 else ""
+        lift = _level(clip, gains[n - 1] if gains else 0.0)
         chains.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,{speed}"
                       f"loudnorm=I={_LINE_LUFS}:TP=-1.5:LRA=11,{lift}aresample=48000,adelay={ms}|{ms}[l{n}]")
     lines = "".join(f"[l{n}]" for n in range(1, len(placed) + 1))

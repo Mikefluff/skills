@@ -116,12 +116,79 @@ class TestReelInsert(unittest.TestCase):
         self.assertEqual(before, self.plan_file.read_text())
         self.assertFalse((self.dir / "plan.json.bak").exists())
 
+    def test_remove_drops_the_shot_its_frames_previs_and_vocals(self):
+        rc, out = self._run({"shots": [{"remove": "b"}]})
+        self.assertEqual(0, rc, out)
+        plan, by = self._saved()
+        self.assertNotIn("b", by)
+        self.assertEqual((4.0, 2), (by["c"]["clock_at"], by["c"]["index"]))
+        self.assertEqual(9.0, plan["sound"]["total_seconds"])
+        self.assertEqual({"fa": 1, "fc": 2}, {f["id"]: f["shot"] for f in plan["board"]["frames"]})
+        self.assertNotIn("b", plan["previs"]["shots"])
+        self.assertEqual([], plan["vocals"])
+        self.assertIn("removed", out)
+
+    def test_remove_with_keep_assets_parks_frames_and_previs(self):
+        self.assertEqual(0, self._run({"shots": [{"remove": "b", "keep_assets": True}]})[0])
+        plan, _ = self._saved()
+        fb = next(f for f in plan["board"]["frames"] if f["id"] == "fb")
+        self.assertEqual((0, "b"), (fb["shot"], fb["parked"]))
+        self.assertEqual(_PREVIS, plan["previs"]["parked"]["b"])
+        self.assertNotIn("b", plan["previs"]["shots"])
+        self.assertEqual([], plan["vocals"])
+
+    def test_move_carries_its_own_frame_previs_and_vocals(self):
+        rc, out = self._run({"shots": [{"move": "b", "insert_after": "c"}]})
+        self.assertEqual(0, rc, out)
+        plan, by = self._saved()
+        self.assertEqual([("a", 0.0), ("c", 4.0), ("b", 9.0)], [(s["label"], s["clock_at"]) for s in plan["shots"]])
+        self.assertEqual({"fa": 1, "fc": 2, "fb": 3}, {f["id"]: f["shot"] for f in plan["board"]["frames"]})
+        self.assertIn("b", plan["previs"]["shots"])
+        self.assertEqual([{"shot": "b", "who": "ann", "at": 1.0, "text": "Oh"}], plan["vocals"])
+        self.assertEqual(12.0, plan["sound"]["total_seconds"])
+        self.assertIn("(moved)", out)
+        self.assertNotIn("reel --plan-file", out, "a moved shot is not rendered again")
+
+    def test_restore_brings_a_removed_shot_back_from_another_plan(self):
+        self.assertEqual(0, self._run({"shots": [{"remove": "b"}]})[0])
+        (self.dir / "before.json").write_text((self.dir / "plan.json.bak").read_text())
+        rc, out = self._run({"shots": [{"restore": "b", "from": "before.json", "insert_before": "c"}]})
+        self.assertEqual(0, rc, out)
+        plan, _ = self._saved()
+        self.assertEqual(_plan()["shots"], plan["shots"])
+        self.assertEqual(_plan()["sound"], plan["sound"])
+        self.assertEqual({"fa": 1, "fb": 2, "fc": 3}, {f["id"]: f["shot"] for f in plan["board"]["frames"]})
+        self.assertEqual(_PREVIS, plan["previs"]["shots"]["b"])
+        self.assertEqual(1, len(plan["vocals"]))
+        self.assertIn("(restored)", out)
+
+    def test_restore_unparks_what_keep_assets_kept(self):
+        self.assertEqual(0, self._run({"shots": [{"remove": "b", "keep_assets": True}]})[0])
+        (self.dir / "before.json").write_text((self.dir / "plan.json.bak").read_text())
+        rc, out = self._run({"shots": [{"restore": "b", "from": "before.json", "insert_after": "a"}]})
+        self.assertEqual(0, rc, out)
+        plan, _ = self._saved()
+        self.assertEqual({"fa": 1, "fb": 2, "fc": 3}, {f["id"]: f["shot"] for f in plan["board"]["frames"]})
+        self.assertFalse(any("parked" in f for f in plan["board"]["frames"]))
+        self.assertEqual({}, plan["previs"]["parked"])
+
+    def test_entries_apply_in_order(self):
+        rc, out = self._run({"shots": [{"insert_after": "c", "shot": _shot("d", 0, 1.0)},
+                                       {"move": "a", "insert_after": "d"}, {"remove": "b"}]})
+        self.assertEqual(0, rc, out)
+        plan, _ = self._saved()
+        self.assertEqual([("c", 0.0), ("d", 5.0), ("a", 6.0)], [(s["label"], s["clock_at"]) for s in plan["shots"]])
+        self.assertEqual({"fa": 3, "fc": 1}, {f["id"]: f["shot"] for f in plan["board"]["frames"]})
+
     def test_rejections(self):
         before = self.plan_file.read_text()
         cases = [{"insert_after": "a", "shot": _shot("b", 0, 1.0)},  # duplicate label
                  {"insert_after": "zz", "shot": _shot("n", 0, 1.0)},  # missing anchor
                  {"insert_after": "a", "shot": _shot("n", 0, 1.0), "frame": {"id": "fb"}},  # duplicate frame
-                 {"insert_after": "a", "shot": _shot("n", 0, 1.0, cast=["bob"])}]  # not in the bible
+                 {"insert_after": "a", "shot": _shot("n", 0, 1.0, cast=["bob"])},  # not in the bible
+                 {"remove": "zz"}, {"move": "b"}, {"move": "b", "insert_after": "b"},
+                 {"restore": "b", "from": "missing.json", "insert_after": "a"},
+                 {"restore": "a", "from": "plan.json", "insert_after": "b"}]  # already in the cut
         for entry in cases:
             with self.subTest(entry=entry):
                 self.assertEqual(1, self._run({"shots": [entry]})[0])

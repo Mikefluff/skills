@@ -32,6 +32,9 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
   - The story check (`story-check-prompt.md`, `drama.screenplay_text`): a reader sees only the screenplay and names every object, rule or plan the story turns on without a setup, before anything is drawn. SHORT story rule 13, and `coverage` for an exchange shot as a wide plus close-ups.
   - `reel_listen` transcribes every line in the finished cut with a local Whisper and flags the ones that cannot be made out.
   - With `"hd"`, `reel` upscales each clip as it lands.
+  - `reel_insert` also removes, moves and restores shots: `remove` (frames and previs parked with `keep_assets`), `move` carries the shot's own board frame, previs and vocals, and `restore` brings a removed shot back from another plan file without rendering it again.
+  - `"open_on_frame": true` opens a shot exactly on its storyboard frame (image to video, the body as the prompt, no references or previs), replacing the hand-written `bridge.from_image` on the board png. It is validated, skipped by the preflight and by `reel_previs`.
+  - `"gain_db"` on a dialogue line or a vocal moves it in the cut's voice mix (clamped to ±12 dB), and `reel_listen` suggests one for every flagged line with the JSON path to set it on. A line edited after its `performance` was written is voiced in its new words.
 
 ### Fixed
 

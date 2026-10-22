@@ -14,7 +14,8 @@ After rendering, each cast head is projected through the shot's camera (pure
 Python, `previs.framing`): heads lost off the frame, cut at the edge of a close
 shot or too small for the shot size named in the body are printed and written
 to previs/framing.json; --auto-skip sets "no_previs" on those shots so the
-storyboard keyframe leads instead.
+storyboard keyframe leads instead. A shot with "open_on_frame" opens on its storyboard frame and takes no
+previs: it is neither rendered nor handed a clip.
 
 Blender is found through $BLENDER, then `blender` on PATH, then the macOS
 application bundle.
@@ -62,6 +63,11 @@ def blender_binary() -> str:
     raise RunnerError("Blender not found: install it or set BLENDER to its executable")
 
 
+def _wanted(entry: dict[str, Any], labels: set[str] | None) -> bool:
+    """A shot to render: asked for (or all are), and not one that opens on its storyboard frame."""
+    return not entry.get("open_on_frame") and (not labels or entry["label"] in labels)
+
+
 def job(plan: dict[str, Any], out_dir: Path, labels: set[str] | None) -> dict[str, Any]:
     """The JSON the Blender script renders from: one entry per shot, keys expanded."""
     spec = plan["previs"]
@@ -69,7 +75,7 @@ def job(plan: dict[str, Any], out_dir: Path, labels: set[str] | None) -> dict[st
     for entry in sorted(plan["shots"], key=lambda e: int(e["index"])):
         label = entry["label"]
         shot = spec["shots"].get(label)
-        if not shot or (labels and label not in labels):
+        if not shot or not _wanted(entry, labels):
             continue
         shots.append({
             "label": label,
@@ -139,7 +145,7 @@ def _hand_clips(plan: dict[str, Any], out_dir: Path) -> list[tuple[Path, int]]:
     clips = []
     for entry in sorted(plan["shots"], key=lambda e: int(e["index"])):
         clip = out_dir / f"{entry['label']}.mp4"
-        if entry["label"] in plan["previs"]["shots"] and clip.is_file():
+        if entry["label"] in plan["previs"]["shots"] and clip.is_file() and not entry.get("open_on_frame"):
             kwargs = entry.setdefault("kwargs", {})
             if entry.get("no_previs"):
                 # a still camera's clip is read as footage to edit, and the vendor wants the source's length
