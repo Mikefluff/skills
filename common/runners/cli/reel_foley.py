@@ -102,7 +102,11 @@ def _make(film: Path, a: float, b: float, out: Path) -> None:
     raw = out.with_name(out.stem + ".raw.wav")
     urllib.request.urlretrieve(got["audio"][0]["url"], raw)
     clean = without_voice(raw, out.parent / "separated")  # the model's grunts and babble are not ours
-    (clean or raw).replace(out)
+    if clean is None:
+        # never lay the raw take: its babble reads as a second voice under the cast (the Tanya short)
+        raw.unlink(missing_ok=True)
+        raise RuntimeError("foley: the vocal separator failed; the take is not laid with its voices in it")
+    clean.replace(out)
     for leftover in (clip, raw):
         leftover.unlink(missing_ok=True)
 
