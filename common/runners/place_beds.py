@@ -13,6 +13,10 @@ A bed's file is as long as it was made (30 s) and the mixer does not loop it, so
 laid as consecutive takes of the bed that overlap by `OVERLAP` and cross-fade: one 59 s placement went silent
 after 30 s, and wherever the score paused the film fell to digital silence.
 
+Each bed is brought to `BED_LUFS` before it is laid (its gain then 0): ElevenLabs makes some beds near-silent
+(the wrecked room's averaged -47 dB, -68 dB in the mix), and once the video model's own sound was left out
+those stretches of the film were silence.
+
 Only beds with a length are relaid; a short burst of a bed (no length) is a cue of its own and stays.
 """
 
@@ -23,6 +27,7 @@ from typing import Any
 
 PRELAP = 0.5  # seconds the next place's bed leads its picture
 TAIL = 0.4  # seconds a bed rings on past its run, under the next one's fade-in
+BED_LUFS = -30.0  # a bed's loudness in the mix, whatever level it was made at
 OVERLAP = 1.0  # seconds consecutive takes of one bed overlap and cross-fade
 _BED_SECONDS = 30.0  # a bed's length when its source does not say
 _SAME_RUN = 2.0  # a gap shorter than this (a title card) keeps one run
@@ -74,8 +79,8 @@ def _lay(bed: tuple[str, float], a: float, b: float, first: bool, seconds: float
     while at < end - 0.05:
         length = min(seconds, end - at)
         fade_in = (0.6 if first else PRELAP) if not laid else OVERLAP
-        laid.append({"source": bed[0], "at": round(at, 3), "length": round(length, 3), "gain_db": bed[1],
-                     "duck": False, "fade_in": fade_in, "fade_out": OVERLAP if at + length < end - 0.05 else TAIL})
+        laid.append({"source": bed[0], "at": round(at, 3), "length": round(length, 3), "gain_db": 0.0,
+                     "level": BED_LUFS, "duck": False, "fade_in": fade_in, "fade_out": OVERLAP if at + length < end - 0.05 else TAIL})
         at += length - OVERLAP if at + length < end - 0.05 else length
     return laid
 
