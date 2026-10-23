@@ -41,3 +41,14 @@ def test_a_burst_of_a_bed_without_a_length_stays_where_it_is():
     burst = {"source": "court", "at": 4.0, "gain_db": -16}
     sound = _sound({"source": "court", "at": 0, "length": 10, "gain_db": -22}, burst)
     assert burst in pb.follow_cut(sound, plan)["placements"]
+
+
+def test_a_run_longer_than_the_bed_is_laid_as_overlapping_takes():
+    plan = {"shots": [_shot("a", 0, 70, "court_day")]}
+    sound = _sound({"source": "court", "at": 0, "length": 70, "gain_db": -22})
+    sound["sources"][0]["duration_seconds"] = 30
+    takes = sorted((p for p in pb.follow_cut(sound, plan)["placements"]), key=lambda p: p["at"])
+    assert all(p["length"] <= 30 for p in takes)
+    ends = [p["at"] + p["length"] for p in takes]
+    assert all(nxt["at"] < end for end, nxt in zip(ends, takes[1:]))  # no gap between takes
+    assert ends[-1] >= 70
