@@ -91,7 +91,9 @@ def with_places(plan: dict[str, Any], bible: dict[str, Any], used: list) -> dict
     stems = Path(plan["output_dir"]) / "sound" / "production"
     stems.mkdir(parents=True, exist_ok=True)
     mouths = Path(plan["output_dir"]) / "shots" / "mouths.json"
-    for shot, clip, start in used:
+    # "video_audio": false — the video model's own sound is left out entirely: every sound comes from the
+    # designed effects, foley and beds (its takes were thin, wrong and full of half-removed voices)
+    for shot, clip, start in (used if (plan.get("sound") or {}).get("video_audio", True) else []):
         sid = f"prod_{shot['label']}"
         span = speech(clip, mouths)  # every shot: generated words nobody wrote are noise in the mix
         files[sid] = ts.production(shot, clip, start, span, stems / f"{shot['label']}.wav")
