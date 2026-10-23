@@ -48,6 +48,9 @@ class BatchItem:
     # The prompt and kwargs this output was generated from (`spec_hash`), carried across --resume, so a
     # changed prompt or reference is noticed even though the output is kept. None on older manifests.
     spec_hash: str | None = None
+    # A job the vendor accepted but this run never saw finish (a poll that timed out on the network): its
+    # handle, so the next run polls it again for the take already billed instead of buying it a second time.
+    pending_job: dict[str, Any] | None = None
 
 
 @dataclass
@@ -118,6 +121,8 @@ class BatchSpec:
     # cut on, which only exists once that segment is done — so it pairs with
     # parallelism=1, where the pool runs items in submission order.
     before_item: Callable[[BatchItem], None] | None = None
+    # Called the moment a vendor accepts a job, after run_batch has saved the manifest with its handle.
+    on_submit: Callable[[BatchItem], None] | None = None
 
     def save_modality(self) -> Modality:
         """output.save only knows the four asset kinds; anything else is an image."""
@@ -176,6 +181,8 @@ def _restore_succeeded(items: list[BatchItem], manifest_path: Path, redo: frozen
     previous_of = _previous(manifest_path)
     for current in items:
         previous = previous_of(current)
+        if previous and previous.status == "failed" and previous.pending_job and previous.spec_hash == spec_hash(current):
+            current.pending_job = previous.pending_job  # accepted and billed; poll it, do not submit again
         if previous and previous.status == "succeeded" and current.label not in redo:
             current.status = "succeeded"
             current.output_path = previous.output_path
@@ -184,15 +191,29 @@ def _restore_succeeded(items: list[BatchItem], manifest_path: Path, redo: frozen
             current.spec_hash = previous.spec_hash
 
 
-def _generate_one(provider: Provider, item: BatchItem, spec: BatchSpec) -> None:
+def _resumed_job(item: BatchItem) -> JobHandle | None:
+    """The job a previous run left polling for this same item (same prompt and kwargs), to poll again."""
+    job = item.pending_job
+    if not job or not job.get("job_id"):
+        return None
+    print(f"  {item.label}: polling the job already submitted ({job['job_id']}), not buying it again",
+          file=sys.stderr)
+    return JobHandle(**{k: job[k] for k in ("provider", "job_id", "started_at", "poll_url", "extra") if k in job})
+
+
+def _generate_one(provider: Provider, item: BatchItem, spec: BatchSpec,
+                  submitted: Callable[[BatchItem], None] | None = None) -> None:
     """Generate and save a single item. Raises; the caller records the failure."""
     try:
         provider.ensure_available()
     except KeyMissingError as exc:
         raise RunnerError(str(exc)) from exc
 
-    result = provider.generate(item.prompt, **item.kwargs)
+    result = _resumed_job(item) or provider.generate(item.prompt, **item.kwargs)
     if isinstance(result, JobHandle):
+        item.pending_job = asdict(result)
+        if submitted is not None:
+            submitted(item)
         result = provider.poll(result, timeout=spec.poll_timeout)
     if not isinstance(result, GenerationResult):
         raise RunnerError(f"provider returned unexpected type: {type(result).__name__}")
@@ -211,16 +232,18 @@ def _generate_one(provider: Provider, item: BatchItem, spec: BatchSpec) -> None:
     item.s3_url = saved.s3_url
     item.companion_paths = [str(c.local_path) for c in companions]
     item.status = "succeeded"
+    item.pending_job = None
 
 
-def _run_item(provider: Provider, item: BatchItem, spec: BatchSpec) -> BatchItem:
+def _run_item(provider: Provider, item: BatchItem, spec: BatchSpec,
+              submitted: Callable[[BatchItem], None] | None = None) -> BatchItem:
     """Worker body — one item must never be able to end the batch."""
     item.started_at = time.time()
     item.spec_hash = spec_hash(item)  # before a seam hook adds the frame it hands over
     try:
         if spec.before_item is not None:
             spec.before_item(item)
-        _generate_one(provider, item, spec)
+        _generate_one(provider, item, spec, submitted or spec.on_submit)
     except (ProviderError, RunnerTimeoutError, RunnerError) as exc:
         item.status = "failed"
         item.error = str(exc)
@@ -252,6 +275,15 @@ def run_batch(
 
     if spec.resume:
         _restore_succeeded(items, spec.manifest_path, spec.redo)
+    import threading
+
+    lock = threading.Lock()
+
+    def saved(item: BatchItem) -> None:
+        with lock:
+            write_manifest(spec.manifest_path, items, spec.extra_meta)
+        if spec.on_submit is not None:
+            spec.on_submit(item)
 
     write_manifest(spec.manifest_path, items, spec.extra_meta)
     result = BatchResult(
@@ -263,7 +295,7 @@ def run_batch(
         return result
 
     with ThreadPoolExecutor(max_workers=max(1, spec.parallelism)) as pool:
-        futures = [pool.submit(_run_item, provider, item, spec) for item in pending]
+        futures = [pool.submit(_run_item, provider, item, spec, saved) for item in pending]
         for fut in as_completed(futures):
             item = fut.result()
             write_manifest(spec.manifest_path, items, spec.extra_meta)
