@@ -22,7 +22,7 @@ def test_beds_follow_a_cut_that_moved_under_them():
                    {"source": "hit", "at": 3})
     laid = pb.follow_cut(sound, plan)["placements"]
     kitchen = next(p for p in laid if p["source"] == "kitchen")
-    assert kitchen["at"] == 10 - pb.PRELAP and kitchen["gain_db"] == -20
+    assert kitchen["at"] == 10 - pb.PRELAP and kitchen["level"] == pb.BED_LUFS
     assert next(p for p in laid if p["source"] == "court")["at"] == 0
     assert {"source": "hit", "at": 3} in laid
 

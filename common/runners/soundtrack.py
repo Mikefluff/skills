@@ -51,6 +51,7 @@ class Placement:
     snap: bool = False
     pitch: float = 0.0  # semitones, timing kept (a child's voice lifted out of an adult range)
     formant: float = 0.0  # semitones of throat size, moved apart from the pitch (see voice_filter)
+    level: float | None = None  # LUFS the source is brought to before its gain (a bed made near-silent)
 
     @classmethod
     def from_json(cls, raw: dict[str, Any]) -> "Placement":
@@ -112,6 +113,8 @@ def _chain(index: int, p: Placement, label: str) -> str:
     parts = [f"[{index}:a]aresample=48000"]
     end = f":end={p.offset + p.length:.3f}" if p.length is not None else ""
     parts.append(f"atrim=start={p.offset:.3f}{end},asetpts=PTS-STARTPTS")
+    if p.level is not None:
+        parts.append(f"loudnorm=I={p.level:.1f}:TP=-3:LRA=20,aresample=48000")
     if FX[p.fx]:
         parts.append(FX[p.fx])
     if p.pitch or p.formant:
