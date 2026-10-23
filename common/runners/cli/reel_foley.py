@@ -61,7 +61,10 @@ def _span(window: list[dict[str, Any]]) -> tuple[float, float]:
 
 
 def _key(window: list[dict[str, Any]], parts: dict[str, str]) -> str:
-    raw = [MODEL, _ASK, [(s["label"], parts.get(s["label"])) for s in window], [round(x, 3) for x in _span(window)]]
+    """By the window's shots and their picture, and its length — not its place on the clock: a shot put in
+    earlier in the film moves every later window, and their foley is the same sound one beat later."""
+    a, b = _span(window)
+    raw = [MODEL, _ASK, [(s["label"], parts.get(s["label"])) for s in window], round(b - a, 3)]
     return hashlib.sha256(json.dumps(raw, sort_keys=True).encode()).hexdigest()[:16]
 
 

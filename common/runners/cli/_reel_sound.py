@@ -209,11 +209,40 @@ def snapped(placements: list[st.Placement], picture: Path | None) -> list[st.Pla
     return out
 
 
+def _peak_db(path: Path) -> float:
+    """The loudest sample of a file, dBFS (ffmpeg volumedetect)."""
+    import re
+
+    run = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(path), "-af", "volumedetect", "-f", "null", "-"],
+                         capture_output=True, text=True)
+    found = re.search(r"max_volume:\s*(-?[\d.]+) dB", run.stderr)
+    return float(found.group(1)) if found else 0.0
+
+
+def leveled(placements: list[st.Placement], sound: dict[str, Any], sources: dict[str, Path]) -> list[st.Placement]:
+    """With "sfx_peak" (dBFS) in the sound, every one-shot effect is first brought to that peak, then its own
+    gain_db applies: ElevenLabs makes one explosion at -6 dB and the next at -25, and laid as made the hits
+    vanished under the lines and the score."""
+    target = sound.get("sfx_peak")
+    if target is None:
+        return placements
+    from ._stage_cache import probed
+
+    one_shots = {s["id"] for s in sound.get("sources") or [] if s.get("kind") == "sfx" and not s.get("loop")}
+    out = []
+    for p in placements:
+        if p.source in one_shots and p.source in sources:
+            lift = float(target) - probed(sources[p.source], _peak_db)
+            p = st.Placement(**{**p.__dict__, "gain_db": p.gain_db + lift})
+        out.append(p)
+    return out
+
+
 def render(
     sound: dict[str, Any], sources: dict[str, Path], voice: Path, output: Path, picture: Path | None = None
 ) -> Path:
     """Mix voice + placed sources into `output` (WAV), mastered. Returns `output`."""
-    placements = snapped(st.validate(sound), picture)
+    placements = leveled(snapped(st.validate(sound), picture), sound, sources)
     total = float(sound.get("total_seconds") or 0) or (ff_mod.get_duration(voice) or 0.0)
     master = st.Master(**(sound.get("master") or {}))
     inputs, graph = st.build_graph(placements, sources, voice, total, master)
