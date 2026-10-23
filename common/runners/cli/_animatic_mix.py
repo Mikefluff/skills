@@ -79,9 +79,10 @@ def with_places(plan: dict[str, Any], bible: dict[str, Any], used: list) -> dict
     Files already on disk ride along under "_files" (source id → path)."""
     from . import _trailer_sound as ts
 
-    from .. import place_beds
+    from .. import place_beds, score_fit
 
     sound = place_beds.follow_cut(json.loads(json.dumps(plan["sound"])), plan)  # beds on the cut as it is now
+    score_fit.follow_cut(sound, plan)  # and the score's sections as long as the acts they play under
     sources, placements = ts.beds(plan, bible)
     sound["sources"] += sources
     sound["placements"] += placements

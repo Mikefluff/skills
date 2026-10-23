@@ -9,6 +9,10 @@ slid under the wrong room by the edits, would vote for the wrong one), at the ga
 after the first starts `PRELAP` seconds before its picture and fades in under the outgoing room: the next
 place is heard a beat before it is seen, a J-cut, and the two rooms cross instead of switching on the frame.
 
+A bed's file is as long as it was made (30 s) and the mixer does not loop it, so a run longer than that is
+laid as consecutive takes of the bed that overlap by `OVERLAP` and cross-fade: one 59 s placement went silent
+after 30 s, and wherever the score paused the film fell to digital silence.
+
 Only beds with a length are relaid; a short burst of a bed (no length) is a cue of its own and stays.
 """
 
@@ -19,6 +23,8 @@ from typing import Any
 
 PRELAP = 0.5  # seconds the next place's bed leads its picture
 TAIL = 0.4  # seconds a bed rings on past its run, under the next one's fade-in
+OVERLAP = 1.0  # seconds consecutive takes of one bed overlap and cross-fade
+_BED_SECONDS = 30.0  # a bed's length when its source does not say
 _SAME_RUN = 2.0  # a gap shorter than this (a title card) keeps one run
 
 
@@ -61,11 +67,17 @@ def _beds(sound: dict[str, Any], placements: list[dict[str, Any]]) -> list[dict[
     return [p for p in placements if p.get("source") in loops and p.get("length")]
 
 
-def _lay(bed: tuple[str, float], a: float, b: float, first: bool) -> dict[str, Any]:
-    """One bed over a..b: leading its picture by PRELAP (the film's first starts on its picture), ringing on TAIL."""
-    at = a if first else max(0.0, a - PRELAP)
-    return {"source": bed[0], "at": round(at, 3), "length": round(b + TAIL - at, 3), "gain_db": bed[1],
-            "duck": False, "fade_in": 0.6 if first else PRELAP, "fade_out": TAIL}
+def _lay(bed: tuple[str, float], a: float, b: float, first: bool, seconds: float) -> list[dict[str, Any]]:
+    """One bed over a..b: leading its picture by PRELAP (the film's first starts on its picture), ringing on TAIL,
+    as takes of at most `seconds` (the bed's file) overlapping by OVERLAP."""
+    at, end, laid = (a if first else max(0.0, a - PRELAP)), b + TAIL, []
+    while at < end - 0.05:
+        length = min(seconds, end - at)
+        fade_in = (0.6 if first else PRELAP) if not laid else OVERLAP
+        laid.append({"source": bed[0], "at": round(at, 3), "length": round(length, 3), "gain_db": bed[1],
+                     "duck": False, "fade_in": fade_in, "fade_out": OVERLAP if at + length < end - 0.05 else TAIL})
+        at += length - OVERLAP if at + length < end - 0.05 else length
+    return laid
 
 
 def follow_cut(sound: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
@@ -76,6 +88,8 @@ def follow_cut(sound: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
         return sound
     cut = runs(plan)
     by_place = _beds_by_place(beds, cut)
-    laid = [_lay(by_place[place], a, b, first=n == 0) for n, (place, a, b) in enumerate(cut) if place in by_place]
+    seconds = {src["id"]: float(src.get("duration_seconds") or _BED_SECONDS) for src in sound.get("sources") or []}
+    laid = [take for n, (place, a, b) in enumerate(cut) if place in by_place
+            for take in _lay(by_place[place], a, b, n == 0, seconds.get(by_place[place][0], _BED_SECONDS))]
     sound["placements"] = [p for p in placements if p not in beds] + laid
     return sound
