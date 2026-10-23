@@ -59,7 +59,8 @@ def _placements(cues: list[dict[str, Any]], clock: dict[str, float], known: set[
             continue
         sid = cue["source"] if cue.get("source") in known else source_id(cue.get("prompt") or "")
         laid.append({"source": sid, "at": round(clock[cue["label"]] + float(cue.get("at") or 0), 3),
-                     "gain_db": float(cue.get("gain_db") or -6), "fade_in": 0.01, "fade_out": 0.05})
+                     "gain_db": float(cue.get("gain_db") or -6), "fade_in": 0.01, "fade_out": 0.05,
+                     "keep": True})  # spotted and layered on purpose: the mix's declutter must not thin it
     return laid
 
 
