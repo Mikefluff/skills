@@ -9,6 +9,8 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.26.0] — 2026-10-27
+
 ### Added
 
 - **`motion-site`** (wrapper). Builds the motion-heavy web genre `impeccable` doesn't reach — WebGL hero, particle fields that morph, scroll-driven 3D, GLSL shader backgrounds, liquid glass — as running code, not a prompt. Two tiers chosen per effect (`webgl`: Three.js / R3F + GSAP ScrollTrigger + Lenis + GLSL; `light`: CSS / SVG / Framer Motion), two scopes (`section`, `page`), two targets (`html` self-contained via CDN import maps, `react` / R3F component files). Every build ships the `prefers-reduced-motion` and mobile fallbacks in the first pass. `motion-site audit <path>` is a read-only craft-floor check (fps, DPR, teardown, reduced-motion, a11y). No paid API. Composes with `impeccable` (which owns layout / typography / copy); distinct from `reel-builder` (video files, not interactive web).
