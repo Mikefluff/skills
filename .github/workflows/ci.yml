@@ -21,8 +21,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: install jq
-        run: sudo apt-get install -y jq
+      - name: install jq and ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y jq ffmpeg
 
       - name: install runners deps (optional execution layer — imports-only check)
         run: pip install -r common/runners/requirements.txt
