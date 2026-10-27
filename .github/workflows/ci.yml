@@ -21,9 +21,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: install jq and ffmpeg
-        timeout-minutes: 8
-        run: sudo apt-get install -y --no-install-recommends jq ffmpeg
+      - name: install jq
+        run: sudo apt-get install -y --no-install-recommends jq
+
+      # apt's ffmpeg from the runner's Azure mirror hung for 10+ minutes; a static
+      # build instead, pinned to the commit of the v3 tag.
+      - name: install ffmpeg
+        uses: FedericoCarboni/setup-ffmpeg@36c6454b5a2348e7794ba2d82a21506605921e3d # v3
 
       - name: install runners deps (optional execution layer — imports-only check)
         run: pip install -r common/runners/requirements.txt
