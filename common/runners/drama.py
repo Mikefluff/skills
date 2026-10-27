@@ -9,6 +9,8 @@ The bible (one per series, `<series>/bible.json`, written by the drama chain):
 
   {"title": "...", "language": "th", "aspect_ratio": "16:9", "look": "one paragraph: medium, stock, grade",
    "director": "director.md",                       # relative to the bible; see directors/
+   "master": "master.png",                          # optional: the picture the film is drawn from; portraits,
+                                                    # plates and any frame naming "master" copy it
    "cast": [{"id": "malai", "name": "Malai", "identity": "8-20 words the critic checks", "like": "<id of a
              character whose face this one shares — a twin, a double; drawn from that portrait>",
              "voice": "young woman, soft, quick", "prompt": "portrait prompt"}],
@@ -22,16 +24,21 @@ A scene in the plan carries "cast" (ids, in the order they are named), an
 optional "location", "dialogue" ([{"who": id, "line": "..."}], the words in the
 episode's language) and "body" — the Seedance prompt without its asset lines.
 `compose()` writes those lines from the bible so no prompt counts images by hand.
+`preflight()` sets the flags the vendor's filters need before the first render;
+`screenplay_text()` is what the story reader (story-check-prompt.md) is given.
 """
 
 from __future__ import annotations
 
 import difflib
 import json
+import math
 import re
 import unicodedata
 from pathlib import Path
 from typing import Any
+
+from . import previs
 
 DIRECTORS = Path(__file__).resolve().parents[1] / "video-prompt-library" / "directors"
 MAX_IMAGES = 9  # one scene: its speakers and its plate; more and Seedance blends faces
@@ -51,6 +58,11 @@ def load_bible(path: Path) -> dict[str, Any]:
 def asset_path(bible: dict[str, Any], kind: str, item_id: str, suffix: str = ".png") -> Path:
     """Where a series asset lives: <series>/cast/<id>.png, <series>/cast/<id>.mp3 (voice), <series>/locations/<id>.png."""
     return Path(bible["_dir"]) / kind / f"{item_id}{suffix}"
+
+
+def master_path(bible: dict[str, Any]) -> Path:
+    """The picture a film is drawn from (bible["master"], relative to the bible): every portrait and plate copies it."""
+    return Path(bible["_dir"]) / bible["master"]
 
 
 def _by_id(bible: dict[str, Any], kind: str) -> dict[str, dict[str, Any]]:
@@ -104,7 +116,14 @@ def validate(plan: dict[str, Any], bible: dict[str, Any]) -> list[str]:
     for scene in plan.get("shots") or []:
         label = scene.get("label", scene.get("index"))
         problems += [f"{label}: {problem}" for problem in _scene_problems(scene, bible)]
-    return problems
+    return problems + _coverage_problems(plan) + _frame_problems(plan)
+
+
+def _frame_problems(plan: dict[str, Any]) -> list[str]:
+    """"open_on_frame": the shot opens on its own storyboard frame, so the board must have one for it."""
+    drawn = {int(f.get("shot") or 0) for f in (plan.get("board") or {}).get("frames") or []}
+    return [f"{s.get('label')}: open_on_frame but no storyboard frame for shot {s.get('index')}"
+            for s in plan.get("shots") or [] if s.get("open_on_frame") and int(s.get("index") or 0) not in drawn]
 
 
 def _scene_problems(scene: dict[str, Any], bible: dict[str, Any]) -> list[str]:
@@ -115,13 +134,125 @@ def _scene_problems(scene: dict[str, Any], bible: dict[str, Any]) -> list[str]:
         problems.append(f"unknown location {scene['location']!r}")
     speakers = {line.get("who") for line in scene.get("dialogue") or []}
     problems += [f"{who!r} speaks but is not in the scene's cast" for who in sorted(speakers - set(in_scene) - {None, "vo"})]
-    if not scene.get("body"):
-        problems.append("no body")
-    if len(in_scene) + bool(scene.get("location")) > MAX_IMAGES:
-        problems.append(f"more than {MAX_IMAGES} reference images")
+    problems += _size_problems(scene)
     if len(speakers & set(cast)) > MAX_VOICES:
         problems.append(f"more than {MAX_VOICES} speakers")
     return problems
+
+
+def _coverage_problems(plan: dict[str, Any]) -> list[str]:
+    """"coverage": every shot of an exchange names its wide; the wide names itself and carries no line."""
+    shots = {s.get("label"): s for s in plan.get("shots") or []}
+    problems = []
+    for label, shot in shots.items():
+        wide = shots.get(shot.get("coverage")) if shot.get("coverage") else None
+        if shot.get("coverage") and (wide is None or wide.get("coverage") != wide.get("label")):
+            problems.append(f"{label}: coverage {shot['coverage']!r} is not a wide that names itself")
+        elif wide is shot and shot.get("dialogue"):
+            problems.append(f"{label}: a coverage wide carries no line; the close-ups do")
+    return problems
+
+
+def _size_problems(scene: dict[str, Any]) -> list[str]:
+    problems = [] if scene.get("body") or scene.get("clip") else ["no body"]  # a clip is cut in as it is
+    if len(scene.get("cast") or []) + bool(scene.get("location")) > MAX_IMAGES:
+        problems.append(f"more than {MAX_IMAGES} reference images")
+    return problems
+
+
+# ── preflight: the vendor's filters, met when the plan is assembled ─────────
+
+_CHILD = re.compile(r"\b(baby|babies|toddler|infant|child|kid|boy|girl)\b", re.I)
+_SINGING = re.compile(r"(?<!no )(?<!without )\b(sing|sings|singing|sang|sung|song|songs|lullaby|chant\w*)\b", re.I)
+LOCKED_OFF = 0.025  # a previs camera whose position and aim drift less than this (metres) stands still
+
+
+def is_child(person: dict[str, Any]) -> bool:
+    """A cast member the bible marks as a child: "age" under 13, or a child's word in "voice" or "identity"."""
+    if isinstance(person.get("age"), (int, float)):
+        return person["age"] < 13
+    return bool(_CHILD.search(f"{person.get('voice', '')} {person.get('identity', '')}"))
+
+
+def _mute_reason(plan: dict[str, Any], shot: dict[str, Any], bible: dict[str, Any]) -> str | None:
+    """Why the generation's own audio must be off: a child's voice or singing trips the copyright filter."""
+    cast = _by_id(bible, "cast")
+    said = {line.get("who") for line in shot.get("dialogue") or []}
+    said |= {v.get("who") for v in plan.get("vocals") or [] if v.get("shot") == shot.get("label")}
+    kids = sorted(cast[who]["name"] for who in said if who in cast and is_child(cast[who]))
+    if kids:
+        return f"a child speaks ({', '.join(kids)})"
+    return "someone sings" if _SINGING.search(shot.get("body", "").split("[Strictly exclude]")[0]) else None
+
+
+def locked_off(previs_shot: dict[str, Any]) -> bool:
+    """A previs camera that neither moves nor turns."""
+    keys = [k for k in previs.camera_keys(previs_shot) if k.get("pos") and k.get("look")]
+    return bool(keys) and all(math.dist(k[axis], keys[0][axis]) <= LOCKED_OFF for k in keys for axis in ("pos", "look"))
+
+
+def _still_previs(shot: dict[str, Any], cams: dict[str, Any]) -> bool:
+    """Whether the shot's previs should go unsent: a locked-off camera, the flag not set, not a continuation."""
+    sent_without = any(shot.get(k) for k in ("extend", "bridge", "open_on_frame"))  # no previs goes with these
+    if "no_previs" in shot or sent_without or shot.get("label") not in cams:
+        return False
+    return locked_off(cams[shot["label"]])
+
+
+def preflight(plan: dict[str, Any], bible: dict[str, Any]) -> list[str]:
+    """Flags a vendor's filters need, set before the first render instead of after a refusal; a note per flag set.
+
+    `kwargs.generate_audio` false where a child speaks or someone sings (the cast's
+    take replaces the generation's audio anyway). A locked-off previs camera is only
+    noted: a still clip is sometimes read as footage to edit, but on the first film one
+    such shot in five was refused, so `no_previs` stays a call made by eye. A key the
+    plan already sets, true or false, is left as it is.
+    """
+    cams, notes = (plan.get("previs") or {}).get("shots") or {}, []
+    for shot in plan.get("shots") or []:
+        label, explicit = shot.get("label"), shot.get("clip") or "generate_audio" in (shot.get("kwargs") or {})
+        why = None if explicit else _mute_reason(plan, shot, bible)
+        if why:
+            shot.setdefault("kwargs", {})["generate_audio"] = False
+            notes.append(f"{label}: generate_audio off, {why}")
+        if _still_previs(shot, cams):
+            notes.append(f"{label}: the previs camera is locked off; if Seedance reads it as an edit, set no_previs")
+    return notes
+
+
+# ── the screenplay a reader checks before anything is drawn ─────────────────
+
+_BOILERPLATE = re.compile(r"\s*(\[Strictly exclude\].*|No music\.|No dialogue, no music, no subtitles\.|"
+                          r"Dialogue language: [^.]*\.)", re.S)
+
+
+def _shot_text(shot: dict[str, Any], names: dict[str, str]) -> str:
+    body = _BOILERPLATE.sub("", shot.get("body") or "").strip()
+    lines = [f"  {names.get(d.get('who'), d.get('who'))}: {d['line']}" for d in shot.get("dialogue") or []
+             if d.get("line") and d["line"] not in body]
+    head = f"{shot.get('label')} (scene {shot['scene']})" if shot.get("scene") else str(shot.get("label"))
+    return "\n".join([head, *([body] if body else []), *lines])
+
+
+def _title_cards(plan: dict[str, Any]) -> dict[str, list[str]]:
+    """The title cards with words, by the label they follow ("t00": before the first shot)."""
+    cards: dict[str, list[str]] = {}
+    for card in (plan.get("trailer") or {}).get("title_cards") or []:
+        if card.get("text"):
+            cards.setdefault(card.get("after", ""), []).append(f"[title card: {card['text']}]")
+    return cards
+
+
+def screenplay_text(plan: dict[str, Any], bible: dict[str, Any] | None = None) -> str:
+    """The plan as a reader gets it: each shot's action and lines in film order, title cards where they fall."""
+    names = {c["id"]: c.get("name", c["id"]) for c in (bible or {}).get("cast") or []}
+    cards = _title_cards(plan)
+    parts = [*cards.get("t00", [])]
+    for shot in plan.get("shots") or []:
+        if shot.get("body") or shot.get("dialogue"):
+            parts.append(_shot_text(shot, names))
+        parts += cards.get(shot.get("label"), [])
+    return "\n\n".join(parts)
 
 
 # ── directors ───────────────────────────────────────────────────────────────

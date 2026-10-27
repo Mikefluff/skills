@@ -61,6 +61,8 @@ PINNED_MODEL_IDS = {
     "fal-seedance-2-5": "bytedance/seedance-2.5/reference-to-video",
     "eleven-sfx": "eleven_text_to_sound_v2",
     "openrouter-seedance-2-5": "bytedance/seedance-2.5",
+    "openrouter-wan-3-0": "alibaba/wan-3.0",
+    "atlas-seedance-2-5": "bytedance/seedance-2.5/reference-to-video",
     "openrouter-nano-banana-pro": "google/gemini-3-pro-image",
 }
 

@@ -22,7 +22,10 @@ _BREATH = 0.3
 
 def _act_of(plan: dict[str, Any]) -> dict[str, str]:
     """shot label → act name, from the acts' from/to labels."""
-    order = [s["label"] for s in sorted(plan["shots"], key=lambda s: int(s["index"]))]
+    live = [s for s in plan["shots"] if not s.get("cut")]
+    # the cut's order once it has a clock: a restructure moves shots without renumbering them
+    key = (lambda s: float(s["clock_at"])) if all("clock_at" in s for s in live) else (lambda s: int(s["index"]))
+    order = [s["label"] for s in sorted(live, key=key)]
     out = {}
     for act in (plan.get("trailer") or {}).get("acts") or []:
         if act.get("from") in order and act.get("to") in order:
@@ -39,13 +42,18 @@ def act_bpm(plan: dict[str, Any]) -> dict[str, float]:
         styles = " ".join(cp.get("positive_global_styles") or [])
         found = re.search(r"(\d{2,3})\s*bpm", styles)
         for sec in cp.get("sections") or []:
-            if found:
-                out[sec["section_name"]] = float(found.group(1))
+            # a section's own tempo ("112 bpm" in its local styles) beats the cue's
+            local = re.search(r"(\d{2,3})\s*bpm", " ".join(sec.get("positive_local_styles") or []))
+            if local or found:
+                out[sec["section_name"]] = float((local or found).group(1))
     return out
 
 
-def new_lengths(plan: dict[str, Any], line_seconds: dict[str, float]) -> dict[str, float]:
-    """shot label → its conformed length (only the shots whose length changes)."""
+def new_lengths(plan: dict[str, Any], line_seconds: dict[str, float],
+                limits: dict[str, float] | None = None) -> dict[str, float]:
+    """shot label → its conformed length (only the shots whose length changes). With `limits` (label → seconds
+    of its rendered take left after trim_start) a shot only grows, never past the end of its take: a cut from
+    rendered clips gives a line room without freezing a frame or cutting the action it already has."""
     acts, bpm = _act_of(plan), act_bpm(plan)
     out = {}
     for shot in plan["shots"]:
@@ -54,11 +62,19 @@ def new_lengths(plan: dict[str, Any], line_seconds: dict[str, float]) -> dict[st
             continue
         beat = 60.0 / bpm.get(acts.get(shot["label"], ""), 104.0)
         need = float(shot.get("line_at") or 0.3) + said + _BREATH
-        beats = max(2, math.ceil(need / beat - 1e-6))
-        length = round(beats * beat, 2)
+        length = round(max(2, math.ceil(need / beat - 1e-6)) * beat, 2)
+        if limits is not None:
+            length = _within_take(float(shot["trim_seconds"]), need, length, limits.get(shot["label"]))
         if abs(length - float(shot["trim_seconds"])) > 0.01:
             out[shot["label"]] = length
     return out
+
+
+def _within_take(now: float, need: float, on_beat: float, left: float | None) -> float:
+    """A rendered shot's new length: longer only, on the beat if the take has it, else to the take's end."""
+    if left is None or need <= now:
+        return now
+    return round(min(on_beat, max(now, left - 0.05)), 2)
 
 
 def _moved(t: float, shifts: list[tuple[float, float, str]]) -> float:
@@ -75,7 +91,7 @@ def _moved(t: float, shifts: list[tuple[float, float, str]]) -> float:
 def retime(plan: dict[str, Any], lengths: dict[str, float]) -> list[tuple[float, float, str]]:
     """Apply new shot lengths in place; returns (clock point, added seconds, shot label) per change, in order."""
     shifts = []
-    for shot in sorted(plan["shots"], key=lambda s: int(s["index"])):
+    for shot in sorted(plan["shots"], key=lambda s: float(s.get("clock_at") or 0)):
         if shot["label"] in lengths:
             delta = lengths[shot["label"]] - float(shot["trim_seconds"])
             end = float(shot["clock_at"]) + float(shot["trim_seconds"])
@@ -116,3 +132,198 @@ def _sections(plan: dict[str, Any], shifts: list[tuple[float, float, str]]) -> N
         for sec in (src.get("composition_plan") or {}).get("sections") or []:
             if grew.get(sec["section_name"]):
                 sec["duration_ms"] = int(round(sec["duration_ms"] + grew[sec["section_name"]] * 1000))
+
+
+# ── the build: a peak whose cuts get shorter, ending on a strobe of the one face ─────────────────────────────
+
+
+def _busiest(clip: Any, seconds: float, speed: float = 1.0) -> float:
+    """Where in `clip` the `seconds` of cut (played at `speed`) see the most change from frame to frame."""
+    import subprocess
+
+    res = subprocess.run(["ffmpeg", "-v", "error", "-i", str(clip), "-an", "-vf",
+                          "scale=160:-2,select='gte(scene,0)',metadata=print:file=-", "-f", "null", "-"],
+                         capture_output=True, text=True)
+    times, scores = [], []
+    for row in res.stdout.splitlines():
+        if "pts_time:" in row:
+            times.append(float(row.split("pts_time:")[1].split()[0]))
+        elif "scene_score=" in row:
+            scores.append(float(row.split("=")[1]))
+    span = seconds * speed
+    if not times or times[-1] <= span:
+        return 0.0
+    best, at = -1.0, 0.0
+    for i, t in enumerate(times):
+        if t + span > times[-1]:
+            break
+        total = sum(sc for tt, sc in zip(times[i:], scores[i:]) if tt < t + span)
+        if total > best:
+            best, at = total, t
+    return round(at, 3)
+
+
+def _half_beats(n: int, left: int) -> list[int]:
+    """Half-beat counts for n shots falling from 8 (four beats) to 2 (one beat), summing to `left`."""
+    raw = [8 - 6 * i / max(1, n - 1) for i in range(n)]
+    want = [max(2, round(r * left / sum(raw))) for r in raw]
+    i = 0
+    while sum(want) != left:
+        j = i % n
+        if sum(want) > left and want[j] > 2:
+            want[j] -= 1
+        elif sum(want) < left:
+            want[j] += 1
+        i += 1
+        if i > 1000:
+            break
+    return want
+
+
+def _build_shots(plan: dict[str, Any], act: str, until: float) -> list[dict[str, Any]]:
+    """The act's shots before `until` in clock order; earlier strobes (shots and sounds) cleared."""
+    acts = _act_of(plan)
+    live = sorted((s for s in plan["shots"] if not s.get("cut") and not s.get("strobe")),
+                  key=lambda s: float(s["clock_at"]))
+    shots = [s for s in live if acts.get(s["label"]) == act and float(s["clock_at"]) < until - 1e-3]
+    plan["shots"] = [s for s in plan["shots"] if not s.get("strobe")]
+    if plan.get("sound"):
+        plan["sound"]["placements"] = [p for p in plan["sound"]["placements"] if not p.get("strobe")]
+    return shots
+
+
+def _recut(build: dict[str, Any], shots: list[dict[str, Any]], want: list[int], at: float) -> float:
+    """Shots laid back to back at their new lengths, each shortened one on its busiest window; returns the end."""
+    beat, clips, speed = build["beat"], build["clips"], build["speed"]
+    for shot, h in zip(shots, sorted(want, reverse=True)):
+        seconds = round(h * beat / 2, 3)
+        clip = clips.get(shot["label"])
+        if clip and seconds < float(shot["trim_seconds"]) - 0.05 and not shot.get("dialogue"):
+            shot["trim_start"] = _busiest(clip, seconds, speed(shot, build["plan"]) if speed else 1.0)
+        shot["clock_at"], shot["trim_seconds"] = round(at, 3), seconds
+        at += seconds
+    return at
+
+
+def _carry_sounds(plan: dict[str, Any], shots: list[dict[str, Any]],
+                  old: dict[str, tuple[float, float]]) -> None:
+    """A sound laid on a recut shot keeps its place in it."""
+    for p in (plan.get("sound") or {}).get("placements") or []:
+        a = float(p["at"])
+        for label, (o, length) in old.items():
+            if o <= a < o + length:
+                new = next(s for s in shots if s["label"] == label)
+                p["at"] = round(float(new["clock_at"]) + min(a - o, float(new["trim_seconds"]) - 0.1), 3)
+                break
+
+
+def _strobe(build: dict[str, Any], flashes: list[dict[str, Any]], at: float) -> list[str]:
+    """Half-beat flashes of faces from `at`, a scanner beep on each when the plan has one; returns their labels."""
+    plan, beat, clips = build["plan"], build["beat"], build["clips"]
+    by = {s["label"]: s for s in plan["shots"]}
+    nxt = max(int(s["index"]) for s in plan["shots"]) + 1
+    beep = any(src.get("id") == "scan_beep" for src in (plan.get("sound") or {}).get("sources") or [])
+    added = []
+    for k, f in enumerate(flashes):
+        src = by[f["from"]]
+        label = f"s{k + 1:02d}"
+        clip = clips.get(f["from"])
+        plan["shots"].append({"index": nxt + k, "label": label, "strobe": True, "location": src.get("location"),
+                              "cast": src.get("cast", []), "dialogue": [], "body": "Shot - close. The face.",
+                              "clip": str(clip.relative_to(plan["output_dir"])) if clip else src.get("clip"),
+                              "trim_start": float(f["at"]), "trim_seconds": round(beat / 2, 3),
+                              "clock_at": round(at, 3)})
+        if beep:
+            # every face in the strobe is matched: the scanner's beep on each flash, the build's clock
+            plan["sound"]["placements"].append({"source": "scan_beep", "at": round(at, 3), "strobe": True,
+                                                "gain_db": -6.0 + 1.0 * k, "fade_in": 0.0, "fade_out": 0.02})
+        at += beat / 2
+        added.append(label)
+    return added
+
+
+def accelerate(plan: dict[str, Any], act: str, until: float, strobe: list[dict[str, Any]],
+               *media: Any) -> list[str]:
+    """The act's shots before `until` recut so each is shorter than the last, then a strobe of faces into it.
+
+    The SAME peak alternated 1.6 s and 1.07 s cuts for thirteen seconds: an even pulse, no build. Here the act's
+    span stays (the score was composed to it), shot lengths fall from four beats to one in half beats, and the
+    last beats are a strobe: half-beat flashes of `strobe` ({"from": label, "at": seconds into its clip}), the
+    face every character shares, back to back. `media` is optionally (clips, speed): label → rendered clip, and
+    speed(shot, plan). Each shortened shot plays its clip's busiest window; the sounds laid on a shot keep their
+    place in it. Returns the labels of the strobe shots added."""
+    clips, speed = (tuple(media) + (None, None))[:2]
+    build = {"plan": plan, "beat": 60.0 / act_bpm(plan).get(act, 104.0), "clips": clips or {}, "speed": speed}
+    shots = _build_shots(plan, act, until)
+    if not shots:
+        return []
+    start = float(shots[0]["clock_at"])
+    halves = round((until - start) / (build["beat"] / 2))
+    flashes = min(len(strobe), max(0, halves - 2 * len(shots)))
+    old = {s["label"]: (float(s["clock_at"]), float(s["trim_seconds"])) for s in shots}
+    at = _recut(build, shots, _half_beats(len(shots), halves - flashes), start)
+    _carry_sounds(plan, shots, old)
+    added = _strobe(build, strobe[:flashes], at)
+    last = max((s for s in plan["shots"] if not s.get("cut") and float(s["clock_at"]) < until),
+               key=lambda s: float(s["clock_at"]))
+    last["trim_seconds"] = round(until - float(last["clock_at"]), 3)  # the beat grid's rounding, closed
+    return added
+
+
+def shift(plan: dict[str, Any], point: float, delta: float) -> None:
+    """Everything at or after `point` on the clock moves by `delta` (shots, cards, sound), the music's own
+    sections untouched: a shot put in or taken out moves the film, it does not recompose the score."""
+    shifts = [(point, delta, "")]
+    moved = lambda t: _moved(t, shifts)  # noqa: E731
+    for shot in plan["shots"]:
+        shot["clock_at"] = round(moved(float(shot["clock_at"])), 3)
+    for card in (plan.get("trailer") or {}).get("title_cards") or []:
+        card["clock_at"] = round(moved(float(card["clock_at"])), 3)
+    sound = plan.get("sound") or {}
+    for pl in sound.get("placements") or []:
+        start = float(pl["at"])
+        if pl.get("length") is not None and start < point < start + float(pl["length"]):
+            pl["length"] = round(float(pl["length"]) + delta, 3)  # a bed or a cue running across grows with it
+        pl["at"] = round(moved(start), 3)
+    if sound.get("total_seconds"):
+        sound["total_seconds"] = round(float(sound["total_seconds"]) + delta, 3)
+
+
+def _owners(plan: dict[str, Any]) -> list[tuple[dict[str, Any], str | None]]:
+    """Storyboard frames name their shot by index: each frame with the label of the shot it belongs to now."""
+    frames = (plan.get("board") or {}).get("frames") or []
+    owner = {int(s["index"]): s["label"] for s in plan["shots"] if "index" in s}
+    return [(f, owner.get(int(f.get("shot", 0)))) for f in frames]
+
+
+def _renumber(plan: dict[str, Any], by_frame: list[tuple[dict[str, Any], str | None]]) -> None:
+    """Shots numbered in clock order again, each frame carried to its shot's new number."""
+    plan["shots"].sort(key=lambda s: float(s["clock_at"]))
+    for n, s in enumerate(plan["shots"], 1):
+        s["index"] = n
+    index = {s["label"]: s["index"] for s in plan["shots"]}
+    for f, label in by_frame:
+        if label in index:
+            f["shot"] = index[label]
+
+
+def insert(plan: dict[str, Any], shot: dict[str, Any], at: float) -> None:
+    """Put a shot into the cut at clock `at`, everything from there on moving later by its length."""
+    by_frame = _owners(plan)
+    shift(plan, at, float(shot["trim_seconds"]))
+    shot["clock_at"] = round(at, 3)
+    plan["shots"].append(shot)
+    _renumber(plan, by_frame)
+
+
+def remove(plan: dict[str, Any], label: str) -> dict[str, Any]:
+    """Take a shot out of the cut, everything after it moving earlier by its length; its frames go with it.
+    Returns the shot taken out."""
+    shot = next(s for s in plan["shots"] if s["label"] == label)
+    by_frame = _owners(plan)
+    plan["shots"].remove(shot)
+    shift(plan, float(shot["clock_at"]) + float(shot["trim_seconds"]), -float(shot["trim_seconds"]))
+    _renumber(plan, by_frame)
+    if plan.get("board"):
+        plan["board"]["frames"] = [f for f, owner in by_frame if owner != label]
+    return shot

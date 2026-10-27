@@ -8,8 +8,10 @@ meaning and lip-sync to the supplied take still works.
 
 Takes the same kwargs as the BytePlus providers in `seedance.py`, plus one:
 
-  media_host  "litterbox" — where local audio and video references are put up
-              first (`audio_host` is the older name and still works).
+  media_host  "litterbox" or "uguu" — where local audio and video references
+              are put up first (`audio_host` is the older name and still works).
+              Both delete the file on their own (1 h, 3 h); uguu is the fallback
+              for when litterbox answers 500, as it did for a whole afternoon.
 
 OpenRouter takes a reference image inline but refuses inline audio and video
 ("Only HTTPS URLs are allowed"), so a local take or previs clip has to be
@@ -38,17 +40,54 @@ from .seedance import _refs, ark_tokens, as_url
 
 _BASE = "https://openrouter.ai/api/v1/videos"
 _LITTERBOX = "https://litterbox.catbox.moe/resources/internals/api.php"
+_UGUU = "https://uguu.se/upload"
+HOSTS = ("litterbox", "uguu")
 _NAME = "openrouter-seedance-2-5"
 
 
-def _litterbox(path: Path) -> str:
+def _upload(path: Path, host: str) -> str:
+    """A public HTTPS URL for `path` on a temporary host."""
     with path.open("rb") as fh:
-        resp = _http.post(_NAME, _LITTERBOX, data={"reqtype": "fileupload", "time": "1h"},
-                          files={"fileToUpload": (path.name, fh)}, timeout=120)
-    url = resp.text.strip()
+        if host == "uguu":
+            resp = _http.post(_NAME, _UGUU, files={"files[]": (path.name, fh)}, timeout=120)
+            url = ((resp.json().get("files") or [{}])[0]).get("url", "")
+        else:
+            resp = _http.post(_NAME, _LITTERBOX, data={"reqtype": "fileupload", "time": "1h"},
+                              files={"fileToUpload": (path.name, fh)}, timeout=120)
+            url = resp.text.strip()
     if not url.startswith("https://"):
-        raise ProviderError(_NAME, resp.status_code, f"litterbox upload failed: {url[:200]}")
+        raise ProviderError(_NAME, resp.status_code, f"{host} upload failed: {url[:200]}")
     return url
+
+
+# A file put up once in this process is not put up again while its URL lives: a voice sample sent with every shot
+# that speaks, and a previs clip retried after a failed render, go up once. Keyed by the file as it is now (path,
+# size, mtime) and the host; reused for 45 minutes, inside the shortest host lifetime (litterbox's hour).
+_HOSTED: dict[tuple[str, int, int, str], tuple[str, float]] = {}
+_HOSTED_TTL = 45 * 60
+
+
+def _hosted(path: Path, host: str, put) -> str:
+    """put(path, host) → URL, unless this file went up to this host within the last 45 minutes."""
+    st = path.stat()
+    key = (str(path.resolve()), st.st_size, st.st_mtime_ns, host)
+    url, at = _HOSTED.get(key, ("", 0.0))
+    if url and time.time() - at < _HOSTED_TTL:
+        return url
+    url = put(path, host)
+    _HOSTED[key] = (url, time.time())
+    return url
+
+
+def _mp3_upload(path: Path, host: str) -> str:
+    """The take as MP3 (a fifth of the WAV) on `host`."""
+    with tempfile.TemporaryDirectory() as tmp:
+        mp3 = Path(tmp) / f"{path.stem}.mp3"
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error", "-i", str(path), "-b:a", "192k", str(mp3)],
+            check=True, capture_output=True,
+        )
+        return _upload(mp3, host)
 
 
 def _video_url(ref: str, host: str | None) -> str:
@@ -58,10 +97,10 @@ def _video_url(ref: str, host: str | None) -> str:
     path = Path(ref)
     if not path.is_file():
         raise ProviderError(_NAME, None, f"reference not found: {ref}")
-    if host != "litterbox":
+    if host not in HOSTS:
         raise ProviderError(_NAME, None, "OpenRouter takes video references only as public HTTPS URLs; "
-                                         "pass a URL or set media_host='litterbox'")
-    return _litterbox(path)
+                                         "pass a URL or set media_host='litterbox' (or 'uguu')")
+    return _hosted(path, host, _upload)
 
 
 def _audio_url(ref: str, host: str | None) -> str:
@@ -71,19 +110,13 @@ def _audio_url(ref: str, host: str | None) -> str:
     path = Path(ref)
     if not path.is_file():
         raise ProviderError(_NAME, None, f"reference not found: {ref}")
-    if host != "litterbox":
+    if host not in HOSTS:
         raise ProviderError(
             _NAME, None,
             "OpenRouter takes audio references only as public HTTPS URLs; "
-            "pass a URL or set media_host='litterbox' to upload the take for an hour",
+            "pass a URL or set media_host='litterbox' (or 'uguu') to upload the take for an hour",
         )
-    with tempfile.TemporaryDirectory() as tmp:
-        mp3 = Path(tmp) / f"{path.stem}.mp3"
-        subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-i", str(path), "-b:a", "192k", str(mp3)],
-            check=True, capture_output=True,
-        )
-        return _litterbox(mp3)
+    return _hosted(path, host, _mp3_upload)
 
 
 class OpenRouterSeedance25Provider(Provider):
@@ -169,6 +202,31 @@ class OpenRouterSeedance25Provider(Provider):
         )
 
 
+class OpenRouterWan30Provider(OpenRouterSeedance25Provider):
+    """Wan 3.0 through the same API: image-to-video from one first frame, no references.
+
+    Takes photoreal faces Seedance's privacy filter refuses, so a storyboard
+    frame with the cast's faces in it can open the shot. It speaks a quoted
+    line with its own voice and mouth; the cut keeps the mouth and lays the
+    cast's ElevenLabs take over it (reel_animatic --clips).
+    """
+
+    name = "openrouter-wan-3-0"
+    model_id = "alibaba/wan-3.0"
+    first_frame_only = True
+
+    def estimate_cost(self, **kwargs: Any) -> Decimal | None:
+        return cost.estimate(self.name, duration_seconds=kwargs.get("duration_seconds", 5),
+                             resolution=kwargs.get("resolution") or "480p", variants=kwargs.get("variants", 1))
+
+    def build_body(self, prompt: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+        if not kwargs.get("first_frame"):
+            raise ProviderError(self.name, None, "Wan 3.0 on OpenRouter needs a first_frame (the storyboard frame)")
+        flat = {k: v for k, v in kwargs.items() if k not in ("reference_images", "reference_videos", "reference_audio")}
+        return {**super().build_body(prompt, flat), "model": self.model_id}
+
+
 from ..config import register
 
 register(OpenRouterSeedance25Provider())
+register(OpenRouterWan30Provider())

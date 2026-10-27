@@ -49,6 +49,9 @@ class Placement:
     fx: str = "none"
     duck: bool = False
     snap: bool = False
+    pitch: float = 0.0  # semitones, timing kept (a child's voice lifted out of an adult range)
+    formant: float = 0.0  # semitones of throat size, moved apart from the pitch (see voice_filter)
+    level: float | None = None  # LUFS the source is brought to before its gain (a bed made near-silent)
 
     @classmethod
     def from_json(cls, raw: dict[str, Any]) -> "Placement":
@@ -79,12 +82,43 @@ def validate(sound: dict[str, Any]) -> list[Placement]:
     return placements
 
 
+def _ratio(semitones: float) -> str:
+    return f"{2 ** (max(-12.0, min(12.0, semitones)) / 12):.4f}"
+
+
+# A child's voice from an adult take: the throat (formants) smaller, the pitch higher on its own, the adult chest cut
+# and the brightness of a small mouth lifted. Pitch alone made a higher-pitched adult (heard as "a hoarse man").
+_CHILD_EQ = "highpass=f=170,equalizer=f=320:t=q:w=1:g=-4,equalizer=f=3600:t=q:w=1.2:g=3"
+
+
+def voice_filter(semitones: float, formant: float = 0.0) -> str:
+    """A voice's pitch moved by `semitones` and its throat by `formant` semitones, its length kept. With a formant
+    shift the two move apart (rubberband: formants shifted, then pitch with formants preserved) and the child EQ
+    follows; without one, pitch and formants move together."""
+    if not formant:
+        return f"rubberband=pitch={_ratio(semitones)}"
+    rest = semitones - formant
+    steps = [f"rubberband=pitch={_ratio(formant)}"]
+    if abs(rest) > 0.01:
+        steps.append(f"rubberband=pitch={_ratio(rest)}:formant=preserved")
+    return ",".join(steps + [_CHILD_EQ])
+
+
+def pitch_filter(semitones: float) -> str:
+    """A voice moved by `semitones`, its length kept (rubberband; formants move with it, as a smaller throat)."""
+    return voice_filter(semitones)
+
+
 def _chain(index: int, p: Placement, label: str) -> str:
     parts = [f"[{index}:a]aresample=48000"]
     end = f":end={p.offset + p.length:.3f}" if p.length is not None else ""
     parts.append(f"atrim=start={p.offset:.3f}{end},asetpts=PTS-STARTPTS")
+    if p.level is not None:
+        parts.append(f"loudnorm=I={p.level:.1f}:TP=-3:LRA=20,aresample=48000")
     if FX[p.fx]:
         parts.append(FX[p.fx])
+    if p.pitch or p.formant:
+        parts.append(voice_filter(p.pitch, p.formant))
     parts.append(f"volume={p.gain_db:.1f}dB")
     if p.fade_in > 0:
         parts.append(f"afade=t=in:st=0:d={p.fade_in:.3f}")
@@ -105,7 +139,9 @@ def build_graph(
     for a sentence to end.
     """
     inputs = ["-i", str(voice)]
-    chains = ["[0:a]aresample=48000,asplit=2[voice][key]"]
+    # The voice sits on top: +5 dB on its bus before anything is summed. Measured on a trailer, lines at
+    # -16 LUFS under a -3 dB groove and room beds came out under everything once the master was normalised.
+    chains = ["[0:a]aresample=48000,volume=5dB,asplit=2[voice][key]"]
     ducked, straight = [], ["[voice]"]
     for n, p in enumerate(placements, start=1):
         inputs += ["-i", str(sources[p.source])]
@@ -114,7 +150,7 @@ def build_graph(
         (ducked if p.duck else straight).append(f"[{label}]")
     if ducked:
         chains.append(f"{''.join(ducked)}amix=inputs={len(ducked)}:normalize=0:duration=longest[bed]")
-        chains.append("[bed][key]sidechaincompress=threshold=0.04:ratio=6:attack=20:release=400[ducked]")
+        chains.append("[bed][key]sidechaincompress=threshold=0.015:ratio=12:attack=10:release=350[ducked]")
         straight.append("[ducked]")
     else:
         chains.append("[key]anullsink")

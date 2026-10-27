@@ -255,7 +255,9 @@ def _letters(card: Card, heavy) -> tuple[ImageFont.FreeTypeFont, list[tuple[str,
 def _title_frame(card: Card, t: float, fonts: tuple, rng) -> Image.Image:
     heavy, mono = fonts
     big, letters, whole = _letters(card, heavy)
-    merge = card.beat * len(letters)
+    # the title hits on its first frame, with the band: a word spelled out letter by letter put the SAME
+    # release four beats after the music's hit, and the catharsis leaked away waiting for it
+    merge = 0.0
     if merge <= t < merge + 1.0 / FPS:
         return Image.new("RGB", card.size, WHITE)  # the hit
     img = Image.new("RGB", card.size, BG)
@@ -263,7 +265,7 @@ def _title_frame(card: Card, t: float, fonts: tuple, rng) -> Image.Image:
     if merge <= t < merge + 0.25:  # the machine's double, offset, flickering out
         draw.text((whole[0] + 16, whole[1] + 8), card.words[0], font=big, fill=CYAN if int(t * FPS) % 2 else BG)
     for i, (ch, box) in enumerate(letters):
-        if t >= i * card.beat:
+        if t >= i * card.beat * (merge > 0):
             draw.text((box[0], box[1]), ch, font=big, fill=WHITE)
             if t < merge:
                 _brackets(draw, box, CYAN, (t - i * card.beat) / 0.12, stroke=(3, 18))
@@ -287,20 +289,110 @@ def _fitted(card: Card) -> ImageFont.FreeTypeFont:
     return _font(_HEAVY, size)
 
 
+def _encode(frames, size: tuple[int, int], out: Path, ffmpeg_bin: str, failed: str) -> Path:
+    """Pipe RGB frames into an H.264 clip at FPS."""
+    w, h = size
+    proc = subprocess.Popen([ffmpeg_bin, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
+                             "-s", f"{w}x{h}", "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                             "-crf", "18", str(out)], stdin=subprocess.PIPE)
+    for frame in frames:
+        proc.stdin.write(frame.tobytes())
+    proc.stdin.close()
+    if proc.wait() != 0:
+        raise RuntimeError(failed)
+    return out
+
+
 def render(card: Card, out: Path, *, ffmpeg_bin: str = "ffmpeg") -> Path:
     """Encode the card to an H.264 clip of exactly card.seconds."""
-    w, h = card.size
+    h = card.size[1]
     fonts = (_fitted(card) if not card.is_title else _font(_HEAVY, int(h * 0.2)), _font(_MONO, int(h * 0.034)))
     frames = max(1, round(card.seconds * FPS))
     rng = np.random.default_rng(len(card.text))
     draw_frame = _title_frame if card.is_title else _phrase_frame
     out.parent.mkdir(parents=True, exist_ok=True)
-    proc = subprocess.Popen([ffmpeg_bin, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
-                             "-s", f"{w}x{h}", "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-pix_fmt", "yuv420p",
-                             "-crf", "18", str(out)], stdin=subprocess.PIPE)
-    for n in range(frames):
-        proc.stdin.write(draw_frame(card, n / FPS, fonts, rng).tobytes())
-    proc.stdin.close()
-    if proc.wait() != 0:
-        raise RuntimeError(f"ffmpeg failed encoding title card {card.text!r}")
-    return out
+    return _encode((draw_frame(card, n / FPS, fonts, rng) for n in range(frames)), card.size, out, ffmpeg_bin,
+                   f"ffmpeg failed encoding title card {card.text!r}")
+
+
+# ── freeze frame ────────────────────────────────────────────────────────────
+
+_COLOURS = {"cyan": CYAN, "red": RED, "amber": AMBER, "white": WHITE}
+
+
+@dataclass
+class _Read:
+    """What the system reads on a freeze: the faces, the caption, and the encoder."""
+    boxes: list[dict] | None = None
+    caption: str | None = None
+    ffmpeg_bin: str = "ffmpeg"
+
+
+@dataclass
+class _Still:
+    """One freeze being drawn: the frame, its drained twin, the beat, the fonts and the hits."""
+    base: Image.Image
+    grey: Image.Image
+    beat: float
+    fonts: tuple
+    hits: list[float]
+    seconds: float
+
+
+def _faces(draw: ImageDraw.ImageDraw, st: _Still, boxes: list[dict], t: float) -> None:
+    """Each face gets its brackets and typed label on its own beat."""
+    mono = st.fonts[0]
+    for i, face in enumerate(boxes):
+        since = t - st.beat * (1 + i)
+        if since < 0:
+            continue
+        box = tuple(face["box"])
+        colour = _COLOURS.get(face.get("colour", "cyan"), CYAN)
+        _brackets(draw, box, colour, since / 0.12, (6, 14))
+        at = (box[0] - 10, box[3] + 24) if face.get("below") else (box[0] - 10, box[1] - 58)
+        _typed(draw, at, face["label"], (mono, colour), since / (st.beat * 0.6))
+
+
+def _caption(img: Image.Image, caption: str, heavy, since: float) -> Image.Image:
+    """The caption slammed in big at the foot."""
+    w, h = img.size
+    size = heavy.getbbox(caption)
+    x, y = (w - (size[2] - size[0])) / 2, h * 0.8
+    scale = 1 + 0.35 * (1 - _ease_out(min(1.0, since / 0.12)))
+    layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    ImageDraw.Draw(layer).text((x, y), caption, font=heavy, fill=AMBER + (255,))
+    if scale != 1:
+        layer = layer.transform((w, h), Image.Transform.AFFINE,
+                                (1 / scale, 0, w / 2 * (1 - 1 / scale), 0, 1 / scale, (y + 40) * (1 - 1 / scale)))
+    return Image.alpha_composite(img.convert("RGBA"), layer).convert("RGB")
+
+
+def _freeze_frame(st: _Still, read: _Read, n: int, rng) -> Image.Image:
+    t = n / FPS
+    img = Image.blend(st.base, st.grey, min(0.65, t / (st.beat * 0.5) * 0.65))  # the colour drains out
+    if t < 2 / FPS:
+        img = Image.blend(img, Image.new("RGB", img.size, WHITE), 0.85 - 0.4 * n)  # the flash
+    _faces(ImageDraw.Draw(img), st, read.boxes or [], t)
+    if read.caption and t >= st.hits[-1]:
+        img = _caption(img, read.caption, st.fonts[1], t - st.hits[-1])
+    zoom = 1.06 - 0.06 * _ease_out(min(1.0, t / 0.15)) + 0.02 * t / max(st.seconds, 0.1)  # punch, then creep in
+    return _grain(_camera(img, t, st.hits, zoom), rng)
+
+
+def freeze(image: Path, seconds: float, out: Path, *, bpm: float = 112.0, **read) -> Path:
+    """The Ritchie freeze: the frame stops on a white flash and a punch, drains toward steel, and the system
+    reads it — each face in `boxes` ({"box": [x0, y0, x1, y1] on the cut's size, "label", "colour"}) gets its
+    brackets and its typed label on its own beat; an optional `caption` slams in big at the foot.
+    `read` takes boxes, caption and ffmpeg_bin (see _Read)."""
+    r = _Read(**read)
+    base = Image.open(image).convert("RGB")
+    h = base.size[1]
+    beat = 60.0 / bpm
+    n_faces = len(r.boxes or [])
+    hits = [0.0] + [beat * (1 + i) for i in range(n_faces)] + ([beat * (1 + n_faces)] if r.caption else [])
+    st = _Still(base, base.convert("L").convert("RGB"), beat,
+                (_font(_MONO, int(h * 0.046)), _font(_HEAVY, int(h * 0.17))), hits, seconds)
+    rng = np.random.default_rng(7)
+    frames = max(1, round(seconds * FPS))
+    return _encode((_freeze_frame(st, r, n, rng) for n in range(frames)), base.size, out, r.ffmpeg_bin,
+                   "ffmpeg failed encoding a freeze frame")

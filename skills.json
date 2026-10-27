@@ -301,6 +301,22 @@
       "deps": []
     },
     {
+      "name": "motion-site",
+      "dir": "skills/motion-site",
+      "layer": "wrapper",
+      "description": "Build motion-rich websites and sections that run: WebGL hero, particle fields, scroll-driven 3D, GLSL shader backgrounds, liquid glass via Three.js / React-Three-Fiber + GSAP ScrollTrigger + Lenis, plus a light CSS / SVG / Framer-Motion tier for motion without 3D. Two scopes (section, page), two tiers (webgl, light), two targets (html self-contained via CDN import maps, react / R3F component files). Modes: --scope section|page; --tier webgl|light|auto; --target html|react|auto; --effect <archetype>; --ref <path|url>; --variants N; --preview; audit <path>. The running-code motion builder impeccable isn't — it owns the WebGL / scroll-3D / particle / shader genre and motion-page composition, not layout, typography, or copy. No paid API; writes code and runs locally.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "tags": [
+        "visual",
+        "generation",
+        "marketing"
+      ],
+      "deps": []
+    },
+    {
       "name": "music-prompt",
       "dir": "skills/music-prompt",
       "layer": "wrapper",

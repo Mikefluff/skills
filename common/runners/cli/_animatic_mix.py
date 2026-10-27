@@ -1,0 +1,163 @@
+"""The animatic's sound against the cut — hits snapped to the action, punchlines landed, places and vocals added.
+
+Split out of reel_animatic; the names are re-exported there.
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+from typing import Any, Callable
+
+from ._animatic_clips import speech
+
+_MUSIC = ("caper_groove", "caper_bigbeat", "score_main")
+
+
+def snap_to_action(sound: dict[str, Any], sources: dict[str, Path]) -> None:
+    """Every designed hit that asked to be snapped moves onto the loudest onset of the shots' own sound near it."""
+    from .. import soundtrack as st
+    from . import _trailer_sound as ts
+
+    stems = [(sources[p["source"]], float(p["at"]), float(p["at"]) + float(p["length"]))
+             for p in sound["placements"] if p["source"].startswith("prod_")]
+    for p in sound["placements"]:
+        if p.get("snap"):
+            # only the shot the hit sits in: a title card's impact stays on the card
+            own = [(wav, a) for wav, a, b in stems if a <= float(p["at"]) < b]
+            at = st.snap_time(float(p["at"]), ts.transients(own), window=0.8, floor=10.0) if own else p["at"]
+            if at != p["at"]:
+                print(f"  {p['source']}: {p['at']:.2f}s → {at:.2f}s, on the shot's own sound", file=sys.stderr)
+            p["at"] = at
+
+
+def _stop_score(kept: list[dict[str, Any]], at: float, line: float,
+                resume_at: Callable[[float], float | None] | None) -> None:
+    """The score stops ON the scratch: cut when it runs past it, carried up to it when it died just before."""
+    for m in kept:
+        a = float(m["at"])
+        end = a + float(m.get("length") or 1e9)
+        if not (m["source"] in _MUSIC and a < at and at - 1.5 <= end):
+            continue
+        m["length"] = round(at + 0.25 - a, 3)
+        m["fade_out"] = 0.02
+        back = resume_at(line) if resume_at else None
+        if back is not None and back < end - 0.3:
+            # the score comes back on the cut after the punchline, where it would have been (rule 104)
+            kept.append({**m, "at": round(back, 3), "offset": round(float(m.get("offset") or 0) + back - a, 3),
+                         "length": round(end - back, 3), "fade_in": 0.01, "fade_out": 0.02})
+
+
+def land_punchlines(sound: dict[str, Any], lines_at: list[float], beat: float = 0.577,
+                    resume_at: Any = None) -> None:
+    """Rule 104 against the cut as it now stands: every record scratch sits half a beat before the first word
+    of the line it introduces, the score stops dead on it, and a second scratch for the same line is dropped.
+
+    The sound was designed against the animatic's clock; fitting the lines and recutting moved the words, so
+    a scratch left where it was lands mid-sentence and the music runs on under the punchline."""
+    kept, done = [], set()
+    for p in sorted(sound["placements"], key=lambda x: float(x["at"])):
+        if p["source"] != "record_scratch":
+            kept.append(p)
+            continue
+        line = next((t for t in lines_at if float(p["at"]) - 0.3 <= t <= float(p["at"]) + 6.0), None)
+        if line in done:
+            continue  # a second scratch for the same line
+        if line is None:
+            kept.append(p)
+            continue
+        done.add(line)
+        at = round(line - beat / 2 - 0.25, 3)  # the scratch's tail ends half a beat before the word
+        kept.append({**p, "at": at})
+        _stop_score(kept, at, line, resume_at)
+    sound["placements"] = kept
+
+
+def with_places(plan: dict[str, Any], bible: dict[str, Any], used: list) -> dict[str, Any]:
+    """The plan's sound plus each place's bed and each rendered shot's own sound (its voice cut out).
+    Files already on disk ride along under "_files" (source id → path)."""
+    from . import _trailer_sound as ts
+
+    from .. import place_beds, score_fit
+
+    sound = place_beds.follow_cut(json.loads(json.dumps(plan["sound"])), plan)  # beds on the cut as it is now
+    score_fit.follow_cut(sound, plan)  # and the score's sections as long as the acts they play under
+    sources, placements = ts.beds(plan, bible)
+    sound["sources"] += sources
+    sound["placements"] += placements
+    # a sound already on disk (a riser made for an earlier cut) rides along by its path, nothing generated
+    files = {src["id"]: Path(src["path"]) for src in sound["sources"] if src.get("kind") == "file" and src.get("path")}
+    stems = Path(plan["output_dir"]) / "sound" / "production"
+    stems.mkdir(parents=True, exist_ok=True)
+    mouths = Path(plan["output_dir"]) / "shots" / "mouths.json"
+    # "video_audio": false — the video model's own sound is left out entirely: every sound comes from the
+    # designed effects, foley and beds (its takes were thin, wrong and full of half-removed voices)
+    for shot, clip, start in (used if (plan.get("sound") or {}).get("video_audio", True) else []):
+        sid = f"prod_{shot['label']}"
+        span = speech(clip, mouths)  # every shot: generated words nobody wrote are noise in the mix
+        files[sid] = ts.production(shot, clip, start, span, stems / f"{shot['label']}.wav")
+        sound["sources"].append({"id": sid, "kind": "file"})
+        sound["placements"].append(ts.production_placement(sid, shot))
+    sound["_files"] = files
+    return with_vocals(sound, plan, bible)
+
+
+def with_vocals(sound: dict[str, Any], plan: dict[str, Any], bible: dict[str, Any]) -> dict[str, Any]:
+    """The human sound of a drama pass — breaths, efforts, laughs, a crowd — in the cast's own voices, added to the
+    mix of the animatic as of the cut: a comedy is judged on its giggles before any video exists."""
+    if not plan.get("vocals"):
+        return sound
+    from . import _animatic_voice as av
+    from . import _drama_pass as dp
+
+    files = sound.setdefault("_files", {})
+    voices = av.voices_for(bible, {v["who"] for v in plan["vocals"]} - {"crowd"}, [], lambda rest, lib: {})
+    voiced = dp.voice(plan["vocals"], voices, Path(plan["output_dir"]))
+    for n, path in voiced.items():
+        files[f"vocal_{n}"] = path
+        sound["sources"].append({"id": f"vocal_{n}", "kind": "file"})
+    sound["placements"] += dp.placements(plan, voiced, bible)
+    return sound
+
+
+def to_buy(plan: dict[str, Any], bible: dict[str, Any], voices: dict[str, str]) -> tuple[Any, list[str]]:
+    """(estimate, what) of everything this cut will buy: exchanges with no take kept, vocals not voiced yet,
+    sound sources not made. Nothing kept is priced again."""
+    from . import _animatic_voice as av
+    from . import _drama_pass as dp
+    from . import _reel_sound
+
+    out = Path(plan["output_dir"])
+    lines = [line for group in av.exchanges(plan)
+             if not av.take_kept(group, voices, out / "animatic-lines", bible.get("language"), bible)
+             for line in group]
+    vocals = [v for v in plan.get("vocals") or [] if _unvoiced(v, voices, out, dp)]
+    sources = _reel_sound.estimate(plan.get("sound"), out)
+    what = [f"{n} {name}" for n, name in ((len(lines), "line(s) to read"), (len(vocals), "vocal(s) to voice")) if n]
+    return sources + _spoken(lines, vocals), what + (["sound sources to make"] if sources else [])
+
+
+def _spoken(lines: list[dict[str, Any]], vocals: list[dict[str, Any]]) -> Any:
+    """The price of reading these lines and voicing these vocals (the crowd as a 2 s sound effect)."""
+    from decimal import Decimal
+
+    from .. import config
+    from . import _animatic_voice as av
+
+    text = " ".join([*(av._text(line) for line in lines), *(v["text"] for v in vocals if v["who"] != "crowd")])
+    crowd = sum(v["who"] == "crowd" for v in vocals)
+    total = Decimal("0")
+    if text.strip():
+        total += config.get_provider("eleven-tts").estimate_cost(text=text) or Decimal("0")
+    if crowd:
+        total += (config.get_provider("eleven-sfx").estimate_cost(duration_seconds=2.0) or Decimal("0")) * crowd
+    return total
+
+
+def _unvoiced(vocal: dict[str, Any], voices: dict[str, str], out: Path, dp: Any) -> bool:
+    """A vocal the cut would voice now: its speaker has a voice (or it is the crowd) and no file is kept."""
+    vid = "eleven-sfx" if vocal["who"] == "crowd" else voices.get(vocal["who"])
+    path = dp.vocal_file(vocal, out, vid) if vid else None
+    refused = path is not None and path.with_suffix(".refused").is_file()  # given up on, never bought again
+    return bool(vid) and not (refused or path.is_file() or dp.vocal_file(vocal, out).is_file())

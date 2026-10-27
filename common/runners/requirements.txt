@@ -16,5 +16,9 @@ google-genai>=1.0     # Imagen 4 / Nano Banana Pro / Lyria 3 Pro / Veo 3.1
 # Storage (only needed if S3_* env vars set)
 boto3>=1.35,<2
 
+# Frame maths for reel-builder (title cards, cctv overlay, screen replace,
+# animatic parts, trailer sound, joins)
+numpy>=1.26,<3
+
 # Typography composer (only needed for cover-maker --typeset overlay)
 Pillow>=10.4,<12

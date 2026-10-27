@@ -59,6 +59,10 @@ PRICE_TABLE: dict[str, dict[str, Decimal]] = {
     "seedance-2-0": {"per_1m_tokens": Decimal("10.70")},
     # OpenRouter passes the BytePlus token price through (openrouter.ai, 2026-10).
     "openrouter-seedance-2-5": {"per_1m_tokens": Decimal("10.70")},
+    # Atlas Cloud lists Seedance 2.5 reference-to-video at $0.134 per second (atlascloud.ai, 2026-10-16).
+    "atlas-seedance-2-5": {"per_second": Decimal("0.134")},
+    # Wan 3.0 lists $0.05/s at 480p; a 4 s and a 5 s clip each billed $0.21 (2026-10-16).
+    "openrouter-wan-3-0": {"per_second": Decimal("0.053")},
     # Measured 2026-10-14: 1120 image tokens + reasoning ≈ $0.138 per 2K frame.
     "openrouter-nano-banana-pro": {"per_image": Decimal("0.14")},
     # fal resells per second: ~$0.47/s at 720p (fal.ai/learn); 1080p unpublished.

@@ -88,6 +88,7 @@ def load_all_providers() -> None:
     except Exception:  # noqa: BLE001 — never break runners over keysfile errors
         pass
     from .providers import (  # noqa: F401
+        atlas_seedance,
         bfl,
         elevenlabs,
         fal,

@@ -22,12 +22,17 @@ Reads plan["board"] (written by the film chain), writes <dir>/board/<id>.png and
 the frames to the shots: all of them as keyframes to a one-generation film, or
 each to its own shot when every shot is its own generation. Frames
 whose spec has not changed are reused, so editing one frame re-rolls only it.
+
+Before anything is paid for, every frame to draw is listed with why: asked for
+(--only), missing, changed since its last render, or failed last time.
+--mark-current re-stamps the cache of every frame whose png is on disk, drawing
+nothing — for when the cache rule changed and not the frames (board.json written
+by a version that hashed the shot number would otherwise redraw the whole board).
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -37,7 +42,10 @@ from typing import Any
 
 from .. import config
 from .. import cost as cost_mod
+from .. import cut_joins, shot_coverage
 from ..errors import CostConfirmationDeclined, ProviderError, RunnerError
+from . import _stage_cache as sc
+from ._board_cache import _LOOK, _spec_hash, _stale, _summary, _why, mark_current  # noqa: F401 — re-exported
 
 _PROVIDER = "openrouter-nano-banana-pro"
 _PASS = 8
@@ -65,18 +73,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--only", help="comma-separated frame ids to re-roll even if cached")
     parser.add_argument("--judge", action="store_true",
                         help="let a vision critic score each take and re-roll weak ones (off: one take, judged by eye)")
+    parser.add_argument("--mark-current", action="store_true",
+                        help="draw nothing: re-stamp the cache of every frame whose png exists (with --only, of "
+                             "those frames), so frames hashed under an older rule are not redrawn; prints which")
     parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
     return parser
 
 
-def _spec_hash(frame: dict[str, Any], identity: str) -> str:
-    """What the frame looks like; editorial marks such as "revised" do not make it a new frame."""
-    spec = {k: v for k, v in frame.items() if k != "revised"}
-    return hashlib.sha256(json.dumps([spec, identity], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
-
-
 def _jpeg(png: Path) -> Path:
+    """The frame's jpg beside its png, encoded again only when the png is newer (redrawn)."""
     jpg = png.with_suffix(".jpg")
+    if jpg.is_file() and jpg.stat().st_mtime_ns >= png.stat().st_mtime_ns:
+        return jpg
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(png), "-q:v", "3", str(jpg)],
                    check=True, capture_output=True)
     return jpg
@@ -98,6 +106,18 @@ def _contact(frames: list[Path], out: Path, wide: bool = False) -> None:
     graph = f"{scaled}{pads}{labels}xstack=inputs={rows * cols}:layout={layout}[out]"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", graph, "-map", "[out]",
                     "-frames:v", "1", str(out)], check=True, capture_output=True)
+
+
+def _sheet(jpgs: list[Path], out_dir: Path, wide: bool) -> None:
+    """The contact sheet, made again only when a frame on it, their order or the layout changed."""
+    stamps, sheet = sc.Stamps(out_dir / "cache.json"), out_dir / "contact.jpg"
+    stamp = sc.key([sc.file_sig(j) for j in jpgs], wide)
+    if stamps.fresh(sheet.name, stamp, sheet):
+        print(f"Board: contact sheet unchanged ({len(jpgs)} frames), kept", file=sys.stderr)
+        return
+    _contact(jpgs, sheet, wide=wide)
+    stamps.set(sheet.name, stamp)
+    stamps.save()
 
 
 def _refs_note(names: list[str]) -> str:
@@ -137,6 +157,8 @@ def _bible_assets(plan: dict[str, Any], board: dict[str, Any], plan_file: Path) 
             assets[item["id"]] = str(path)
             names[item["id"]] = (f"{item['name']} ({item['identity']})" if kind == "cast"
                                  else f"the location: {item['description']}")
+    if bible.get("master"):
+        assets["master"], names["master"] = str(drama.master_path(bible)), "the original picture the film is drawn from"
     board["_assets"], board["_asset_names"] = assets, names
 
 
@@ -146,27 +168,68 @@ def _people(frame: dict[str, Any], refs: list[str]) -> list[tuple[str, str]]:
     return [(r, n) for r, n in zip(refs, names) if not n.startswith("frame ")]
 
 
+def _padded(image: Path) -> bool:
+    """True when both side edges are flat white: the picture was drawn narrower than its canvas."""
+    from PIL import Image, ImageStat
+
+    with Image.open(image) as im:
+        gray = im.convert("L")
+        w, h = gray.size
+        strip = max(2, w // 50)
+        edges = [ImageStat.Stat(gray.crop(box)) for box in ((0, 0, strip, h), (w - strip, 0, w, h))]
+    # white only: a frame graded to black at its edges is the look, not padding
+    return all(e.stddev[0] < 3 and e.mean[0] > 245 for e in edges)
+
+
+def _draw(slug: str, model_id: str | None, prompt: str, refs: list[str], board: dict[str, Any]):
+    return config.get_provider(slug).generate(
+        prompt, reference_images=refs, aspect_ratio=board.get("aspect_ratio", "9:16"), model_id=model_id,
+        image_size=board.get("image_size"), reasoning=board.get("reasoning"), quality=board.get("image_quality", "high"))
+
+
+def _no_image(exc: Exception) -> dict[str, Any]:
+    return {"issues": [f"no image: {' '.join(str(exc).split())[:300]}"], "fix": ""}
+
+
+def _drawn(frame: dict[str, Any], refs: list[str], board: dict[str, Any], prompt: str) -> tuple[Any, dict[str, Any]]:
+    """(result, {}) or (None, the refusal as a verdict); a moderation refusal goes to the fallback drawer once."""
+    try:
+        # board["image_model"] / ["image_size"] / ["reasoning"] pick the model (e.g. google/gemini-nano-banana-2.1),
+        # 1K/2K/4K and thinking depth; unset, the provider's Nano Banana Pro at 2K.
+        # board["image_provider"] swaps the drawer itself (e.g. "gpt-image-2" with image_model gpt-image-2.5-sunburst).
+        return _draw(board.get("image_provider") or _PROVIDER, board.get("image_model"), prompt, refs, board), {}
+    except ProviderError as exc:
+        fallback = board.get("fallback_provider")
+        if not (fallback and "moderation" in str(exc)):
+            return None, _no_image(exc)
+    # one vendor's safety filter refusing a cartoon frame is not a verdict on it: the other vendor draws it
+    print(f"  {frame['id']}: refused by the safety filter, drawn by {fallback}", file=sys.stderr)
+    try:
+        return _draw(fallback, None, prompt, refs, board), {}
+    except ProviderError as again:
+        return None, _no_image(again)
+
+
 def _take(frame: dict[str, Any], refs: list[str], board: dict[str, Any], prompt: str, take: Path) -> tuple[int, dict, float]:
     """One generation and its verdict: (score, verdict, dollars). A refusal scores 0 and costs a retry, not the board."""
     from ..providers.openrouter_image import judge
 
-    try:
-        # board["image_model"] / ["image_size"] / ["reasoning"] pick the model (e.g. google/gemini-nano-banana-2.1),
-        # 1K/2K/4K and thinking depth; unset, the provider's Nano Banana Pro at 2K.
-        result = config.get_provider(_PROVIDER).generate(
-            prompt, reference_images=refs, aspect_ratio=board.get("aspect_ratio", "9:16"),
-            model_id=board.get("image_model"), image_size=board.get("image_size"), reasoning=board.get("reasoning"))
-    except ProviderError as exc:
-        return 0, {"issues": [f"no image: {str(exc)[:120]}"], "fix": ""}, 0.0
+    result, refused = _drawn(frame, refs, board, prompt)
+    if result is None:
+        return 0, refused, 0.0
     take.write_bytes(result.content)
+    drawn = float(result.extra.get("cost_usd") or 0)
+    if _padded(take):
+        # The model sometimes draws a narrower picture on a 16:9 canvas; a video model animates the bars too.
+        return 0, {"issues": ["drawn with blank bars at the sides"], "fix": ""}, drawn
     if not board.get("_judge", True):
-        return 10, {}, float(result.extra.get("cost_usd") or 0)
+        return 10, {}, drawn
     people = _people(frame, refs)
     verdict = judge(_JUDGE.format(refs=_refs_note([n for _, n in people]), shot=frame["shot_spec"],
                                   check=frame.get("check", ""), identity=board.get("identity", "")),
                     [r for r, _ in people] + [str(take)])
     score = min(int(verdict.get(k, 0)) for k in _AXES)
-    return score, verdict, float(result.extra.get("cost_usd") or 0) + float(verdict.get("cost_usd") or 0)
+    return score, verdict, drawn + float(verdict.get("cost_usd") or 0)
 
 
 def _render(frame: dict[str, Any], refs: list[str], board: dict[str, Any], out: Path, tries: int) -> dict[str, Any]:
@@ -176,7 +239,7 @@ def _render(frame: dict[str, Any], refs: list[str], board: dict[str, Any], out: 
         take = out.with_name(f"{out.stem}.take{attempt}.png")
         score, verdict, cost = _take(frame, refs, board, prompt, take)
         spent += cost
-        print(f"  {frame['id']} take {attempt}: {score}/10  {'; '.join(verdict.get('issues') or [])[:140]}",
+        print(f"  {frame['id']} take {attempt}: {score}/10  {'; '.join(verdict.get('issues') or [])[:320]}",
               file=sys.stderr)
         if take.is_file() and (best is None or score > best["score"]):
             best = {"score": score, "take": attempt, "verdict": verdict}
@@ -227,13 +290,6 @@ def _attach_frame(shot: dict[str, Any], frame: dict[str, Any], jpg: str, charact
         kwargs["first_frame"] = jpg
 
 
-def _stale(frames: list[dict[str, Any]], state: dict[str, Any], only: set[str], identity: str,
-           out_dir: Path) -> list[dict[str, Any]]:
-    """Frames to render: asked for by --only, changed since their last render, or missing."""
-    return [f for f in frames if f["id"] in only or state.get(f["id"], {}).get("hash") != _spec_hash(f, identity)
-            or not (out_dir / f"{f['id']}.png").is_file()]
-
-
 def _known_refs(board: dict[str, Any]) -> tuple[dict[str, str], dict[str, str]]:
     """What a frame's refs can name before any frame is drawn: the character, or a drama's cast and places."""
     paths = {"character": board["character"]} if board.get("character") else {}
@@ -273,7 +329,7 @@ def _finish(plan: dict[str, Any], board: dict[str, Any], frames: list[dict[str, 
         print(f"Board: no image for {', '.join(missing)}; rewrite their prompts and run again with --only.",
               file=sys.stderr)
     frames, jpgs = drawn, [_jpeg(out_dir / f"{f['id']}.png") for f in drawn]
-    _contact(jpgs, out_dir / "contact.jpg", wide=board.get("aspect_ratio") == "16:9")
+    _sheet(jpgs, out_dir, wide=board.get("aspect_ratio") == "16:9")
     board.pop("_assets", None)
     board.pop("_judge", None)
     board.pop("_asset_names", None)
@@ -294,10 +350,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.is_file() else {}
     only = set((args.only or "").split(",")) - {""}
 
-    todo = _stale(frames, state, only, board.get("identity", ""), out_dir)
+    stale = _stale(frames, state, only, board.get("identity", ""), out_dir)
+    todo = [f for f, _ in stale]
     if not args.judge:
         args.tries = 1
-    estimate = (config.get_provider(_PROVIDER).estimate_cost() or Decimal("0")) * len(todo) * args.tries
+    drawer = config.get_provider(board.get("image_provider") or _PROVIDER)
+    per_frame = (drawer.estimate_cost(quality=board.get("image_quality", "high")) or Decimal("0")) * args.tries
+    estimate = per_frame * len(todo)
+    shot_coverage.warn(plan)  # a cut of close-ups and push-ins is cheaper to fix before the frames exist
+    cut_joins.warn(plan)
+    _summary(stale, per_frame, only)
     print(f"Board: {len(frames)} frames, {len(todo)} to render, up to ${estimate:.2f} "
           f"({args.tries} tries each at most).", file=sys.stderr)
     if todo:
@@ -307,13 +369,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     board["_judge"] = args.judge
     _render_all(board, todo, state, state_path, args.tries)
     frames = _finish(plan, board, frames, out_dir)
-    args.plan_file.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    sc.save_json(args.plan_file, plan)  # an unchanged plan keeps its mtime
     return {"frames": frames, "state": state, "contact": out_dir / "contact.jpg"}
 
 
 def main() -> int:
     args = build_parser().parse_args()
     config.load_all_providers()
+    if args.mark_current:
+        marked = mark_current(args)
+        print(f"Board: re-stamped {len(marked)} frame(s): {', '.join(marked) or 'none needed'}", file=sys.stderr)
+        return 0
     try:
         report = run(args)
     except CostConfirmationDeclined as exc:

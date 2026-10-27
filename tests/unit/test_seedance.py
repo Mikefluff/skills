@@ -229,3 +229,24 @@ class BoardToShots(unittest.TestCase):
         silent, speaking = (s["kwargs"] for s in plan["shots"])
         self.assertEqual(silent, {"first_frame": "f01.jpg"})
         self.assertEqual(speaking, {"reference_images": ["hero.jpg", "f02.jpg"]})
+
+
+class OpenRouterWanRoute(unittest.TestCase):
+    def setUp(self):
+        from common.runners.providers import openrouter_video
+        self.provider = openrouter_video.OpenRouterWan30Provider()
+
+    def test_the_storyboard_frame_opens_the_shot_and_nothing_else_is_sent(self):
+        body = self.provider.build_body("p", {"first_frame": "https://x/f37.jpg", "reference_images": ["https://x/h.png"],
+                                              "reference_audio": ["https://x/vo.mp3"], "duration_seconds": 4,
+                                              "resolution": "480p"})
+        self.assertEqual(body["model"], "alibaba/wan-3.0")
+        self.assertEqual([f["frame_type"] for f in body["frame_images"]], ["first_frame"])
+        self.assertNotIn("input_references", body)
+
+    def test_a_shot_without_its_frame_is_refused(self):
+        with self.assertRaises(ProviderError):
+            self.provider.build_body("p", {"duration_seconds": 4})
+
+    def test_priced_per_second(self):
+        self.assertAlmostEqual(float(self.provider.estimate_cost(duration_seconds=4)), 0.212, places=3)
