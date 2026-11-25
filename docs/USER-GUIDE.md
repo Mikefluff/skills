@@ -72,6 +72,7 @@ Jump straight to the section for what you want to do.
 | Research a topic with citations | [§ research-brief](#i-want-to-research-a-topic) |
 | Build an N-slide carousel | [§ carousel-builder](#i-want-to-build-a-carousel) |
 | Build a vertical reel | [§ reel-builder](#i-want-to-build-a-reel) |
+| Re-edit raw talking-head clips into reels | [§ reel-recut](#i-want-to-re-edit-raw-clips) |
 | Publish it to a social platform | [§ post-publisher](#i-want-to-publish-a-post) |
 | Full chain (research → carousel + reel) | [walkthrough](walkthroughs/research-to-carousel-reel.md) |
 | Full chain (generate → publish) | [walkthrough](walkthroughs/publish-to-social.md) |
@@ -89,12 +90,12 @@ Stuck? [FAQ](FAQ.md) · [Troubleshooting](TROUBLESHOOTING.md).
 
 ## The collection in one paragraph
 
-Forty-four skills layered on top of one base linter (`writer`):
+Forty-six skills layered on top of one base linter (`writer`):
 
 - **Base**: `writer` strips 25 catalogued categories of LLM-prose tells from any text, in RU or EN, plus chatbot copy-paste artifacts and rhythm metrics. Runs as a final pass under every other prose skill.
-- **Wrappers** (22): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`, `schema-maker`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`, `model-maker`).
+- **Wrappers** (24): prose editing (`viral-text`, `prose-edit`, `essay-write`, `pelevin-digression`, `tone-shifter`), marketing + ops (`cold-email`, `microcopy`, `release-notes`, `rfc-writer`, `landing-copy`, `schema-maker`), AI media prompts (`image-prompt`, `video-prompt`, `music-prompt`), and media utilities (`bg-remover`, `voiceover-maker`, `subtitle-burner`, `gif-maker`, `upscaler`, `audio-mix-maker`, `style-transfer`, `transcribe-maker`, `model-maker`).
 - **Linters** (read-only — produce reports, don't edit): `style-check` for pre-commit prose lint and AI-detection audits, `translation-sync` for RU/EN/PT-BR parity, `canon-check` for story-bible consistency.
-- **Orchestrators** (14, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; `post-publisher` sends any of that to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs; `proposal-maker` turns a raw offer into a brand-faithful HTML proposal; `style-suggest` turns a description or reference image into a new visual-style entry; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
+- **Orchestrators** (15, end-to-end pipelines): `research-brief` produces cited research; `carousel-builder` turns topics into N-slide carousels; `reel-builder` produces stitched vertical reels with matched music; `reel-recut` re-edits talking-head footage you already have into captioned reels with graphics, cutaways and covers; `post-publisher` sends any of that to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs; `proposal-maker` turns a raw offer into a brand-faithful HTML proposal; `style-suggest` turns a description or reference image into a new visual-style entry; single-image orchestrators (`flyer-maker` / `cover-maker` / `thumbnail-maker` / `avatar-maker` / `logo-maker` / `quote-card-maker` / `banner-maker` / `meme-card-maker`) ship structured visual artifacts.
 - **Meta** (3): `skills-update` (apply a newer release of this collection), `skills-keys` (manage `~/.skills.env` API keys for the `--execute` layer), `skills-styles` (manage the local style library).
 
 Skills work on any text file (`.md`, `.tex`, `.txt`, …) — there's no assumed file format or project layout.
@@ -644,6 +645,34 @@ For details: [skills/reel-builder/SKILL.md](../skills/reel-builder/SKILL.md) and
 
 ---
 
+### "I want to re-edit raw clips" {#i-want-to-re-edit-raw-clips}
+
+`/reel-recut` finishes footage that already exists: a folder of clips with a
+person talking to camera, shot or generated, that still looks raw. It transcribes
+every clip with word timings, finds the duplicate takes, and writes one
+`plan.json` for the series. The builder then trims openers and long pauses,
+alternates wide and close framing, and lays word-by-word captions, pop-up
+graphics, b-roll cutaways, an end card and a music bed. Each reel gets a cover.
+
+```
+/reel-recut ./raw-clips                       # transcribe, pick takes, plan, build
+python3 -m common.runners.cli.reel_recut takes --words words/
+python3 -m common.runners.cli.reel_recut check --plan-file plan.json
+python3 -m common.runners.cli.reel_recut build --plan-file plan.json --preview
+python3 -m common.runners.cli.reel_recut sheet --plan-file plan.json
+```
+
+The edit itself calls no paid API: ffmpeg cuts and Chrome renders the graphics.
+Cost comes only from the transcripts, the generated cutaways and the music.
+`check` is free and prints every caption, so a misheard word is fixed before
+anything renders. To make a reel from a topic with no footage, use
+`reel-builder`; to burn an existing SRT onto a finished video, use
+`subtitle-burner`.
+
+For details: [skills/reel-recut/SKILL.md](../skills/reel-recut/SKILL.md) · [plan-format](../skills/reel-recut/references/plan-format.md) · [editing-rules](../skills/reel-recut/references/editing-rules.md).
+
+---
+
 ### "I want to publish a post" {#i-want-to-publish-a-post}
 
 `/post-publisher <dir>` closes the last mile: it takes a `carousel-builder` or
@@ -1076,7 +1105,7 @@ See [`README.md § What's in the box`](../README.md#whats-in-the-box) for the up
 - [QUICKSTART](QUICKSTART.md) — 5-minute first run
 - [FAQ](FAQ.md) — answers to the questions people ask first
 - [TROUBLESHOOTING](TROUBLESHOOTING.md) — known failure modes + fixes
-- [COMPOSING](COMPOSING.md) — how the 45 skills compose; recipe library
+- [COMPOSING](COMPOSING.md) — how the 46 skills compose; recipe library
 - [SKILL-INDEX](SKILL-INDEX.md) — every skill indexed by layer / domain / language
 - [walkthroughs/README.md](walkthroughs/README.md) — 19 walkthroughs, categorized
 - [CONTRIBUTING](../CONTRIBUTING.md) — adding your own skill to the collection

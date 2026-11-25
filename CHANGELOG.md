@@ -9,6 +9,13 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.27.0] — 2026-11-25
+
+### Added
+
+- **`reel-recut`** (orchestrator). Re-edits talking-head footage that already exists into finished vertical reels. One `plan.json` per series, with every time given on the original clip. `takes` finds duplicate takes and lines said twice from the transcripts. `check` validates the plan and prints each reel's cuts, framing and captions, free. `build` trims the opener inside a pause, tightens long pauses, alternates wide and close framing on pauses and cuts, lays word-by-word captions, browser-rendered graphics (chip, big number, vs, tags, url, list panel), cutaways from clips or stills, an end card and a ducked music bed, in one ffmpeg graph and one encode. `covers` and `sheet` render numbered covers and contact sheets for review. The edit calls no paid API. Composes with `transcribe-maker`, `video-prompt`, `image-prompt` and `music-prompt`; distinct from `reel-builder`, which generates the video, and `subtitle-burner`, which burns one SRT.
+- **`transcribe-maker --words`.** `verbose_json` returned segments only, although the docs promised word-level timestamps. The flag asks Whisper for them by name; without `--format verbose_json` it is refused before the upload.
+
 ## [2.26.0] — 2026-10-27
 
 ### Added

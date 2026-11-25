@@ -4,7 +4,7 @@
 [![version](https://img.shields.io/github/v/release/Mikefluff/skills?label=version)](https://github.com/Mikefluff/skills/releases/latest)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**45 skills for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) that make content — and refuse to let it read like a machine made it.**
+**46 skills for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) that make content — and refuse to let it read like a machine made it.**
 
 Prose editing that strips the tells. Prompt engineering for 40+ image, video and
 music models, with optional one-command execution against the real APIs. And
@@ -98,8 +98,8 @@ route through it rather than restating its rules. `viral-text` knows about hooks
 and platforms; it does not know about em-dashes, because `writer` does. The same
 shape holds for media: nine skills build on [`image-prompt`](skills/image-prompt/).
 
-That is the whole architecture. 45 skills: 1 base, 22 wrappers, 3 linters,
-14 orchestrators, 3 meta.
+That is the whole architecture. 46 skills: 1 base, 24 wrappers, 3 linters,
+15 orchestrators, 3 meta.
 
 ---
 
@@ -234,6 +234,7 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 | [`prose-edit`](skills/prose-edit/) | wrapper | ru | Fiction rewrite layer — Pelevin/Manson voice vector, 10-item style drift checklist, no meta-refs / anglicisms in narrator voice, long artistic rewrite (no comma-stitching), ToV pattern, 5-trigger structural-synthesis detector, Postirony depth-pass. |
 | [`quote-card-maker`](skills/quote-card-maker/) | orchestrator | en/ru | Quote card / aphorism graphic generator — short text + attribution on a typography-dominant composition. Wraps image-prompt --execute + the carousel style library biased toward text-friendly anchors (minimal-serif / swiss-grid / editorial-magazine / monochrome-bold / gradient-mesh-modern / russian-constructivist). Multi-aspect (square / portrait / story / landscape). Default model ideogram-3-quality. Outputs: ./generated/quote/<slug>/<aspect>.png + manifest.json. |
 | [`reel-builder`](skills/reel-builder/) | orchestrator | en/ru | Turn a topic / research brief / script into a vertical reel: 1-4 video shots + matched background music + ffmpeg-stitched final.mp4 with optional burned-in captions. Wraps viral-text + video-prompt --execute + music-prompt --execute + common video/music style library + ffmpeg. Outputs final.mp4 + shots/ + music.mp3 + script.md + manifest. Modes: --topic / --research / --script-file; --shots 1-5; --style auto\|<library-id>; --music-style auto\|<library-id>; --captions on\|off; --execute; --resume. Film mode: a voiced film — ElevenLabs take with word timings, dramaturgy pinned to the words, Seedance 2.x lip-syncing a character from one photo, one 30 s generation or segments cut only in speech pauses and chained frame-to-frame, the master take laid over the frame-exact join. Drama mode: a series of dialogue films — a bible of cast and places, a director's rules extending a base set, judged portraits reused across episodes, 15-second Seedance scenes in which the characters speak the series' language, the speech checked against the script by transcription and failed scenes re-rendered. |
+| [`reel-recut`](skills/reel-recut/) | orchestrator | en/ru | Re-edit existing talking-head clips into finished vertical reels. Finds duplicate takes and lines said twice from word-level transcripts, trims the opener inside a pause, tightens long pauses, alternates wide and close framing on pauses and cuts, lays word-by-word karaoke captions, browser-rendered pop-up graphics (chip / big number / vs / tags / url / list panel), b-roll cutaways from clips or stills, an end card and a ducked music bed, then renders numbered covers and contact sheets for review. One plan.json per series; the edit itself calls no paid API. Subcommands: takes / check / build / covers / sheet. |
 | [`release-notes`](skills/release-notes/) | wrapper | en/ru | Write user-facing release notes + changelogs. Keep-a-Changelog format, sections Added/Changed/Fixed/Deprecated/Removed/Security. Per-audience tone (user/dev/ops). Anti-marketing-fluff bans. Wraps writer. |
 | [`research-brief`](skills/research-brief/) | orchestrator | en/ru | Produce a structured research brief on any topic — TL;DR, key facts with citations, notable quotes, suggested angles, open questions. 3-15 queries by depth, multi-source (WebSearch + WebFetch + optional Firecrawl/Exa MCP). Output is a markdown file ready for downstream consumption by carousel-builder, reel-builder, viral-text, essay-write, landing-copy. |
 | [`rfc-writer`](skills/rfc-writer/) | wrapper | en/ru | Write engineer-facing design docs — RFCs, ADRs, Tech Specs, Design Docs. Structure: context/problem/proposal/alternatives/consequences/decision. RFC 2119 (MUST/SHOULD/MAY). Review checklist for spotting weak alternatives sections. |
@@ -370,7 +371,7 @@ skills/
 ├── CODE_OF_CONDUCT.md       # short; scales up if the project does
 ├── SECURITY.md              # how to report a vulnerability
 │
-├── skills/                  # the 45 skills, one folder each
+├── skills/                  # the 46 skills, one folder each
 │   └── <skill-name>/
 │       ├── SKILL.md         # frontmatter + the rules; this IS the skill
 │       ├── references/      # deep material loaded on demand

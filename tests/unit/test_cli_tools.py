@@ -279,6 +279,24 @@ class Transcribe(ToolCase):
             )
         self.assertTrue(media.with_suffix(".txt").is_file())
 
+    def test_words_asks_the_provider_for_word_timings(self):
+        provider = FakeProvider(name="whisper-1")
+        with mock.patch.object(ff_mod, "get_duration", return_value=10.0):
+            code, _out, _err = invoke(
+                "transcribe", ["--input", str(self.media()), "--format", "verbose_json", "--words"], provider,
+            )
+        self.assertEqual(code, 0)
+        self.assertTrue(provider.seen_kwargs["word_timestamps"])
+
+    def test_words_without_verbose_json_is_two(self):
+        # Any other format has nowhere to put word timings: the run would be
+        # paid for and return exactly what it returns without the flag.
+        provider = FakeProvider(name="whisper-1")
+        code, _out, err = invoke("transcribe", ["--input", str(self.media()), "--words"], provider)
+        self.assertEqual(code, 2)
+        self.assertIn("verbose_json", err)
+        self.assertIsNone(provider.seen_kwargs)
+
 
 class Subtitle(ToolCase):
     def video(self):
