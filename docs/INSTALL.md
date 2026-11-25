@@ -99,11 +99,11 @@ Useful when you want to:
 After any install method, verify:
 
 ```bash
-ls ~/.claude/skills                          # should list 45 skill folders + common/
+ls ~/.claude/skills                          # should list 46 skill folders + common/
 cat ~/.claude/skills/.skills-collection.json # marker with version + skill list
 ```
 
-In Claude Code, ask `what skills are available?` — the 45 skills appear in the response.
+In Claude Code, ask `what skills are available?` — the 46 skills appear in the response.
 
 ## Updates
 

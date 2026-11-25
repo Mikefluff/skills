@@ -6,7 +6,7 @@
 **Title** (Show HN):
 
 ```
-Show HN: 45 Claude Code skills for writing and AI media, with an offline slop linter
+Show HN: 46 Claude Code skills for writing and AI media, with an offline slop linter
 ```
 
 **URL**:

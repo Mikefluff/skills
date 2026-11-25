@@ -91,6 +91,10 @@ class WhisperTranscribeProvider(Provider):
         }
         if language:
             data["language"] = language
+        # Whisper returns segments only unless words are asked for by name, and
+        # only verbose_json has anywhere to put them.
+        if kwargs.get("word_timestamps") and response_format == "verbose_json":
+            data["timestamp_granularities[]"] = "word"
 
         with path.open("rb") as fh:
             resp = _http.post(

@@ -44,7 +44,7 @@ Read audio/video input → call OpenAI Whisper API with the requested format →
    - `--format vtt` — WebVTT (YouTube / HTML5 `<track>`)
    - `--format text` — plain transcript, no timestamps
    - `--format json` — Whisper raw JSON (simple)
-   - `--format verbose_json` — JSON with word-level timestamps + segments
+   - `--format verbose_json` — JSON with segments; add `--words` for word-level timestamps (what `reel-recut` and karaoke captions read)
 
 3. **Resolve language** (optional):
    - `--lang en` / `--lang ru` / `--lang de` etc. — ISO-639-1 hint

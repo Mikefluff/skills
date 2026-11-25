@@ -48,6 +48,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--temperature", type=float, default=0.0,
         help="Whisper sampling temperature (0-1); default 0 for deterministic",
     )
+    parser.add_argument(
+        "--words", action="store_true",
+        help="word-level timestamps (verbose_json only) — what reel-recut and karaoke captions need",
+    )
     parser.add_argument("--check", action="store_true", help="verify OPENAI_API_KEY + connectivity")
     parser.add_argument("--yes", action="store_true", help="skip cost confirmation")
     parser.add_argument("--cost-only", action="store_true", help="print estimated cost + exit")
@@ -86,6 +90,8 @@ def _transcribe_kwargs(args: argparse.Namespace, duration_minutes: float | None)
     }
     if args.lang:
         kwargs["language"] = args.lang
+    if args.words:
+        kwargs["word_timestamps"] = True
     if duration_minutes is not None:
         kwargs["duration_minutes"] = duration_minutes
     return kwargs
@@ -96,6 +102,9 @@ def main() -> int:
 
     if not args.input.is_file():
         print(f"  ✗ input file not found: {args.input}", file=sys.stderr)
+        return 2
+    if args.words and args.format != "verbose_json":
+        print("  ✗ --words needs --format verbose_json (the only format that carries word timings)", file=sys.stderr)
         return 2
 
     provider = _tool.resolve_provider("whisper-1")

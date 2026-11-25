@@ -21,7 +21,8 @@ Distinct from `reel-builder`:
 
 This skill does NOT:
 - Generate the video — the input is yours.
-- Auto-transcribe audio to captions — requires Whisper, planned for a separate `transcribe` skill (see ROADMAP).
+- Auto-transcribe audio to captions — `transcribe-maker` produces the SRT; feed it in here.
+- Time captions per word, add graphics or cutaways, or cut the footage — that is `reel-recut`.
 - Translate captions between languages — pass already-translated subtitles.
 - Re-encode video at different resolutions / formats beyond what ffmpeg's drawtext requires (output matches input resolution + codec where possible).
 - Add audio (TTS overlay) — use `voiceover-maker` for that.
