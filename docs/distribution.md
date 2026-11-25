@@ -41,7 +41,7 @@ fails the same test, because a free-text column is how the npm row came to say
 | Directory | Link | Route | Status |
 |---|---|---|---|
 | npm registry | dofollow | `make publish-npm` | listed |
-| skills.sh index (`npx skills`) | unknown | GitHub topics, then an issue | submitted |
+| skills.sh index (`npx skills`) | unknown | GitHub topics, then an issue | listed |
 | Anthropic community plugin directory | dofollow | form at clau.de | not submitted |
 | awesome-claude-code | dofollow | issue form, by hand | drafted |
 | travisvn/awesome-claude-skills | dofollow | pull request | not submitted |
