@@ -9,6 +9,13 @@ Releases are cut manually. Commit messages use [Conventional Commits](https://ww
 
 ## [Unreleased]
 
+## [2.27.1] — 2026-11-26
+
+### Changed
+
+- **README brought back in line with the collection.** The "What you can do" tables listed 28 of 46 skills; the 18 missing ones are in, with a section for media you already have. The `reel-builder` row names film mode, drama mode and the short film from one picture. Counts match the code: 49 providers, ten skills on `image-prompt`, and the vendor list gains Seedance, Ideogram 4, Tripo and OpenRouter.
+- **`docs/distribution.md`**: skills.sh indexes the collection, so that row is `listed`.
+
 ## [2.27.0] — 2026-11-25
 
 ### Added
