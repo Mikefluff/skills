@@ -7,9 +7,12 @@
 **46 skills for [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) that make content — and refuse to let it read like a machine made it.**
 
 Prose editing that strips the tells. Prompt engineering for 40+ image, video and
-music models, with optional one-command execution against the real APIs. And
-orchestrators that carry a job the whole way: research question → carousel →
-published post; raw price list → a proposal styled from the client's own website.
+music models, with optional one-command execution against the real APIs. Media
+utilities for the footage and pictures you already have: transcripts, captions,
+upscaling, background removal. And orchestrators that carry a job the whole way:
+research question → carousel → published post; a folder of raw talking-head clips
+→ captioned reels with covers; one picture → a voiced short film; raw price list →
+a proposal styled from the client's own website.
 
 Russian-first, English throughout. Plain markdown, MIT, no required dependencies.
 
@@ -96,7 +99,7 @@ the commit — [pre-commit walkthrough](docs/walkthroughs/pre-commit-hook.md).
 One skill does the prose work — [`writer`](skills/writer/) — and eleven others
 route through it rather than restating its rules. `viral-text` knows about hooks
 and platforms; it does not know about em-dashes, because `writer` does. The same
-shape holds for media: nine skills build on [`image-prompt`](skills/image-prompt/).
+shape holds for media: ten skills build on [`image-prompt`](skills/image-prompt/).
 
 That is the whole architecture. 46 skills: 1 base, 24 wrappers, 3 linters,
 15 orchestrators, 3 meta.
@@ -168,6 +171,7 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 | Write release notes / changelog | [`release-notes`](skills/release-notes/) → writer | [release-notes-saas](docs/walkthroughs/release-notes-saas.md) |
 | Write an RFC / ADR / design doc | [`rfc-writer`](skills/rfc-writer/) → writer | [rfc-architecture](docs/walkthroughs/rfc-architecture.md) |
 | Write landing / SEO / ad copy | [`landing-copy`](skills/landing-copy/) → writer | [landing-launch](docs/walkthroughs/landing-launch.md) |
+| Generate schema.org JSON-LD for a page | [`schema-maker`](skills/schema-maker/) | [skills/schema-maker/SKILL.md](skills/schema-maker/SKILL.md) |
 
 ### Generate AI media (prompt-first, execute optional)
 
@@ -177,8 +181,21 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 | Generate a video prompt for 20+ models (Veo 3.1 + audio, Sora 2, Kling 3.0, Runway Gen-4 / Aleph V2V, Luma Ray 3, Pika, Hailuo, Hunyuan, Wan 2.2, Seedance, …) | [`video-prompt`](skills/video-prompt/) | [video-prompt-reel](docs/walkthroughs/video-prompt-reel.md) |
 | Generate a music prompt for 10+ models (Suno v5.5, Udio v4, Lyria 3 Pro, ElevenLabs Music, Stable Audio 2.5, MusicGen, …) | [`music-prompt`](skills/music-prompt/) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-to-write-an-ai-music-prompt) |
 | Voiceover / narration via TTS (ElevenLabs multilingual + OpenAI gpt-4o-mini-tts) | [`voiceover-maker`](skills/voiceover-maker/) | [skills/voiceover-maker/examples/before-after.md](skills/voiceover-maker/examples/before-after.md) |
-| Burn captions onto an existing video (SRT / VTT / plain text + ffmpeg) | [`subtitle-burner`](skills/subtitle-burner/) | [skills/subtitle-burner/examples/before-after.md](skills/subtitle-burner/examples/before-after.md) |
+| Generate a 3D mesh from text or a photo (GLB / FBX / OBJ / STL / USDZ via Tripo) | [`model-maker`](skills/model-maker/) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-a-3d-model) |
+| Build an animated website or section as running code (WebGL, particles, scroll-driven 3D, shaders) | [`motion-site`](skills/motion-site/) | [USER-GUIDE](docs/USER-GUIDE.md#i-want-an-animated-website) |
 | Actually run the prompt through the vendor API and save a real PNG / MP4 / MP3 | any of the prompt skills + `--execute` | [execute-end-to-end](docs/walkthroughs/execute-end-to-end.md) |
+
+### Work on media you already have
+
+| Scenario | Skill(s) | Walkthrough |
+|---|---|---|
+| Transcribe audio or video to SRT / VTT / JSON, with word-level timings on request | [`transcribe-maker`](skills/transcribe-maker/) | [skills/transcribe-maker/examples/before-after.md](skills/transcribe-maker/examples/before-after.md) |
+| Burn captions onto an existing video (SRT / VTT / plain text + ffmpeg) | [`subtitle-burner`](skills/subtitle-burner/) | [skills/subtitle-burner/examples/before-after.md](skills/subtitle-burner/examples/before-after.md) |
+| Put a music track on a video: replace, overlay, or duck under speech | [`audio-mix-maker`](skills/audio-mix-maker/) | [skills/audio-mix-maker/examples/before-after.md](skills/audio-mix-maker/examples/before-after.md) |
+| Turn a clip into a GIF | [`gif-maker`](skills/gif-maker/) | [skills/gif-maker/examples/before-after.md](skills/gif-maker/examples/before-after.md) |
+| Remove the background from an image | [`bg-remover`](skills/bg-remover/) | [skills/bg-remover/examples/before-after.md](skills/bg-remover/examples/before-after.md) |
+| Upscale an image 2x / 4x | [`upscaler`](skills/upscaler/) | [skills/upscaler/examples/before-after.md](skills/upscaler/examples/before-after.md) |
+| Restyle an image in a named look | [`style-transfer`](skills/style-transfer/) | [skills/style-transfer/examples/before-after.md](skills/style-transfer/examples/before-after.md) |
 
 ### Orchestrate end-to-end
 
@@ -186,9 +203,17 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 |---|---|---|
 | Research a topic with cited sources (WebSearch + WebFetch + optional Firecrawl/Exa MCP) | [`research-brief`](skills/research-brief/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
 | Turn topic / research into an N-slide Instagram / LinkedIn / TikTok carousel (24 visual styles, batch execute) | [`carousel-builder`](skills/carousel-builder/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
-| Turn topic / research / script into a vertical reel (12 directorial styles + 12 music genres + ffmpeg stitch) | [`reel-builder`](skills/reel-builder/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
+| Turn topic / research / script into a vertical reel (12 directorial styles + 12 music genres + ffmpeg stitch); film mode for a voiced, lip-synced film; drama mode for episodes of a dialogue series with a recurring cast; a whole animated short from one picture | [`reel-builder`](skills/reel-builder/) | [research-to-carousel-reel](docs/walkthroughs/research-to-carousel-reel.md) |
+| Re-edit raw talking-head clips you already have into finished reels: best take picked, pauses tightened, punch-ins, word-by-word captions, pop-up graphics, cutaways, end card, covers | [`reel-recut`](skills/reel-recut/) | [skills/reel-recut/examples/before-after.md](skills/reel-recut/examples/before-after.md) |
+| Publish a finished post, carousel or reel to Instagram / Threads / TikTok / X / YouTube / Telegram / LinkedIn through the official APIs | [`post-publisher`](skills/post-publisher/) | [publish-to-social](docs/walkthroughs/publish-to-social.md) |
 | Make a flyer / event poster / promo graphic (title + date + location + optional photo, multi-aspect) | [`flyer-maker`](skills/flyer-maker/) | [skills/flyer-maker/examples/before-after.md](skills/flyer-maker/examples/before-after.md) |
 | Turn a raw offer / price list into a beautiful commercial proposal (КП) styled from a website — real product photos, exact prices, print-to-PDF | [`proposal-maker`](skills/proposal-maker/) | [skills/proposal-maker/examples/before-after.md](skills/proposal-maker/examples/before-after.md) |
+| Album / book / podcast / report cover with real typography | [`cover-maker`](skills/cover-maker/) | [skills/cover-maker/examples/before-after.md](skills/cover-maker/examples/before-after.md) |
+| YouTube / blog / podcast thumbnail (face + bold title) | [`thumbnail-maker`](skills/thumbnail-maker/) | [skills/thumbnail-maker/examples/before-after.md](skills/thumbnail-maker/examples/before-after.md) |
+| Logo concepts in several directions | [`logo-maker`](skills/logo-maker/) | [skills/logo-maker/examples/before-after.md](skills/logo-maker/examples/before-after.md) |
+| Quote card for social | [`quote-card-maker`](skills/quote-card-maker/) | [skills/quote-card-maker/examples/before-after.md](skills/quote-card-maker/examples/before-after.md) |
+| Banner ad / OG image / Twitter card in standard sizes | [`banner-maker`](skills/banner-maker/) | [skills/banner-maker/examples/before-after.md](skills/banner-maker/examples/before-after.md) |
+| Meme card with caption conventions | [`meme-card-maker`](skills/meme-card-maker/) | [skills/meme-card-maker/examples/before-after.md](skills/meme-card-maker/examples/before-after.md) |
 | Headshot / profile-pic / avatar variants from a photo (identity-preserve via Nano Banana Pro, multi-aspect) | [`avatar-maker`](skills/avatar-maker/) | [skills/avatar-maker/examples/before-after.md](skills/avatar-maker/examples/before-after.md) |
 
 ### Manage the collection
@@ -197,6 +222,7 @@ The shared LLM prompt chains behind the visual skills: [image chain](common/visu
 |---|---|---|
 | Manage API keys (add / remove / update / verify / enable gate flags) | [`skills-keys`](skills/skills-keys/) | [skills/skills-keys/examples/before-after.md](skills/skills-keys/examples/before-after.md) |
 | Manage the style library (add / edit / validate / submit upstream) | [`skills-styles`](skills/skills-styles/) | [skills/skills-styles/examples/before-after.md](skills/skills-styles/examples/before-after.md) |
+| Turn a description or a reference image into a new style entry | [`style-suggest`](skills/style-suggest/) | [skills/style-suggest/examples/before-after.md](skills/style-suggest/examples/before-after.md) |
 | Update the collection itself | [`skills-update`](skills/skills-update/) | n/a — invoke directly |
 | Auto-lint every git commit | [`style-check`](skills/style-check/) | [pre-commit-hook](docs/walkthroughs/pre-commit-hook.md) |
 | Run a read-only quality gate | [`style-check`](skills/style-check/) | [style-check-gate](docs/walkthroughs/style-check-gate.md) |
@@ -266,7 +292,7 @@ Skills compose: wrappers call `writer` internally; linters reference the same ru
 
 `image-prompt`, `video-prompt`, `music-prompt` produce paste-ready prompts by default. Pass `--execute` and they ALSO call the vendor API and save real PNG / MP4 / MP3 assets. Without API keys they stay prompt-only — no breakage.
 
-`carousel-builder` and `reel-builder` are orchestrators built on this layer — they assemble batches of prompts and execute them with a single style anchor + cost confirmation.
+The orchestrators are built on this layer. `carousel-builder`, `reel-builder` and the single-image makers assemble batches of prompts and execute them with a single style anchor + cost confirmation; the media utilities (`transcribe-maker`, `voiceover-maker`, `bg-remover`, `upscaler`, `style-transfer`, `model-maker`) each make one call through it. `reel-recut`, `subtitle-burner`, `audio-mix-maker` and `gif-maker` call no API at all: they are ffmpeg.
 
 ```bash
 # image
@@ -279,7 +305,7 @@ Skills compose: wrappers call `writer` internally; linters reference the same ru
 ~/.claude/skills/music-prompt/scripts/run.py --execute --model suno-v5-5 --prompt "..." --lyrics-file ./lyrics.txt
 ```
 
-Vendors covered: OpenAI (gpt-image-2, Whisper + GPT-4o transcribe, TTS, Sora 2 until its 2026-09-24 removal), Google (Nano Banana Pro / 2 / 2 Lite, Veo 3.1 + Fast + Lite, Lyria 3 Pro), Black Forest Labs (Flux family + Kontext), Runway (Gen-4, Gen-4.5, Aleph), Kuaishou (Kling 3.0), Ideogram (3 Flash/Turbo/Default/Quality), ElevenLabs (Music + TTS on Eleven v3), Suno (v5.5), fal.ai + Replicate routers for everything else (Seedream 5, Hunyuan, LTX-2, Wan, MusicGen, Stable Audio, many open-source).
+Vendors covered: OpenAI (gpt-image-2, Whisper + GPT-4o transcribe, TTS, Sora 2 until its 2026-09-24 removal), Google (Nano Banana Pro / 2 / 2 Lite, Veo 3.1 + Fast + Lite, Lyria 3 Pro), Black Forest Labs (Flux family + Kontext), Runway (Gen-4, Gen-4.5, Aleph), Kuaishou (Kling 3.0), Ideogram (3 Flash/Turbo/Default/Quality, 4 Turbo/Default/Quality), ByteDance (Seedance 2.0 / 2.5 through BytePlus, Atlas Cloud, OpenRouter or fal), ElevenLabs (Music, sound effects, TTS on Eleven v3), Suno (v5.5), Tripo (3D meshes), fal.ai + Replicate + OpenRouter routers for everything else (Seedream 5, Hunyuan, LTX-2, Wan, MusicGen, Stable Audio, many open-source).
 
 Output: assets land at `./generated/<modality>/<timestamp>-<model>.<ext>`. If `S3_BUCKET` is set, they also upload to S3-compatible storage (AWS S3 / DigitalOcean Spaces / Cloudflare R2 / MinIO) and the URL is printed alongside.
 
@@ -381,8 +407,8 @@ skills/
 ├── common/
 │   ├── references/          # shared anti-pattern catalogues (hype words, preambles, …)
 │   ├── runners/             # optional Python execute layer (image/video/music)
-│   │   ├── providers/       # 14 image + 10 video + 5 music + 3 audio = 32 providers
-│   │   ├── cli/             # per-modality CLI entries (image / video / music / carousel / reel / keys)
+│   │   ├── providers/       # 18 image + 18 video + 6 music + 6 audio + 1 3D = 49 providers
+│   │   ├── cli/             # one CLI entry per job (image / video / music / carousel / reel / reel_recut / publish / keys / …)
 │   │   ├── styles.py        # style library loader
 │   │   ├── batch.py         # parallel executor for carousel / reel
 │   │   ├── ffmpeg.py        # concat / audio mix / caption burn-in
@@ -401,7 +427,7 @@ skills/
 │   ├── TROUBLESHOOTING.md   # when things break
 │   ├── VERSIONING.md        # semver policy + release flow
 │   ├── LINTER-COVERAGE.md   # auto-generated regex coverage
-│   ├── LAUNCH-POST.md       # frozen v1.9 launch copy
+│   ├── LAUNCH-POST.md       # per-platform launch copy
 │   └── walkthroughs/
 │       ├── README.md        # categorized index
 │       └── *.md             # 20 detailed flows
